@@ -1,0 +1,24 @@
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# IDE files
+.vscode
+.DS_Store
+.idea
+
+# Misc
+*.quick.gz
+main/main.go
+*.pprof
+*.workspace
+
+# Dependencies
+/vendor/
+vendor/
+vendor
+/Godeps/
+
+# Test binary, built with `go test -c`
+*.test
+*.tmp
+draft.txt
