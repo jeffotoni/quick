@@ -22,11 +22,42 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestQuick_Use(t *testing.T) {
+	type fields struct {
+		routes  []Route
+		mws     []func(http.Handler) http.Handler
+		mux     *http.ServeMux
+		handler http.Handler
+	}
+	type args struct {
+		mw func(http.Handler) http.Handler
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := &Quick{
+				routes:  tt.fields.routes,
+				mws:     tt.fields.mws,
+				mux:     tt.fields.mux,
+				handler: tt.fields.handler,
+			}
+			q.Use(tt.args.mw)
+		})
+	}
+}
+
 func TestQuick_Post(t *testing.T) {
 	type fields struct {
-		routes      []Route
-		middlewares []http.HandlerFunc
-		mux         *http.ServeMux
+		routes  []Route
+		mws     []func(http.Handler) http.Handler
+		mux     *http.ServeMux
+		handler http.Handler
 	}
 	type args struct {
 		pattern     string
@@ -42,9 +73,10 @@ func TestQuick_Post(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Quick{
-				routes:      tt.fields.routes,
-				middlewares: tt.fields.middlewares,
-				mux:         tt.fields.mux,
+				routes:  tt.fields.routes,
+				mws:     tt.fields.mws,
+				mux:     tt.fields.mux,
+				handler: tt.fields.handler,
 			}
 			r.Post(tt.args.pattern, tt.args.handlerFunc)
 		})
@@ -67,6 +99,47 @@ func Test_extractParamsPost(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := extractParamsPost(tt.args.pathTmp, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("extractParamsPost() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCtx_Param(t *testing.T) {
+	type fields struct {
+		Response http.ResponseWriter
+		Request  *http.Request
+		Headers  map[string][]string
+		Params   map[string]string
+		Query    map[string]string
+		JSON     map[string]interface{}
+		BodyByte []byte
+		JsonStr  string
+	}
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Ctx{
+				Response: tt.fields.Response,
+				Request:  tt.fields.Request,
+				Headers:  tt.fields.Headers,
+				Params:   tt.fields.Params,
+				Query:    tt.fields.Query,
+				JSON:     tt.fields.JSON,
+				BodyByte: tt.fields.BodyByte,
+				JsonStr:  tt.fields.JsonStr,
+			}
+			if got := c.Param(tt.args.key); got != tt.want {
+				t.Errorf("Ctx.Param() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -152,9 +225,10 @@ func TestCtx_BodyString(t *testing.T) {
 
 func TestQuick_Get(t *testing.T) {
 	type fields struct {
-		routes      []Route
-		middlewares []http.HandlerFunc
-		mux         *http.ServeMux
+		routes  []Route
+		mws     []func(http.Handler) http.Handler
+		mux     *http.ServeMux
+		handler http.Handler
 	}
 	type args struct {
 		pattern     string
@@ -170,9 +244,10 @@ func TestQuick_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Quick{
-				routes:      tt.fields.routes,
-				middlewares: tt.fields.middlewares,
-				mux:         tt.fields.mux,
+				routes:  tt.fields.routes,
+				mws:     tt.fields.mws,
+				mux:     tt.fields.mux,
+				handler: tt.fields.handler,
 			}
 			r.Get(tt.args.pattern, tt.args.handlerFunc)
 		})
@@ -201,39 +276,12 @@ func Test_extractParamsGet(t *testing.T) {
 	}
 }
 
-func TestQuick_Use(t *testing.T) {
-	type fields struct {
-		routes      []Route
-		middlewares []http.HandlerFunc
-		mux         *http.ServeMux
-	}
-	type args struct {
-		middleware http.HandlerFunc
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := &Quick{
-				routes:      tt.fields.routes,
-				middlewares: tt.fields.middlewares,
-				mux:         tt.fields.mux,
-			}
-			r.Use(tt.args.middleware)
-		})
-	}
-}
-
 func TestQuick_ServeHTTP(t *testing.T) {
 	type fields struct {
-		routes      []Route
-		middlewares []http.HandlerFunc
-		mux         *http.ServeMux
+		routes  []Route
+		mws     []func(http.Handler) http.Handler
+		mux     *http.ServeMux
+		handler http.Handler
 	}
 	type args struct {
 		w   http.ResponseWriter
@@ -249,9 +297,10 @@ func TestQuick_ServeHTTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			q := &Quick{
-				routes:      tt.fields.routes,
-				middlewares: tt.fields.middlewares,
-				mux:         tt.fields.mux,
+				routes:  tt.fields.routes,
+				mws:     tt.fields.mws,
+				mux:     tt.fields.mux,
+				handler: tt.fields.handler,
 			}
 			q.ServeHTTP(tt.args.w, tt.args.req)
 		})
@@ -504,9 +553,10 @@ func TestCtx_Status(t *testing.T) {
 
 func TestQuick_GetRoute(t *testing.T) {
 	type fields struct {
-		routes      []Route
-		middlewares []http.HandlerFunc
-		mux         *http.ServeMux
+		routes  []Route
+		mws     []func(http.Handler) http.Handler
+		mux     *http.ServeMux
+		handler http.Handler
 	}
 	tests := []struct {
 		name   string
@@ -518,12 +568,13 @@ func TestQuick_GetRoute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Quick{
-				routes:      tt.fields.routes,
-				middlewares: tt.fields.middlewares,
-				mux:         tt.fields.mux,
+				routes:  tt.fields.routes,
+				mws:     tt.fields.mws,
+				mux:     tt.fields.mux,
+				handler: tt.fields.handler,
 			}
 			if got := r.GetRoute(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Quick.GetRoutes() = %v, want %v", got, tt.want)
+				t.Errorf("Quick.GetRoute() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -531,9 +582,10 @@ func TestQuick_GetRoute(t *testing.T) {
 
 func TestQuick_Listen(t *testing.T) {
 	type fields struct {
-		routes      []Route
-		middlewares []http.HandlerFunc
-		mux         *http.ServeMux
+		routes  []Route
+		mws     []func(http.Handler) http.Handler
+		mux     *http.ServeMux
+		handler http.Handler
 	}
 	type args struct {
 		addr string
@@ -548,12 +600,13 @@ func TestQuick_Listen(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &Quick{
-				routes:      tt.fields.routes,
-				middlewares: tt.fields.middlewares,
-				mux:         tt.fields.mux,
+			q := &Quick{
+				routes:  tt.fields.routes,
+				mws:     tt.fields.mws,
+				mux:     tt.fields.mux,
+				handler: tt.fields.handler,
 			}
-			if err := r.Listen(tt.args.addr); (err != nil) != tt.wantErr {
+			if err := q.Listen(tt.args.addr); (err != nil) != tt.wantErr {
 				t.Errorf("Quick.Listen() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

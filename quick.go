@@ -53,17 +53,23 @@ func (q *Quick) Use(mw func(http.Handler) http.Handler) {
 func (r *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 	pathPost := ConcatStr("post#", pattern)
 	route := Route{
-		Pattern: pattern,
+		Pattern: "",
 		Path:    pattern,
 		handler: extractParamsPost(pattern, handlerFunc),
 		Method:  http.MethodPost,
 	}
+
 	r.routes = append(r.routes, route)
 	r.mux.HandleFunc(pathPost, route.handler)
 }
 
 func extractParamsPost(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		v := req.Context().Value(0)
+		if v == nil {
+			http.NotFound(w, req)
+			return
+		}
 		headersMap := make(map[string][]string)
 		for key, values := range req.Header {
 			headersMap[key] = values
@@ -117,16 +123,17 @@ func (c *Ctx) BodyString() string {
 func (r *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 	var path string = pattern
 	var params string
-
+	var partternExist string
 	index := strings.Index(pattern, ":")
 	if index > 0 {
 		path = pattern[:index]
 		path = strings.TrimSuffix(path, "/")
 		params = strings.TrimPrefix(pattern, path)
+		partternExist = pattern
 	}
 
 	route := Route{
-		Pattern: pattern,
+		Pattern: partternExist,
 		Path:    path,
 		Params:  params,
 		handler: extractParamsGet(path, params, handlerFunc),
@@ -144,16 +151,19 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 			http.NotFound(w, req)
 			return
 		}
+
 		cval := v.(ctxServeHttp)
 		querys := make(map[string]string)
 		queryParams := req.URL.Query()
 		for key, values := range queryParams {
 			querys[key] = values[0]
 		}
+
 		headersMap := make(map[string][]string)
 		for key, values := range req.Header {
 			headersMap[key] = values
 		}
+
 		c := &Ctx{
 			Response: w,
 			Request:  req,
@@ -166,44 +176,51 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 }
 
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-
-	// for _, middleware := range q.middlewares {
-	// 	middleware(w, req)
-	// }
-
 	for _, route := range q.routes {
-		if route.Method != strings.ToUpper(req.Method) {
-			continue
-		}
-
 		var pathTmp string = req.URL.Path
 		routeParams := route.Params
 		var paramsMap = make(map[string]string)
 
-		if route.Method == "GET" {
-			if len(routeParams) > 0 {
-				routeParams = strings.Replace(routeParams, "/", "", -1)
-				tmppath := strings.Replace(req.URL.Path, route.Path, "", -1)
-				ppurl := strings.Split(tmppath, "/")[1:]
-				pathParams := strings.Split(routeParams, ":")[1:]
+		if len(route.Pattern) > 0 && route.Method == req.Method {
+			routeParams = strings.Replace(routeParams, "/", "", -1)
+			tmppath := strings.Replace(req.URL.Path, route.Path, "", -1)
+			ppurl := strings.Split(tmppath, "/")[1:]
+			pathParams := strings.Split(routeParams, ":")[1:]
+
+			vetorPathRoute := strings.Split(route.Path, "/")
+			vetorPathDin := strings.Split(req.URL.Path, "/")
+
+			var newpath []string
+			for _, v := range vetorPathRoute {
+				for _, v2 := range vetorPathDin {
+					if v == v2 {
+						newpath = append(newpath, v)
+					}
+				}
+			}
+			pathTmp = strings.Join(newpath, "/")
+
+			if route.Path == pathTmp && route.Method == req.Method {
 				if len(pathParams) != len(ppurl) {
 					continue
 				}
-				pathTmp = route.Path
 				for i, p := range pathParams {
 					paramsMap[p] = ppurl[i]
 				}
+
+				var c = ctxServeHttp{Path: pathTmp, ParamsMap: paramsMap, Method: route.Method}
+				req = req.WithContext(context.WithValue(req.Context(), 0, c))
+				route.handler(w, req)
+				return
 			}
+		}
 
-			var c = ctxServeHttp{Path: pathTmp, Params: route.Params, ParamsMap: paramsMap, Method: route.Method}
+		if route.Path == pathTmp && route.Method == req.Method {
+			var c = ctxServeHttp{Path: pathTmp, Method: route.Method}
 			req = req.WithContext(context.WithValue(req.Context(), 0, c))
+			route.handler(w, req)
+			return
 		}
-		if route.Path != pathTmp {
-			continue
-		}
-
-		route.handler(w, req)
-		return
 	}
 	http.NotFound(w, req)
 }
