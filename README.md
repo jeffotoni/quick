@@ -155,3 +155,26 @@ Content-Type: text/plain; charset=utf-8
 {"name":"jeffotoni","year":1990}
 
 ```
+
+
+##### Cors
+```go
+
+package main
+
+import "github.com/jeffotoni/quick"
+import "github.com/jeffotoni/quick/middleware/cors"
+
+func main() {
+	app := quick.New()
+	app.Use(cors.New().Handler)
+
+	app.Get("/v1/user", func(c *quick.Ctx) {
+		c.Set("Content-Type", "application/json")
+		c.Status(200).SendString("Quick em ação com Cors❤️!")
+	})
+
+	app.Listen("0.0.0.0:8080")
+}
+
+```
