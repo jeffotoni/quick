@@ -181,6 +181,10 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		var paramsMap = make(map[string]string)
 
 		if route.Method == "GET" {
+			if !strings.HasPrefix(pathTmp, route.Path) {
+				continue
+			}
+
 			if len(routeParams) > 0 {
 				routeParams = strings.Replace(routeParams, "/", "", -1)
 				tmppath := strings.Replace(req.URL.Path, route.Path, "", -1)
