@@ -63,6 +63,24 @@ func (r *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 	r.mux.HandleFunc(pathPost, route.handler)
 }
 
+func extractHeaders(req http.Request) map[string][]string {
+	headersMap := make(map[string][]string)
+	for key, values := range req.Header {
+		headersMap[key] = values
+	}
+	return headersMap
+}
+
+func extractBodyByte(req http.Request) ([]byte, error) {
+	var bodyByte []byte
+	var err error
+
+	if req.Header.Get("Content-Type") == "application/json" {
+		bodyByte, err = io.ReadAll(req.Body)
+	}
+	return bodyByte, err
+}
+
 func extractParamsPost(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
@@ -70,19 +88,13 @@ func extractParamsPost(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc 
 			http.NotFound(w, req)
 			return
 		}
-		headersMap := make(map[string][]string)
-		for key, values := range req.Header {
-			headersMap[key] = values
-		}
 
-		var bodyByte []byte
-		var err error
-		if req.Header.Get("Content-Type") == "application/json" {
-			bodyByte, err = io.ReadAll(req.Body)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
+		headersMap := extractHeaders(*req)
+
+		bodyByte, err := extractBodyByte(*req)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		c := &Ctx{
@@ -158,11 +170,7 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 		for key, values := range queryParams {
 			querys[key] = values[0]
 		}
-
-		headersMap := make(map[string][]string)
-		for key, values := range req.Header {
-			headersMap[key] = values
-		}
+		headersMap := extractHeaders(*req)
 
 		c := &Ctx{
 			Response: w,
