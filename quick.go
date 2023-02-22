@@ -171,23 +171,24 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		routeParams := route.Params
 		var paramsMap = make(map[string]string)
 
-		if route.Method == "GET" && len(routeParams) > 0 {
-			routeParams = strings.Replace(routeParams, "/", "", -1)
-			tmppath := strings.Replace(req.URL.Path, route.Path, "", -1)
-			ppurl := strings.Split(tmppath, "/")[1:]
-			pathParams := strings.Split(routeParams, ":")[1:]
-			if len(pathParams) != len(ppurl) {
-				continue
-			}
-			pathTmp = route.Path
-			for i, p := range pathParams {
-				paramsMap[p] = ppurl[i]
+		if route.Method == "GET" {
+			if len(routeParams) > 0 {
+				routeParams = strings.Replace(routeParams, "/", "", -1)
+				tmppath := strings.Replace(req.URL.Path, route.Path, "", -1)
+				ppurl := strings.Split(tmppath, "/")[1:]
+				pathParams := strings.Split(routeParams, ":")[1:]
+				if len(pathParams) != len(ppurl) {
+					continue
+				}
+				pathTmp = route.Path
+				for i, p := range pathParams {
+					paramsMap[p] = ppurl[i]
+				}
 			}
 
 			var c = ctxServeHttp{Path: pathTmp, Params: route.Params, ParamsMap: paramsMap, Method: route.Method}
 			req = req.WithContext(context.WithValue(req.Context(), 0, c))
 		}
-
 		if route.Path != pathTmp {
 			continue
 		}
@@ -213,7 +214,7 @@ func (c *Ctx) Byte(b []byte) (err error) {
 	return err
 }
 
-func (c *Ctx) String(s string) error {
+func (c *Ctx) SendString(s string) error {
 	_, err := c.Response.Write([]byte(s))
 	return err
 }

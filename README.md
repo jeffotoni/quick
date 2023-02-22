@@ -45,7 +45,8 @@ func main() {
 	app := quick.New()
 
 	app.Get("/v1/user", func(c *quick.Ctx) {
-		return c.SendString("Quick em ação ❤️!")
+		c.Status(200).String("Quick em ação ❤️!")
+		return
 	})
 
 	app.Listen("0.0.0.0:8080")
