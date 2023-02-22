@@ -340,7 +340,7 @@ func TestCtx_Byte(t *testing.T) {
 	}
 }
 
-func TestCtx_String(t *testing.T) {
+func TestCtx_SendString(t *testing.T) {
 	type fields struct {
 		Response http.ResponseWriter
 		Request  *http.Request
@@ -374,8 +374,8 @@ func TestCtx_String(t *testing.T) {
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
-			if err := c.String(tt.args.s); (err != nil) != tt.wantErr {
-				t.Errorf("Ctx.String() error = %v, wantErr %v", err, tt.wantErr)
+			if err := c.SendString(tt.args.s); (err != nil) != tt.wantErr {
+				t.Errorf("Ctx.SendString() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
