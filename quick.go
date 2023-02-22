@@ -187,18 +187,13 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			ppurl := strings.Split(tmppath, "/")[1:]
 			pathParams := strings.Split(routeParams, ":")[1:]
 
-			vetorPathRoute := strings.Split(route.Path, "/")
-			vetorPathDin := strings.Split(req.URL.Path, "/")
-
-			var newpath []string
-			for _, v := range vetorPathRoute {
-				for _, v2 := range vetorPathDin {
-					if v == v2 {
-						newpath = append(newpath, v)
-					}
+			prefix := ConcatStr(route.Path, "/")
+			if strings.HasPrefix(pathTmp, prefix) {
+				newPath := pathTmp[len(prefix):]
+				if len(newPath) > 0 {
+					pathTmp = route.Path
 				}
 			}
-			pathTmp = strings.Join(newpath, "/")
 
 			if route.Path == pathTmp && route.Method == req.Method {
 				if len(pathParams) != len(ppurl) {
