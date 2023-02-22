@@ -57,6 +57,12 @@ func main() {
 ```bash
 
 $ curl -i -XGET -H "Content-Type:application/json" 'localhost:8080/v1/user'
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Wed, 22 Feb 2023 07:45:36 GMT
+Content-Length: 23
+
+Quick em ação ❤️!% 
 
 ```
 
