@@ -11,12 +11,18 @@ import (
 
 func Logger(w http.ResponseWriter, req *http.Request) {
 	start := time.Now()
-	ip, port, _ := net.SplitHostPort(req.RemoteAddr)
+	ip, port, err := net.SplitHostPort(req.RemoteAddr)
+	if err != nil {
+		log.Fatalf("error: %v\n", err)
+	}
 	lw := &LogWriter{w, http.StatusOK}
 
 	var bodySize int64
 	if req.Body != nil {
-		body, _ := ioutil.ReadAll(req.Body)
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			log.Fatalf("error: %v\n", err)
+		}
 		bodySize = int64(len(body))
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	}
