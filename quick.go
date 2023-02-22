@@ -160,8 +160,12 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 	}
 }
 
-func (r *Quick) Use(middleware http.HandlerFunc) {
-	r.middlewares = append(r.middlewares, middleware)
+// func (r *Quick) Use(middleware http.HandlerFunc) {
+// 	r.middlewares = append(r.middlewares, middleware)
+// }
+
+func (r *Quick) Use(mw func(http.Handler) http.Handler) {
+	r.mux.Use(mw)
 }
 
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -246,6 +250,16 @@ func (r *Quick) GetRoute() []Route {
 }
 
 func (r *Quick) Listen(addr string) error {
+	//muxcors := cors.Default().Handler(r)
+	server := &http.Server{
+		Addr:    addr,
+		Handler: r,
+		// ReadTimeout:
+		// WriteTimeout:
+		// MaxHeaderBytes:
+		// IdleTimeout:
+		// ReadHeaderTimeout:
+	}
 	println("\033[0;33mRun Server Quick:", addr, "\033[0m")
-	return http.ListenAndServe(addr, r)
+	return server.ListenAndServe()
 }
