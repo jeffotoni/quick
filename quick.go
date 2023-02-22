@@ -107,6 +107,34 @@ func extractParamsPost(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc 
 	}
 }
 
+func extractParamsPut(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		v := req.Context().Value(0)
+		if v == nil {
+			http.NotFound(w, req)
+			return
+		}
+		headersMap := extractHeaders(*req)
+
+		cval := v.(ctxServeHttp)
+
+		bodyByte, err := extractBodyByte(*req)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		c := &Ctx{
+			Response: w,
+			Request:  req,
+			Headers:  headersMap,
+			BodyByte: bodyByte,
+			Params:   cval.ParamsMap,
+		}
+		handlerFunc(c)
+	}
+}
+
 func (c *Ctx) Param(key string) string {
 	val, ok := c.Params[key]
 	if ok {
