@@ -502,7 +502,7 @@ func TestCtx_Status(t *testing.T) {
 	}
 }
 
-func TestQuick_ListRoutes(t *testing.T) {
+func TestQuick_GetRoute(t *testing.T) {
 	type fields struct {
 		routes      []Route
 		middlewares []http.HandlerFunc
@@ -522,8 +522,8 @@ func TestQuick_ListRoutes(t *testing.T) {
 				middlewares: tt.fields.middlewares,
 				mux:         tt.fields.mux,
 			}
-			if got := r.ListRoutes(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Quick.ListRoutes() = %v, want %v", got, tt.want)
+			if got := r.GetRoute(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Quick.GetRoutes() = %v, want %v", got, tt.want)
 			}
 		})
 	}

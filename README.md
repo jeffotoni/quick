@@ -29,6 +29,7 @@ Vou deixar um sumário simples do que teremos para desenvolver:
 - [70%] Desenvolver suporte a ServeHTTP
 - [10%] Desenvolver suporte a middlewares
 - [80%] Desenvolve suporte a Grupo de Rotas
+- [0.%] Desenvolve suporte Static Files
 
 
 #### Contribuição 
@@ -56,7 +57,8 @@ func main() {
 
 ```bash
 
-$ curl -i -XGET -H "Content-Type:application/json" 'localhost:8080/v1/user'
+$ curl -i -XGET -H "Content-Type:application/json" \
+'localhost:8080/v1/user'
 HTTP/1.1 200 OK
 Content-Type: application/json
 Date: Wed, 22 Feb 2023 07:45:36 GMT
@@ -66,4 +68,90 @@ Quick em ação ❤️!%
 
 ```
 
+##### Quick Get Params
+```go
 
+package main
+
+import "github.com/jeffotoni/quick"
+
+func main() {
+	app := quick.New()
+
+	app.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) {
+		c.Set("Content-Type", "application/json")
+
+		type my struct {
+			Msg string `json:"msg"`
+			Key string `json:"key"`
+			Val string `json:"val"`
+		}
+
+		c.Status(200).Json(&my{
+			Msg: "Quick ❤️",
+			Key: c.Param("param1"),
+			Val: c.Param("param2"),
+		})
+	})
+
+	app.Listen("0.0.0.0:8080")
+}
+
+```
+
+```bash
+
+$ curl -i -XGET -H "Content-Type:application/json" \
+'localhost:8080/v1/customer/val1/val2'
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Wed, 22 Feb 2023 07:45:36 GMT
+Content-Length: 23
+
+{"msg":"Quick ❤️","key":"val1","val":"val2"}
+
+```
+
+##### Quick Post json
+```go
+
+package main
+
+import "github.com/jeffotoni/quick"
+
+type My struct {
+	Name string `json:"name"`
+	Year int    `json:"year"`
+}
+
+func main() {
+	app := quick.New()
+	app.Post("/v1/user", func(c *quick.Ctx) {
+		var my My
+		err := c.Body(&my)
+		if err != nil {
+			fmt.Println("error Body:", err)
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		c.Status(200).Json(&my)
+	})
+
+	app.Listen("0.0.0.0:8080")
+}
+
+```
+
+```bash
+
+$ curl -i -XPOST -H "Content-Type:application/json" \
+'localhost:8080/v1/user' \
+-d '{"name":"jeffotoni", "year":1990}'
+HTTP/1.1 200 OK
+Date: Wed, 22 Feb 2023 08:10:06 GMT
+Content-Length: 32
+Content-Type: text/plain; charset=utf-8
+
+{"name":"jeffotoni","year":1990}
+
+```
