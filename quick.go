@@ -36,13 +36,18 @@ type ctxServeHttp struct {
 }
 
 type Quick struct {
-	routes      []Route
-	middlewares []http.HandlerFunc
-	mux         *http.ServeMux
+	routes  []Route
+	mws     []func(http.Handler) http.Handler
+	mux     *http.ServeMux
+	handler http.Handler
 }
 
 func New() *Quick {
-	return &Quick{mux: http.NewServeMux()}
+	return &Quick{mux: http.NewServeMux(), handler: http.NewServeMux()}
+}
+
+func (q *Quick) Use(mw func(http.Handler) http.Handler) {
+	q.mws = append(q.mws, mw)
 }
 
 func (r *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
@@ -160,19 +165,11 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 	}
 }
 
-// func (r *Quick) Use(middleware http.HandlerFunc) {
-// 	r.middlewares = append(r.middlewares, middleware)
-// }
-
-func (r *Quick) Use(mw func(http.Handler) http.Handler) {
-	r.mux.Use(mw)
-}
-
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
-	for _, middleware := range q.middlewares {
-		middleware(w, req)
-	}
+	// for _, middleware := range q.middlewares {
+	// 	middleware(w, req)
+	// }
 
 	for _, route := range q.routes {
 		if route.Method != strings.ToUpper(req.Method) {
@@ -249,11 +246,15 @@ func (r *Quick) GetRoute() []Route {
 	return r.routes
 }
 
-func (r *Quick) Listen(addr string) error {
-	//muxcors := cors.Default().Handler(r)
+func (q *Quick) Listen(addr string) error {
+	var handler http.Handler = q
+	for i := len(q.mws) - 1; i >= 0; i-- {
+		handler = q.mws[i](handler)
+	}
+
 	server := &http.Server{
 		Addr:    addr,
-		Handler: r,
+		Handler: handler,
 		// ReadTimeout:
 		// WriteTimeout:
 		// MaxHeaderBytes:
