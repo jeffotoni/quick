@@ -184,6 +184,30 @@ func (r *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 	r.mux.HandleFunc(path, route.handler)
 }
 
+func (r *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
+	var path string = pattern
+	var params string
+	var partternExist string
+	index := strings.Index(pattern, ":")
+	if index > 0 {
+		path = pattern[:index]
+		path = strings.TrimSuffix(path, "/")
+		params = strings.TrimPrefix(pattern, path)
+		partternExist = pattern
+	}
+	pathPost := ConcatStr("post#", pattern)
+	route := Route{
+		Pattern: partternExist,
+		Path:    pattern,
+		handler: extractParamsPost(pattern, handlerFunc),
+		Method:  http.MethodPost,
+		Params:  params,
+	}
+
+	r.routes = append(r.routes, route)
+	r.mux.HandleFunc(pathPost, route.handler)
+}
+
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
