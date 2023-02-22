@@ -3,13 +3,13 @@
 
 O quick é um gerenciador de rotas para Go, onde sua sintaxe foi inspirado no framework fiber.
 
-É um gerenciador de rotas minimalistico está nascendo e está em desenvolvimento, é para ser ráṕido e com alto desempenho 100% compatível com net/http.
+É um gerenciador de rotas minimalistico está nascendo e está em **desenvolvimento** constante, é para ser rápido e com alto desempenho 100% compatível com net/http.
 
-O objetivo é didático, e colaboração, todos são bem vindos a ajudar.
+**O objetivo é didático, e colaboração, todos são bem vindos a ajudar. 😍**
 
 O foco será o desempenho, otimizações e muito testes unitários.
 
-Vou deixar um sumário simples do que teremos para desenvolver:
+#### Rodmap do desenvolvimento
 
 - [50%] Desenvolver Routes Método GET
 - [90%] Desenvolver Routes Método GET aceitando Query String
@@ -30,6 +30,7 @@ Vou deixar um sumário simples do que teremos para desenvolver:
 - [10%] Desenvolver suporte a middlewares
 - [80%] Desenvolve suporte a Grupo de Rotas
 - [0.%] Desenvolve suporte Static Files
+- [0.%] Desenvolver suporte Cors
 
 
 #### Contribuição 
@@ -130,8 +131,7 @@ func main() {
 		var my My
 		err := c.Body(&my)
 		if err != nil {
-			fmt.Println("error Body:", err)
-			c.Status(http.StatusBadRequest)
+			c.Status(400).SendString(err.Error())
 			return
 		}
 		c.Status(200).Json(&my)

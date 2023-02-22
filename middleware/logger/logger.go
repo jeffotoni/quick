@@ -1,4 +1,4 @@
-package quick
+package logger
 
 import (
 	"bytes"
