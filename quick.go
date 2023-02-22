@@ -84,6 +84,14 @@ func extractParamsPost(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc 
 	}
 }
 
+func (c *Ctx) Param(key string) string {
+	val, ok := c.Params[key]
+	if ok {
+		return val
+	}
+	return ""
+}
+
 func (c *Ctx) Body(v interface{}) (err error) {
 	if c.Request.Header.Get("Content-Type") == "application/json" {
 		if len(c.BodyByte) > 0 {
@@ -233,7 +241,7 @@ func (c *Ctx) Status(status int) *Ctx {
 	return c
 }
 
-func (r *Quick) ListRoutes() []Route {
+func (r *Quick) GetRoute() []Route {
 	return r.routes
 }
 
