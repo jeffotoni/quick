@@ -8,7 +8,8 @@
 
 # Misc
 *.quick.gz
-main/*
+pocs/*
+pocs.example/*
 *.pprof
 *.workspace
 
