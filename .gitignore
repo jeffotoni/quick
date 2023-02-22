@@ -8,7 +8,7 @@
 
 # Misc
 *.quick.gz
-main/main.go
+main/*
 *.pprof
 *.workspace
 

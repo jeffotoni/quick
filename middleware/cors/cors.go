@@ -6,14 +6,18 @@ import (
 	"github.com/rs/cors"
 )
 
-func New(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cors := cors.New(cors.Options{
+type Cors struct {
+	handler *cors.Cors
+}
+
+func New() *Cors {
+	return &Cors{
+		handler: cors.New(cors.Options{
 			AllowedOrigins: []string{"*"},
-			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders: []string{"*"},
-			MaxAge:         86400,
-		})
-		cors.ServeHTTP(w, r, next.ServeHTTP)
-	})
+		}),
+	}
+}
+
+func (c *Cors) Handler(next http.Handler) http.Handler {
+	return c.handler.Handler(next)
 }
