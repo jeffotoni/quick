@@ -20,8 +20,12 @@ O foco será o desempenho, otimizações e muito testes unitários.
 - [90%] Desenvolver Routes Método POST aceitando JSON
 - [90%] Desenvolver para o MÉTODO POST o parse JSON
 - [90%] Desenvolver para o MÉTODO POST funções para acessar byte ou string do Parse
-- [0.%] Desenvolver para o MÉTODO PUT
+- [80%] Desenvolver para o MÉTODO PUT
+- [90%] Desenvolver para o MÉTODO PUT o parse JSON
+- [90%] Desenvolver para o MÉTODO PUT o parse JSON
+- [90%] Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse
 - [0.%] Desenvolver para o MÉTODO DELETE
+- [0.%] Desenvolver para o MÉTODO OPTIONS
 - [90%] Desenvolver método para ListenAndServe
 - [0.%] Desenvolver método para ListenAndServeTLS (http2)
 - [70%] Desenvolver método para Facilitar a manipulação do ResponseWriter
