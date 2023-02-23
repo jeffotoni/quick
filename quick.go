@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -387,6 +388,11 @@ func (c *Ctx) SendString(s string) error {
 	return err
 }
 
+func (c *Ctx) SendFile(file []byte) error {
+	_, err := c.Response.Write(file)
+	return err
+}
+
 func (c *Ctx) Set(key, value string) {
 	c.Response.Header().Set(key, value)
 }
@@ -403,6 +409,23 @@ func (c *Ctx) Status(status int) *Ctx {
 
 func (q *Quick) GetRoute() []Route {
 	return q.routes
+}
+
+func (q *Quick) ServeStaticFile(staticFolder string) {
+	// generate route get with a pattern like this: /static/:file
+	pattern := ConcatStr(staticFolder, ":file")
+	q.Get(pattern, func(c *Ctx) {
+		path, _, _ := extractParamsPattern(pattern)
+		file := c.Params["file"]
+		filePath := ConcatStr(".", path, "/", file)
+
+		fileBytes, err := os.ReadFile(filePath)
+		if err != nil {
+			c.Status(http.StatusNotFound).SendString("File Not Found")
+		}
+
+		c.Status(http.StatusOK).SendFile(fileBytes)
+	})
 }
 
 func (q *Quick) Listen(addr string) error {
