@@ -216,6 +216,14 @@ func (c *Ctx) Param(key string) string {
 	return ""
 }
 
+func (q *Quick) registerHandler(pattern string, handler http.Handler) {
+	for i := range q.mws {
+		handler = q.mws[i](handler)
+	}
+
+	q.mux.Handle(pattern, handler)
+}
+
 func (c *Ctx) Body(v interface{}) (err error) {
 	if c.Request.Header.Get("Content-Type") == "application/json" {
 		if len(c.BodyByte) > 0 {
@@ -246,7 +254,7 @@ func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
 	}
 
 	g.quick.routes = append(g.quick.routes, route)
-	g.quick.mux.HandleFunc(path, route.handler)
+	g.quick.registerHandler(path, route.handler)
 }
 
 func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
@@ -277,7 +285,7 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 	}
 
 	q.routes = append(q.routes, route)
-	q.mux.HandleFunc(path, route.handler)
+	q.registerHandler(path, route.handler)
 }
 
 func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
