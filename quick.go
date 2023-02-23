@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Ctx struct {
@@ -35,32 +36,80 @@ type ctxServeHttp struct {
 	Method    string
 }
 
+type Config struct {
+	MaxBodySize       int64
+	ReadTimeout       time.Duration
+	WriteTimeout      time.Duration
+	MaxHeaderBytes    int64
+	IdleTimeout       time.Duration
+	ReadHeaderTimeout time.Duration
+}
+
+var defaultConfig = Config{
+	MaxBodySize:    3 * 1024 * 1024,
+	MaxHeaderBytes: 1 * 1024 * 1024,
+	//ReadTimeout:  10 * time.Second,
+	//WriteTimeout: 10 * time.Second,
+	//IdleTimeout:       1 * time.Second,
+	//ReadHeaderTimeout: 3 * time.Second,
+}
+
+type Group struct {
+	prefix string
+	routes []Route
+	quick  *Quick
+}
+
 type Quick struct {
 	routes  []Route
+	groups  []Group
 	mws     []func(http.Handler) http.Handler
 	mux     *http.ServeMux
 	handler http.Handler
+	config  Config
+	//groupp  string
 }
 
-func New() *Quick {
-	return &Quick{mux: http.NewServeMux(), handler: http.NewServeMux()}
+func New(c ...Config) *Quick {
+	var config Config
+	if len(c) > 0 {
+		config = c[0]
+	} else {
+		config = defaultConfig
+	}
+
+	return &Quick{
+		mux:     http.NewServeMux(),
+		handler: http.NewServeMux(),
+		config:  config,
+	}
 }
 
 func (q *Quick) Use(mw func(http.Handler) http.Handler) {
 	q.mws = append(q.mws, mw)
 }
 
-func (r *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
+func (q *Quick) Group(prefix string) *Group {
+	g := &Group{
+		prefix: prefix,
+		routes: []Route{},
+		quick:  q,
+	}
+	q.groups = append(q.groups, *g)
+	return g
+}
+
+func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 	pathPost := ConcatStr("post#", pattern)
 	route := Route{
 		Pattern: "",
 		Path:    pattern,
-		handler: extractParamsPost(pattern, handlerFunc),
+		handler: extractParamsPost(q, pattern, handlerFunc),
 		Method:  http.MethodPost,
 	}
 
-	r.routes = append(r.routes, route)
-	r.mux.HandleFunc(pathPost, route.handler)
+	q.routes = append(q.routes, route)
+	q.mux.HandleFunc(pathPost, route.handler)
 }
 
 func extractHeaders(req http.Request) map[string][]string {
@@ -81,11 +130,16 @@ func extractBodyByte(req http.Request) ([]byte, error) {
 	return bodyByte, err
 }
 
-func extractParamsPost(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
+func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
 			http.NotFound(w, req)
+			return
+		}
+
+		if req.ContentLength > q.config.MaxBodySize {
+			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
 
@@ -107,13 +161,19 @@ func extractParamsPost(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc 
 	}
 }
 
-func extractParamsPut(pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
+func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
 			http.NotFound(w, req)
 			return
 		}
+
+		if req.ContentLength > q.config.MaxBodySize {
+			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+			return
+		}
+
 		headersMap := extractHeaders(*req)
 
 		cval := v.(ctxServeHttp)
@@ -160,7 +220,8 @@ func (c *Ctx) BodyString() string {
 	return c.JsonStr
 }
 
-func (r *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
+func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
+	pattern = ConcatStr(g.prefix, pattern)
 	var path string = pattern
 	var params string
 	var partternExist string
@@ -180,11 +241,12 @@ func (r *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 		Method:  http.MethodGet,
 	}
 
-	r.routes = append(r.routes, route)
-	r.mux.HandleFunc(path, route.handler)
+	g.quick.routes = append(g.quick.routes, route)
+	g.quick.mux.HandleFunc(path, route.handler)
 }
 
-func (r *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
+func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
+	pattern = ConcatStr(g.prefix, pattern)
 	var path string = pattern
 	var params string
 	var partternExist string
@@ -199,13 +261,61 @@ func (r *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
 	route := Route{
 		Pattern: partternExist,
 		Path:    pattern,
-		handler: extractParamsPost(pattern, handlerFunc),
+		handler: extractParamsPost(g.quick, pattern, handlerFunc),
 		Method:  http.MethodPost,
 		Params:  params,
 	}
 
-	r.routes = append(r.routes, route)
-	r.mux.HandleFunc(pathPost, route.handler)
+	g.quick.routes = append(g.quick.routes, route)
+	g.quick.mux.HandleFunc(pathPost, route.handler)
+}
+
+func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
+	var path string = pattern
+	var params string
+	var partternExist string
+	index := strings.Index(pattern, ":")
+	if index > 0 {
+		path = pattern[:index]
+		path = strings.TrimSuffix(path, "/")
+		params = strings.TrimPrefix(pattern, path)
+		partternExist = pattern
+	}
+
+	route := Route{
+		Pattern: partternExist,
+		Path:    path,
+		Params:  params,
+		handler: extractParamsGet(path, params, handlerFunc),
+		Method:  http.MethodGet,
+	}
+
+	q.routes = append(q.routes, route)
+	q.mux.HandleFunc(path, route.handler)
+}
+
+func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
+	var path string = pattern
+	var params string
+	var partternExist string
+	index := strings.Index(pattern, ":")
+	if index > 0 {
+		path = pattern[:index]
+		path = strings.TrimSuffix(path, "/")
+		params = strings.TrimPrefix(pattern, path)
+		partternExist = pattern
+	}
+	pathPut := ConcatStr("put#", pattern)
+	route := Route{
+		Pattern: partternExist,
+		Path:    pattern,
+		handler: extractParamsPost(q, pattern, handlerFunc),
+		Method:  http.MethodPut,
+		Params:  params,
+	}
+
+	q.routes = append(q.routes, route)
+	q.mux.HandleFunc(pathPut, route.handler)
 }
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
@@ -314,8 +424,8 @@ func (c *Ctx) Status(status int) *Ctx {
 	return c
 }
 
-func (r *Quick) GetRoute() []Route {
-	return r.routes
+func (q *Quick) GetRoute() []Route {
+	return q.routes
 }
 
 func (q *Quick) Listen(addr string) error {
@@ -333,6 +443,7 @@ func (q *Quick) Listen(addr string) error {
 		// IdleTimeout:
 		// ReadHeaderTimeout:
 	}
-	println("\033[0;33mRun Server Quick:", addr, "\033[0m")
+
+	Print("\033[0;33mRun Server Quick:", addr, "\033[0m")
 	return server.ListenAndServe()
 }
