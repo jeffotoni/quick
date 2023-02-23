@@ -11,6 +11,13 @@ O foco será o desempenho, otimizações e muito testes unitários.
 
 #### Rodmap do desenvolvimento
 
+- [100%] Desenvolver MaxBodySize metodos Post e Put
+- [100%] Desenvolver Config em New(Config{}) não obrigatório
+- [70%] Desenvolve suporte a Grupo de Rotas - Group Get e Post
+- [30%] Desenvolver e relacionar ao Listen o Config
+- [100%] Criação de função print para não usar fmt de forma demasiada
+- [100%] Criação de função própria para Concat String
+- [100%] Criação de benchmarking entre os.Stdout e fmt.Println
 - [50%] Desenvolver Routes Método GET
 - [90%] Desenvolver Routes Método GET aceitando Query String
 - [90%] Desenvolver Routes Método GET aceitando Parametros 
@@ -32,7 +39,6 @@ O foco será o desempenho, otimizações e muito testes unitários.
 - [70%] Desenvolver método para Facilitar a manipulação do Request
 - [70%] Desenvolver suporte a ServeHTTP
 - [10%] Desenvolver suporte a middlewares
-- [80%] Desenvolve suporte a Grupo de Rotas
 - [0.%] Desenvolve suporte Static Files
 - [0.%] Desenvolver suporte Cors
 
@@ -160,7 +166,6 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
-
 ##### Cors
 ```go
 
@@ -180,5 +185,64 @@ func main() {
 
 	app.Listen("0.0.0.0:8080")
 }
+
+```
+
+##### quick.Config{}
+```go
+
+package main
+
+import "github.com/jeffotoni/quick"
+
+func main() {
+	app := quick.New(quick.Config{
+		MaxBodySize: 5 * 1024 * 1024,
+	})
+
+	app.Get("/v1/user", func(c *quick.Ctx) {
+		c.Set("Content-Type", "application/json")
+		c.Status(200).SendString("Quick em ação com Cors❤️!")
+	})
+
+	app.Listen("0.0.0.0:8080")
+}
+
+```
+
+##### quick.Group()
+```go
+package main
+
+import "github.com/jeffotoni/quick"
+
+func main() {
+	app := quick.New(quick.Config{
+		MaxBodySize: 5 * 1024 * 1024,
+	})
+
+	group := app.Group("/v1")
+	group.Get("/user", func(c *quick.Ctx) {
+		c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
+		return
+	})
+	group.Post("/user", func(c *quick.Ctx) {
+		c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
+		return
+	})
+
+	app.Get("/v2/user", func(c *quick.Ctx) {
+		c.Set("Content-Type", "application/json")
+		c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+	})
+
+	app.Post("/v2/user", func(c *quick.Ctx) {
+		c.Set("Content-Type", "application/json")
+		c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+	})
+
+	app.Listen("0.0.0.0:8080")
+}
+
 
 ```
