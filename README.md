@@ -39,7 +39,7 @@ O foco será o desempenho, otimizações e muito testes unitários.
 - [70%] Desenvolver método para Facilitar a manipulação do Request
 - [70%] Desenvolver suporte a ServeHTTP
 - [10%] Desenvolver suporte a middlewares
-- [0.%] Desenvolve suporte Static Files
+- [80%] Desenvolve suporte Static Files
 - [0.%] Desenvolver suporte Cors
 
 
