@@ -9,7 +9,7 @@ const (
 )
 
 // Auth: This function gets the  API-Token provided by client from Header and check if it's valid
-func Auth(apiTokenKey string, value string) http.HandlerFunc {
+func Auth(route http.HandlerFunc, apiTokenKey string, value string) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		apiKeyFromHeader := req.Header.Get(apiTokenKey)
 		if apiKeyFromHeader != value {
@@ -18,5 +18,6 @@ func Auth(apiTokenKey string, value string) http.HandlerFunc {
 			rw.Write([]byte(errorAuthMessage))
 			return
 		}
+		route.ServeHTTP(rw, req)
 	}
 }

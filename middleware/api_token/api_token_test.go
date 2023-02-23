@@ -2,6 +2,7 @@ package apitoken
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +15,7 @@ func Test_Auth(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/some", nil)
 		req.Header.Set("api-token", "myValue")
 		rec := httptest.NewRecorder()
-		fn := Auth("api-token", "myValue")
+		fn := Auth(mockApiToken, "api-token", "myValue")
 		fn.ServeHTTP(rec, req)
 
 		resp := rec.Result()
@@ -30,6 +31,7 @@ func Test_Auth(t *testing.T) {
 		}
 
 		t.Log("out: ", string(data))
+		log.Printf("out: %s", string(data))
 	})
 
 	t.Run("fail", func(t *testing.T) {
@@ -37,7 +39,7 @@ func Test_Auth(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/some", nil)
 		req.Header.Set("api-token", "myValue")
 		rec := httptest.NewRecorder()
-		fn := Auth("api-token", "myValu")
+		fn := Auth(mockApiToken, "api-token", "myValu")
 		fn.ServeHTTP(rec, req)
 
 		resp := rec.Result()
@@ -53,5 +55,10 @@ func Test_Auth(t *testing.T) {
 		}
 
 		t.Log("out: ", string(data))
+		log.Printf("out: %s", string(data))
 	})
+}
+
+func mockApiToken(rw http.ResponseWriter, req *http.Request) {
+	rw.Write([]byte(`{"data": "mock"}`))
 }
