@@ -118,6 +118,7 @@ func TestQuick_Put(t *testing.T) {
 
 func Test_extractParamsPost(t *testing.T) {
 	type args struct {
+		quick       Quick
 		pathTmp     string
 		handlerFunc func(*Ctx)
 	}
@@ -130,7 +131,7 @@ func Test_extractParamsPost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := extractParamsPost(tt.args.pathTmp, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+			if got := extractParamsPost(&tt.args.quick, tt.args.pathTmp, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("extractParamsPost() = %v, want %v", got, tt.want)
 			}
 		})
@@ -682,4 +683,50 @@ func BenchmarkWriteToStdout_1000Bytes(b *testing.B) {
 
 func BenchmarkPrintln_1000Bytes(b *testing.B) {
 	benchmarkPrintln(b, 1000)
+}
+
+func Test_extractParamsPattern(t *testing.T) {
+	type args struct {
+		pattern string
+	}
+	tests := []struct {
+		name              string
+		args              args
+		wantPath          string
+		wantParams        string
+		wantPartternExist string
+	}{
+		{
+			name: "should ble able to extract 1 param",
+			args: args{
+				pattern: "/v1/customer/:param1",
+			},
+			wantPath:          "/v1/customer",
+			wantParams:        "/:param1",
+			wantPartternExist: "/v1/customer/:param1",
+		},
+		{
+			name: "should ble able to extract 2 params",
+			args: args{
+				pattern: "/v1/customer/params/:param1/:param2",
+			},
+			wantPath:          "/v1/customer/params",
+			wantParams:        "/:param1/:param2",
+			wantPartternExist: "/v1/customer/params/:param1/:param2",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPath, gotParams, gotPartternExist := extractParamsPattern(tt.args.pattern)
+			if gotPath != tt.wantPath {
+				t.Errorf("extractParamsPattern() gotPath = %v, want %v", gotPath, tt.wantPath)
+			}
+			if gotParams != tt.wantParams {
+				t.Errorf("extractParamsPattern() gotParams = %v, want %v", gotParams, tt.wantParams)
+			}
+			if gotPartternExist != tt.wantPartternExist {
+				t.Errorf("extractParamsPattern() gotPartternExist = %v, want %v", gotPartternExist, tt.wantPartternExist)
+			}
+		})
+	}
 }
