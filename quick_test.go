@@ -288,6 +288,38 @@ func TestQuick_Get(t *testing.T) {
 	}
 }
 
+func TestQuick_ServeStaticFile(t *testing.T) {
+	type fields struct {
+		routes  []Route
+		mws     []func(http.Handler) http.Handler
+		mux     *http.ServeMux
+		handler http.Handler
+	}
+	type args struct {
+		pattern     string
+		handlerFunc func(*Ctx)
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &Quick{
+				routes:  tt.fields.routes,
+				mws:     tt.fields.mws,
+				mux:     tt.fields.mux,
+				handler: tt.fields.handler,
+			}
+			r.Get(tt.args.pattern, tt.args.handlerFunc)
+		})
+	}
+}
+
 func Test_extractParamsGet(t *testing.T) {
 	type args struct {
 		pathTmp     string
