@@ -130,6 +130,19 @@ func extractBodyByte(req http.Request) ([]byte, error) {
 	return bodyByte, err
 }
 
+func extractParamsPattern(pattern string) (path, params, partternExist string) {
+	path = pattern
+	index := strings.Index(pattern, ":")
+	if index > 0 {
+		path = pattern[:index]
+		path = strings.TrimSuffix(path, "/")
+		params = strings.TrimPrefix(pattern, path)
+		partternExist = pattern
+	}
+
+	return
+}
+
 func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
@@ -222,16 +235,7 @@ func (c *Ctx) BodyString() string {
 
 func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
 	pattern = ConcatStr(g.prefix, pattern)
-	var path string = pattern
-	var params string
-	var partternExist string
-	index := strings.Index(pattern, ":")
-	if index > 0 {
-		path = pattern[:index]
-		path = strings.TrimSuffix(path, "/")
-		params = strings.TrimPrefix(pattern, path)
-		partternExist = pattern
-	}
+	path, params, partternExist := extractParamsPattern(pattern)
 
 	route := Route{
 		Pattern: partternExist,
@@ -247,16 +251,7 @@ func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
 
 func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
 	pattern = ConcatStr(g.prefix, pattern)
-	var path string = pattern
-	var params string
-	var partternExist string
-	index := strings.Index(pattern, ":")
-	if index > 0 {
-		path = pattern[:index]
-		path = strings.TrimSuffix(path, "/")
-		params = strings.TrimPrefix(pattern, path)
-		partternExist = pattern
-	}
+	_, params, partternExist := extractParamsPattern(pattern)
 	pathPost := ConcatStr("post#", pattern)
 	route := Route{
 		Pattern: partternExist,
@@ -271,16 +266,7 @@ func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
 }
 
 func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
-	var path string = pattern
-	var params string
-	var partternExist string
-	index := strings.Index(pattern, ":")
-	if index > 0 {
-		path = pattern[:index]
-		path = strings.TrimSuffix(path, "/")
-		params = strings.TrimPrefix(pattern, path)
-		partternExist = pattern
-	}
+	path, params, partternExist := extractParamsPattern(pattern)
 
 	route := Route{
 		Pattern: partternExist,
@@ -295,16 +281,7 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 }
 
 func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
-	var path string = pattern
-	var params string
-	var partternExist string
-	index := strings.Index(pattern, ":")
-	if index > 0 {
-		path = pattern[:index]
-		path = strings.TrimSuffix(path, "/")
-		params = strings.TrimPrefix(pattern, path)
-		partternExist = pattern
-	}
+	_, params, partternExist := extractParamsPattern(pattern)
 	pathPut := ConcatStr("put#", pattern)
 	route := Route{
 		Pattern: partternExist,
