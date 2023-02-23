@@ -411,7 +411,7 @@ func (q *Quick) GetRoute() []Route {
 	return q.routes
 }
 
-func (q *Quick) ServeStaticFile(staticFolder string) {
+func (q *Quick) Static(staticFolder string) {
 	// generate route get with a pattern like this: /static/:file
 	pattern := ConcatStr(staticFolder, ":file")
 	q.Get(pattern, func(c *Ctx) {

@@ -253,5 +253,22 @@ func main() {
 	app.Listen("0.0.0.0:8080")
 }
 
+```
+
+##### Static File
+
+```go
+
+package main
+
+import "github.com/jeffotoni/quick"
+
+func main() {
+	app := quick.New()
+
+	app.Static("/static")
+	
+	app.Listen("0.0.0.0:8080")
+}
 
 ```
