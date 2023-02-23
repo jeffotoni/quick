@@ -1,56 +1,63 @@
 # quick - Route Go
-
 [![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
-
-<center>
 
 O **Quick** é um gerenciador de rotas para Go, onde sua sintaxe foi inspirado no **framework fiber**.
 
-</center>
+É um gerenciador de rotas minimalista que está nascendo e em **desenvolvimento** constante, sendo projetado para ser rápido e de alto desempenho, 100% compatível com net/http. **O objetivo é didático e colaborativo, todos são bem-vindos a ajudar. 😍** O foco será o desempenho, otimizações e muitos testes unitários."
 
-É um gerenciador de rotas minimalistico está nascendo e está em **desenvolvimento** constante, é para ser rápido e com alto desempenho 100% compatível com net/http. **O objetivo é didático, e colaboração, todos são bem vindos a ajudar. 😍** O foco será o desempenho, otimizações e muito testes unitários.
 
-## 📃|Rodmap do desenvolvimento
+## 📃| Rodmap do desenvolvimento
 
-| Tarefa                                                                      | Progresso |
-| --------------------------------------------------------------------------- | --------- |
-| Desenvolver MaxBodySize metodos Post e Put                                  | 100%      |
-| Desenvolver Config em New(Config{}) não obrigatório                         | 100%      |
-| Desenvolve suporte a Grupo de Rotas - Group Get e Post                      | 70%       |
-| Desenvolver e relacionar ao Listen o Config                                 | 30%       |
-| Criação de função print para não usar fmt de forma demasiada                | 100%      |
-| Criação de função própria para Concat String                                | 100%      |
-| Criação de benchmarking entre os.Stdout e fmt.Println                       | 100%      |
-| Desenvolver Routes Método GET                                               | 50%       |
-| Desenvolver Routes Método GET aceitando Query String                        | 90%       |
-| Desenvolver Routes Método GET aceitando Parametros                          | 90%       |
-| Desenvolver Routes Método GET aceitando Query String e Parametros           | 90%       |
-| Desenvolver Routes Método GET aceitando expressão regular                   | 0.%       |
-| Desenvolver Routes Método POST                                              | 80%       |
-| Desenvolver Routes Método POST aceitando JSON                               | 90%       |
-| Desenvolver para o MÉTODO POST o parse JSON                                 | 90%       |
-| Desenvolver para o MÉTODO POST funções para acessar byte ou string do Parse | 90%       |
-| Desenvolver para o MÉTODO PUT                                               | 80%       |
-| Desenvolver para o MÉTODO PUT o parse JSON                                  | 90%       |
-| Desenvolver para o MÉTODO PUT o parse JSON                                  | 90%       |
-| Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse  | 90%       |
-| Desenvolver para o MÉTODO DELETE                                            | 0.%       |
-| Desenvolver para o MÉTODO OPTIONS                                           | 0.%       |
-| Desenvolver método para ListenAndServe                                      | 90%       |
-| Desenvolver método para ListenAndServeTLS (http2)                           | 0.%       |
-| Desenvolver método para Facilitar a manipulação do ResponseWriter           | 70%       |
-| Desenvolver método para Facilitar a manipulação do Request                  | 70%       |
-| Desenvolver suporte a ServeHTTP                                             | 70%       |
-| Desenvolver suporte a middlewares                                           | 10%       |
-| Desenvolve suporte Static Files                                             | 80%       |
-| Desenvolver suporte Cors                                                    | 0.%       |
+| Tarefa                                          | Progresso |
+|-------------------------------------------------|-----------|
+| Desenvolver MaxBodySize metodos Post e Put       | 100%      |
+| Desenvolver Config em New(Config{}) não obrigatório | 100%    |
+| Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
+| Desenvolver e relacionar ao Listen o Config      | 30%       |
+| Criação de função print para não usar fmt de forma demasiada | 100% |
+| Criação de função própria para Concat String     | 100%      |
+| Criação de benchmarking entre os.Stdout e fmt.Println | 100%   |
+| Desenvolver Routes Método GET                    | 50%       |
+| Desenvolver Routes Método GET aceitando Query String | 90%    |
+| Desenvolver Routes Método GET aceitando Parametros | 90%      |
+| Desenvolver Routes Método GET aceitando Query String e Parametros | 90% |
+| Desenvolver Routes Método GET aceitando expressão regular | 0.% |
+| Desenvolver Routes Método POST                   | 80%       |
+| Desenvolver Routes Método POST aceitando JSON    | 90%       |
+| Desenvolver para o MÉTODO POST o parse JSON       | 90%       |
+| Desenvolver para o MÉTODO POST funções para acessar byte ou string do Parse | 90% |
+| Desenvolver para o MÉTODO PUT                    | 80%       |
+| Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
+| Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
+| Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse | 90% |
+| Desenvolver para o MÉTODO DELETE                  | 0.%       |
+| Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
+| Desenvolver método para ListenAndServe           | 90%       |
+| Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
+| Desenvolver método para Facilitar a manipulação do ResponseWriter | 70% |
+| Desenvolver método para Facilitar a manipulação do Request | 70%  |
+| Desenvolver suporte a ServeHTTP                  | 70%       |
+| Desenvolver suporte a middlewares                 | 10%       |
+| Desenvolve suporte Static Files                   | 0.%       |
+| Desenvolver suporte Cors                          | 0.%       |
 
-#### Contribuição
 
-Jà temos um exemplo, e já podemmos testar e brincar 😁, é claro estamos no inicio ainda tem muito para fechar e fiquem a vontade em fazerem _PR_ (com risco de ganhar uma camiseta Go ❤️ e é claro notoriedade para trabalhar com Go 😍 no mercado de trabalho)
+### Contribuição 
+Já temos um exemplo, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. Fiquem à vontade em fazer *PR* (com risco de ganhar uma camiseta Go ❤️ e, é claro, reconhecimento como profissional Go 😍 no mercado de trabalho).
+
+### ☕| Apoiadores
+
+Você pode apoiar o projeto comprando um café [aqui](https://www.buymeacoffee.com/ZlD8rtr1cq)
+
+
+| Avatar | User | Donation |
+|--------|------|----------|
+| ![jeffotoni](jeffotoni-avatar.png) | @jeffotoni | ☕ x 10 |
+| ![Crow3442](crow3442-avatar.png) | @Crow3442 | ☕ x 5 |
+| ![Guilherme-De-Marchi](marchi-avatar.png) | @Guilherme-De-Marchi | ☕ x 5 |
+
 
 ##### Quick
-
 ```go
 
 package main
@@ -79,12 +86,11 @@ Content-Type: application/json
 Date: Wed, 22 Feb 2023 07:45:36 GMT
 Content-Length: 23
 
-Quick em ação ❤️!%
+Quick em ação ❤️!% 
 
 ```
 
 ##### Quick Get Params
-
 ```go
 
 package main
@@ -129,7 +135,6 @@ Content-Length: 23
 ```
 
 ##### Quick Post json
-
 ```go
 
 package main
@@ -173,7 +178,6 @@ Content-Type: text/plain; charset=utf-8
 ```
 
 ##### Cors
-
 ```go
 
 package main
@@ -196,7 +200,6 @@ func main() {
 ```
 
 ##### quick.Config{}
-
 ```go
 
 package main
@@ -219,7 +222,6 @@ func main() {
 ```
 
 ##### quick.Group()
-
 ```go
 package main
 
@@ -253,22 +255,5 @@ func main() {
 	app.Listen("0.0.0.0:8080")
 }
 
-```
-
-##### Static File
-
-```go
-
-package main
-
-import "github.com/jeffotoni/quick"
-
-func main() {
-	app := quick.New()
-
-	app.Static("/static")
-	
-	app.Listen("0.0.0.0:8080")
-}
 
 ```
