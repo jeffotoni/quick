@@ -11,36 +11,39 @@ O foco será o desempenho, otimizações e muito testes unitários.
 
 #### Rodmap do desenvolvimento
 
-- [100%] Desenvolver MaxBodySize metodos Post e Put
-- [100%] Desenvolver Config em New(Config{}) não obrigatório
-- [70%] Desenvolve suporte a Grupo de Rotas - Group Get e Post
-- [30%] Desenvolver e relacionar ao Listen o Config
-- [100%] Criação de função print para não usar fmt de forma demasiada
-- [100%] Criação de função própria para Concat String
-- [100%] Criação de benchmarking entre os.Stdout e fmt.Println
-- [50%] Desenvolver Routes Método GET
-- [90%] Desenvolver Routes Método GET aceitando Query String
-- [90%] Desenvolver Routes Método GET aceitando Parametros 
-- [90%] Desenvolver Routes Método GET aceitando Query String e Parametros
-- [0.%] Desenvolver Routes Método GET aceitando expressão regular
-- [80%] Desenvolver Routes Método POST
-- [90%] Desenvolver Routes Método POST aceitando JSON
-- [90%] Desenvolver para o MÉTODO POST o parse JSON
-- [90%] Desenvolver para o MÉTODO POST funções para acessar byte ou string do Parse
-- [80%] Desenvolver para o MÉTODO PUT
-- [90%] Desenvolver para o MÉTODO PUT o parse JSON
-- [90%] Desenvolver para o MÉTODO PUT o parse JSON
-- [90%] Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse
-- [0.%] Desenvolver para o MÉTODO DELETE
-- [0.%] Desenvolver para o MÉTODO OPTIONS
-- [90%] Desenvolver método para ListenAndServe
-- [0.%] Desenvolver método para ListenAndServeTLS (http2)
-- [70%] Desenvolver método para Facilitar a manipulação do ResponseWriter
-- [70%] Desenvolver método para Facilitar a manipulação do Request
-- [70%] Desenvolver suporte a ServeHTTP
-- [10%] Desenvolver suporte a middlewares
-- [0.%] Desenvolve suporte Static Files
-- [0.%] Desenvolver suporte Cors
+| Tarefa                                          | Progresso |
+|-------------------------------------------------|-----------|
+| Desenvolver MaxBodySize metodos Post e Put       | 100%      |
+| Desenvolver Config em New(Config{}) não obrigatório | 100%    |
+| Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
+| Desenvolver e relacionar ao Listen o Config      | 30%       |
+| Criação de função print para não usar fmt de forma demasiada | 100% |
+| Criação de função própria para Concat String     | 100%      |
+| Criação de benchmarking entre os.Stdout e fmt.Println | 100%   |
+| Desenvolver Routes Método GET                    | 50%       |
+| Desenvolver Routes Método GET aceitando Query String | 90%    |
+| Desenvolver Routes Método GET aceitando Parametros | 90%      |
+| Desenvolver Routes Método GET aceitando Query String e Parametros | 90% |
+| Desenvolver Routes Método GET aceitando expressão regular | 0.% |
+| Desenvolver Routes Método POST                   | 80%       |
+| Desenvolver Routes Método POST aceitando JSON    | 90%       |
+| Desenvolver para o MÉTODO POST o parse JSON       | 90%       |
+| Desenvolver para o MÉTODO POST funções para acessar byte ou string do Parse | 90% |
+| Desenvolver para o MÉTODO PUT                    | 80%       |
+| Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
+| Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
+| Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse | 90% |
+| Desenvolver para o MÉTODO DELETE                  | 0.%       |
+| Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
+| Desenvolver método para ListenAndServe           | 90%       |
+| Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
+| Desenvolver método para Facilitar a manipulação do ResponseWriter | 70% |
+| Desenvolver método para Facilitar a manipulação do Request | 70%  |
+| Desenvolver suporte a ServeHTTP                  | 70%       |
+| Desenvolver suporte a middlewares                 | 10%       |
+| Desenvolve suporte Static Files                   | 0.%       |
+| Desenvolver suporte Cors                          | 0.%       |
+
 
 
 #### Contribuição 
