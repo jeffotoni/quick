@@ -22,4 +22,4 @@ vendor
 # Test binary, built with `go test -c`
 *.test
 *.tmp
-draft.txt
+draft/*
