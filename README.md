@@ -9,7 +9,8 @@ O **Quick** é um gerenciador de rotas para Go, onde sua sintaxe foi inspirado n
 
 É um gerenciador de rotas minimalistico está nascendo e está em **desenvolvimento** constante, é para ser rápido e com alto desempenho 100% compatível com net/http. **O objetivo é didático, e colaboração, todos são bem vindos a ajudar. 😍** O foco será o desempenho, otimizações e muito testes unitários.
 
-#### Rodmap do desenvolvimento
+
+## 📃|Rodmap do desenvolvimento
 
 | Tarefa                                          | Progresso |
 |-------------------------------------------------|-----------|
