@@ -162,7 +162,7 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
-## 📃| Funcionalidades
+## ⚙️| Funcionalidades
 
 | Funcionalidades                                 | Possui    |
 |-------------------------------------------------|-----------|
@@ -174,7 +174,7 @@ Content-Type: text/plain; charset=utf-8
 | Data binding for JSON, XML and form payload     |   sim     |
 
 
-## 📃| Examples
+## 👁‍🗨| Examples
 
 
 ##### Cors
@@ -257,7 +257,7 @@ func main() {
 
 ```
 
-## 📃| Contribuições
+## 🤍| Contribuições
 
 Já temos diversos exemplos, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. 
 Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e claro reconhecimento como profissional Go 😍 no mercado de trabalho).
