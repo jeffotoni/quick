@@ -265,10 +265,12 @@ Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e 
 
 ### ☕| Apoiadores
 
-Quick é um projeto open source e fique a vontade em deixar um café para ajudar e incentivar nosso trabalho 😍 pode comprar [um café aqui](https://www.buymeacoffee.com/ZlD8rtr1cq)
+**Quick** é um projeto open source, estamos desenvendo nos tempos livres e é claro nas madrugadas, e você está convidado a particpar e fique a vontade em deixar um café para ajudar e incentivar nosso trabalho 😍 
+**<img src="https://github.githubassets.com/images/icons/emoji/unicode/2615.png" height=20 alt="Stargazers over time"> [pode comprar um café aqui](https://www.buymeacoffee.com/ZlD8rtr1cq)**
 
 | Avatar | User | Donation |
 |--------|------|----------|
-| ![jeffotoni](https://avatars.githubusercontent.com/u/1092879?s=96&v=4) | @jeffotoni | ☕ x 10 |
-
+| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | @jeffotoni | ☕ x 10 |
+| <img src="https://avatars.githubusercontent.com/u/7107528?v=4" height=20> | @crow34 | ☕ x 5  |
+| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | @Guilherme-De-Marchi | ☕ x 5 |
 
