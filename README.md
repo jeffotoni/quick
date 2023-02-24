@@ -1,10 +1,11 @@
 # quick - Route Go
 [![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
 
-O **Quick** é um gerenciador de rotas para Go, onde sua sintaxe foi inspirado no **framework fiber**.
+O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com diversas funcionalidades, onde sua sintaxe foi inspirado no **framework fiber**.
 
-É um gerenciador de rotas minimalista que está nascendo e em **desenvolvimento** constante, sendo projetado para ser rápido e de alto desempenho, 100% compatível com net/http. **O objetivo é didático e colaborativo, todos são bem-vindos a ajudar. 😍** O foco será o desempenho, otimizações e muitos testes unitários."
+É um gerenciador de rotas que encontra em **desenvolvimento** constante, projetado para ser **rápido e de alto desempenho, 100% compatível com net/http**. **O objetivo é didático e colaborativo, todos são bem-vindos a ajudar. 😍** 
 
+Espero que possam participar e que gostem de Godar!!! 😍
 
 ## 📃| Rodmap do desenvolvimento
 
@@ -41,23 +42,7 @@ O **Quick** é um gerenciador de rotas para Go, onde sua sintaxe foi inspirado n
 | Desenvolve suporte Static Files                   | 0.%       |
 | Desenvolver suporte Cors                          | 0.%       |
 
-
-### Contribuição 
-Já temos um exemplo, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. Fiquem à vontade em fazer *PR* (com risco de ganhar uma camiseta Go ❤️ e, é claro, reconhecimento como profissional Go 😍 no mercado de trabalho).
-
-### ☕| Apoiadores
-
-Você pode apoiar o projeto comprando um café [aqui](https://www.buymeacoffee.com/ZlD8rtr1cq)
-
-
-| Avatar | User | Donation |
-|--------|------|----------|
-| ![jeffotoni](jeffotoni-avatar.png) | @jeffotoni | ☕ x 10 |
-| ![Crow3442](crow3442-avatar.png) | @Crow3442 | ☕ x 5 |
-| ![Guilherme-De-Marchi](marchi-avatar.png) | @Guilherme-De-Marchi | ☕ x 5 |
-
-
-##### Quick
+##### Primeiro exemplo Quick
 ```go
 
 package main
@@ -86,7 +71,7 @@ Content-Type: application/json
 Date: Wed, 22 Feb 2023 07:45:36 GMT
 Content-Length: 23
 
-Quick em ação ❤️!% 
+Quick em ação ❤️!
 
 ```
 
@@ -177,6 +162,21 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
+## 📃| Funcionalidades
+
+| Funcionalidades                                 | Possui    |
+|-------------------------------------------------|-----------|
+| Gerenciador de Rotas                            |   sim     |
+| Server Files Static                             |   sim     |
+| Grupo de Rotas                                  |   sim     |
+| Middlewares                                     |   sim     |
+| HTTP/2 support                                  |   sim     |
+| Data binding for JSON, XML and form payload     |   sim     |
+
+
+## 📃| Examples
+
+
 ##### Cors
 ```go
 
@@ -255,5 +255,19 @@ func main() {
 	app.Listen("0.0.0.0:8080")
 }
 
+
+## 📃| Contribuições
+
+Já temos diversos exemplos, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. 
+Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e claro reconhecimento como profissional Go 😍 no mercado de trabalho).
+
+
+### ☕| Apoiadores
+
+Você pode apoiar o projeto comprando um café [donate](https://www.buymeacoffee.com/ZlD8rtr1cq)
+
+| Avatar | User | Donation |
+|--------|------|----------|
+| ![jeffotoni](https://avatars.githubusercontent.com/u/1092879?s=96&v=4) | @jeffotoni | ☕ x 10 |
 
 ```
