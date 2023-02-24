@@ -265,7 +265,7 @@ Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e 
 
 ### ☕| Apoiadores
 
-Você pode apoiar o projeto comprando um café [donate](https://www.buymeacoffee.com/ZlD8rtr1cq)
+Quick é um projeto open source e fique a vontade em deixar um café para ajudar e incentivar nosso trabalho 😍 pode comprar [um café aqui](https://www.buymeacoffee.com/ZlD8rtr1cq)
 
 | Avatar | User | Donation |
 |--------|------|----------|
