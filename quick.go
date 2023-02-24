@@ -110,7 +110,7 @@ func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 	}
 
 	q.routes = append(q.routes, route)
-	q.mux.HandleFunc(pathPost, route.handler)
+	q.registerHandler(pathPost, route.handler)
 }
 
 func extractHeaders(req http.Request) map[string][]string {
@@ -271,7 +271,7 @@ func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
 	}
 
 	g.quick.routes = append(g.quick.routes, route)
-	g.quick.mux.HandleFunc(pathPost, route.handler)
+	g.quick.registerHandler(pathPost, route.handler)
 }
 
 func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
@@ -301,7 +301,7 @@ func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
 	}
 
 	q.routes = append(q.routes, route)
-	q.mux.HandleFunc(pathPut, route.handler)
+	q.registerHandler(pathPut, route.handler)
 }
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
