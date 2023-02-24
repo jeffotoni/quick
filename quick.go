@@ -447,14 +447,9 @@ func (q *Quick) Static(staticFolder string) {
 }
 
 func (q *Quick) Listen(addr string) error {
-	var handler http.Handler = q
-	for i := len(q.mws) - 1; i >= 0; i-- {
-		handler = q.mws[i](handler)
-	}
-
 	server := &http.Server{
 		Addr:    addr,
-		Handler: handler,
+		Handler: q,
 		// ReadTimeout:
 		// WriteTimeout:
 		// MaxHeaderBytes:
