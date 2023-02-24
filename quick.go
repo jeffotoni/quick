@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -333,15 +334,24 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range q.routes {
 		var pathTmp string = req.URL.Path
-		routeParams := route.Params
 		var paramsMap = make(map[string]string)
+		var paramUriIndex = make([]int, 0)
 
 		if len(route.Pattern) > 0 && route.Method == req.Method {
-			routeParams = strings.Replace(routeParams, "/", "", -1)
-			tmppath := strings.Replace(req.URL.Path, route.Path, "", -1)
-			ppurl := strings.Split(tmppath, "/")[1:]
-			pathParams := strings.Split(routeParams, ":")[1:]
+			var routeParams string
+			ppurl := strings.Split(route.Pattern, "/")
+			paramsCount := 0
 
+			for i := 0; i < len(ppurl); i++ {
+				if strings.Contains(ppurl[i], ":") {
+					routeParams = routeParams + ppurl[i]
+					paramUriIndex = append(paramUriIndex, i)
+					paramsCount++
+				}
+			}
+
+			reqParams := strings.Split(pathTmp, "/")
+			pathParams := strings.Split(routeParams, ":")[1:]
 			prefix := ConcatStr(route.Path, "/")
 			if strings.HasPrefix(pathTmp, prefix) {
 				newPath := pathTmp[len(prefix):]
@@ -351,11 +361,12 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 
 			if route.Path == pathTmp && route.Method == req.Method {
-				if len(pathParams) != len(ppurl) {
+				if len(pathParams) != paramsCount {
 					continue
 				}
+
 				for i, p := range pathParams {
-					paramsMap[p] = ppurl[i]
+					paramsMap[p] = reqParams[paramUriIndex[i]]
 				}
 
 				var c = ctxServeHttp{Path: pathTmp, ParamsMap: paramsMap, Method: route.Method}
@@ -395,6 +406,11 @@ func (c *Ctx) SendString(s string) error {
 	return err
 }
 
+func (c *Ctx) SendFile(file []byte) error {
+	_, err := c.Response.Write(file)
+	return err
+}
+
 func (c *Ctx) Set(key, value string) {
 	c.Response.Header().Set(key, value)
 }
@@ -411,6 +427,23 @@ func (c *Ctx) Status(status int) *Ctx {
 
 func (q *Quick) GetRoute() []Route {
 	return q.routes
+}
+
+func (q *Quick) Static(staticFolder string) {
+	// generate route get with a pattern like this: /static/:file
+	pattern := ConcatStr(staticFolder, ":file")
+	q.Get(pattern, func(c *Ctx) {
+		path, _, _ := extractParamsPattern(pattern)
+		file := c.Params["file"]
+		filePath := ConcatStr(".", path, "/", file)
+
+		fileBytes, err := os.ReadFile(filePath)
+		if err != nil {
+			c.Status(http.StatusNotFound).SendString("File Not Found")
+		}
+
+		c.Status(http.StatusOK).SendFile(fileBytes)
+	})
 }
 
 func (q *Quick) Listen(addr string) error {
