@@ -109,8 +109,8 @@ func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 		Method:  http.MethodPost,
 	}
 
-	q.routes = append(q.routes, route)
-	q.registerHandler(pathPost, route.handler)
+	q.appendRoute(&route)
+	q.mux.HandleFunc(pathPost, route.handler)
 }
 
 func extractHeaders(req http.Request) map[string][]string {
@@ -217,12 +217,17 @@ func (c *Ctx) Param(key string) string {
 	return ""
 }
 
-func (q *Quick) registerHandler(pattern string, handler http.Handler) {
+func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	for i := range q.mws {
 		handler = q.mws[i](handler)
 	}
 
-	q.mux.Handle(pattern, handler)
+	return handler
+}
+
+func (q *Quick) appendRoute(route *Route) {
+	route.handler = q.mwWrapper(route.handler).ServeHTTP
+	q.routes = append(q.routes, *route)
 }
 
 func (c *Ctx) Body(v interface{}) (err error) {
@@ -254,8 +259,8 @@ func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
 		Method:  http.MethodGet,
 	}
 
-	g.quick.routes = append(g.quick.routes, route)
-	g.quick.registerHandler(path, route.handler)
+	g.quick.appendRoute(&route)
+	g.quick.mux.HandleFunc(path, route.handler)
 }
 
 func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
@@ -270,8 +275,8 @@ func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
 		Params:  params,
 	}
 
-	g.quick.routes = append(g.quick.routes, route)
-	g.quick.registerHandler(pathPost, route.handler)
+	g.quick.appendRoute(&route)
+	g.quick.mux.HandleFunc(pathPost, route.handler)
 }
 
 func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
@@ -285,8 +290,8 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 		Method:  http.MethodGet,
 	}
 
-	q.routes = append(q.routes, route)
-	q.registerHandler(path, route.handler)
+	q.appendRoute(&route)
+	q.mux.HandleFunc(path, route.handler)
 }
 
 func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
@@ -300,8 +305,8 @@ func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
 		Params:  params,
 	}
 
-	q.routes = append(q.routes, route)
-	q.registerHandler(pathPut, route.handler)
+	q.appendRoute(&route)
+	q.mux.HandleFunc(pathPut, route.handler)
 }
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
