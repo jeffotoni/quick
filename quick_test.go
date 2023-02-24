@@ -717,6 +717,7 @@ func BenchmarkPrintln_1000Bytes(b *testing.B) {
 	benchmarkPrintln(b, 1000)
 }
 
+// go test -v -count=1 -failfast -run ^Test_extractParamsPattern$
 func Test_extractParamsPattern(t *testing.T) {
 	type args struct {
 		pattern string
@@ -745,6 +746,15 @@ func Test_extractParamsPattern(t *testing.T) {
 			wantPath:          "/v1/customer/params",
 			wantParams:        "/:param1/:param2",
 			wantPartternExist: "/v1/customer/params/:param1/:param2",
+		},
+		{
+			name: "should ble able to extract 3 params",
+			args: args{
+				pattern: "/v1/customer/params/:param1/:param2/some/:param3",
+			},
+			wantPath:          "/v1/customer/params",
+			wantParams:        "/:param1/:param2/some/:param3",
+			wantPartternExist: "/v1/customer/params/:param1/:param2/some/:param3",
 		},
 	}
 	for _, tt := range tests {
