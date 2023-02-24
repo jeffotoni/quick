@@ -23,3 +23,6 @@ vendor
 *.test
 *.tmp
 draft/*
+
+tags
+
