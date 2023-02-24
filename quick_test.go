@@ -288,6 +288,38 @@ func TestQuick_Get(t *testing.T) {
 	}
 }
 
+func TestQuick_ServeStaticFile(t *testing.T) {
+	type fields struct {
+		routes  []Route
+		mws     []func(http.Handler) http.Handler
+		mux     *http.ServeMux
+		handler http.Handler
+	}
+	type args struct {
+		pattern     string
+		handlerFunc func(*Ctx)
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &Quick{
+				routes:  tt.fields.routes,
+				mws:     tt.fields.mws,
+				mux:     tt.fields.mux,
+				handler: tt.fields.handler,
+			}
+			r.Get(tt.args.pattern, tt.args.handlerFunc)
+		})
+	}
+}
+
 func Test_extractParamsGet(t *testing.T) {
 	type args struct {
 		pathTmp     string
@@ -685,6 +717,7 @@ func BenchmarkPrintln_1000Bytes(b *testing.B) {
 	benchmarkPrintln(b, 1000)
 }
 
+// go test -v -count=1 -failfast -run ^Test_extractParamsPattern$
 func Test_extractParamsPattern(t *testing.T) {
 	type args struct {
 		pattern string
@@ -713,6 +746,15 @@ func Test_extractParamsPattern(t *testing.T) {
 			wantPath:          "/v1/customer/params",
 			wantParams:        "/:param1/:param2",
 			wantPartternExist: "/v1/customer/params/:param1/:param2",
+		},
+		{
+			name: "should ble able to extract 3 params",
+			args: args{
+				pattern: "/v1/customer/params/:param1/:param2/some/:param3",
+			},
+			wantPath:          "/v1/customer/params",
+			wantParams:        "/:param1/:param2/some/:param3",
+			wantPartternExist: "/v1/customer/params/:param1/:param2/some/:param3",
 		},
 	}
 	for _, tt := range tests {
