@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -96,10 +97,10 @@ func New(c ...Config) *Quick {
 // }
 
 type Middleware interface {
-	New() func(http.Handler) http.Handler
+	New(interface{}) func(http.Handler) http.Handler
 }
 
-func (q *Quick) Use(mw Middleware) {
+func (q *Quick) Use(mw interface{}) {
 	q.mws2 = append(q.mws2, mw)
 }
 
@@ -239,8 +240,14 @@ func (c *Ctx) Param(key string) string {
 }
 
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
-	for i := range q.mws {
-		handler = q.mws[i](handler)
+	// for i := range q.mws {
+	// 	handler = q.mws[i](handler)
+	// }
+	for i := range q.mws2 {
+		value := reflect.ValueOf(q.mws2[i])
+		if value.Kind() == reflect.Func {
+			handler = value.Call([]reflect.Value{reflect.ValueOf(handler)})[0].Interface().(http.Handler)
+		}
 	}
 
 	return handler
