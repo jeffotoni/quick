@@ -109,7 +109,7 @@ func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 		Method:  http.MethodPost,
 	}
 
-	q.routes = append(q.routes, route)
+	q.appendRoute(&route)
 	q.mux.HandleFunc(pathPost, route.handler)
 }
 
@@ -221,6 +221,19 @@ func (c *Ctx) Param(key string) string {
 	return ""
 }
 
+func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
+	for i := range q.mws {
+		handler = q.mws[i](handler)
+	}
+
+	return handler
+}
+
+func (q *Quick) appendRoute(route *Route) {
+	route.handler = q.mwWrapper(route.handler).ServeHTTP
+	q.routes = append(q.routes, *route)
+}
+
 func (c *Ctx) Body(v interface{}) (err error) {
 	if c.Request.Header.Get("Content-Type") == "application/json" {
 		if len(c.BodyByte) > 0 {
@@ -250,7 +263,7 @@ func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
 		Method:  http.MethodGet,
 	}
 
-	g.quick.routes = append(g.quick.routes, route)
+	g.quick.appendRoute(&route)
 	g.quick.mux.HandleFunc(path, route.handler)
 }
 
@@ -266,7 +279,7 @@ func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
 		Params:  params,
 	}
 
-	g.quick.routes = append(g.quick.routes, route)
+	g.quick.appendRoute(&route)
 	g.quick.mux.HandleFunc(pathPost, route.handler)
 }
 
@@ -281,7 +294,7 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 		Method:  http.MethodGet,
 	}
 
-	q.routes = append(q.routes, route)
+	q.appendRoute(&route)
 	q.mux.HandleFunc(path, route.handler)
 }
 
@@ -296,7 +309,7 @@ func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
 		Params:  params,
 	}
 
-	q.routes = append(q.routes, route)
+	q.appendRoute(&route)
 	q.mux.HandleFunc(pathPut, route.handler)
 }
 
@@ -444,14 +457,9 @@ func (q *Quick) Static(staticFolder string) {
 }
 
 func (q *Quick) Listen(addr string) error {
-	var handler http.Handler = q
-	for i := len(q.mws) - 1; i >= 0; i-- {
-		handler = q.mws[i](handler)
-	}
-
 	server := &http.Server{
 		Addr:    addr,
-		Handler: handler,
+		Handler: q,
 		// ReadTimeout:
 		// WriteTimeout:
 		// MaxHeaderBytes:
