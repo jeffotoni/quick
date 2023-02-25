@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -68,6 +69,7 @@ type Quick struct {
 	routes  []Route
 	groups  []Group
 	mws     []func(http.Handler) http.Handler
+	mws2    []interface{}
 	mux     *http.ServeMux
 	handler http.Handler
 	config  Config
@@ -89,17 +91,25 @@ func New(c ...Config) *Quick {
 	}
 }
 
-// type Middleware interface {
-// 	New(config *Config) func(http.Handler) http.Handler
+// type MiddlewareConfig struct {
+// 	// campos de configuração aqui
 // }
 
-// func (q *Quick) Use(mw Middleware) {
-// 	q.mws = append(q.mws, mw.New(mw.Config{}))
+// type MyMiddleware struct {
+// 	Config MiddlewareConfig
 // }
 
-func (q *Quick) Use(mw func(http.Handler) http.Handler) {
-	q.mws = append(q.mws, mw)
+type Middleware interface {
+	New(interface{}) func(http.Handler) http.Handler
 }
+
+func (q *Quick) Use(mw interface{}) {
+	q.mws2 = append(q.mws2, mw)
+}
+
+// func (q *Quick) Use(mw func(http.Handler) http.Handler) {
+// 	q.mws = append(q.mws, mw)
+// }
 
 func (q *Quick) Group(prefix string) *Group {
 	g := &Group{
@@ -233,8 +243,14 @@ func (c *Ctx) Param(key string) string {
 }
 
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
-	for i := range q.mws {
-		handler = q.mws[i](handler)
+	// for i := range q.mws {
+	// 	handler = q.mws[i](handler)
+	// }
+	for i := range q.mws2 {
+		value := reflect.ValueOf(q.mws2[i])
+		if value.Kind() == reflect.Func {
+			handler = value.Call([]reflect.Value{reflect.ValueOf(handler)})[0].Interface().(http.Handler)
+		}
 	}
 
 	return handler
