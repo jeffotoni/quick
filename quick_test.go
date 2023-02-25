@@ -54,6 +54,64 @@ func TestQuick_Use(t *testing.T) {
 	}
 }
 
+// go test -v -count=1 -cover -failfast -run ^TestQuick_Get$
+func TestQuick_Get(t *testing.T) {
+
+	type args struct {
+		route    string
+		wantCode int
+		wantOut  string
+	}
+
+	testSuccessMockHandler := func(c *Ctx) {
+		c.Set("Content-Type", "application/json")
+		c.Byte([]byte(`"data": null`))
+	}
+
+	r := New()
+	r.Get("/test", testSuccessMockHandler)
+	r.Get("/tester/:p1", testSuccessMockHandler)
+
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "success",
+			args: args{
+				route:    "/test",
+				wantOut:  `"data": null`,
+				wantCode: 200,
+			},
+		},
+		{
+			name: "success_with_params",
+			args: args{
+				route:    "/tester/val1",
+				wantOut:  `"data": null`,
+				wantCode: 200,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			data, err := r.QuickTest("GET", tt.args.route)
+			if err != nil {
+				t.Errorf("error: %v", err)
+			}
+
+			if data.BodyStr() != tt.args.wantOut {
+				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+			}
+
+			t.Logf("data -> %v", data.BodyStr())
+
+		})
+	}
+}
+
 func TestQuick_Post(t *testing.T) {
 	type fields struct {
 		routes  []Route
@@ -253,37 +311,6 @@ func TestCtx_BodyString(t *testing.T) {
 			if got := c.BodyString(); got != tt.want {
 				t.Errorf("Ctx.BodyString() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func TestQuick_Get(t *testing.T) {
-	type fields struct {
-		routes  []Route
-		mws     []func(http.Handler) http.Handler
-		mux     *http.ServeMux
-		handler http.Handler
-	}
-	type args struct {
-		pattern     string
-		handlerFunc func(*Ctx)
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
-				mux:     tt.fields.mux,
-				handler: tt.fields.handler,
-			}
-			r.Get(tt.args.pattern, tt.args.handlerFunc)
 		})
 	}
 }
