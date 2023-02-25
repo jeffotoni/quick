@@ -134,9 +134,13 @@ func extractBodyByte(req http.Request) ([]byte, error) {
 func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	path = pattern
 	index := strings.Index(pattern, ":")
+
 	if index > 0 {
 		path = pattern[:index]
 		path = strings.TrimSuffix(path, "/")
+		if index == 1 {
+			path = "/"
+		}
 		params = strings.TrimPrefix(pattern, path)
 		partternExist = pattern
 	}
@@ -325,57 +329,59 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range q.routes {
-		var pathTmp string = req.URL.Path
+		var requestURI = req.URL.Path
 		var paramsMap = make(map[string]string)
-		var paramUriIndex = make([]int, 0)
+		var patternUri = route.Pattern
 
-		if len(route.Pattern) > 0 && route.Method == req.Method {
-			var routeParams string
-			ppurl := strings.Split(route.Pattern, "/")
-			paramsCount := 0
-
-			for i := 0; i < len(ppurl); i++ {
-				if strings.Contains(ppurl[i], ":") {
-					routeParams = routeParams + ppurl[i]
-					paramUriIndex = append(paramUriIndex, i)
-					paramsCount++
-				}
-			}
-
-			reqParams := strings.Split(pathTmp, "/")
-			pathParams := strings.Split(routeParams, ":")[1:]
-			prefix := ConcatStr(route.Path, "/")
-			if strings.HasPrefix(pathTmp, prefix) {
-				newPath := pathTmp[len(prefix):]
-				if len(newPath) > 0 {
-					pathTmp = route.Path
-				}
-			}
-
-			if route.Path == pathTmp && route.Method == req.Method {
-				if len(pathParams) != paramsCount {
-					continue
-				}
-
-				for i, p := range pathParams {
-					paramsMap[p] = reqParams[paramUriIndex[i]]
-				}
-
-				var c = ctxServeHttp{Path: pathTmp, ParamsMap: paramsMap, Method: route.Method}
-				req = req.WithContext(context.WithValue(req.Context(), 0, c))
-				route.handler(w, req)
-				return
-			}
-		}
-
-		if route.Path == pathTmp && route.Method == req.Method {
-			var c = ctxServeHttp{Path: pathTmp, Method: route.Method}
-			req = req.WithContext(context.WithValue(req.Context(), 0, c))
-			route.handler(w, req)
+		if route.Method != req.Method {
+			http.NotFound(w, req)
 			return
 		}
+
+		if len(patternUri) == 0 {
+			patternUri = route.Path
+		}
+
+		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
+
+		if !isValid {
+			http.NotFound(w, req)
+			return
+		}
+
+		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: route.Method}
+		req = req.WithContext(context.WithValue(req.Context(), 0, c))
+		route.handler(w, req)
 	}
-	http.NotFound(w, req)
+
+}
+
+func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
+	params := make(map[string]string)
+	var tmpPath string
+
+	reqURISplt := strings.Split(reqURI, "/")
+	patternURISplt := strings.Split(patternURI, "/")
+
+	if len(reqURISplt) != len(patternURISplt) {
+		return nil, false
+	}
+
+	for pttrn := 0; pttrn < len(patternURISplt); pttrn++ {
+		if strings.Contains(patternURISplt[pttrn], ":") {
+			params[patternURISplt[pttrn]] = reqURISplt[pttrn]
+			tmpPath = tmpPath + "/" + reqURISplt[pttrn]
+		} else {
+			tmpPath = tmpPath + "/" + patternURISplt[pttrn]
+		}
+	}
+
+	// This tmpPath is to check if request's uri is the same that our pattern
+	if tmpPath[1:] != reqURI {
+		return nil, false
+	}
+
+	return params, true
 }
 
 func (c *Ctx) Json(v interface{}) error {
