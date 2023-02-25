@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -54,13 +55,15 @@ func TestQuick_Use(t *testing.T) {
 	}
 }
 
-// go test -v -count=1 -cover -failfast -run ^TestQuick_Get$
+// cover: go test -v -count=1 -cover -failfast -run ^TestQuick_Get$
+// coverHTML: go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Get$; go tool cover -html=coverage.out
 func TestQuick_Get(t *testing.T) {
 
 	type args struct {
-		route    string
-		wantCode int
-		wantOut  string
+		route       string
+		wantCode    int
+		wantOut     string
+		isWantedErr bool
 	}
 
 	testSuccessMockHandler := func(c *Ctx) {
@@ -71,6 +74,7 @@ func TestQuick_Get(t *testing.T) {
 	r := New()
 	r.Get("/test", testSuccessMockHandler)
 	r.Get("/tester/:p1", testSuccessMockHandler)
+	r.Get("/", testSuccessMockHandler)
 
 	tests := []struct {
 		name string
@@ -79,17 +83,37 @@ func TestQuick_Get(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:    "/test",
-				wantOut:  `"data": null`,
-				wantCode: 200,
+				route:       "/test",
+				wantOut:     `"data": null`,
+				wantCode:    200,
+				isWantedErr: false,
 			},
 		},
 		{
 			name: "success_with_params",
 			args: args{
-				route:    "/tester/val1",
-				wantOut:  `"data": null`,
-				wantCode: 200,
+				route:       "/tester/val1",
+				wantOut:     `"data": null`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_with_nothing",
+			args: args{
+				route:       "/",
+				wantOut:     `"data": null`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "error_not_exists_route",
+			args: args{
+				route:       "/tester/val1/route",
+				wantOut:     `404 page not found`,
+				wantCode:    404,
+				isWantedErr: true,
 			},
 		},
 	}
@@ -98,16 +122,16 @@ func TestQuick_Get(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			data, err := r.QuickTest("GET", tt.args.route)
-			if err != nil {
+			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 			}
 
-			if data.BodyStr() != tt.args.wantOut {
+			s := strings.TrimSpace(data.BodyStr())
+			if s != tt.args.wantOut {
 				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
 			}
 
-			t.Logf("data -> %v", data.BodyStr())
-
+			t.Logf("outputBody -> %v", data.BodyStr())
 		})
 	}
 }
