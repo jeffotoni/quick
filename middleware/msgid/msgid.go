@@ -9,8 +9,7 @@ import (
 
 const MSGID_NAME string = "Msgid"
 
-func New() http.Handler {
-	var h http.Handler
+func New(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set(MSGID_NAME, RandAlgo1())
 		w.Header().Set(MSGID_NAME, RandAlgo1())
