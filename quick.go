@@ -334,8 +334,7 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		var patternUri = route.Pattern
 
 		if route.Method != req.Method {
-			http.NotFound(w, req)
-			return
+			continue
 		}
 
 		if len(patternUri) == 0 {
@@ -345,15 +344,15 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
 
 		if !isValid {
-			http.NotFound(w, req)
-			return
+			continue
 		}
 
 		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: route.Method}
 		req = req.WithContext(context.WithValue(req.Context(), 0, c))
 		route.handler(w, req)
+		return
 	}
-
+	http.NotFound(w, req)
 }
 
 func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
@@ -370,9 +369,9 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	for pttrn := 0; pttrn < len(patternURISplt); pttrn++ {
 		if strings.Contains(patternURISplt[pttrn], ":") {
 			params[patternURISplt[pttrn]] = reqURISplt[pttrn]
-			tmpPath = tmpPath + "/" + reqURISplt[pttrn]
+			tmpPath = ConcatStr(tmpPath, "/", reqURISplt[pttrn])
 		} else {
-			tmpPath = tmpPath + "/" + patternURISplt[pttrn]
+			tmpPath = ConcatStr(tmpPath, "/", patternURISplt[pttrn])
 		}
 	}
 
