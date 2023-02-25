@@ -7,22 +7,31 @@ import (
 	"time"
 )
 
-const MSGID_NAME string = "Msgid"
+type MsgID struct{}
 
-func New(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.Header.Set(MSGID_NAME, RandAlgo1())
-		w.Header().Set(MSGID_NAME, RandAlgo1())
-		h.ServeHTTP(w, r)
-	})
+type Config struct {
+	Name string
 }
 
-func msgID(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.Header.Set(MSGID_NAME, RandAlgo1())
-		w.Header().Set(MSGID_NAME, RandAlgo1())
-		h.ServeHTTP(w, r)
-	})
+var ConfigDefault = Config{
+	Name: "Msgid",
+}
+
+func (m *MsgID) New(config ...Config) func(http.Handler) http.Handler {
+	cfd := ConfigDefault
+	if len(config) > 0 {
+		cfd = config[0]
+	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			msgId := r.Header.Get(cfd.Name)
+			if len(msgId) == 0 {
+				r.Header.Set(cfd.Name, RandAlgo1())
+				w.Header().Set(cfd.Name, RandAlgo1())
+				next.ServeHTTP(w, r)
+			}
+		})
+	}
 }
 
 func RandAlgo1() string {
