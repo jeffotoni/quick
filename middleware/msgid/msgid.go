@@ -7,7 +7,9 @@ import (
 	"time"
 )
 
-type MsgID struct{}
+type MsgID struct {
+	Config Config
+}
 
 type Config struct {
 	Name string
@@ -17,21 +19,34 @@ var ConfigDefault = Config{
 	Name: "Msgid",
 }
 
-func (m *MsgID) New(config ...Config) func(http.Handler) http.Handler {
+func (m *MsgID) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	msgId := r.Header.Get(m.Config.Name)
+	if len(msgId) == 0 {
+		r.Header.Set(m.Config.Name, RandAlgo1())
+		w.Header().Set(m.Config.Name, RandAlgo1())
+		next.ServeHTTP(w, r)
+	}
+}
+
+func (m *MsgID) New(config ...Config) *MsgID {
 	cfd := ConfigDefault
 	if len(config) > 0 {
 		cfd = config[0]
 	}
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			msgId := r.Header.Get(cfd.Name)
-			if len(msgId) == 0 {
-				r.Header.Set(cfd.Name, RandAlgo1())
-				w.Header().Set(cfd.Name, RandAlgo1())
-				next.ServeHTTP(w, r)
-			}
-		})
+	return &MsgID{
+		Config: cfd,
 	}
+
+	// return func(next http.Handler) http.Handler {
+	// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 		msgId := r.Header.Get(cfd.Name)
+	// 		if len(msgId) == 0 {
+	// 			r.Header.Set(cfd.Name, RandAlgo1())
+	// 			w.Header().Set(cfd.Name, RandAlgo1())
+	// 			next.ServeHTTP(w, r)
+	// 		}
+	// 	})
+	// }
 }
 
 func RandAlgo1() string {

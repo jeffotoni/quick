@@ -65,6 +65,7 @@ type Quick struct {
 	routes  []Route
 	groups  []Group
 	mws     []func(http.Handler) http.Handler
+	mws2    []interface{}
 	mux     *http.ServeMux
 	handler http.Handler
 	config  Config
@@ -99,7 +100,7 @@ type Middleware interface {
 }
 
 func (q *Quick) Use(mw Middleware) {
-	q.mws = append(q.mws, mw.New())
+	q.mws2 = append(q.mws2, mw)
 }
 
 // func (q *Quick) Use(mw func(http.Handler) http.Handler) {
