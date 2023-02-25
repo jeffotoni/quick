@@ -86,6 +86,14 @@ func New(c ...Config) *Quick {
 	}
 }
 
+// type Middleware interface {
+// 	New(config *Config) func(http.Handler) http.Handler
+// }
+
+// func (q *Quick) Use(mw Middleware) {
+// 	q.mws = append(q.mws, mw.New(mw.Config{}))
+// }
+
 func (q *Quick) Use(mw func(http.Handler) http.Handler) {
 	q.mws = append(q.mws, mw)
 }
