@@ -26,7 +26,7 @@ type qTest struct {
 // QuickTest: This Method is a helper function to make tests with quick more quickly
 // Required Params: Method (GET, POST, PUT, DELETE...), URI (only the path. Example: /test/:myParam)
 // Optional Param: Body (If you don't want to define one, just ignore)
-func (q Quick) QuickTest(method, URI string, body ...[]byte) (QuickTestReturn, error) {
+func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...[]byte) (QuickTestReturn, error) {
 
 	rand.Seed(time.Now().UnixNano())
 	min := 3000
@@ -44,6 +44,9 @@ func (q Quick) QuickTest(method, URI string, body ...[]byte) (QuickTestReturn, e
 	URI = ConcatStr("http://0.0.0.0", port, URI)
 
 	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 
 	if err != nil {
 		return nil, err
