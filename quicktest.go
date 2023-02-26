@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gojeffotoni/quick/internal/concat"
 )
 
 type QuickTestReturn interface {
@@ -40,8 +42,8 @@ func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...
 		buffBody = body[0]
 	}
 
-	port = ConcatStr(":", port)
-	URI = ConcatStr("http://0.0.0.0", port, URI)
+	port = concat.String(":", port)
+	URI = concat.String("http://0.0.0.0", port, URI)
 
 	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
 	for k, v := range headers {
