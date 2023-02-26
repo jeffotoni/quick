@@ -1,14 +1,13 @@
 package quick
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"encoding/xml"
 	"io"
-	"math/rand"
+	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -26,6 +25,7 @@ type Ctx struct {
 
 type Route struct {
 	//Pattern *regexp.Regexp
+	Group   string
 	Pattern string
 	Path    string
 	Params  string
@@ -60,13 +60,12 @@ var defaultConfig = Config{
 
 type Group struct {
 	prefix string
-	routes []Route
 	quick  *Quick
 }
 
 type Quick struct {
 	routes  []Route
-	groups  []Group
+	group   *Group
 	mws     []func(http.Handler) http.Handler
 	mws2    []any
 	mux     *http.ServeMux
@@ -110,27 +109,93 @@ func (q *Quick) Use(mw any) {
 // 	q.mws = append(q.mws, mw)
 // }
 
-func (q *Quick) Group(prefix string) *Group {
+func (q *Quick) Group(prefix string) {
 	g := &Group{
 		prefix: prefix,
-		routes: []Route{},
 		quick:  q,
 	}
-	q.groups = append(q.groups, *g)
-	return g
+	q.group = g
+}
+
+func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
+	path, params, partternExist := extractParamsPattern(pattern)
+
+	var gr string
+	// Setting up the group
+	if q.group != nil {
+		path = ConcatStr(q.group.prefix, path)
+		gr = q.group.prefix
+	}
+
+	route := Route{
+		Pattern: partternExist,
+		Path:    path,
+		Params:  params,
+		handler: extractParamsGet(path, params, handlerFunc),
+		Method:  http.MethodGet,
+		Group:   gr,
+	}
+
+	q.appendRoute(&route)
+	q.mux.HandleFunc(path, route.handler)
 }
 
 func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
-	pathPost := ConcatStr("post#", pattern)
+
+	var (
+		gr       string
+		pathPost string
+	)
+
+	pathPost = ConcatStr("post#", pattern)
+
+	// Setting up the group
+	if q.group != nil {
+		pathPost = ConcatStr("post#", q.group.prefix, pattern)
+		pattern = ConcatStr(q.group.prefix, pattern)
+		gr = q.group.prefix
+	}
+
 	route := Route{
 		Pattern: "",
 		Path:    pattern,
 		handler: extractParamsPost(q, pattern, handlerFunc),
 		Method:  http.MethodPost,
+		Group:   gr,
 	}
 
 	q.appendRoute(&route)
 	q.mux.HandleFunc(pathPost, route.handler)
+}
+
+func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
+	_, params, partternExist := extractParamsPattern(pattern)
+
+	var (
+		gr      string
+		pathPut string
+	)
+
+	pathPut = ConcatStr("put#", pattern)
+
+	// Setting up the group
+	if q.group != nil {
+		pathPut = ConcatStr("put#", q.group.prefix, pathPut)
+		pattern = ConcatStr(q.group.prefix, pattern)
+		gr = q.group.prefix
+	}
+
+	route := Route{
+		Pattern: partternExist,
+		Path:    pattern,
+		handler: extractParamsPut(q, pattern, handlerFunc),
+		Method:  http.MethodPut,
+		Params:  params,
+		Group:   gr,
+	}
+
+	q.appendRoute(&route)
+	q.mux.HandleFunc(pathPut, route.handler)
 }
 
 func extractHeaders(req http.Request) map[string][]string {
@@ -287,68 +352,6 @@ func (c *Ctx) BodyString() string {
 	return c.JsonStr
 }
 
-func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
-	pattern = ConcatStr(g.prefix, pattern)
-	path, params, partternExist := extractParamsPattern(pattern)
-
-	route := Route{
-		Pattern: partternExist,
-		Path:    path,
-		Params:  params,
-		handler: extractParamsGet(path, params, handlerFunc),
-		Method:  http.MethodGet,
-	}
-
-	g.quick.appendRoute(&route)
-	g.quick.mux.HandleFunc(path, route.handler)
-}
-
-func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
-	pattern = ConcatStr(g.prefix, pattern)
-	_, params, partternExist := extractParamsPattern(pattern)
-	pathPost := ConcatStr("post#", pattern)
-	route := Route{
-		Pattern: partternExist,
-		Path:    pattern,
-		handler: extractParamsPost(g.quick, pattern, handlerFunc),
-		Method:  http.MethodPost,
-		Params:  params,
-	}
-
-	g.quick.appendRoute(&route)
-	g.quick.mux.HandleFunc(pathPost, route.handler)
-}
-
-func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
-	path, params, partternExist := extractParamsPattern(pattern)
-
-	route := Route{
-		Pattern: partternExist,
-		Path:    path,
-		Params:  params,
-		handler: extractParamsGet(path, params, handlerFunc),
-		Method:  http.MethodGet,
-	}
-
-	q.appendRoute(&route)
-	q.mux.HandleFunc(path, route.handler)
-}
-
-func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
-	_, params, partternExist := extractParamsPattern(pattern)
-	pathPut := ConcatStr("put#", pattern)
-	route := Route{
-		Pattern: partternExist,
-		Path:    pattern,
-		handler: extractParamsPost(q, pattern, handlerFunc),
-		Method:  http.MethodPut,
-		Params:  params,
-	}
-
-	q.appendRoute(&route)
-	q.mux.HandleFunc(pathPut, route.handler)
-}
-
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
@@ -389,6 +392,12 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if len(patternUri) == 0 {
 			patternUri = route.Path
 		}
+
+		if len(route.Group) != 0 && strings.Contains(route.Pattern, ":") {
+			patternUri = ConcatStr(route.Group, route.Pattern)
+		}
+
+		log.Printf("\ndata -> %s | req -> %s", patternUri, requestURI)
 
 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
 
@@ -438,6 +447,16 @@ func (c *Ctx) JSON(v interface{}) error {
 		return err
 	}
 	c.Response.Header().Set("Content-Type", "application/json")
+	_, err = c.Response.Write(b)
+	return err
+}
+
+func (c *Ctx) XML(v interface{}) error {
+	b, err := xml.Marshal(v)
+	if err != nil {
+		return err
+	}
+	c.Response.Header().Set("Content-Type", "text/xml")
 	_, err = c.Response.Write(b)
 	return err
 }
@@ -510,87 +529,4 @@ func (q *Quick) Listen(addr string) error {
 
 	Print("\033[0;33mRun Server Quick:", addr, "\033[0m")
 	return server.ListenAndServe()
-}
-
-type QuickTestReturn interface {
-	Body() []byte
-	BodyStr() string
-	StatusCode() int
-	Response() *http.Response
-}
-
-type qTest struct {
-	body       []byte
-	bodyStr    string
-	statusCode int
-	response   *http.Response
-}
-
-// QuickTest: This Method is a helper function to make tests with quick more quickly
-// Required Params: Method (GET, POST, PUT, DELETE...), URI (only the path. Example: /test/:myParam)
-// Optional Param: Body (If you don't want to define one, just ignore)
-func (q Quick) QuickTest(method, URI string, body ...[]byte) (QuickTestReturn, error) {
-
-	rand.Seed(time.Now().UnixNano())
-	min := 3000
-	max := 9999
-	randPort := rand.Intn(max-min+1) + min
-
-	port := strconv.Itoa(randPort)
-
-	var buffBody []byte
-	if len(body) > 0 {
-		buffBody = body[0]
-	}
-
-	port = ConcatStr(":", port)
-	URI = ConcatStr("http://0.0.0.0", port, URI)
-
-	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
-
-	if err != nil {
-		return nil, err
-	}
-
-	go q.Listen(port)
-
-	// This is a wait time to start the server in go routine
-	time.Sleep(time.Millisecond * 100)
-
-	c := http.DefaultClient
-
-	resp, err := c.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return &qTest{
-		body:       b,
-		bodyStr:    string(b),
-		statusCode: resp.StatusCode,
-		response:   resp,
-	}, nil
-}
-
-func (qt *qTest) Body() []byte {
-	return qt.body
-}
-
-func (qt *qTest) BodyStr() string {
-	return qt.bodyStr
-}
-
-func (qt *qTest) StatusCode() int {
-	return qt.statusCode
-}
-
-func (qt *qTest) Response() *http.Response {
-	return qt.response
 }
