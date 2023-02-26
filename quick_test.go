@@ -112,11 +112,13 @@ func TestQuick_Get(t *testing.T) {
 			data, err := r.QuickTest("GET", tt.args.route)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
+				return
 			}
 
 			s := strings.TrimSpace(data.BodyStr())
 			if s != tt.args.wantOut {
 				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+				return
 			}
 
 			t.Logf("outputBody -> %v", data.BodyStr())
@@ -188,11 +190,13 @@ func TestQuick_Post(t *testing.T) {
 			data, err := r.QuickTest("POST", tt.args.route, tt.args.reqBody)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
+				return
 			}
 
 			s := strings.TrimSpace(data.BodyStr())
 			if s != tt.args.wantOut {
 				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+				return
 			}
 
 			t.Logf("outputBody -> %v", data.BodyStr())
@@ -263,11 +267,13 @@ func TestQuick_Put(t *testing.T) {
 			data, err := r.QuickTest("PUT", tt.args.route, tt.args.reqBody)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
+				return
 			}
 
 			s := strings.TrimSpace(data.BodyStr())
 			if s != tt.args.wantOut {
 				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+				return
 			}
 
 			t.Logf("outputBody -> %v", data.BodyStr())
