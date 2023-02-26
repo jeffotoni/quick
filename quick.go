@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -396,8 +395,6 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if len(route.Group) != 0 && strings.Contains(route.Pattern, ":") {
 			patternUri = ConcatStr(route.Group, route.Pattern)
 		}
-
-		log.Printf("\ndata -> %s | req -> %s", patternUri, requestURI)
 
 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
 
