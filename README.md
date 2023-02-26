@@ -285,11 +285,13 @@ func TestQuickExample(t *testing.T) {
 	data, err := app.QuickTest("POST", "/v1/user", reqBody)
 	if err != nil {
 		t.Errorf("error: %v", err)
+		return
 	}
 
 	s := strings.TrimSpace(data.BodyStr())
 	if s != wantOutData {
 		t.Errorf("was suppose to return %s and %s come", wantOutData, s)
+		return
 	}
 
 	t.Logf("outputBody -> %v", data.BodyStr())
