@@ -341,7 +341,10 @@ func TestQuickExample(t *testing.T) {
 		return
 	}
 
-	t.Logf("outputBody -> %v", data.BodyStr())
+	t.Logf("\nOutputBodyString -> %v", data.BodyStr())
+    t.Logf("\nStatusCode -> %d", data.StatusCode())
+    t.Logf("\nOutputBody -> %v", string(data.Body())) // I have converted in this example to string but comes []byte as default
+    t.Logf("\nResponse -> %v", data.Response())
 }
 
 ```
