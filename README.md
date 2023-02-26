@@ -274,7 +274,7 @@ func TestQuickExample(t *testing.T) {
 		c.Byte([]byte(resp))
 	}
 
-	app := New()
+	app := quick.New()
 	// Here you can create all routes that you want to test
 	app.Post("/v1/user", testSuccessMockHandler)
 	app.Post("/v1/user/:p1", testSuccessMockHandler)
@@ -282,7 +282,7 @@ func TestQuickExample(t *testing.T) {
 	wantOutData := `"data":{"name":"jeff", "age":35}`
 	reqBody := []byte(`{"name":"jeff", "age":35}`)
 
-	data, err := app.QuickTest("POST", "/test", reqBody)
+	data, err := app.QuickTest("POST", "/vi/user", reqBody)
 	if err != nil {
 		t.Errorf("error: %v", err)
 	}
