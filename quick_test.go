@@ -54,13 +54,24 @@ func TestQuick_Get(t *testing.T) {
 		isWantedErr bool
 	}
 
+	type myType struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	mt := myType{}
+	mt.Name = "jeff"
+	mt.Age = 35
+
 	testSuccessMockHandler := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
-		c.Byte([]byte(`"data": null`))
+		c.JSON(mt)
 	}
 
 	r := New()
+	r.Group("/v1/user")
 	r.Get("/test", testSuccessMockHandler)
+	r.Group("/v1/user2")
 	r.Get("/tester/:p1", testSuccessMockHandler)
 	r.Get("/", testSuccessMockHandler)
 
@@ -71,8 +82,8 @@ func TestQuick_Get(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:       "/test",
-				wantOut:     `"data": null`,
+				route:       "/v1/user/test",
+				wantOut:     `{"name":"jeff","age":35}`,
 				wantCode:    200,
 				isWantedErr: false,
 			},
@@ -80,8 +91,8 @@ func TestQuick_Get(t *testing.T) {
 		{
 			name: "success_with_params",
 			args: args{
-				route:       "/tester/val1",
-				wantOut:     `"data": null`,
+				route:       "/v1/user2/tester/val1",
+				wantOut:     `{"name":"jeff","age":35}`,
 				wantCode:    200,
 				isWantedErr: false,
 			},
@@ -89,8 +100,8 @@ func TestQuick_Get(t *testing.T) {
 		{
 			name: "success_with_nothing",
 			args: args{
-				route:       "/",
-				wantOut:     `"data": null`,
+				route:       "/v1/user2/",
+				wantOut:     `{"name":"jeff","age":35}`,
 				wantCode:    200,
 				isWantedErr: false,
 			},
@@ -121,6 +132,11 @@ func TestQuick_Get(t *testing.T) {
 				return
 			}
 
+			if tt.args.wantCode != data.StatusCode() {
+				t.Errorf("was suppose to return %d and %d come", tt.args.wantCode, data.StatusCode())
+				return
+			}
+
 			t.Logf("outputBody -> %v", data.BodyStr())
 		})
 	}
@@ -141,13 +157,23 @@ func TestQuick_Post(t *testing.T) {
 		c.Set("Content-Type", "application/json")
 		b, _ := io.ReadAll(c.Request.Body)
 		resp := ConcatStr(`"data":`, string(b))
-		c.Byte([]byte(resp))
+		c.Status(200)
+		c.SendString(resp)
+	}
+
+	testSuccessMockHandlerString := func(c *Ctx) {
+		c.Set("Content-Type", "application/json")
+		b, _ := io.ReadAll(c.Request.Body)
+		resp := ConcatStr(`"data":`, string(b))
+		c.Status(200)
+		c.String(resp)
 	}
 
 	r := New()
+	r.Group("/my/group")
 	r.Post("/test", testSuccessMockHandler)
 	r.Post("/tester/:p1", testSuccessMockHandler)
-	r.Post("/", testSuccessMockHandler)
+	r.Post("/", testSuccessMockHandlerString)
 
 	tests := []struct {
 		name string
@@ -156,7 +182,7 @@ func TestQuick_Post(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:       "/test",
+				route:       "/my/group/test",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -166,7 +192,7 @@ func TestQuick_Post(t *testing.T) {
 		{
 			name: "success_param",
 			args: args{
-				route:       "/tester/:p1",
+				route:       "/my/group/tester/:p1",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -176,7 +202,7 @@ func TestQuick_Post(t *testing.T) {
 		{
 			name: "success_without_param",
 			args: args{
-				route:       "/",
+				route:       "/my/group/",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -196,6 +222,11 @@ func TestQuick_Post(t *testing.T) {
 			s := strings.TrimSpace(data.BodyStr())
 			if s != tt.args.wantOut {
 				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+				return
+			}
+
+			if tt.args.wantCode != data.StatusCode() {
+				t.Errorf("was suppose to return %d and %d come", tt.args.wantCode, data.StatusCode())
 				return
 			}
 
@@ -223,9 +254,10 @@ func TestQuick_Put(t *testing.T) {
 	}
 
 	r := New()
+	r.Put("/", testSuccessMockHandler)
+	r.Group("/put/group")
 	r.Put("/test", testSuccessMockHandler)
 	r.Put("/tester/:p1", testSuccessMockHandler)
-	r.Put("/", testSuccessMockHandler)
 
 	tests := []struct {
 		name string
@@ -234,7 +266,7 @@ func TestQuick_Put(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:       "/test",
+				route:       "/put/group/test",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -244,7 +276,7 @@ func TestQuick_Put(t *testing.T) {
 		{
 			name: "success_param",
 			args: args{
-				route:       "/tester/:p1",
+				route:       "/put/group/tester/:p1",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -276,7 +308,15 @@ func TestQuick_Put(t *testing.T) {
 				return
 			}
 
-			t.Logf("outputBody -> %v", data.BodyStr())
+			if tt.args.wantCode != data.StatusCode() {
+				t.Errorf("was suppose to return %d and %d come", tt.args.wantCode, data.StatusCode())
+				return
+			}
+
+			t.Logf("\nOutputBodyString -> %v", data.BodyStr())
+			t.Logf("\nStatusCode -> %d", data.StatusCode())
+			t.Logf("\nOutputBody -> %v", string(data.Body())) // I have converted in this example to string but comes []byte as default
+			t.Logf("\nResponse -> %v", data.Response())
 		})
 	}
 }
