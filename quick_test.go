@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/gojeffotoni/quick/internal/concat"
 )
 
 // To test the entire package and check the coverage you can run those commands below:
@@ -164,7 +166,7 @@ func TestQuick_Post(t *testing.T) {
 	testSuccessMockHandler := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
 		b, _ := io.ReadAll(c.Request.Body)
-		resp := ConcatStr(`"data":`, string(b))
+		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
 		c.SendString(resp)
 	}
@@ -176,7 +178,7 @@ func TestQuick_Post(t *testing.T) {
 			t.Errorf("error: %v", err)
 		}
 		b, _ := json.Marshal(mt)
-		resp := ConcatStr(`"data":`, string(b))
+		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
 		c.String(resp)
 	}
@@ -188,7 +190,7 @@ func TestQuick_Post(t *testing.T) {
 			t.Errorf("error: %v", err)
 		}
 		b, _ := json.Marshal(mt)
-		resp := ConcatStr(`"data":`, string(b))
+		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
 		c.String(resp)
 	}
@@ -287,7 +289,7 @@ func TestQuick_Put(t *testing.T) {
 	testSuccessMockHandler := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
 		b, _ := io.ReadAll(c.Request.Body)
-		resp := ConcatStr(`"data":`, string(b))
+		resp := concat.String(`"data":`, string(b))
 		c.Byte([]byte(resp))
 	}
 
