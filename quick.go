@@ -530,15 +530,18 @@ func (q Quick) QuickTest(method, URI string, body ...[]byte) (QuickTestReturn, e
 	}
 
 	port = ConcatStr(":", port)
-	URI = ConcatStr("http://localhost", port, URI)
+	URI = ConcatStr("http://0.0.0.0", port, URI)
 
 	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
 
 	if err != nil {
 		return nil, err
 	}
-
+	
 	go q.Listen(port)
+
+	// This is a wait time to start the server in go routine
+	time.Sleep(time.Millisecond * 100)
 
 	c := http.DefaultClient
 
