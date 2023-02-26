@@ -23,11 +23,13 @@ func (c *Cors) Handler(next http.Handler) http.Handler {
 }
 
 type Config struct {
-	AllowedOrigins []string
+	AllowedOrigins   []string
+	AllowCredentials bool
 }
 
 var ConfigDefault = Config{
-	AllowedOrigins: []string{"*"},
+	AllowedOrigins:   []string{"*"},
+	AllowCredentials: true,
 }
 
 func New(config ...Config) func(http.Handler) http.Handler {
