@@ -257,6 +257,47 @@ func main() {
 
 ```
 
+##### Quick Tests
+```go
+
+package main
+
+import "github.com/jeffotoni/quick"
+
+func TestQuickExample(t *testing.T) {
+
+    // Here is a handler function Mock
+	testSuccessMockHandler := func(c *Ctx) {
+		c.Set("Content-Type", "application/json")
+		b, _ := io.ReadAll(c.Request.Body)
+		resp := ConcatStr(`"data":`, string(b))
+		c.Byte([]byte(resp))
+	}
+
+	app := New()
+	// Here you can create all routes that you want to test
+	app.Post("/v1/user", testSuccessMockHandler)
+	app.Post("/v1/user/:p1", testSuccessMockHandler)
+
+	wantOutData := `"data":{"name":"jeff", "age":35}`
+	reqBody := []byte(`{"name":"jeff", "age":35}`)
+
+	data, err := app.QuickTest("POST", "/test", reqBody)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	s := strings.TrimSpace(data.BodyStr())
+	if s != wantOutData {
+		t.Errorf("was suppose to return %s and %s come", wantOutData, s)
+	}
+
+	t.Logf("outputBody -> %v", data.BodyStr())
+}
+
+```
+
+
 ## 🤍| Contribuições
 
 Já temos diversos exemplos, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. 
