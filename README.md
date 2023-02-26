@@ -282,7 +282,7 @@ func TestQuickExample(t *testing.T) {
 	wantOutData := `"data":{"name":"jeff", "age":35}`
 	reqBody := []byte(`{"name":"jeff", "age":35}`)
 
-	data, err := app.QuickTest("POST", "/vi/user", reqBody)
+	data, err := app.QuickTest("POST", "/v1/user", reqBody)
 	if err != nil {
 		t.Errorf("error: %v", err)
 	}
