@@ -1,10 +1,10 @@
-package quick
+package print
 
 import (
 	"os"
 	"strings"
 )
 
-func Print(str ...string) {
+func Stdout(str ...string) {
 	os.Stdout.Write([]byte(strings.Join(str, "")))
 }

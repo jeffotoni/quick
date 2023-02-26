@@ -9,6 +9,9 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gojeffotoni/quick/internal/concat"
+	"github.com/gojeffotoni/quick/internal/print"
 )
 
 type Ctx struct {
@@ -122,7 +125,7 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 	var gr string
 	// Setting up the group
 	if q.group != nil {
-		path = ConcatStr(q.group.prefix, path)
+		path = concat.String(q.group.prefix, path)
 		gr = q.group.prefix
 	}
 
@@ -146,12 +149,12 @@ func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 		pathPost string
 	)
 
-	pathPost = ConcatStr("post#", pattern)
+	pathPost = concat.String("post#", pattern)
 
 	// Setting up the group
 	if q.group != nil {
-		pathPost = ConcatStr("post#", q.group.prefix, pattern)
-		pattern = ConcatStr(q.group.prefix, pattern)
+		pathPost = concat.String("post#", q.group.prefix, pattern)
+		pattern = concat.String(q.group.prefix, pattern)
 		gr = q.group.prefix
 	}
 
@@ -175,12 +178,12 @@ func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
 		pathPut string
 	)
 
-	pathPut = ConcatStr("put#", pattern)
+	pathPut = concat.String("put#", pattern)
 
 	// Setting up the group
 	if q.group != nil {
-		pathPut = ConcatStr("put#", q.group.prefix, pathPut)
-		pattern = ConcatStr(q.group.prefix, pattern)
+		pathPut = concat.String("put#", q.group.prefix, pathPut)
+		pattern = concat.String(q.group.prefix, pattern)
 		gr = q.group.prefix
 	}
 
@@ -393,7 +396,7 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if len(route.Group) != 0 && strings.Contains(route.Pattern, ":") {
-			patternUri = ConcatStr(route.Group, route.Pattern)
+			patternUri = concat.String(route.Group, route.Pattern)
 		}
 
 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
@@ -424,9 +427,9 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	for pttrn := 0; pttrn < len(patternURISplt); pttrn++ {
 		if strings.Contains(patternURISplt[pttrn], ":") {
 			params[patternURISplt[pttrn]] = reqURISplt[pttrn]
-			tmpPath = ConcatStr(tmpPath, "/", reqURISplt[pttrn])
+			tmpPath = concat.String(tmpPath, "/", reqURISplt[pttrn])
 		} else {
-			tmpPath = ConcatStr(tmpPath, "/", patternURISplt[pttrn])
+			tmpPath = concat.String(tmpPath, "/", patternURISplt[pttrn])
 		}
 	}
 
@@ -498,11 +501,11 @@ func (q *Quick) GetRoute() []Route {
 
 func (q *Quick) Static(staticFolder string) {
 	// generate route get with a pattern like this: /static/:file
-	pattern := ConcatStr(staticFolder, ":file")
+	pattern := concat.String(staticFolder, ":file")
 	q.Get(pattern, func(c *Ctx) {
 		path, _, _ := extractParamsPattern(pattern)
 		file := c.Params["file"]
-		filePath := ConcatStr(".", path, "/", file)
+		filePath := concat.String(".", path, "/", file)
 
 		fileBytes, err := os.ReadFile(filePath)
 		if err != nil {
@@ -524,6 +527,6 @@ func (q *Quick) Listen(addr string) error {
 		// ReadHeaderTimeout:
 	}
 
-	Print("\033[0;33mRun Server Quick:", addr, "\033[0m")
+	print.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m")
 	return server.ListenAndServe()
 }

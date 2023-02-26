@@ -1,5 +1,5 @@
 # quick - Route Go
-[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
+[![GoDoc](https://godoc.org/github.com/gojeffotoni/quick?status.svg)](https://godoc.org/github.com/gojeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/gojeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/gojeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/gojeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/gojeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/gojeffotoni/quick)](https://goreportcard.com/badge/github.com/gojeffotoni/quick) [![License](https://img.shields.io/github/license/gojeffotoni/quick)](https://img.shields.io/github/license/gojeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/gojeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/gojeffotoni/quick)
 
 O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com diversas funcionalidades, onde sua sintaxe foi inspirado no **framework fiber**.
 
@@ -48,7 +48,7 @@ Espero que possam participar e que gostem de Godar!!! 😍
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func main() {
 	app := quick.New()
@@ -81,7 +81,7 @@ Quick em ação ❤️!
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func main() {
 	app := quick.New()
@@ -125,7 +125,7 @@ Content-Length: 23
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 type My struct {
 	Name string `json:"name"`
@@ -186,7 +186,7 @@ Content-Type: text/plain; charset=utf-8
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 type My struct {
 	Name string `json:"name"`
@@ -229,8 +229,8 @@ Content-Type: text/plain; charset=utf-8
 
 package main
 
-import "github.com/jeffotoni/quick"
-import "github.com/jeffotoni/quick/middleware/cors"
+import "github.com/gojeffotoni/quick"
+import "github.com/gojeffotoni/quick/middleware/cors"
 
 func main() {
 	app := quick.New()
@@ -251,7 +251,7 @@ func main() {
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func main() {
 	app := quick.New(quick.Config{
@@ -272,7 +272,7 @@ func main() {
 ```go
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func main() {
 	app := quick.New(quick.Config{
@@ -309,7 +309,7 @@ func main() {
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func TestQuickExample(t *testing.T) {
 
