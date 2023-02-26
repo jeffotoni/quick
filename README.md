@@ -328,8 +328,9 @@ func TestQuickExample(t *testing.T) {
 
 	wantOutData := `"data":{"name":"jeff", "age":35}`
 	reqBody := []byte(`{"name":"jeff", "age":35}`)
+    reqHeaders := map[string]string{"Content-Type": "application/json"}
 
-	data, err := app.QuickTest("POST", "/v1/user", reqBody)
+	data, err := app.QuickTest("POST", "/v1/user", reqHeaders, reqBody)
 	if err != nil {
 		t.Errorf("error: %v", err)
 		return
