@@ -1,6 +1,7 @@
 package quick
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,6 +53,7 @@ func TestQuick_Get(t *testing.T) {
 		wantCode    int
 		wantOut     string
 		isWantedErr bool
+		reqHeaders  map[string]string
 	}
 
 	type myType struct {
@@ -120,7 +122,7 @@ func TestQuick_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			data, err := r.QuickTest("GET", tt.args.route)
+			data, err := r.QuickTest("GET", tt.args.route, tt.args.reqHeaders)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return
@@ -151,6 +153,12 @@ func TestQuick_Post(t *testing.T) {
 		wantOut     string
 		isWantedErr bool
 		reqBody     []byte
+		reqHeaders  map[string]string
+	}
+
+	type myType struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
 	}
 
 	testSuccessMockHandler := func(c *Ctx) {
@@ -163,7 +171,23 @@ func TestQuick_Post(t *testing.T) {
 
 	testSuccessMockHandlerString := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
-		b, _ := io.ReadAll(c.Request.Body)
+		mt := new(myType)
+		if err := c.Body(mt); err != nil {
+			t.Errorf("error: %v", err)
+		}
+		b, _ := json.Marshal(mt)
+		resp := ConcatStr(`"data":`, string(b))
+		c.Status(200)
+		c.String(resp)
+	}
+
+	testSuccessMockHandlerBind := func(c *Ctx) {
+		c.Set("Content-Type", "application/json")
+		mt := new(myType)
+		if err := c.Bind(mt); err != nil {
+			t.Errorf("error: %v", err)
+		}
+		b, _ := json.Marshal(mt)
 		resp := ConcatStr(`"data":`, string(b))
 		c.Status(200)
 		c.String(resp)
@@ -174,6 +198,7 @@ func TestQuick_Post(t *testing.T) {
 	r.Post("/test", testSuccessMockHandler)
 	r.Post("/tester/:p1", testSuccessMockHandler)
 	r.Post("/", testSuccessMockHandlerString)
+	r.Post("/bind", testSuccessMockHandlerBind)
 
 	tests := []struct {
 		name string
@@ -204,16 +229,28 @@ func TestQuick_Post(t *testing.T) {
 			args: args{
 				route:       "/my/group/",
 				wantCode:    200,
-				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				wantOut:     `"data":{"name":"jeff","age":35}`,
 				isWantedErr: false,
-				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+				reqBody:     []byte(`{"name":"jeff","age":35}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_bind",
+			args: args{
+				route:       "/my/group/bind",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff","age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff","age":35}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			data, err := r.QuickTest("POST", tt.args.route, tt.args.reqBody)
+			data, err := r.QuickTest("POST", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return
@@ -244,6 +281,7 @@ func TestQuick_Put(t *testing.T) {
 		wantOut     string
 		isWantedErr bool
 		reqBody     []byte
+		reqHeaders  map[string]string
 	}
 
 	testSuccessMockHandler := func(c *Ctx) {
@@ -291,12 +329,13 @@ func TestQuick_Put(t *testing.T) {
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
 				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data, err := r.QuickTest("PUT", tt.args.route, tt.args.reqBody)
+			data, err := r.QuickTest("PUT", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return
