@@ -19,7 +19,7 @@ type Ctx struct {
 	Headers  map[string][]string
 	Params   map[string]string
 	Query    map[string]string
-	JSON     map[string]interface{}
+	// JSON     map[string]interface{}
 	BodyByte []byte
 	JsonStr  string
 }
@@ -141,11 +141,20 @@ func extractHeaders(req http.Request) map[string][]string {
 	return headersMap
 }
 
-func extractBodyByte(req http.Request) ([]byte, error) {
-	var bodyByte []byte
-	var err error
+func extractBind(req http.Request, v interface{}) (obj interface{}, err error) {
+	if strings.ToLower(req.Header.Get("Content-Type")) == "application/json" ||
+		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
+		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
+		err = json.NewDecoder(req.Body).Decode(v)
+		obj = v
+	}
+	return obj, err
+}
 
-	if req.Header.Get("Content-Type") == "application/json" {
+func extractBodyByte(req http.Request) (bodyByte []byte, err error) {
+	if strings.ToLower(req.Header.Get("Content-Type")) == "application/json" ||
+		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
+		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
 		bodyByte, err = io.ReadAll(req.Body)
 	}
 	return bodyByte, err
@@ -183,17 +192,11 @@ func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Ha
 
 		headersMap := extractHeaders(*req)
 
-		bodyByte, err := extractBodyByte(*req)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
 		c := &Ctx{
 			Response: w,
 			Request:  req,
 			Headers:  headersMap,
-			BodyByte: bodyByte,
+			//BodyByte: bodyByte,
 		}
 		handlerFunc(c)
 	}
@@ -216,18 +219,12 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Han
 
 		cval := v.(ctxServeHttp)
 
-		bodyByte, err := extractBodyByte(*req)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
 		c := &Ctx{
 			Response: w,
 			Request:  req,
 			Headers:  headersMap,
-			BodyByte: bodyByte,
-			Params:   cval.ParamsMap,
+			//BodyByte: bodyByte,
+			Params: cval.ParamsMap,
 		}
 		handlerFunc(c)
 	}
@@ -260,15 +257,28 @@ func (q *Quick) appendRoute(route *Route) {
 	q.routes = append(q.routes, *route)
 }
 
+func (c *Ctx) Bind(v interface{}) (err error) {
+	if c.Request.Header.Get("Content-Type") == "application/json" {
+		obj, err := extractBind(*c.Request, v)
+		if err != nil {
+			return err
+		}
+		v = obj
+	}
+	return nil
+}
+
 func (c *Ctx) Body(v interface{}) (err error) {
 	if c.Request.Header.Get("Content-Type") == "application/json" {
-		if len(c.BodyByte) > 0 {
-			err = json.Unmarshal(c.BodyByte, v)
-			if err != nil {
-				return
-			}
-			c.JsonStr = string(c.BodyByte)
+		bodyByte, err := extractBodyByte(*c.Request)
+		if err != nil {
+			return err
 		}
+		err = json.Unmarshal(bodyByte, v)
+		if err != nil {
+			return err
+		}
+		c.JsonStr = string(bodyByte)
 	}
 	return nil
 }
@@ -422,7 +432,7 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	return params, true
 }
 
-func (c *Ctx) Json(v interface{}) error {
+func (c *Ctx) JSON(v interface{}) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -536,7 +546,7 @@ func (q Quick) QuickTest(method, URI string, body ...[]byte) (QuickTestReturn, e
 	if err != nil {
 		return nil, err
 	}
-	
+
 	go q.Listen(port)
 
 	// This is a wait time to start the server in go routine

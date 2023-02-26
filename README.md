@@ -11,8 +11,9 @@ Espero que possam participar e que gostem de Godar!!! 😍
 
 | Tarefa                                          | Progresso |
 |-------------------------------------------------|-----------|
-| Desenvolver MaxBodySize metodos Post e Put       | 100%      |
-| Desenvolver Config em New(Config{}) não obrigatório | 100%    |
+| Desenvolver MaxBodySize metodos Post e Put       | 100%     |
+| Desenvolver Padrão de Testes Unitários       	   | 90%      |
+| Desenvolver Config em New(Config{}) não obrigatório | 100%   |
 | Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
 | Desenvolver e relacionar ao Listen o Config      | 30%       |
 | Criação de função print para não usar fmt de forma demasiada | 100% |
@@ -94,7 +95,7 @@ func main() {
 			Val string `json:"val"`
 		}
 
-		c.Status(200).Json(&my{
+		c.Status(200).JSON(&my{
 			Msg: "Quick ❤️",
 			Key: c.Param("param1"),
 			Val: c.Param("param2"),
@@ -119,7 +120,7 @@ Content-Length: 23
 
 ```
 
-##### Quick Post json
+##### Quick Post Body json
 ```go
 
 package main
@@ -140,7 +141,10 @@ func main() {
 			c.Status(400).SendString(err.Error())
 			return
 		}
-		c.Status(200).Json(&my)
+
+		c.Status(200).String(c.BodyString())
+		// ou 
+		// c.Status(200).JSON(&my)
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -176,6 +180,49 @@ Content-Type: text/plain; charset=utf-8
 
 ## 👁‍🗨| Examples
 
+
+##### Quick Post Bind json
+```go
+
+package main
+
+import "github.com/jeffotoni/quick"
+
+type My struct {
+	Name string `json:"name"`
+	Year int    `json:"year"`
+}
+
+func main() {
+	app := quick.New()
+	app.Post("/v2/user", func(c *quick.Ctx) {
+		var my My
+		err := c.Bind(&my)
+		if err != nil {
+			c.Status(400).SendString(err.Error())
+			return
+		}
+		c.Status(200).JSON(&my)
+	})
+
+	app.Listen("0.0.0.0:8080")
+}
+
+```
+
+```bash
+
+$ curl -i -XPOST -H "Content-Type:application/json" \
+'localhost:8080/v2/user' \
+-d '{"name":"Marcos", "year":1990}'
+HTTP/1.1 200 OK
+Date: Wed, 22 Feb 2023 08:10:06 GMT
+Content-Length: 32
+Content-Type: text/plain; charset=utf-8
+
+{"name":"Marcos","year":1990}
+
+```
 
 ##### Cors
 ```go

@@ -333,7 +333,7 @@ func TestCtx_Param(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
@@ -374,7 +374,7 @@ func TestCtx_Body(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
@@ -411,7 +411,7 @@ func TestCtx_BodyString(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
@@ -537,11 +537,11 @@ func TestCtx_Json(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
-			if err := c.Json(tt.args.v); (err != nil) != tt.wantErr {
+			if err := c.JSON(tt.args.v); (err != nil) != tt.wantErr {
 				t.Errorf("Ctx.Json() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -578,7 +578,7 @@ func TestCtx_Byte(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
@@ -619,7 +619,7 @@ func TestCtx_SendString(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
@@ -660,7 +660,7 @@ func TestCtx_Set(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
@@ -699,7 +699,7 @@ func TestCtx_Accepts(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
@@ -740,7 +740,7 @@ func TestCtx_Status(t *testing.T) {
 				Headers:  tt.fields.Headers,
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
-				JSON:     tt.fields.JSON,
+				//JSON:     tt.fields.JSON,
 				BodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
