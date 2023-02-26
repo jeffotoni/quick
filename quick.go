@@ -498,8 +498,6 @@ func (q *Quick) Listen(addr string) error {
 	return server.ListenAndServe()
 }
 
-// type
-
 type QuickTestParams interface {
 	Body() []byte
 	BodyStr() string
