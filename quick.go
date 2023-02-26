@@ -498,7 +498,7 @@ func (q *Quick) Listen(addr string) error {
 	return server.ListenAndServe()
 }
 
-type QuickTestParams interface {
+type QuickTestReturn interface {
 	Body() []byte
 	BodyStr() string
 	StatusCode() int
@@ -512,7 +512,10 @@ type qTest struct {
 	response   *http.Response
 }
 
-func (q Quick) QuickTest(method, URI string, body ...[]byte) (QuickTestParams, error) {
+// QuickTest: This Method is a helper function to make tests with quick more quickly
+// Required Params: Method (GET, POST, PUT, DELETE...), URI (only the path. Example: /test/:myParam)
+// Optional Param: Body (If you don't want to define one, just ignore)
+func (q Quick) QuickTest(method, URI string, body ...[]byte) (QuickTestReturn, error) {
 
 	rand.Seed(time.Now().UnixNano())
 	min := 3000
