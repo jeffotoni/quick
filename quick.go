@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"reflect"
 	"strings"
 	"time"
 )
@@ -66,7 +65,7 @@ type Quick struct {
 	routes  []Route
 	groups  []Group
 	mws     []func(http.Handler) http.Handler
-	mws2    []interface{}
+	mws2    []any
 	mux     *http.ServeMux
 	handler http.Handler
 	config  Config
@@ -100,7 +99,7 @@ type Middleware interface {
 	New(interface{}) func(http.Handler) http.Handler
 }
 
-func (q *Quick) Use(mw interface{}) {
+func (q *Quick) Use(mw any) {
 	q.mws2 = append(q.mws2, mw)
 }
 
@@ -240,16 +239,16 @@ func (c *Ctx) Param(key string) string {
 }
 
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
-	// for i := range q.mws {
-	// 	handler = q.mws[i](handler)
-	// }
 	for i := range q.mws2 {
-		value := reflect.ValueOf(q.mws2[i])
-		if value.Kind() == reflect.Func {
-			handler = value.Call([]reflect.Value{reflect.ValueOf(handler)})[0].Interface().(http.Handler)
+		switch mw := q.mws2[i].(type) {
+		case func(http.Handler) http.Handler:
+			handler = mw(handler)
+		case func(http.ResponseWriter, *http.Request, http.Handler):
+			handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mw(w, r, handler)
+			})
 		}
 	}
-
 	return handler
 }
 

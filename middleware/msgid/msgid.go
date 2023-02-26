@@ -7,45 +7,42 @@ import (
 	"time"
 )
 
-// type MsgID struct {
-// 	Config Config
-// }
-
 type Config struct {
-	Name string
+	Name  string
+	Start int
+	End   int
+	Algo  func() string
 }
 
 var ConfigDefault = Config{
-	Name: "Msgid",
+	Name:  "Msgid",
+	Start: 900000000,
+	End:   100000000,
 }
 
-// func (m *MsgID) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-// 	msgId := r.Header.Get(m.Config.Name)
-// 	if len(msgId) == 0 {
-// 		r.Header.Set(m.Config.Name, RandAlgo1())
-// 		w.Header().Set(m.Config.Name, RandAlgo1())
-// 		next.ServeHTTP(w, r)
-// 	}
-// }
-
 func New(config ...Config) func(http.Handler) http.Handler {
+	cfd := ConfigDefault
+	if len(config) > 0 {
+		cfd = config[0]
+	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			cfd := ConfigDefault
-			if len(config) > 0 {
-				cfd = config[0]
-			}
 			msgId := r.Header.Get(cfd.Name)
 			if len(msgId) == 0 {
-				r.Header.Set(cfd.Name, RandAlgo1())
-				w.Header().Set(cfd.Name, RandAlgo1())
+				if cfd.Algo == nil {
+					r.Header.Set(cfd.Name, AlgoDefault(cfd.Start, cfd.End))
+					w.Header().Set(cfd.Name, AlgoDefault(cfd.Start, cfd.End))
+				} else {
+					r.Header.Set(cfd.Name, cfd.Algo())
+					w.Header().Set(cfd.Name, cfd.Algo())
+				}
 				next.ServeHTTP(w, r)
 			}
 		})
 	}
 }
 
-func RandAlgo1() string {
+func AlgoDefault(Start, End int) string {
 	rand.Seed(time.Now().UnixNano())
-	return strconv.Itoa(900000000 + int(rand.Intn(100000000)))
+	return strconv.Itoa(Start + int(rand.Intn(End)))
 }
