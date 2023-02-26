@@ -2,27 +2,17 @@ package quick
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
-func TestNew(t *testing.T) {
-	tests := []struct {
-		name string
-		want *Quick
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := New(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("New() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+// To test the entire package and check the coverage you can run those commands below:
+// coverage     -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out ./...
+// coverageHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out ./...; go tool cover -html=coverage.out
 
 func TestQuick_Use(t *testing.T) {
 	type fields struct {
@@ -54,64 +44,233 @@ func TestQuick_Use(t *testing.T) {
 	}
 }
 
-func TestQuick_Post(t *testing.T) {
-	type fields struct {
-		routes  []Route
-		mws     []func(http.Handler) http.Handler
-		mux     *http.ServeMux
-		handler http.Handler
-	}
+// cover     ->  go test -v -count=1 -cover -failfast -run ^TestQuick_Get$
+// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Get$; go tool cover -html=coverage.out
+func TestQuick_Get(t *testing.T) {
 	type args struct {
-		pattern     string
-		handlerFunc func(*Ctx)
+		route       string
+		wantCode    int
+		wantOut     string
+		isWantedErr bool
 	}
+
+	testSuccessMockHandler := func(c *Ctx) {
+		c.Set("Content-Type", "application/json")
+		c.Byte([]byte(`"data": null`))
+	}
+
+	r := New()
+	r.Get("/test", testSuccessMockHandler)
+	r.Get("/tester/:p1", testSuccessMockHandler)
+	r.Get("/", testSuccessMockHandler)
+
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
-		// TODO: Add test cases.
+		{
+			name: "success",
+			args: args{
+				route:       "/test",
+				wantOut:     `"data": null`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_with_params",
+			args: args{
+				route:       "/tester/val1",
+				wantOut:     `"data": null`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_with_nothing",
+			args: args{
+				route:       "/",
+				wantOut:     `"data": null`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "error_not_exists_route",
+			args: args{
+				route:       "/tester/val1/route",
+				wantOut:     `404 page not found`,
+				wantCode:    404,
+				isWantedErr: true,
+			},
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
-				mux:     tt.fields.mux,
-				handler: tt.fields.handler,
+
+			data, err := r.QuickTest("GET", tt.args.route)
+			if (!tt.args.isWantedErr) && err != nil {
+				t.Errorf("error: %v", err)
 			}
-			r.Post(tt.args.pattern, tt.args.handlerFunc)
+
+			s := strings.TrimSpace(data.BodyStr())
+			if s != tt.args.wantOut {
+				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+			}
+
+			t.Logf("outputBody -> %v", data.BodyStr())
 		})
 	}
 }
 
-func TestQuick_Put(t *testing.T) {
-	type fields struct {
-		routes  []Route
-		mws     []func(http.Handler) http.Handler
-		mux     *http.ServeMux
-		handler http.Handler
-	}
+// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_Post$
+// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Post$; go tool cover -html=coverage.out
+func TestQuick_Post(t *testing.T) {
 	type args struct {
-		pattern     string
-		handlerFunc func(*Ctx)
+		route       string
+		wantCode    int
+		wantOut     string
+		isWantedErr bool
+		reqBody     []byte
 	}
+
+	testSuccessMockHandler := func(c *Ctx) {
+		c.Set("Content-Type", "application/json")
+		b, _ := io.ReadAll(c.Request.Body)
+		resp := ConcatStr(`"data":`, string(b))
+		c.Byte([]byte(resp))
+	}
+
+	r := New()
+	r.Post("/test", testSuccessMockHandler)
+	r.Post("/tester/:p1", testSuccessMockHandler)
+	r.Post("/", testSuccessMockHandler)
+
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
-		// TODO: Add test cases.
+		{
+			name: "success",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+			},
+		},
+		{
+			name: "success_param",
+			args: args{
+				route:       "/tester/:p1",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+			},
+		},
+		{
+			name: "success_without_param",
+			args: args{
+				route:       "/",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
-				mux:     tt.fields.mux,
-				handler: tt.fields.handler,
+
+			data, err := r.QuickTest("POST", tt.args.route, tt.args.reqBody)
+			if (!tt.args.isWantedErr) && err != nil {
+				t.Errorf("error: %v", err)
 			}
-			r.Put(tt.args.pattern, tt.args.handlerFunc)
+
+			s := strings.TrimSpace(data.BodyStr())
+			if s != tt.args.wantOut {
+				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+			}
+
+			t.Logf("outputBody -> %v", data.BodyStr())
+		})
+	}
+}
+
+// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_Put$
+// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Put$; go tool cover -html=coverage.out
+func TestQuick_Put(t *testing.T) {
+	type args struct {
+		route       string
+		wantCode    int
+		wantOut     string
+		isWantedErr bool
+		reqBody     []byte
+	}
+
+	testSuccessMockHandler := func(c *Ctx) {
+		c.Set("Content-Type", "application/json")
+		b, _ := io.ReadAll(c.Request.Body)
+		resp := ConcatStr(`"data":`, string(b))
+		c.Byte([]byte(resp))
+	}
+
+	r := New()
+	r.Put("/test", testSuccessMockHandler)
+	r.Put("/tester/:p1", testSuccessMockHandler)
+	r.Put("/", testSuccessMockHandler)
+
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "success",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+			},
+		},
+		{
+			name: "success_param",
+			args: args{
+				route:       "/tester/:p1",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+			},
+		},
+		{
+			name: "success_without_param",
+			args: args{
+				route:       "/",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := r.QuickTest("PUT", tt.args.route, tt.args.reqBody)
+			if (!tt.args.isWantedErr) && err != nil {
+				t.Errorf("error: %v", err)
+			}
+
+			s := strings.TrimSpace(data.BodyStr())
+			if s != tt.args.wantOut {
+				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+			}
+
+			t.Logf("outputBody -> %v", data.BodyStr())
 		})
 	}
 }
@@ -253,37 +412,6 @@ func TestCtx_BodyString(t *testing.T) {
 			if got := c.BodyString(); got != tt.want {
 				t.Errorf("Ctx.BodyString() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func TestQuick_Get(t *testing.T) {
-	type fields struct {
-		routes  []Route
-		mws     []func(http.Handler) http.Handler
-		mux     *http.ServeMux
-		handler http.Handler
-	}
-	type args struct {
-		pattern     string
-		handlerFunc func(*Ctx)
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
-				mux:     tt.fields.mux,
-				handler: tt.fields.handler,
-			}
-			r.Get(tt.args.pattern, tt.args.handlerFunc)
 		})
 	}
 }
