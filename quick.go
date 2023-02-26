@@ -452,6 +452,11 @@ func (c *Ctx) SendString(s string) error {
 	return err
 }
 
+func (c *Ctx) String(s string) error {
+	_, err := c.Response.Write([]byte(s))
+	return err
+}
+
 func (c *Ctx) SendFile(file []byte) error {
 	_, err := c.Response.Write(file)
 	return err
