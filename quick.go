@@ -218,15 +218,6 @@ func extractBind(req http.Request, v interface{}) (obj interface{}, err error) {
 	return obj, err
 }
 
-func extractBodyByte(req http.Request) (bodyByte []byte, err error) {
-	if strings.ToLower(req.Header.Get("Content-Type")) == "application/json" ||
-		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
-		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
-		bodyByte, err = io.ReadAll(req.Body)
-	}
-	return bodyByte, err
-}
-
 func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	path = pattern
 	index := strings.Index(pattern, ":")
@@ -263,7 +254,7 @@ func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Ha
 			Response: w,
 			Request:  req,
 			Headers:  headersMap,
-			//BodyByte: bodyByte,
+			BodyByte: extractBodyBytes(req.Body),
 		}
 		handlerFunc(c)
 	}
@@ -290,11 +281,22 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Han
 			Response: w,
 			Request:  req,
 			Headers:  headersMap,
-			//BodyByte: bodyByte,
-			Params: cval.ParamsMap,
+			BodyByte: extractBodyBytes(req.Body),
+			Params:   cval.ParamsMap,
 		}
+
 		handlerFunc(c)
 	}
+}
+
+func extractBodyBytes(r io.ReadCloser) []byte {
+	defer r.Close()
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return nil
+	}
+
+	return b
 }
 
 func (c *Ctx) Param(key string) string {
@@ -336,22 +338,30 @@ func (c *Ctx) Bind(v interface{}) (err error) {
 }
 
 func (c *Ctx) Body(v interface{}) (err error) {
-	if c.Request.Header.Get("Content-Type") == "application/json" {
-		bodyByte, err := extractBodyByte(*c.Request)
+	if strings.Contains(c.Request.Header.Get("Content-Type"), "application/json") {
+		err = json.Unmarshal(c.BodyByte, v)
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(bodyByte, v)
-		if err != nil {
-			return err
-		}
-		c.JsonStr = string(bodyByte)
 	}
+
+	if strings.Contains(c.Request.Header.Get("Content-Type"), "text/xml") ||
+		strings.Contains(c.Request.Header.Get("Content-Type"), "application/xml") {
+		err = xml.Unmarshal(c.BodyByte, v)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func (c *Ctx) BodyString() string {
-	return c.JsonStr
+	return string(c.BodyByte)
+}
+
+func (c *Ctx) BodyBytes() []byte {
+	return c.BodyByte
 }
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
@@ -374,6 +384,7 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 			Response: w,
 			Request:  req,
 			Params:   cval.ParamsMap,
+			BodyByte: extractBodyBytes(req.Body),
 			Query:    querys,
 			Headers:  headersMap,
 		}
