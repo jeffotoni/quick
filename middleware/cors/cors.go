@@ -7,7 +7,7 @@ import (
 	// "github.com/rs/cors"
 )
 
-type Options struct {
+type Config struct {
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
 	// If the special "*" value is present in the list, all origins will be allowed.
 	// An origin may contain a wildcard (*) to replace 0 or more characters
@@ -53,11 +53,11 @@ type Options struct {
 	Debug bool
 }
 
-func New(options ...Options) func(next http.Handler) http.Handler {
+func New(config ...Config) func(next http.Handler) http.Handler {
 	op := cors.Options{}
 
-	if len(options) > 0 {
-		op = cors.Options(options[0])
+	if len(config) > 0 {
+		op = cors.Options(config[0])
 	}
 
 	c := cors.New(op)
