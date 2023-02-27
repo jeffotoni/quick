@@ -54,12 +54,13 @@ type Config struct {
 
 var ConfigDefault = Config{
 	AllowedOrigins:   []string{"*"},
-	AllowedMethods:   []string{"POST", "GET", "PUT", "DELETE"},
+	AllowedMethods:   []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"},
 	AllowCredentials: true,
 	Debug:            true,
 }
 
 func New(options ...Config) func(next http.Handler) http.Handler {
+	println("default")
 	cfd := ConfigDefault
 	if len(options) > 0 {
 		cfd = options[0]
