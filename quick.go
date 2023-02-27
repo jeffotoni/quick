@@ -1,6 +1,7 @@
 package quick
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"encoding/xml"
@@ -22,7 +23,7 @@ type Ctx struct {
 	Query    map[string]string
 	// JSON     map[string]interface{}
 	resStatus int
-	BodyByte  []byte
+	bodyByte  []byte
 	JsonStr   string
 }
 
@@ -209,11 +210,12 @@ func extractHeaders(req http.Request) map[string][]string {
 	return headersMap
 }
 
-func extractBind(req http.Request, v interface{}) (obj interface{}, err error) {
+func extractBind(c *Ctx, v interface{}) (obj interface{}, err error) {
+	var req http.Request = *c.Request
 	if strings.ToLower(req.Header.Get("Content-Type")) == "application/json" ||
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
-		err = json.NewDecoder(req.Body).Decode(v)
+		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
 		obj = v
 	}
 	return obj, err
@@ -254,8 +256,8 @@ func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Ha
 		c := &Ctx{
 			Response: w,
 			Request:  req,
+			bodyByte: extractBodyBytes(req.Body),
 			Headers:  headersMap,
-			BodyByte: extractBodyBytes(req.Body),
 		}
 		handlerFunc(c)
 	}
@@ -282,7 +284,7 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Han
 			Response: w,
 			Request:  req,
 			Headers:  headersMap,
-			BodyByte: extractBodyBytes(req.Body),
+			bodyByte: extractBodyBytes(req.Body),
 			Params:   cval.ParamsMap,
 		}
 
@@ -291,7 +293,6 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Han
 }
 
 func extractBodyBytes(r io.ReadCloser) []byte {
-	defer r.Close()
 	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil
@@ -329,18 +330,19 @@ func (q *Quick) appendRoute(route *Route) {
 
 func (c *Ctx) Bind(v interface{}) (err error) {
 	if c.Request.Header.Get("Content-Type") == "application/json" {
-		obj, err := extractBind(*c.Request, v)
+		obj, err := extractBind(c, v)
 		if err != nil {
 			return err
 		}
 		v = obj
 	}
+
 	return nil
 }
 
 func (c *Ctx) Body(v interface{}) (err error) {
 	if strings.Contains(c.Request.Header.Get("Content-Type"), "application/json") {
-		err = json.Unmarshal(c.BodyByte, v)
+		err = json.Unmarshal(c.bodyByte, v)
 		if err != nil {
 			return err
 		}
@@ -348,7 +350,7 @@ func (c *Ctx) Body(v interface{}) (err error) {
 
 	if strings.Contains(c.Request.Header.Get("Content-Type"), "text/xml") ||
 		strings.Contains(c.Request.Header.Get("Content-Type"), "application/xml") {
-		err = xml.Unmarshal(c.BodyByte, v)
+		err = xml.Unmarshal(c.bodyByte, v)
 		if err != nil {
 			return err
 		}
@@ -358,11 +360,11 @@ func (c *Ctx) Body(v interface{}) (err error) {
 }
 
 func (c *Ctx) BodyString() string {
-	return string(c.BodyByte)
+	return string(c.bodyByte)
 }
 
 func (c *Ctx) BodyBytes() []byte {
-	return c.BodyByte
+	return c.bodyByte
 }
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
@@ -385,8 +387,8 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 			Response: w,
 			Request:  req,
 			Params:   cval.ParamsMap,
-			BodyByte: extractBodyBytes(req.Body),
 			Query:    querys,
+			bodyByte: extractBodyBytes(req.Body),
 			Headers:  headersMap,
 		}
 		handlerFunc(c)
@@ -472,7 +474,9 @@ func (c *Ctx) XML(v interface{}) error {
 }
 
 func (c *Ctx) writeResponse(b []byte) error {
-	c.Response.WriteHeader(c.resStatus)
+	if c.resStatus != 0 {
+		c.Response.WriteHeader(c.resStatus)
+	}
 	_, err := c.Response.Write(b)
 	return err
 }
@@ -482,13 +486,12 @@ func (c *Ctx) Byte(b []byte) (err error) {
 }
 
 func (c *Ctx) SendString(s string) error {
-	_, err := c.Response.Write([]byte(s))
-	return err
+	return c.writeResponse([]byte(s))
+
 }
 
 func (c *Ctx) String(s string) error {
-	_, err := c.Response.Write([]byte(s))
-	return err
+	return c.writeResponse([]byte(s))
 }
 
 func (c *Ctx) SendFile(file []byte) error {
