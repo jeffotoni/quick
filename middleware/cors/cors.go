@@ -4,10 +4,9 @@ import (
 	"net/http"
 
 	"github.com/rs/cors"
-	// "github.com/rs/cors"
 )
 
-type Options struct {
+type Config struct {
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
 	// If the special "*" value is present in the list, all origins will be allowed.
 	// An origin may contain a wildcard (*) to replace 0 or more characters
@@ -53,12 +52,20 @@ type Options struct {
 	Debug bool
 }
 
-func New(options ...Options) func(next http.Handler) http.Handler {
-	op := cors.Options{}
+var ConfigDefault = Config{
+	AllowedOrigins:   []string{"*"},
+	AllowedMethods:   []string{"POST", "GET", "PUT", "DELETE"},
+	AllowCredentials: true,
+	Debug:            true,
+}
 
+func New(options ...Config) func(next http.Handler) http.Handler {
+	cfd := ConfigDefault
 	if len(options) > 0 {
-		op = cors.Options(options[0])
+		cfd = options[0]
 	}
+	op := cors.Options{}
+	op = cors.Options(cfd)
 
 	c := cors.New(op)
 	return c.Handler
