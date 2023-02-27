@@ -21,8 +21,9 @@ type Ctx struct {
 	Params   map[string]string
 	Query    map[string]string
 	// JSON     map[string]interface{}
-	BodyByte []byte
-	JsonStr  string
+	resStatus int
+	BodyByte  []byte
+	JsonStr   string
 }
 
 type Route struct {
@@ -458,8 +459,7 @@ func (c *Ctx) JSON(v interface{}) error {
 		return err
 	}
 	c.Response.Header().Set("Content-Type", "application/json")
-	_, err = c.Response.Write(b)
-	return err
+	return c.writeResponse(b)
 }
 
 func (c *Ctx) XML(v interface{}) error {
@@ -468,13 +468,17 @@ func (c *Ctx) XML(v interface{}) error {
 		return err
 	}
 	c.Response.Header().Set("Content-Type", "text/xml")
-	_, err = c.Response.Write(b)
+	return c.writeResponse(b)
+}
+
+func (c *Ctx) writeResponse(b []byte) error {
+	c.Response.WriteHeader(c.resStatus)
+	_, err := c.Response.Write(b)
 	return err
 }
 
 func (c *Ctx) Byte(b []byte) (err error) {
-	_, err = c.Response.Write(b)
-	return err
+	return c.writeResponse(b)
 }
 
 func (c *Ctx) SendString(s string) error {
@@ -502,7 +506,7 @@ func (c *Ctx) Accepts(acceptType string) *Ctx {
 }
 
 func (c *Ctx) Status(status int) *Ctx {
-	c.Response.WriteHeader(status)
+	c.resStatus = status
 	return c
 }
 
