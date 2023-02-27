@@ -1,5 +1,5 @@
 # quick - Route Go
-[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
+[![GoDoc](https://godoc.org/github.com/gojeffotoni/quick?status.svg)](https://godoc.org/github.com/gojeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/gojeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/gojeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/gojeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/gojeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/gojeffotoni/quick)](https://goreportcard.com/badge/github.com/gojeffotoni/quick) [![License](https://img.shields.io/github/license/gojeffotoni/quick)](https://img.shields.io/github/license/gojeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/gojeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/gojeffotoni/quick)
 
 O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com diversas funcionalidades, onde sua sintaxe foi inspirado no **framework fiber**.
 
@@ -11,8 +11,9 @@ Espero que possam participar e que gostem de Godar!!! 😍
 
 | Tarefa                                          | Progresso |
 |-------------------------------------------------|-----------|
-| Desenvolver MaxBodySize metodos Post e Put       | 100%      |
-| Desenvolver Config em New(Config{}) não obrigatório | 100%    |
+| Desenvolver MaxBodySize metodos Post e Put       | 100%     |
+| Desenvolver Padrão de Testes Unitários       	   | 90%      |
+| Desenvolver Config em New(Config{}) não obrigatório | 100%   |
 | Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
 | Desenvolver e relacionar ao Listen o Config      | 30%       |
 | Criação de função print para não usar fmt de forma demasiada | 100% |
@@ -47,7 +48,7 @@ Espero que possam participar e que gostem de Godar!!! 😍
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func main() {
 	app := quick.New()
@@ -80,7 +81,7 @@ Quick em ação ❤️!
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func main() {
 	app := quick.New()
@@ -94,7 +95,7 @@ func main() {
 			Val string `json:"val"`
 		}
 
-		c.Status(200).Json(&my{
+		c.Status(200).JSON(&my{
 			Msg: "Quick ❤️",
 			Key: c.Param("param1"),
 			Val: c.Param("param2"),
@@ -119,12 +120,12 @@ Content-Length: 23
 
 ```
 
-##### Quick Post json
+##### Quick Post Body json
 ```go
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 type My struct {
 	Name string `json:"name"`
@@ -140,7 +141,10 @@ func main() {
 			c.Status(400).SendString(err.Error())
 			return
 		}
-		c.Status(200).Json(&my)
+
+		c.Status(200).String(c.BodyString())
+		// ou 
+		// c.Status(200).JSON(&my)
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -162,7 +166,7 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
-## 📃| Funcionalidades
+## ⚙️| Funcionalidades
 
 | Funcionalidades                                 | Possui    |
 |-------------------------------------------------|-----------|
@@ -174,16 +178,59 @@ Content-Type: text/plain; charset=utf-8
 | Data binding for JSON, XML and form payload     |   sim     |
 
 
-## 📃| Examples
+## 👁‍🗨| Examples
 
+
+##### Quick Post Bind json
+```go
+
+package main
+
+import "github.com/gojeffotoni/quick"
+
+type My struct {
+	Name string `json:"name"`
+	Year int    `json:"year"`
+}
+
+func main() {
+	app := quick.New()
+	app.Post("/v2/user", func(c *quick.Ctx) {
+		var my My
+		err := c.Bind(&my)
+		if err != nil {
+			c.Status(400).SendString(err.Error())
+			return
+		}
+		c.Status(200).JSON(&my)
+	})
+
+	app.Listen("0.0.0.0:8080")
+}
+
+```
+
+```bash
+
+$ curl -i -XPOST -H "Content-Type:application/json" \
+'localhost:8080/v2/user' \
+-d '{"name":"Marcos", "year":1990}'
+HTTP/1.1 200 OK
+Date: Wed, 22 Feb 2023 08:10:06 GMT
+Content-Length: 32
+Content-Type: text/plain; charset=utf-8
+
+{"name":"Marcos","year":1990}
+
+```
 
 ##### Cors
 ```go
 
 package main
 
-import "github.com/jeffotoni/quick"
-import "github.com/jeffotoni/quick/middleware/cors"
+import "github.com/gojeffotoni/quick"
+import "github.com/gojeffotoni/quick/middleware/cors"
 
 func main() {
 	app := quick.New()
@@ -204,7 +251,7 @@ func main() {
 
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func main() {
 	app := quick.New(quick.Config{
@@ -225,29 +272,30 @@ func main() {
 ```go
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/gojeffotoni/quick"
 
 func main() {
 	app := quick.New(quick.Config{
 		MaxBodySize: 5 * 1024 * 1024,
 	})
 
-	group := app.Group("/v1")
-	group.Get("/user", func(c *quick.Ctx) {
+	app.Group("/v1")
+	app.Get("/user", func(c *quick.Ctx) {
 		c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
 		return
 	})
-	group.Post("/user", func(c *quick.Ctx) {
+	app.Post("/user", func(c *quick.Ctx) {
 		c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
 		return
 	})
 
-	app.Get("/v2/user", func(c *quick.Ctx) {
+	app.Group("/v2")
+	app.Get("/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
 		c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
 	})
 
-	app.Post("/v2/user", func(c *quick.Ctx) {
+	app.Post("/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
 		c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
 	})
@@ -257,7 +305,54 @@ func main() {
 
 ```
 
-## 📃| Contribuições
+##### Quick Tests
+```go
+
+package main
+
+import "github.com/gojeffotoni/quick"
+
+func TestQuickExample(t *testing.T) {
+
+    // Here is a handler function Mock
+	testSuccessMockHandler := func(c *Ctx) {
+		c.Set("Content-Type", "application/json")
+		b, _ := io.ReadAll(c.Request.Body)
+		resp := ConcatStr(`"data":`, string(b))
+		c.Byte([]byte(resp))
+	}
+
+	app := quick.New()
+	// Here you can create all routes that you want to test
+	app.Post("/v1/user", testSuccessMockHandler)
+	app.Post("/v1/user/:p1", testSuccessMockHandler)
+
+	wantOutData := `"data":{"name":"jeff", "age":35}`
+	reqBody := []byte(`{"name":"jeff", "age":35}`)
+    reqHeaders := map[string]string{"Content-Type": "application/json"}
+
+	data, err := app.QuickTest("POST", "/v1/user", reqHeaders, reqBody)
+	if err != nil {
+		t.Errorf("error: %v", err)
+		return
+	}
+
+	s := strings.TrimSpace(data.BodyStr())
+	if s != wantOutData {
+		t.Errorf("was suppose to return %s and %s come", wantOutData, s)
+		return
+	}
+
+	t.Logf("\nOutputBodyString -> %v", data.BodyStr())
+    t.Logf("\nStatusCode -> %d", data.StatusCode())
+    t.Logf("\nOutputBody -> %v", string(data.Body())) // I have converted in this example to string but comes []byte as default
+    t.Logf("\nResponse -> %v", data.Response())
+}
+
+```
+
+
+## 🤍| Contribuições
 
 Já temos diversos exemplos, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. 
 Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e claro reconhecimento como profissional Go 😍 no mercado de trabalho).

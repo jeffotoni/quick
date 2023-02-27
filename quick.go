@@ -3,11 +3,15 @@ package quick
 import (
 	"context"
 	"encoding/json"
+	"encoding/xml"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gojeffotoni/quick/internal/concat"
+	"github.com/gojeffotoni/quick/internal/print"
 )
 
 type Ctx struct {
@@ -16,13 +20,14 @@ type Ctx struct {
 	Headers  map[string][]string
 	Params   map[string]string
 	Query    map[string]string
-	JSON     map[string]interface{}
+	// JSON     map[string]interface{}
 	BodyByte []byte
 	JsonStr  string
 }
 
 type Route struct {
 	//Pattern *regexp.Regexp
+	Group   string
 	Pattern string
 	Path    string
 	Params  string
@@ -57,14 +62,14 @@ var defaultConfig = Config{
 
 type Group struct {
 	prefix string
-	routes []Route
 	quick  *Quick
 }
 
 type Quick struct {
 	routes  []Route
-	groups  []Group
+	group   *Group
 	mws     []func(http.Handler) http.Handler
+	mws2    []any
 	mux     *http.ServeMux
 	handler http.Handler
 	config  Config
@@ -86,31 +91,113 @@ func New(c ...Config) *Quick {
 	}
 }
 
-func (q *Quick) Use(mw func(http.Handler) http.Handler) {
-	q.mws = append(q.mws, mw)
+// type MiddlewareConfig struct {
+// 	// campos de configuração aqui
+// }
+
+// type MyMiddleware struct {
+// 	Config MiddlewareConfig
+// }
+
+type Middleware interface {
+	New(interface{}) func(http.Handler) http.Handler
 }
 
-func (q *Quick) Group(prefix string) *Group {
+func (q *Quick) Use(mw any) {
+	q.mws2 = append(q.mws2, mw)
+}
+
+// func (q *Quick) Use(mw func(http.Handler) http.Handler) {
+// 	q.mws = append(q.mws, mw)
+// }
+
+func (q *Quick) Group(prefix string) {
 	g := &Group{
 		prefix: prefix,
-		routes: []Route{},
 		quick:  q,
 	}
-	q.groups = append(q.groups, *g)
-	return g
+	q.group = g
+}
+
+func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
+	path, params, partternExist := extractParamsPattern(pattern)
+
+	var gr string
+	// Setting up the group
+	if q.group != nil {
+		path = concat.String(q.group.prefix, path)
+		gr = q.group.prefix
+	}
+
+	route := Route{
+		Pattern: partternExist,
+		Path:    path,
+		Params:  params,
+		handler: extractParamsGet(path, params, handlerFunc),
+		Method:  http.MethodGet,
+		Group:   gr,
+	}
+
+	q.appendRoute(&route)
+	q.mux.HandleFunc(path, route.handler)
 }
 
 func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
-	pathPost := ConcatStr("post#", pattern)
+
+	var (
+		gr       string
+		pathPost string
+	)
+
+	pathPost = concat.String("post#", pattern)
+
+	// Setting up the group
+	if q.group != nil {
+		pathPost = concat.String("post#", q.group.prefix, pattern)
+		pattern = concat.String(q.group.prefix, pattern)
+		gr = q.group.prefix
+	}
+
 	route := Route{
 		Pattern: "",
 		Path:    pattern,
 		handler: extractParamsPost(q, pattern, handlerFunc),
 		Method:  http.MethodPost,
+		Group:   gr,
 	}
 
-	q.routes = append(q.routes, route)
+	q.appendRoute(&route)
 	q.mux.HandleFunc(pathPost, route.handler)
+}
+
+func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
+	_, params, partternExist := extractParamsPattern(pattern)
+
+	var (
+		gr      string
+		pathPut string
+	)
+
+	pathPut = concat.String("put#", pattern)
+
+	// Setting up the group
+	if q.group != nil {
+		pathPut = concat.String("put#", q.group.prefix, pathPut)
+		pattern = concat.String(q.group.prefix, pattern)
+		gr = q.group.prefix
+	}
+
+	route := Route{
+		Pattern: partternExist,
+		Path:    pattern,
+		handler: extractParamsPut(q, pattern, handlerFunc),
+		Method:  http.MethodPut,
+		Params:  params,
+		Group:   gr,
+	}
+
+	q.appendRoute(&route)
+	q.mux.HandleFunc(pathPut, route.handler)
 }
 
 func extractHeaders(req http.Request) map[string][]string {
@@ -121,11 +208,20 @@ func extractHeaders(req http.Request) map[string][]string {
 	return headersMap
 }
 
-func extractBodyByte(req http.Request) ([]byte, error) {
-	var bodyByte []byte
-	var err error
+func extractBind(req http.Request, v interface{}) (obj interface{}, err error) {
+	if strings.ToLower(req.Header.Get("Content-Type")) == "application/json" ||
+		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
+		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
+		err = json.NewDecoder(req.Body).Decode(v)
+		obj = v
+	}
+	return obj, err
+}
 
-	if req.Header.Get("Content-Type") == "application/json" {
+func extractBodyByte(req http.Request) (bodyByte []byte, err error) {
+	if strings.ToLower(req.Header.Get("Content-Type")) == "application/json" ||
+		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
+		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
 		bodyByte, err = io.ReadAll(req.Body)
 	}
 	return bodyByte, err
@@ -134,9 +230,13 @@ func extractBodyByte(req http.Request) ([]byte, error) {
 func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	path = pattern
 	index := strings.Index(pattern, ":")
+
 	if index > 0 {
 		path = pattern[:index]
 		path = strings.TrimSuffix(path, "/")
+		if index == 1 {
+			path = "/"
+		}
 		params = strings.TrimPrefix(pattern, path)
 		partternExist = pattern
 	}
@@ -159,17 +259,11 @@ func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Ha
 
 		headersMap := extractHeaders(*req)
 
-		bodyByte, err := extractBodyByte(*req)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
 		c := &Ctx{
 			Response: w,
 			Request:  req,
 			Headers:  headersMap,
-			BodyByte: bodyByte,
+			//BodyByte: bodyByte,
 		}
 		handlerFunc(c)
 	}
@@ -192,18 +286,12 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Han
 
 		cval := v.(ctxServeHttp)
 
-		bodyByte, err := extractBodyByte(*req)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
 		c := &Ctx{
 			Response: w,
 			Request:  req,
 			Headers:  headersMap,
-			BodyByte: bodyByte,
-			Params:   cval.ParamsMap,
+			//BodyByte: bodyByte,
+			Params: cval.ParamsMap,
 		}
 		handlerFunc(c)
 	}
@@ -217,83 +305,53 @@ func (c *Ctx) Param(key string) string {
 	return ""
 }
 
+func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
+	for i := range q.mws2 {
+		switch mw := q.mws2[i].(type) {
+		case func(http.Handler) http.Handler:
+			handler = mw(handler)
+		case func(http.ResponseWriter, *http.Request, http.Handler):
+			handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mw(w, r, handler)
+			})
+		}
+	}
+	return handler
+}
+
+func (q *Quick) appendRoute(route *Route) {
+	route.handler = q.mwWrapper(route.handler).ServeHTTP
+	q.routes = append(q.routes, *route)
+}
+
+func (c *Ctx) Bind(v interface{}) (err error) {
+	if c.Request.Header.Get("Content-Type") == "application/json" {
+		obj, err := extractBind(*c.Request, v)
+		if err != nil {
+			return err
+		}
+		v = obj
+	}
+	return nil
+}
+
 func (c *Ctx) Body(v interface{}) (err error) {
 	if c.Request.Header.Get("Content-Type") == "application/json" {
-		if len(c.BodyByte) > 0 {
-			err = json.Unmarshal(c.BodyByte, v)
-			if err != nil {
-				return
-			}
-			c.JsonStr = string(c.BodyByte)
+		bodyByte, err := extractBodyByte(*c.Request)
+		if err != nil {
+			return err
 		}
+		err = json.Unmarshal(bodyByte, v)
+		if err != nil {
+			return err
+		}
+		c.JsonStr = string(bodyByte)
 	}
 	return nil
 }
 
 func (c *Ctx) BodyString() string {
 	return c.JsonStr
-}
-
-func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
-	pattern = ConcatStr(g.prefix, pattern)
-	path, params, partternExist := extractParamsPattern(pattern)
-
-	route := Route{
-		Pattern: partternExist,
-		Path:    path,
-		Params:  params,
-		handler: extractParamsGet(path, params, handlerFunc),
-		Method:  http.MethodGet,
-	}
-
-	g.quick.routes = append(g.quick.routes, route)
-	g.quick.mux.HandleFunc(path, route.handler)
-}
-
-func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
-	pattern = ConcatStr(g.prefix, pattern)
-	_, params, partternExist := extractParamsPattern(pattern)
-	pathPost := ConcatStr("post#", pattern)
-	route := Route{
-		Pattern: partternExist,
-		Path:    pattern,
-		handler: extractParamsPost(g.quick, pattern, handlerFunc),
-		Method:  http.MethodPost,
-		Params:  params,
-	}
-
-	g.quick.routes = append(g.quick.routes, route)
-	g.quick.mux.HandleFunc(pathPost, route.handler)
-}
-
-func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
-	path, params, partternExist := extractParamsPattern(pattern)
-
-	route := Route{
-		Pattern: partternExist,
-		Path:    path,
-		Params:  params,
-		handler: extractParamsGet(path, params, handlerFunc),
-		Method:  http.MethodGet,
-	}
-
-	q.routes = append(q.routes, route)
-	q.mux.HandleFunc(path, route.handler)
-}
-
-func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
-	_, params, partternExist := extractParamsPattern(pattern)
-	pathPut := ConcatStr("put#", pattern)
-	route := Route{
-		Pattern: partternExist,
-		Path:    pattern,
-		handler: extractParamsPost(q, pattern, handlerFunc),
-		Method:  http.MethodPut,
-		Params:  params,
-	}
-
-	q.routes = append(q.routes, route)
-	q.mux.HandleFunc(pathPut, route.handler)
 }
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
@@ -325,65 +383,80 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range q.routes {
-		var pathTmp string = req.URL.Path
+		var requestURI = req.URL.Path
 		var paramsMap = make(map[string]string)
-		var paramUriIndex = make([]int, 0)
+		var patternUri = route.Pattern
 
-		if len(route.Pattern) > 0 && route.Method == req.Method {
-			var routeParams string
-			ppurl := strings.Split(route.Pattern, "/")
-			paramsCount := 0
-
-			for i := 0; i < len(ppurl); i++ {
-				if strings.Contains(ppurl[i], ":") {
-					routeParams = routeParams + ppurl[i]
-					paramUriIndex = append(paramUriIndex, i)
-					paramsCount++
-				}
-			}
-
-			reqParams := strings.Split(pathTmp, "/")
-			pathParams := strings.Split(routeParams, ":")[1:]
-			prefix := ConcatStr(route.Path, "/")
-			if strings.HasPrefix(pathTmp, prefix) {
-				newPath := pathTmp[len(prefix):]
-				if len(newPath) > 0 {
-					pathTmp = route.Path
-				}
-			}
-
-			if route.Path == pathTmp && route.Method == req.Method {
-				if len(pathParams) != paramsCount {
-					continue
-				}
-
-				for i, p := range pathParams {
-					paramsMap[p] = reqParams[paramUriIndex[i]]
-				}
-
-				var c = ctxServeHttp{Path: pathTmp, ParamsMap: paramsMap, Method: route.Method}
-				req = req.WithContext(context.WithValue(req.Context(), 0, c))
-				route.handler(w, req)
-				return
-			}
+		if route.Method != req.Method {
+			continue
 		}
 
-		if route.Path == pathTmp && route.Method == req.Method {
-			var c = ctxServeHttp{Path: pathTmp, Method: route.Method}
-			req = req.WithContext(context.WithValue(req.Context(), 0, c))
-			route.handler(w, req)
-			return
+		if len(patternUri) == 0 {
+			patternUri = route.Path
 		}
+
+		if len(route.Group) != 0 && strings.Contains(route.Pattern, ":") {
+			patternUri = concat.String(route.Group, route.Pattern)
+		}
+
+		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
+
+		if !isValid {
+			continue
+		}
+
+		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: route.Method}
+		req = req.WithContext(context.WithValue(req.Context(), 0, c))
+		route.handler(w, req)
+		return
 	}
 	http.NotFound(w, req)
 }
 
-func (c *Ctx) Json(v interface{}) error {
+func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
+	params := make(map[string]string)
+	var tmpPath string
+
+	reqURISplt := strings.Split(reqURI, "/")
+	patternURISplt := strings.Split(patternURI, "/")
+
+	if len(reqURISplt) != len(patternURISplt) {
+		return nil, false
+	}
+
+	for pttrn := 0; pttrn < len(patternURISplt); pttrn++ {
+		if strings.Contains(patternURISplt[pttrn], ":") {
+			params[patternURISplt[pttrn]] = reqURISplt[pttrn]
+			tmpPath = concat.String(tmpPath, "/", reqURISplt[pttrn])
+		} else {
+			tmpPath = concat.String(tmpPath, "/", patternURISplt[pttrn])
+		}
+	}
+
+	// This tmpPath is to check if request's uri is the same that our pattern
+	if tmpPath[1:] != reqURI {
+		return nil, false
+	}
+
+	return params, true
+}
+
+func (c *Ctx) JSON(v interface{}) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
 	c.Response.Header().Set("Content-Type", "application/json")
+	_, err = c.Response.Write(b)
+	return err
+}
+
+func (c *Ctx) XML(v interface{}) error {
+	b, err := xml.Marshal(v)
+	if err != nil {
+		return err
+	}
+	c.Response.Header().Set("Content-Type", "text/xml")
 	_, err = c.Response.Write(b)
 	return err
 }
@@ -394,6 +467,11 @@ func (c *Ctx) Byte(b []byte) (err error) {
 }
 
 func (c *Ctx) SendString(s string) error {
+	_, err := c.Response.Write([]byte(s))
+	return err
+}
+
+func (c *Ctx) String(s string) error {
 	_, err := c.Response.Write([]byte(s))
 	return err
 }
@@ -423,11 +501,11 @@ func (q *Quick) GetRoute() []Route {
 
 func (q *Quick) Static(staticFolder string) {
 	// generate route get with a pattern like this: /static/:file
-	pattern := ConcatStr(staticFolder, ":file")
+	pattern := concat.String(staticFolder, ":file")
 	q.Get(pattern, func(c *Ctx) {
 		path, _, _ := extractParamsPattern(pattern)
 		file := c.Params["file"]
-		filePath := ConcatStr(".", path, "/", file)
+		filePath := concat.String(".", path, "/", file)
 
 		fileBytes, err := os.ReadFile(filePath)
 		if err != nil {
@@ -439,14 +517,9 @@ func (q *Quick) Static(staticFolder string) {
 }
 
 func (q *Quick) Listen(addr string) error {
-	var handler http.Handler = q
-	for i := len(q.mws) - 1; i >= 0; i-- {
-		handler = q.mws[i](handler)
-	}
-
 	server := &http.Server{
 		Addr:    addr,
-		Handler: handler,
+		Handler: q,
 		// ReadTimeout:
 		// WriteTimeout:
 		// MaxHeaderBytes:
@@ -454,6 +527,6 @@ func (q *Quick) Listen(addr string) error {
 		// ReadHeaderTimeout:
 	}
 
-	Print("\033[0;33mRun Server Quick:", addr, "\033[0m")
+	print.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m")
 	return server.ListenAndServe()
 }
