@@ -6,6 +6,12 @@ jobs:
       - image: circleci/golang:latest
 
     steps:
+      - run:
+          name: "Set branch to main"
+          command: |
+            echo "Checking out branch main"
+            git checkout main
+
       - checkout
 
       - run:
