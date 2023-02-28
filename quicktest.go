@@ -80,7 +80,6 @@ func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...
 
 func (q Quick) QuickTestListen(qs QuickMockTestServer) (QuickTestReturn, error) {
 	port := strconv.Itoa(qs.Port)
-
 	port = concat.String(":", port)
 	URI := concat.String("http://0.0.0.0", port, qs.URI)
 
