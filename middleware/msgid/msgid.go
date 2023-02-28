@@ -1,10 +1,10 @@
 package msgid
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type Config struct {
@@ -43,6 +43,15 @@ func New(config ...Config) func(http.Handler) http.Handler {
 }
 
 func AlgoDefault(Start, End int) string {
-	rand.Seed(time.Now().UnixNano())
-	return strconv.Itoa(Start + int(rand.Intn(End)))
+	max := big.NewInt(int64(End))
+	randInt, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		panic(err)
+	}
+	return strconv.Itoa(Start + int(randInt.Int64()))
 }
+
+// func AlgoDefault(Start, End int) string {
+// 	rand.Seed(time.Now().UnixNano())
+// 	return strconv.Itoa(Start + int(rand.Intn(End)))
+// }
