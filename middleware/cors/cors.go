@@ -60,7 +60,6 @@ var ConfigDefault = Config{
 }
 
 func New(options ...Config) func(next http.Handler) http.Handler {
-	println("default")
 	cfd := ConfigDefault
 	if len(options) > 0 {
 		cfd = options[0]
@@ -71,3 +70,19 @@ func New(options ...Config) func(next http.Handler) http.Handler {
 	c := cors.New(op)
 	return c.Handler
 }
+
+// func New(config ...Config) func(http.Handler) http.Handler {
+// 	cfd := ConfigDefault
+// 	if len(config) > 0 {
+// 		cfd = config[0]
+// 	}
+// 	return func(next http.Handler) http.Handler {
+// 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 			op := cors.Options{}
+// 			op = cors.Options(cfd)
+// 			cors.New(op).Handler(next)
+// 			//cors.New(op).Handler(next)
+// 			next.ServeHTTP(w, r)
+// 		})
+// 	}
+// }
