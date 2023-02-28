@@ -5,6 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+<<<<<<< HEAD
+=======
+	"math/big"
+
+	//"math/rand"
+	"crypto/rand"
+>>>>>>> main
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -37,10 +44,42 @@ type (
 	}
 )
 
+func RandomInt(min, max int) (int, error) {
+	maxBigInt := big.NewInt(int64(max))
+	minBigInt := big.NewInt(int64(min))
+	diffBigInt := new(big.Int).Sub(maxBigInt, minBigInt)
+
+	randomBytes := make([]byte, diffBigInt.BitLen()/8+1)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return 0, err
+	}
+
+	randomInt := new(big.Int).SetBytes(randomBytes)
+	randomInt.Mod(randomInt, diffBigInt)
+	randomInt.Add(randomInt, minBigInt)
+	return int(randomInt.Int64()), nil
+}
+
 // QuickTest: This Method is a helper function to make tests with quick more quickly
 // Required Params: Method (GET, POST, PUT, DELETE...), URI (only the path. Example: /test/:myParam)
 // Optional Param: Body (If you don't want to define one, just ignore)
 func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...[]byte) (QuickTestReturn, error) {
+<<<<<<< HEAD
+=======
+
+	//rand.Seed(time.Now().UnixNano())
+	min := 3000
+	max := 9999
+	//randPort := rand.Intn(max-min+1) + min
+	randPort, err := RandomInt(min, max)
+	if err != nil {
+		panic(err)
+	}
+
+	port := strconv.Itoa(randPort)
+
+>>>>>>> main
 	var buffBody []byte
 
 	if len(body) > 0 {
