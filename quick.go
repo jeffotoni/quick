@@ -12,6 +12,7 @@ import (
 
 	"github.com/gojeffotoni/quick/internal/concat"
 	"github.com/gojeffotoni/quick/internal/print"
+	"github.com/gojeffotoni/quick/internal/qos"
 )
 
 type Ctx struct {
@@ -56,7 +57,7 @@ var defaultConfig = Config{
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
-	//ReadHeaderTimeout: 3 * time.Second,
+	ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
 type Group struct {
@@ -493,12 +494,16 @@ func (q *Quick) Static(staticFolder string) {
 		path, _, _ := extractParamsPattern(pattern)
 		file := c.Params["file"]
 		filePath := concat.String(".", path, "/", file)
+		if !qos.FileExist(filePath) {
+			c.Status(http.StatusForbidden).SendString("File is not allowed")
+			return
+		}
 
 		fileBytes, err := os.ReadFile(filePath)
 		if err != nil {
-			c.Status(http.StatusNotFound).SendString("File Not Found")
+			c.Status(http.StatusInternalServerError).SendString(err.Error())
+			return
 		}
-
 		c.Status(http.StatusOK).SendFile(fileBytes)
 	})
 }
@@ -511,7 +516,7 @@ func (q *Quick) Listen(addr string) error {
 		// WriteTimeout:
 		// MaxHeaderBytes:
 		// IdleTimeout:
-		// ReadHeaderTimeout:
+		ReadHeaderTimeout: q.config.ReadHeaderTimeout,
 	}
 
 	print.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m")
