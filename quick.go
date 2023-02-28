@@ -72,6 +72,7 @@ type Quick struct {
 	mux     *http.ServeMux
 	routes  []Route
 	mws2    []any
+	groups  []Group
 }
 
 func New(c ...Config) *Quick {
@@ -98,12 +99,22 @@ func (q *Quick) Use(mw any, nf ...string) {
 	q.mws2 = append(q.mws2, mw)
 }
 
-func (q *Quick) Group(prefix string) {
+// func (q *Quick) Group(prefix string) {
+// 	g := &Group{
+// 		prefix: prefix,
+// 		quick:  q,
+// 	}
+// 	q.group = g
+// }
+
+func (q *Quick) Group(prefix string) *Group {
 	g := &Group{
 		prefix: prefix,
-		quick:  q,
+		//routes: []Route{},
+		quick: q,
 	}
-	q.group = g
+	q.groups = append(q.groups, *g)
+	return g
 }
 
 func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
