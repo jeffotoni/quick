@@ -38,7 +38,6 @@ func TestQuick_Use(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			q := &Quick{
 				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
@@ -660,8 +659,8 @@ func TestQuick_ServeStaticFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
+				routes: tt.fields.routes,
+
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
@@ -713,8 +712,8 @@ func TestQuick_ServeHTTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			q := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
+				routes: tt.fields.routes,
+
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
@@ -984,8 +983,8 @@ func TestQuick_GetRoute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
+				routes: tt.fields.routes,
+
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
@@ -1017,8 +1016,8 @@ func TestQuick_Listen(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			q := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
+				routes: tt.fields.routes,
+
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}

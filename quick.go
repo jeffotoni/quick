@@ -20,7 +20,6 @@ type Ctx struct {
 	Headers  map[string][]string
 	Params   map[string]string
 	Query    map[string]string
-	// JSON     map[string]interface{}
 	BodyByte []byte
 	JsonStr  string
 }
@@ -31,8 +30,8 @@ type Route struct {
 	Pattern string
 	Path    string
 	Params  string
-	handler http.HandlerFunc
 	Method  string
+	handler http.HandlerFunc
 }
 
 type ctxServeHttp struct {
@@ -44,9 +43,9 @@ type ctxServeHttp struct {
 
 type Config struct {
 	MaxBodySize       int64
+	MaxHeaderBytes    int64
 	ReadTimeout       time.Duration
 	WriteTimeout      time.Duration
-	MaxHeaderBytes    int64
 	IdleTimeout       time.Duration
 	ReadHeaderTimeout time.Duration
 }
@@ -66,14 +65,13 @@ type Group struct {
 }
 
 type Quick struct {
-	routes  []Route
-	group   *Group
-	mws     []func(http.Handler) http.Handler
-	mws2    []any
-	mux     *http.ServeMux
-	handler http.Handler
 	config  Config
-	//groupp  string
+	cors    bool
+	group   *Group
+	handler http.Handler
+	mux     *http.ServeMux
+	routes  []Route
+	mws2    []any
 }
 
 func New(c ...Config) *Quick {
@@ -91,25 +89,14 @@ func New(c ...Config) *Quick {
 	}
 }
 
-// type MiddlewareConfig struct {
-// 	// campos de configuração aqui
-// }
-
-// type MyMiddleware struct {
-// 	Config MiddlewareConfig
-// }
-
-type Middleware interface {
-	New(interface{}) func(http.Handler) http.Handler
-}
-
-func (q *Quick) Use(mw any) {
+func (q *Quick) Use(mw any, nf ...string) {
+	if len(nf) > 0 {
+		if strings.ToLower(nf[0]) == "cors" {
+			q.cors = true
+		}
+	}
 	q.mws2 = append(q.mws2, mw)
 }
-
-// func (q *Quick) Use(mw func(http.Handler) http.Handler) {
-// 	q.mws = append(q.mws, mw)
-// }
 
 func (q *Quick) Group(prefix string) {
 	g := &Group{
