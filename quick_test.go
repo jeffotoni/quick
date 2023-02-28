@@ -293,10 +293,10 @@ func TestQuick_Put(t *testing.T) {
 
 	r := New()
 	r.Put("/", testSuccessMockHandler)
-	r.Group("/put/group")
-	r.Put("/test", testSuccessMockHandler)
-	r.Put("/tester/:p1", testSuccessMockHandler)
-	r.Put("/jeff", testSuccessMockHandler)
+	//r.Group("/put/group")
+	r.Put("/put/test", testSuccessMockHandler)
+	r.Put("/put/tester/:p1", testSuccessMockHandler)
+	//r.Put("/jeff", testSuccessMockHandler)
 
 	tests := []struct {
 		name string

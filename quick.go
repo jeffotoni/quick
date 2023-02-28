@@ -15,13 +15,14 @@ import (
 )
 
 type Ctx struct {
-	Response http.ResponseWriter
-	Request  *http.Request
-	Headers  map[string][]string
-	Params   map[string]string
-	Query    map[string]string
-	BodyByte []byte
-	JsonStr  string
+	Response  http.ResponseWriter
+	Request   *http.Request
+	Headers   map[string][]string
+	Params    map[string]string
+	Query     map[string]string
+	bodyByte  []byte
+	JsonStr   string
+	resStatus int
 }
 
 type Route struct {
