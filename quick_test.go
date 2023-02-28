@@ -432,6 +432,7 @@ func TestQuick_Put(t *testing.T) {
 	r.Group("/put/group")
 	r.Put("/test", testSuccessMockHandler)
 	r.Put("/tester/:p1", testSuccessMockHandler)
+	r.Put("/jeff", testSuccessMockHandler)
 
 	tests := []struct {
 		name string
@@ -461,6 +462,17 @@ func TestQuick_Put(t *testing.T) {
 			name: "success_without_param",
 			args: args{
 				route:       "/",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_without_param",
+			args: args{
+				route:       "/jeff",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,

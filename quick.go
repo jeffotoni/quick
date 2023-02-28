@@ -6,7 +6,6 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -56,7 +55,7 @@ var defaultConfig = Config{
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
-	//ReadHeaderTimeout: 3 * time.Second,
+	ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
 type Group struct {
@@ -499,19 +498,24 @@ func (q *Quick) GetRoute() []Route {
 
 func (q *Quick) Static(staticFolder string) {
 	// generate route get with a pattern like this: /static/:file
-	pattern := concat.String(staticFolder, ":file")
-	q.Get(pattern, func(c *Ctx) {
-		path, _, _ := extractParamsPattern(pattern)
-		file := c.Params["file"]
-		filePath := concat.String(".", path, "/", file)
+	// pattern := concat.String(staticFolder, ":file")
+	// q.Get(pattern, func(c *Ctx) {
+	// 	path, _, _ := extractParamsPattern(pattern)
+	// 	file := c.Params["file"]
+	// 	filePath := concat.String(".", path, "/", file)
+	// 	err := qos.FileExist(filePath)
+	// 	if err != nil {
+	// 		c.Status(http.StatusForbidden).SendString(err.Error())
+	// 		return
+	// 	}
 
-		fileBytes, err := os.ReadFile(filePath)
-		if err != nil {
-			c.Status(http.StatusNotFound).SendString("File Not Found")
-		}
-
-		c.Status(http.StatusOK).SendFile(fileBytes)
-	})
+	// 	fileBytes, err := os.ReadFile(filePath)
+	// 	if err != nil {
+	// 		c.Status(http.StatusInternalServerError).SendString(err.Error())
+	// 		return
+	// 	}
+	// 	c.Status(http.StatusOK).SendFile(fileBytes)
+	// })
 }
 
 func (q *Quick) Listen(addr string) error {
@@ -522,7 +526,7 @@ func (q *Quick) Listen(addr string) error {
 		// WriteTimeout:
 		// MaxHeaderBytes:
 		// IdleTimeout:
-		// ReadHeaderTimeout:
+		ReadHeaderTimeout: q.config.ReadHeaderTimeout,
 	}
 
 	print.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m")
