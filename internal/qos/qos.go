@@ -1,14 +1,17 @@
 package qos
 
-import "os"
+import (
+    "errors"
+    "os"
+)
 
-func FileExist(path string) bool {
+func FileExist(path string) error {
     _, err := os.Stat(path)
     if os.IsNotExist(err) {
-        return false
+        return errors.New("error file not exist")
     } else if err != nil {
-        return false
+        return err
     } else {
-        return true
+        return nil
     }
 }
