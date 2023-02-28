@@ -3,11 +3,11 @@ package quick
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"time"
 
 	"github.com/gojeffotoni/quick/internal/concat"
 )
@@ -92,10 +92,10 @@ func (q Quick) QuickTestListen(qs QuickMockTestServer) (QuickTestReturn, error) 
 		req.Header.Set(k, v)
 	}
 
-	go q.Listen(port)
+	q.Listen(port)
 
 	// This is a wait time to start the server in go routine
-	time.Sleep(time.Millisecond * 100)
+	// time.Sleep(time.Millisecond * 10)
 
 	if qs.Client == nil {
 		qs.Client = http.DefaultClient
@@ -113,6 +113,9 @@ func (q Quick) QuickTestListen(qs QuickMockTestServer) (QuickTestReturn, error) 
 		return nil, err
 	}
 
+	fmt.Println("errr:::::::::::::::::::", err)
+	fmt.Println("errr:::::::::::::::::::", string(b))
+	fmt.Println("errr:::::::::::::::::::", resp.StatusCode)
 	return &qTest{
 		body:       b,
 		bodyStr:    string(b),
