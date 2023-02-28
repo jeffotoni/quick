@@ -172,7 +172,7 @@ func TestQuick_Post(t *testing.T) {
 	testSuccessMockHandlerString := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
 		mt := new(myType)
-		if err := c.BodyParse(mt); err != nil {
+		if err := c.BodyParser(mt); err != nil {
 			t.Errorf("error: %v", err)
 		}
 		b, _ := json.Marshal(mt)
@@ -469,7 +469,7 @@ func TestCtx_Body(t *testing.T) {
 				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
-			if err := c.BodyParse(tt.args.v); (err != nil) != tt.wantErr {
+			if err := c.BodyParser(tt.args.v); (err != nil) != tt.wantErr {
 				t.Errorf("Ctx.Body() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

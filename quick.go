@@ -326,7 +326,7 @@ func (c *Ctx) Bind(v interface{}) (err error) {
 	return nil
 }
 
-func (c *Ctx) BodyParse(v interface{}) (err error) {
+func (c *Ctx) BodyParser(v interface{}) (err error) {
 	if strings.Contains(c.Request.Header.Get("Content-Type"), "application/json") {
 		err = json.Unmarshal(c.bodyByte, v)
 		if err != nil {
