@@ -3,7 +3,6 @@ package quick
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"reflect"
@@ -164,7 +163,7 @@ func TestQuick_Post(t *testing.T) {
 
 	testSuccessMockHandler := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
-		b, _ := io.ReadAll(c.Request.Body)
+		b := c.BodyBytes()
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
 		c.SendString(resp)
@@ -185,7 +184,7 @@ func TestQuick_Post(t *testing.T) {
 	testSuccessMockHandlerBind := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
 		mt := new(myType)
-		if err := c.Bind(mt); err != nil {
+		if err := c.Bind(&mt); err != nil {
 			t.Errorf("error: %v", err)
 		}
 		b, _ := json.Marshal(mt)
@@ -287,7 +286,7 @@ func TestQuick_Put(t *testing.T) {
 
 	testSuccessMockHandler := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
-		b, _ := io.ReadAll(c.Request.Body)
+		b := c.BodyBytes()
 		resp := concat.String(`"data":`, string(b))
 		c.Byte([]byte(resp))
 	}
@@ -426,7 +425,7 @@ func TestCtx_Param(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			if got := c.Param(tt.args.key); got != tt.want {
@@ -467,7 +466,7 @@ func TestCtx_Body(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			if err := c.Body(tt.args.v); (err != nil) != tt.wantErr {
@@ -504,7 +503,7 @@ func TestCtx_BodyString(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			if got := c.BodyString(); got != tt.want {
@@ -630,7 +629,7 @@ func TestCtx_Json(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			if err := c.JSON(tt.args.v); (err != nil) != tt.wantErr {
@@ -671,7 +670,7 @@ func TestCtx_Byte(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			if err := c.Byte(tt.args.b); (err != nil) != tt.wantErr {
@@ -712,7 +711,7 @@ func TestCtx_SendString(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			if err := c.SendString(tt.args.s); (err != nil) != tt.wantErr {
@@ -753,7 +752,7 @@ func TestCtx_Set(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			c.Set(tt.args.key, tt.args.value)
@@ -792,7 +791,7 @@ func TestCtx_Accepts(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			if got := c.Accepts(tt.args.acceptType); !reflect.DeepEqual(got, tt.want) {
@@ -833,7 +832,7 @@ func TestCtx_Status(t *testing.T) {
 				Params:   tt.fields.Params,
 				Query:    tt.fields.Query,
 				//JSON:     tt.fields.JSON,
-				BodyByte: tt.fields.BodyByte,
+				bodyByte: tt.fields.BodyByte,
 				JsonStr:  tt.fields.JsonStr,
 			}
 			if got := c.Status(tt.args.status); !reflect.DeepEqual(got, tt.want) {
