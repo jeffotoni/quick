@@ -6,5 +6,8 @@ import (
 )
 
 func Stdout(str ...string) {
-	os.Stdout.Write([]byte(strings.Join(str, "")))
+	_, err := os.Stdout.Write([]byte(strings.Join(str, "")))
+	if err != nil {
+		panic(err)
+	}
 }

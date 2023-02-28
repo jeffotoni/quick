@@ -7,7 +7,6 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -21,10 +20,8 @@ type Ctx struct {
 	Headers  map[string][]string
 	Params   map[string]string
 	Query    map[string]string
-	// JSON     map[string]interface{}
-	resStatus int
-	bodyByte  []byte
-	JsonStr   string
+	BodyByte []byte
+	JsonStr  string
 }
 
 type Route struct {
@@ -33,8 +30,8 @@ type Route struct {
 	Pattern string
 	Path    string
 	Params  string
-	handler http.HandlerFunc
 	Method  string
+	handler http.HandlerFunc
 }
 
 type ctxServeHttp struct {
@@ -46,9 +43,9 @@ type ctxServeHttp struct {
 
 type Config struct {
 	MaxBodySize       int64
+	MaxHeaderBytes    int64
 	ReadTimeout       time.Duration
 	WriteTimeout      time.Duration
-	MaxHeaderBytes    int64
 	IdleTimeout       time.Duration
 	ReadHeaderTimeout time.Duration
 }
@@ -59,7 +56,7 @@ var defaultConfig = Config{
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
-	//ReadHeaderTimeout: 3 * time.Second,
+	ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
 type Group struct {
@@ -68,14 +65,13 @@ type Group struct {
 }
 
 type Quick struct {
-	routes  []Route
-	group   *Group
-	mws     []func(http.Handler) http.Handler
-	mws2    []any
-	mux     *http.ServeMux
-	handler http.Handler
 	config  Config
-	//groupp  string
+	cors    bool
+	group   *Group
+	handler http.Handler
+	mux     *http.ServeMux
+	routes  []Route
+	mws2    []any
 }
 
 func New(c ...Config) *Quick {
@@ -93,25 +89,14 @@ func New(c ...Config) *Quick {
 	}
 }
 
-// type MiddlewareConfig struct {
-// 	// campos de configuração aqui
-// }
-
-// type MyMiddleware struct {
-// 	Config MiddlewareConfig
-// }
-
-type Middleware interface {
-	New(interface{}) func(http.Handler) http.Handler
-}
-
-func (q *Quick) Use(mw any) {
+func (q *Quick) Use(mw any, nf ...string) {
+	if len(nf) > 0 {
+		if strings.ToLower(nf[0]) == "cors" {
+			q.cors = true
+		}
+	}
 	q.mws2 = append(q.mws2, mw)
 }
-
-// func (q *Quick) Use(mw func(http.Handler) http.Handler) {
-// 	q.mws = append(q.mws, mw)
-// }
 
 func (q *Quick) Group(prefix string) {
 	g := &Group{
@@ -519,19 +504,24 @@ func (q *Quick) GetRoute() []Route {
 
 func (q *Quick) Static(staticFolder string) {
 	// generate route get with a pattern like this: /static/:file
-	pattern := concat.String(staticFolder, ":file")
-	q.Get(pattern, func(c *Ctx) {
-		path, _, _ := extractParamsPattern(pattern)
-		file := c.Params["file"]
-		filePath := concat.String(".", path, "/", file)
+	// pattern := concat.String(staticFolder, ":file")
+	// q.Get(pattern, func(c *Ctx) {
+	// 	path, _, _ := extractParamsPattern(pattern)
+	// 	file := c.Params["file"]
+	// 	filePath := concat.String(".", path, "/", file)
+	// 	err := qos.FileExist(filePath)
+	// 	if err != nil {
+	// 		c.Status(http.StatusForbidden).SendString(err.Error())
+	// 		return
+	// 	}
 
-		fileBytes, err := os.ReadFile(filePath)
-		if err != nil {
-			c.Status(http.StatusNotFound).SendString("File Not Found")
-		}
-
-		c.Status(http.StatusOK).SendFile(fileBytes)
-	})
+	// 	fileBytes, err := os.ReadFile(filePath)
+	// 	if err != nil {
+	// 		c.Status(http.StatusInternalServerError).SendString(err.Error())
+	// 		return
+	// 	}
+	// 	c.Status(http.StatusOK).SendFile(fileBytes)
+	// })
 }
 
 func (q *Quick) Listen(addr string) error {
@@ -542,7 +532,7 @@ func (q *Quick) Listen(addr string) error {
 		// WriteTimeout:
 		// MaxHeaderBytes:
 		// IdleTimeout:
-		// ReadHeaderTimeout:
+		ReadHeaderTimeout: q.config.ReadHeaderTimeout,
 	}
 
 	print.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m")

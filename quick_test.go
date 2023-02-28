@@ -37,7 +37,6 @@ func TestQuick_Use(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			q := &Quick{
 				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
@@ -297,6 +296,7 @@ func TestQuick_Put(t *testing.T) {
 	r.Group("/put/group")
 	r.Put("/test", testSuccessMockHandler)
 	r.Put("/tester/:p1", testSuccessMockHandler)
+	r.Put("/jeff", testSuccessMockHandler)
 
 	tests := []struct {
 		name string
@@ -326,6 +326,17 @@ func TestQuick_Put(t *testing.T) {
 			name: "success_without_param",
 			args: args{
 				route:       "/",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff", "age":35}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_without_param",
+			args: args{
+				route:       "/jeff",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -524,8 +535,8 @@ func TestQuick_ServeStaticFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
+				routes: tt.fields.routes,
+
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
@@ -577,8 +588,8 @@ func TestQuick_ServeHTTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			q := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
+				routes: tt.fields.routes,
+
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
@@ -848,8 +859,8 @@ func TestQuick_GetRoute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
+				routes: tt.fields.routes,
+
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
@@ -881,8 +892,8 @@ func TestQuick_Listen(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			q := &Quick{
-				routes:  tt.fields.routes,
-				mws:     tt.fields.mws,
+				routes: tt.fields.routes,
+
 				mux:     tt.fields.mux,
 				handler: tt.fields.handler,
 			}
