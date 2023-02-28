@@ -6,13 +6,11 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/gojeffotoni/quick/internal/concat"
 	"github.com/gojeffotoni/quick/internal/print"
-	"github.com/gojeffotoni/quick/internal/qos"
 )
 
 type Ctx struct {
@@ -489,23 +487,24 @@ func (q *Quick) GetRoute() []Route {
 
 func (q *Quick) Static(staticFolder string) {
 	// generate route get with a pattern like this: /static/:file
-	pattern := concat.String(staticFolder, ":file")
-	q.Get(pattern, func(c *Ctx) {
-		path, _, _ := extractParamsPattern(pattern)
-		file := c.Params["file"]
-		filePath := concat.String(".", path, "/", file)
-		if !qos.FileExist(filePath) {
-			c.Status(http.StatusForbidden).SendString("File is not allowed")
-			return
-		}
+	// pattern := concat.String(staticFolder, ":file")
+	// q.Get(pattern, func(c *Ctx) {
+	// 	path, _, _ := extractParamsPattern(pattern)
+	// 	file := c.Params["file"]
+	// 	filePath := concat.String(".", path, "/", file)
+	// 	err := qos.FileExist(filePath)
+	// 	if err != nil {
+	// 		c.Status(http.StatusForbidden).SendString(err.Error())
+	// 		return
+	// 	}
 
-		fileBytes, err := os.ReadFile(filePath)
-		if err != nil {
-			c.Status(http.StatusInternalServerError).SendString(err.Error())
-			return
-		}
-		c.Status(http.StatusOK).SendFile(fileBytes)
-	})
+	// 	fileBytes, err := os.ReadFile(filePath)
+	// 	if err != nil {
+	// 		c.Status(http.StatusInternalServerError).SendString(err.Error())
+	// 		return
+	// 	}
+	// 	c.Status(http.StatusOK).SendFile(fileBytes)
+	// })
 }
 
 func (q *Quick) Listen(addr string) error {
