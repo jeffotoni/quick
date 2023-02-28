@@ -294,9 +294,9 @@ func TestQuick_Put(t *testing.T) {
 	r := New()
 	r.Put("/", testSuccessMockHandler)
 	//r.Group("/put/group")
-	r.Put("/put/test", testSuccessMockHandler)
-	r.Put("/put/tester/:p1", testSuccessMockHandler)
-	//r.Put("/jeff", testSuccessMockHandler)
+	r.Put("/put/group/test", testSuccessMockHandler)
+	r.Put("/put/group/tester/:p1", testSuccessMockHandler)
+	r.Put("/jeff", testSuccessMockHandler)
 
 	tests := []struct {
 		name string
@@ -355,7 +355,7 @@ func TestQuick_Put(t *testing.T) {
 
 			s := strings.TrimSpace(data.BodyStr())
 			if s != tt.args.wantOut {
-				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
+				t.Errorf("route %s -> was suppose to return %s and %s come", tt.args.route, tt.args.wantOut, data.BodyStr())
 				return
 			}
 
