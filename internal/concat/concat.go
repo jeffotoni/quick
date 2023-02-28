@@ -4,8 +4,8 @@ import "strings"
 
 func String(strs ...string) string {
 	var sb strings.Builder
-	for _, str := range strs {
-		sb.WriteString(str)
+	for i := 0; i < len(strs); i++ {
+		sb.WriteString(strs[i])
 	}
 	return sb.String()
 }
