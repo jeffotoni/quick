@@ -326,7 +326,7 @@ func (c *Ctx) Bind(v interface{}) (err error) {
 	return nil
 }
 
-func (c *Ctx) Body(v interface{}) (err error) {
+func (c *Ctx) BodyParse(v interface{}) (err error) {
 	if strings.Contains(c.Request.Header.Get("Content-Type"), "application/json") {
 		err = json.Unmarshal(c.bodyByte, v)
 		if err != nil {
@@ -345,12 +345,12 @@ func (c *Ctx) Body(v interface{}) (err error) {
 	return nil
 }
 
-func (c *Ctx) BodyString() string {
-	return string(c.bodyByte)
+func (c *Ctx) Body() []byte {
+	return c.bodyByte
 }
 
-func (c *Ctx) BodyBytes() []byte {
-	return c.bodyByte
+func (c *Ctx) BodyString() string {
+	return string(c.bodyByte)
 }
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
