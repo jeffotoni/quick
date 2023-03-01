@@ -487,6 +487,6 @@ func (q *Quick) Listen(addr string) error {
 		ReadHeaderTimeout: q.config.ReadHeaderTimeout,
 	}
 
-	print.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m")
+	print.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m\n")
 	return server.ListenAndServe()
 }
