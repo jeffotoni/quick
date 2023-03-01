@@ -56,7 +56,7 @@ var ConfigDefault = Config{
 	AllowedOrigins:   []string{"*"},
 	AllowedMethods:   []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"},
 	AllowCredentials: true,
-	Debug:            true,
+	Debug:            false,
 }
 
 func New(options ...Config) func(next http.Handler) http.Handler {
