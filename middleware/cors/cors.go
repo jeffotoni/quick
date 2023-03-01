@@ -64,7 +64,6 @@ func New(options ...Config) func(next http.Handler) http.Handler {
 	if len(options) > 0 {
 		cfd = options[0]
 	}
-	op := cors.Options{}
 	op = cors.Options(cfd)
 
 	c := cors.New(op)

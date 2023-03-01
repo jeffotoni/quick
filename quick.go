@@ -150,15 +150,14 @@ func extractHeaders(req http.Request) map[string][]string {
 	return headersMap
 }
 
-func extractBind(c *Ctx, v interface{}) (obj interface{}, err error) {
+func extractBind(c *Ctx, v interface{}) (err error) {
 	var req http.Request = *c.Request
 	if strings.ToLower(req.Header.Get("Content-Type")) == "application/json" ||
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
 		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-		obj = v
 	}
-	return obj, err
+	return err
 }
 
 func extractParamsPattern(pattern string) (path, params, partternExist string) {
@@ -270,11 +269,10 @@ func (q *Quick) appendRoute(route *Route) {
 
 func (c *Ctx) Bind(v interface{}) (err error) {
 	if c.Request.Header.Get("Content-Type") == "application/json" {
-		obj, err := extractBind(c, v)
+		err = extractBind(c, v)
 		if err != nil {
 			return err
 		}
-		v = obj
 	}
 
 	return nil
@@ -338,7 +336,6 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for i := 0; i < len(q.routes); i++ {
 		var requestURI = req.URL.Path
-		var paramsMap = make(map[string]string)
 		var patternUri = q.routes[i].Pattern
 
 		if q.routes[i].Method != req.Method {
