@@ -60,15 +60,10 @@ var defaultConfig = Config{
 	ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
-type Group struct {
-	prefix string
-	quick  *Quick
-}
-
 type Quick struct {
 	config  Config
 	cors    bool
-	group   *Group
+	groups  []Group
 	handler http.Handler
 	mux     *http.ServeMux
 	routes  []Route
@@ -99,23 +94,8 @@ func (q *Quick) Use(mw any, nf ...string) {
 	q.mws2 = append(q.mws2, mw)
 }
 
-func (q *Quick) Group(prefix string) {
-	g := &Group{
-		prefix: prefix,
-		quick:  q,
-	}
-	q.group = g
-}
-
 func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 	path, params, partternExist := extractParamsPattern(pattern)
-
-	var gr string
-	// Setting up the group
-	if q.group != nil {
-		path = concat.String(q.group.prefix, path)
-		gr = q.group.prefix
-	}
 
 	route := Route{
 		Pattern: partternExist,
@@ -123,7 +103,6 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 		Params:  params,
 		handler: extractParamsGet(path, params, handlerFunc),
 		Method:  http.MethodGet,
-		Group:   gr,
 	}
 
 	q.appendRoute(&route)
@@ -131,27 +110,15 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 }
 
 func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
-
-	var (
-		gr       string
-		pathPost string
-	)
-
-	pathPost = concat.String("post#", pattern)
-
-	// Setting up the group
-	if q.group != nil {
-		pathPost = concat.String("post#", q.group.prefix, pattern)
-		pattern = concat.String(q.group.prefix, pattern)
-		gr = q.group.prefix
-	}
+	_, params, partternExist := extractParamsPattern(pattern)
+	pathPost := concat.String("post#", pattern)
 
 	route := Route{
-		Pattern: "",
+		Pattern: partternExist,
+		Params:  params,
 		Path:    pattern,
 		handler: extractParamsPost(q, pattern, handlerFunc),
 		Method:  http.MethodPost,
-		Group:   gr,
 	}
 
 	q.appendRoute(&route)
@@ -161,19 +128,7 @@ func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
 	_, params, partternExist := extractParamsPattern(pattern)
 
-	var (
-		gr      string
-		pathPut string
-	)
-
-	pathPut = concat.String("put#", pattern)
-
-	// Setting up the group
-	if q.group != nil {
-		pathPut = concat.String("put#", q.group.prefix, pathPut)
-		pattern = concat.String(q.group.prefix, pattern)
-		gr = q.group.prefix
-	}
+	pathPut := concat.String("put#", pattern)
 
 	route := Route{
 		Pattern: partternExist,
@@ -181,7 +136,6 @@ func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
 		handler: extractParamsPut(q, pattern, handlerFunc),
 		Method:  http.MethodPut,
 		Params:  params,
-		Group:   gr,
 	}
 
 	q.appendRoute(&route)
@@ -382,21 +336,17 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 }
 
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	for _, route := range q.routes {
+	for i := 0; i < len(q.routes); i++ {
 		var requestURI = req.URL.Path
 		var paramsMap = make(map[string]string)
-		var patternUri = route.Pattern
+		var patternUri = q.routes[i].Pattern
 
-		if route.Method != req.Method {
+		if q.routes[i].Method != req.Method {
 			continue
 		}
 
 		if len(patternUri) == 0 {
-			patternUri = route.Path
-		}
-
-		if len(route.Group) != 0 && strings.Contains(route.Pattern, ":") {
-			patternUri = concat.String(route.Group, route.Pattern)
+			patternUri = q.routes[i].Path
 		}
 
 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
@@ -405,11 +355,12 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
-		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: route.Method}
+		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
 		req = req.WithContext(context.WithValue(req.Context(), 0, c))
-		route.handler(w, req)
+		q.routes[i].handler(w, req)
 		return
 	}
+
 	http.NotFound(w, req)
 }
 
