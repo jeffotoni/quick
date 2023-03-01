@@ -71,11 +71,11 @@ func TestQuick_Get(t *testing.T) {
 	}
 
 	r := New()
-	r.Group("/v1/user")
-	r.Get("/test", testSuccessMockHandler)
-	r.Group("/v1/user2")
-	r.Get("/tester/:p1", testSuccessMockHandler)
-	r.Get("/", testSuccessMockHandler)
+	g1 := r.Group("/v1/user")
+	g1.Get("/test", testSuccessMockHandler)
+	g2 := r.Group("/v1/user2")
+	g2.Get("/tester/:p1", testSuccessMockHandler)
+	g2.Get("/", testSuccessMockHandler)
 
 	tests := []struct {
 		name string
@@ -194,7 +194,6 @@ func TestQuick_Post(t *testing.T) {
 	}
 
 	r := New()
-	r.Group("/my/group")
 	r.Post("/test", testSuccessMockHandler)
 	r.Post("/tester/:p1", testSuccessMockHandler)
 	r.Post("/", testSuccessMockHandlerString)
@@ -207,7 +206,7 @@ func TestQuick_Post(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:       "/my/group/test",
+				route:       "/test",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -217,7 +216,7 @@ func TestQuick_Post(t *testing.T) {
 		{
 			name: "success_param",
 			args: args{
-				route:       "/my/group/tester/:p1",
+				route:       "/tester/some",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -227,7 +226,7 @@ func TestQuick_Post(t *testing.T) {
 		{
 			name: "success_without_param",
 			args: args{
-				route:       "/my/group/",
+				route:       "/",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff","age":35}`,
 				isWantedErr: false,
@@ -238,7 +237,7 @@ func TestQuick_Post(t *testing.T) {
 		{
 			name: "success_bind",
 			args: args{
-				route:       "/my/group/bind",
+				route:       "/bind",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff","age":35}`,
 				isWantedErr: false,
@@ -249,7 +248,6 @@ func TestQuick_Post(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			data, err := r.QuickTest("POST", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
@@ -293,9 +291,8 @@ func TestQuick_Put(t *testing.T) {
 
 	r := New()
 	r.Put("/", testSuccessMockHandler)
-	// r.Group("/put/group")
-	r.Put("/put/group/test", testSuccessMockHandler)
-	r.Put("/put/group/tester/:p1", testSuccessMockHandler)
+	r.Put("/test", testSuccessMockHandler)
+	r.Put("/tester/:p1", testSuccessMockHandler)
 	r.Put("/jeff", testSuccessMockHandler)
 
 	tests := []struct {
@@ -305,7 +302,7 @@ func TestQuick_Put(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:       "/put/group/test",
+				route:       "/test",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
@@ -315,7 +312,7 @@ func TestQuick_Put(t *testing.T) {
 		{
 			name: "success_param",
 			args: args{
-				route:       "/put/group/tester/:p1",
+				route:       "/tester/:p1",
 				wantCode:    200,
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
