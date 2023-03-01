@@ -279,23 +279,23 @@ func main() {
 		MaxBodySize: 5 * 1024 * 1024,
 	})
 
-	app.Group("/v1")
-	app.Get("/user", func(c *quick.Ctx) {
+	v1 := app.Group("/v1")
+	v1.Get("/user", func(c *quick.Ctx) {
 		c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
 		return
 	})
-	app.Post("/user", func(c *quick.Ctx) {
+	v1.Post("/user", func(c *quick.Ctx) {
 		c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
 		return
 	})
 
-	app.Group("/v2")
-	app.Get("/user", func(c *quick.Ctx) {
+	v2 := app.Group("/v2")
+	v2.Get("/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
 		c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
 	})
 
-	app.Post("/user", func(c *quick.Ctx) {
+	v2.Post("/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
 		c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
 	})
