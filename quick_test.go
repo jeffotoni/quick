@@ -71,11 +71,10 @@ func TestQuick_Get(t *testing.T) {
 	}
 
 	r := New()
-	g1 := r.Group("/v1/user")
-	g1.Get("/test", testSuccessMockHandler)
-	g2 := r.Group("/v1/user2")
-	g2.Get("/tester/:p1", testSuccessMockHandler)
-	g2.Get("/", testSuccessMockHandler)
+	r.Get("/test", testSuccessMockHandler)
+	r.Get("/tester/:p1", testSuccessMockHandler)
+	r.Get("/", testSuccessMockHandler)
+	r.Get("/reg/{[0-9]}", testSuccessMockHandler)
 
 	tests := []struct {
 		name string
@@ -84,7 +83,7 @@ func TestQuick_Get(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:       "/v1/user/test",
+				route:       "/test?some=1",
 				wantOut:     `{"name":"jeff","age":35}`,
 				wantCode:    200,
 				isWantedErr: false,
@@ -93,7 +92,7 @@ func TestQuick_Get(t *testing.T) {
 		{
 			name: "success_with_params",
 			args: args{
-				route:       "/v1/user2/tester/val1",
+				route:       "/tester/val1",
 				wantOut:     `{"name":"jeff","age":35}`,
 				wantCode:    200,
 				isWantedErr: false,
@@ -102,7 +101,16 @@ func TestQuick_Get(t *testing.T) {
 		{
 			name: "success_with_nothing",
 			args: args{
-				route:       "/v1/user2/",
+				route:       "/",
+				wantOut:     `{"name":"jeff","age":35}`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_with_regex",
+			args: args{
+				route:       "/reg/1",
 				wantOut:     `{"name":"jeff","age":35}`,
 				wantCode:    200,
 				isWantedErr: false,

@@ -34,9 +34,11 @@ func TestQuick_GroupGet(t *testing.T) {
 	}
 
 	r := New()
-	r.Get("/test", testSuccessMockHandler)
+	g1 := r.Group("/v1/my")
+	g1.Get("/test", testSuccessMockHandler)
 	r.Get("/tester/:p1", testSuccessMockHandler)
 	r.Get("/", testSuccessMockHandler)
+	r.Get(`/my/reg/{(\S+)}/route`, testSuccessMockHandler)
 
 	tests := []struct {
 		name string
@@ -45,7 +47,7 @@ func TestQuick_GroupGet(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:       "/test",
+				route:       "/v1/my/test?some=val1",
 				wantOut:     `{"name":"jeff","age":35}`,
 				wantCode:    200,
 				isWantedErr: false,
@@ -64,6 +66,15 @@ func TestQuick_GroupGet(t *testing.T) {
 			name: "success_with_nothing",
 			args: args{
 				route:       "/",
+				wantOut:     `{"name":"jeff","age":35}`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_with_regex",
+			args: args{
+				route:       "/my/reg/88/route",
 				wantOut:     `{"name":"jeff","age":35}`,
 				wantCode:    200,
 				isWantedErr: false,
