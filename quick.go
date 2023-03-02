@@ -7,6 +7,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -376,6 +377,12 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 		if strings.Contains(patternURISplt[pttrn], ":") {
 			params[patternURISplt[pttrn]] = reqURISplt[pttrn]
 			tmpPath = concat.String(tmpPath, "/", reqURISplt[pttrn])
+		} else if strings.Contains(patternURISplt[pttrn], "{") { // regex support
+			regexPattern := patternURISplt[pttrn][1:]
+			regexPattern = regexPattern[:len(regexPattern)-1]
+			rgx := regexp.MustCompile(regexPattern)
+			params[patternURISplt[pttrn]] = rgx.FindString(reqURISplt[pttrn])
+			tmpPath = concat.String(tmpPath, "/", rgx.FindString(reqURISplt[pttrn]))
 		} else {
 			tmpPath = concat.String(tmpPath, "/", patternURISplt[pttrn])
 		}
