@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"reflect"
 	"strings"
@@ -998,6 +999,71 @@ func Test_extractParamsPattern(t *testing.T) {
 			}
 			if gotPartternExist != tt.wantPartternExist {
 				t.Errorf("extractParamsPattern() gotPartternExist = %v, want %v", gotPartternExist, tt.wantPartternExist)
+			}
+		})
+	}
+}
+
+func TestCtx_Append(t *testing.T) {
+	type fields struct {
+		Response  http.ResponseWriter
+		Request   *http.Request
+		resStatus int
+		bodyByte  []byte
+		JsonStr   string
+		Headers   map[string][]string
+		Params    map[string]string
+		Query     map[string]string
+	}
+	type args struct {
+		key   string
+		value string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantLen int
+	}{
+		{
+			name: "should be able to create a new header",
+			fields: fields{
+				Response: httptest.NewRecorder(),
+			},
+			args: args{
+				key:   "Append",
+				value: "one",
+			},
+			wantLen: 1,
+		},
+		{
+			name: "should be able to append to existing header",
+			fields: fields{
+				Response: func() http.ResponseWriter { x := httptest.NewRecorder(); x.Header().Set("Append", "one"); return x }(),
+			},
+			args: args{
+				key:   "Append",
+				value: "two",
+			},
+			wantLen: 2,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Ctx{
+				Response:  tt.fields.Response,
+				Request:   tt.fields.Request,
+				resStatus: tt.fields.resStatus,
+				bodyByte:  tt.fields.bodyByte,
+				JsonStr:   tt.fields.JsonStr,
+				Headers:   tt.fields.Headers,
+				Params:    tt.fields.Params,
+				Query:     tt.fields.Query,
+			}
+			c.Append(tt.args.key, tt.args.value)
+
+			if len(c.Response.Header().Values(tt.args.key)) != tt.wantLen {
+				t.Errorf("c.Append(): want %v, got %v", tt.wantLen, len(c.Response.Header().Values(tt.args.key)))
 			}
 		})
 	}
