@@ -2,8 +2,7 @@ package cors
 
 import (
 	"net/http"
-
-	"github.com/rs/cors"
+	"strings"
 )
 
 type Config struct {
@@ -53,35 +52,67 @@ type Config struct {
 }
 
 var ConfigDefault = Config{
-	AllowedOrigins:   []string{"*"},
-	AllowedMethods:   []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"},
+	AllowedOrigins: []string{"*"},
+	AllowedMethods: []string{
+		"POST",
+		"GET",
+		"PUT",
+		"DELETE",
+		"PATH",
+		"HEAD",
+		"OPTIONS",
+	},
 	AllowCredentials: true,
+	AllowedHeaders:   []string{"Origin", "Content-Type"},
 	Debug:            false,
+	MaxAge:           0,
 }
 
-func New(options ...Config) func(next http.Handler) http.Handler {
-	cfd := ConfigDefault
-	if len(options) > 0 {
-		cfd = options[0]
+func New(config ...Config) func(http.Handler) http.Handler {
+	c := ConfigDefault
+	if len(config) > 0 {
+		c = config[0]
 	}
-	op = cors.Options(cfd)
-
-	c := cors.New(op)
-	return c.Handler
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			rules(c, w, r)
+			if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
+				w.WriteHeader(http.StatusNoContent)
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
-// func New(config ...Config) func(http.Handler) http.Handler {
-// 	cfd := ConfigDefault
-// 	if len(config) > 0 {
-// 		cfd = config[0]
-// 	}
-// 	return func(next http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 			op := cors.Options{}
-// 			op = cors.Options(cfd)
-// 			cors.New(op).Handler(next)
-// 			//cors.New(op).Handler(next)
-// 			next.ServeHTTP(w, r)
-// 		})
-// 	}
-// }
+func rules(c Config, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("X-Cors", "true")
+
+	if len(c.AllowedOrigins) > 0 {
+		w.Header().Set("Access-Control-Allow-Origin", strings.Join(c.AllowedOrigins, ", "))
+	}
+	if len(c.AllowedMethods) > 0 {
+		w.Header().Set("Access-Control-Allow-Methods", strings.Join(c.AllowedMethods, ", "))
+	}
+	if len(c.AllowedHeaders) > 0 {
+		w.Header().Set("Access-Control-Allow-Headers", strings.Join(c.AllowedHeaders, ", "))
+	}
+}
+
+func Default(config ...Config) Config {
+	cfd := ConfigDefault
+	if len(config) > 0 {
+		cfd = config[0]
+	}
+	return cfd
+}
+
+func (c Config) Handler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rules(c, w, r)
+		if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
+			// w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
