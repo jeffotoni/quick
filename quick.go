@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/gojeffotoni/quick/internal/concat"
-	"github.com/gojeffotoni/quick/internal/print"
+	p "github.com/gojeffotoni/quick/internal/print"
 )
 
 type Ctx struct {
@@ -62,13 +62,15 @@ var defaultConfig = Config{
 }
 
 type Quick struct {
-	config  Config
-	cors    bool
-	groups  []Group
-	handler http.Handler
-	mux     *http.ServeMux
-	routes  []Route
-	mws2    []any
+	config      Config
+	Cors        bool
+	groups      []Group
+	handler     http.Handler
+	mux         *http.ServeMux
+	routes      []Route
+	mws2        []any
+	CorsSet     func(http.Handler) http.Handler
+	CorsOptions map[string]string
 }
 
 func New(c ...Config) *Quick {
@@ -89,7 +91,15 @@ func New(c ...Config) *Quick {
 func (q *Quick) Use(mw any, nf ...string) {
 	if len(nf) > 0 {
 		if strings.ToLower(nf[0]) == "cors" {
-			q.cors = true
+			switch mwc := mw.(type) {
+			// case func(next http.Handler, w http.ResponseWriter, r *http.Request):
+			// 	q.Cors = true
+			// 	q.CorsSet = mwc
+			case func(http.Handler) http.Handler:
+				//var handler http.Handler
+				q.Cors = true
+				q.CorsSet = mwc
+			}
 		}
 	}
 	q.mws2 = append(q.mws2, mw)
@@ -480,17 +490,57 @@ func (q *Quick) Static(staticFolder string) {
 	// })
 }
 
-func (q *Quick) Listen(addr string) error {
-	server := &http.Server{
-		Addr:    addr,
-		Handler: q,
-		// ReadTimeout:
-		// WriteTimeout:
-		// MaxHeaderBytes:
-		// IdleTimeout:
-		ReadHeaderTimeout: q.config.ReadHeaderTimeout,
-	}
+func (q *Quick) execHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
+	})
+}
 
-	print.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m\n")
+func (q *Quick) corsHandler() http.Handler {
+	return q.CorsSet(q)
+}
+
+func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
+	var server *http.Server
+
+	if len(handler) > 0 {
+		//assume o nosso mux
+		server = &http.Server{
+			Addr:    addr,
+			Handler: q.execHandler(handler[0]),
+			// ReadTimeout:
+			// WriteTimeout:
+			// MaxHeaderBytes:
+			// IdleTimeout:
+			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+		}
+
+	} else if q.Cors {
+		server = &http.Server{
+			Addr:    addr,
+			Handler: q.corsHandler(),
+			// ReadTimeout:
+			// WriteTimeout:
+			// MaxHeaderBytes:
+			// IdleTimeout:
+			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+		}
+	} else {
+		server = &http.Server{
+			Addr:    addr,
+			Handler: q,
+			// ReadTimeout:
+			// WriteTimeout:
+			// MaxHeaderBytes:
+			// IdleTimeout:
+			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+		}
+	}
+	return server
+}
+
+func (q *Quick) Listen(addr string, handler ...http.Handler) error {
+	server := q.httpServer(addr, handler...)
+	p.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m\n")
 	return server.ListenAndServe()
 }
