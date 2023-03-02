@@ -454,6 +454,10 @@ func (c *Ctx) Set(key, value string) {
 	c.Response.Header().Set(key, value)
 }
 
+func (c *Ctx) Append(key, value string) {
+	c.Response.Header().Add(key, value)
+}
+
 func (c *Ctx) Accepts(acceptType string) *Ctx {
 	c.Response.Header().Set("Accept", acceptType)
 	return c
