@@ -26,6 +26,8 @@ type Ctx struct {
 	Query     map[string]string
 }
 
+type HandleFunc func(*Ctx) error
+
 type Route struct {
 	//Pattern *regexp.Regexp
 	Group   string
@@ -105,7 +107,7 @@ func (q *Quick) Use(mw any, nf ...string) {
 	q.mws2 = append(q.mws2, mw)
 }
 
-func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
+func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 	path, params, partternExist := extractParamsPattern(pattern)
 
 	route := Route{
@@ -120,7 +122,7 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 	q.mux.HandleFunc(path, route.handler)
 }
 
-func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
+func (q *Quick) Post(pattern string, handlerFunc HandleFunc) {
 	_, params, partternExist := extractParamsPattern(pattern)
 	pathPost := concat.String("post#", pattern)
 
@@ -136,7 +138,7 @@ func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 	q.mux.HandleFunc(pathPost, route.handler)
 }
 
-func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
+func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
 	_, params, partternExist := extractParamsPattern(pattern)
 
 	pathPut := concat.String("put#", pattern)
@@ -188,7 +190,7 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	return
 }
 
-func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
+func extractParamsPost(q *Quick, pathTmp string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
@@ -209,11 +211,11 @@ func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Ha
 			bodyByte: extractBodyBytes(req.Body),
 			Headers:  headersMap,
 		}
-		handlerFunc(c)
+		execHandleFunc(c, handlerFunc)
 	}
 }
 
-func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
+func extractParamsPut(q *Quick, pathTmp string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
@@ -238,7 +240,15 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Han
 			Params:   cval.ParamsMap,
 		}
 
-		handlerFunc(c)
+		execHandleFunc(c, handlerFunc)
+	}
+}
+
+func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
+	err := handleFunc(c)
+	if err != nil {
+		c.Set("Content-Type", "text/plain; charset=utf-8")
+		c.Status(500).SendString(err.Error())
 	}
 }
 
@@ -316,7 +326,7 @@ func (c *Ctx) BodyString() string {
 	return string(c.bodyByte)
 }
 
-func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
+func extractParamsGet(pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
@@ -340,7 +350,7 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 			bodyByte: extractBodyBytes(req.Body),
 			Headers:  headersMap,
 		}
-		handlerFunc(c)
+		execHandleFunc(c, handlerFunc)
 	}
 }
 

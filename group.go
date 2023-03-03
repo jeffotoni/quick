@@ -22,7 +22,7 @@ func (q *Quick) Group(prefix string) *Group {
 	return g
 }
 
-func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
+func (g *Group) Get(pattern string, handlerFunc HandleFunc) {
 	pattern = concat.String(g.prefix, pattern)
 	path, params, partternExist := extractParamsPattern(pattern)
 
@@ -39,7 +39,7 @@ func (g *Group) Get(pattern string, handlerFunc func(*Ctx)) {
 	g.quick.mux.HandleFunc(path, route.handler)
 }
 
-func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
+func (g *Group) Post(pattern string, handlerFunc HandleFunc) {
 	pattern = concat.String(g.prefix, pattern)
 	_, params, partternExist := extractParamsPattern(pattern)
 
@@ -58,7 +58,7 @@ func (g *Group) Post(pattern string, handlerFunc func(*Ctx)) {
 	g.quick.mux.HandleFunc(pathPost, route.handler)
 }
 
-func (g *Group) Put(pattern string, handlerFunc func(*Ctx)) {
+func (g *Group) Put(pattern string, handlerFunc HandleFunc) {
 	pattern = concat.String(g.prefix, pattern)
 	_, params, partternExist := extractParamsPattern(pattern)
 
