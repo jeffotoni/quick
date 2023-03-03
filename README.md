@@ -395,7 +395,7 @@ Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e 
 | Avatar | User | Donation |
 |--------|------|----------|
 | <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | @jeffotoni | ☕ x 10 |
-| <img src="https://avatars.githubusercontent.com/u/7107528?v=4" height=20> | @crow34 | ☕ x 5  |
+| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | @Crow3442 | ☕ x 5  |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | @Guilherme-De-Marchi | ☕ x 5 |
 
 
