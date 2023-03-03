@@ -180,6 +180,8 @@ Content-Type: text/plain; charset=utf-8
 
 ## 👁‍🗨| Examples
 
+Este repositório contém exemplos práticos do Framework Quick, um framework web rápido e leve, desenvolvido em Go. Os exemplos estão organizados em pastas separadas, cada uma contendo um exemplo completo de uso do framework em uma aplicação web simples. Se você tem algum exemplo interessante de uso do Framework Quick, sinta-se à vontade para enviar uma solicitação de pull request com sua contribuição. O repositório de exemplos do Framework Quick pode ser encontrado em [https://github.com/gojeffotoni/examples](https://github.com/gojeffotoni/examples).
+
 
 ##### Quick Post Bind json
 ```go
@@ -368,4 +370,19 @@ Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e 
 | <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | @jeffotoni | ☕ x 10 |
 | <img src="https://avatars.githubusercontent.com/u/7107528?v=4" height=20> | @crow34 | ☕ x 5  |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | @Guilherme-De-Marchi | ☕ x 5 |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
