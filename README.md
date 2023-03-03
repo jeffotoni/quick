@@ -23,7 +23,7 @@ Espero que possam participar e que gostem de Godar!!! 😍
 | Desenvolver Routes Método GET aceitando Query String | 90%    |
 | Desenvolver Routes Método GET aceitando Parametros | 90%      |
 | Desenvolver Routes Método GET aceitando Query String e Parametros | 90% |
-| Desenvolver Routes Método GET aceitando expressão regular | 0.% |
+| Desenvolver Routes Método GET aceitando expressão regular | 90.% |
 | Desenvolver Routes Método POST                   | 80%       |
 | Desenvolver Routes Método POST aceitando JSON    | 90%       |
 | Desenvolver para o MÉTODO POST o parse JSON       | 90%       |
