@@ -7,18 +7,20 @@ O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com d
 
 Espero que possam participar e que gostem de Godar!!! 😍
 
+O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/gojeffotoni/examples).
+
 ## 📃| Rodmap do desenvolvimento
 
 | Tarefa                                          | Progresso |
 |-------------------------------------------------|-----------|
-| Desenvolver MaxBodySize metodos Post e Put       | 100%     |
-| Desenvolver Padrão de Testes Unitários       	   | 90%      |
-| Desenvolver Config em New(Config{}) não obrigatório | 100%   |
+| Desenvolver MaxBodySize metodos Post e Put       | <font color="green">100%</font>      |
+| Desenvolver Padrão de Testes Unitários           | 90%       |
+| Desenvolver Config em New(Config{}) não obrigatório | <font color="green">100%</font>   |
 | Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
 | Desenvolver e relacionar ao Listen o Config      | 30%       |
-| Criação de função print para não usar fmt de forma demasiada | 100% |
-| Criação de função própria para Concat String     | 100%      |
-| Criação de benchmarking entre os.Stdout e fmt.Println | 100%   |
+| Criação de função print para não usar fmt de forma demasiada | <font color="green">100%</font> |
+| Criação de função própria para Concat String     | <font color="green">100%</font>      |
+| Criação de benchmarking entre os.Stdout e fmt.Println | <font color="green">100%</font>   |
 | Desenvolver Routes Método GET                    | 50%       |
 | Desenvolver Routes Método GET aceitando Query String | 90%    |
 | Desenvolver Routes Método GET aceitando Parametros | 90%      |
@@ -170,15 +172,18 @@ Content-Type: text/plain; charset=utf-8
 
 | Funcionalidades                                 | Possui    |
 |-------------------------------------------------|-----------|
-| Gerenciador de Rotas                            |   sim     |
-| Server Files Static                             |   sim     |
-| Grupo de Rotas                                  |   sim     |
-| Middlewares                                     |   sim     |
-| HTTP/2 support                                  |   sim     |
-| Data binding for JSON, XML and form payload     |   sim     |
+| 🔴 Gerenciador de Rotas                           |   sim     |
+| 🟠 Server Files Static                            |   sim     |
+| 🟡 Grupo de Rotas                                  |   sim     |
+| 🟢 Middlewares                                     |   sim     |
+| 🔵 HTTP/2 support                                 |   sim     |
+| 🟣 Data binding for JSON, XML and form payload     |   sim     |
+| ⚫️ Suporte para regex                              |   sim     |
 
 
 ## 👁‍🗨| Examples
+
+Este repositório contém exemplos práticos do Framework Quick, um framework web rápido e leve, desenvolvido em Go. Os exemplos estão organizados em pastas separadas, cada uma contendo um exemplo completo de uso do framework em uma aplicação web simples. Se você tem algum exemplo interessante de uso do Framework Quick, sinta-se à vontade para enviar uma solicitação de pull request com sua contribuição. O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/gojeffotoni/examples).
 
 
 ##### Quick Post Bind json
@@ -234,7 +239,7 @@ import "github.com/gojeffotoni/quick/middleware/cors"
 
 func main() {
 	app := quick.New()
-	app.Use(cors.New().Handler)
+	app.Use(cors.New(),cors)
 
 	app.Get("/v1/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
@@ -246,7 +251,7 @@ func main() {
 
 ```
 
-##### quick.Config{}
+##### quick.New(quick.Config{})
 ```go
 
 package main
@@ -351,6 +356,30 @@ func TestQuickExample(t *testing.T) {
 
 ```
 
+#### quick.regex
+```go
+	package main
+
+	import (
+		"github.com/gojeffotoni/quick"
+		"github.com/gojeffotoni/quick/middleware/msgid"
+	)
+
+	func main() {
+		app := quick.New()
+
+		app.Use(msgid.New())
+
+		app.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) {
+			c.Set("Content-Type", "application/json")
+			c.Status(200).String("Quick ação total!!!")
+			return
+		})
+
+		app.Listen("0.0.0.0:8080")
+	}
+```
+
 
 ## 🤍| Contribuições
 
@@ -366,6 +395,21 @@ Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e 
 | Avatar | User | Donation |
 |--------|------|----------|
 | <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | @jeffotoni | ☕ x 10 |
-| <img src="https://avatars.githubusercontent.com/u/7107528?v=4" height=20> | @crow34 | ☕ x 5  |
+| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | @Crow3442 | ☕ x 5  |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | @Guilherme-De-Marchi | ☕ x 5 |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
