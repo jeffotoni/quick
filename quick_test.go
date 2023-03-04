@@ -46,23 +46,6 @@ func TestQuick_Use(t *testing.T) {
 	}
 }
 
-func TestSomeQuick(t *testing.T) {
-
-	test := func(c *Ctx) {
-		t.Logf("params -> %v", c.Params)
-		t.Logf("body -> %v", c.Request.Body)
-		t.Logf("query -> %v", c.Query)
-	}
-
-	c := new(Ctx)
-
-	params := map[string]string{"myParam": "myValue"}
-
-	MockGetJSON(c, "/my/test?isTrue=true&some=isAGoodValue", params)
-
-	test(c)
-}
-
 // cover     ->  go test -v -count=1 -cover -failfast -run ^TestQuick_Get$
 // coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Get$; go tool cover -html=coverage.out
 func TestQuick_Get(t *testing.T) {
