@@ -224,13 +224,24 @@ func TestQuickMockCtx_Delete(t *testing.T) {
 		c := new(Ctx)
 
 		params := map[string]string{"myParam": "myValue"}
-		handler := QuickMockCtxXML(c, params, "")
+		handler := QuickMockCtxXML(c, params, ContentTypeTextXML)
 		err := handler.Delete("/")
 		if err != nil {
 			tt.Errorf("error: %v", err)
 			return
 		}
 		test(c)
+	})
+
+	t.Run("fail_json", func(tt *testing.T) {
+		var c *Ctx
+		params := map[string]string{"myParam": "myValue"}
+		handler := QuickMockCtxJSON(c, params)
+		err := handler.Delete("/my/test")
+		if err == nil {
+			tt.Errorf("should return a error and %v come", err)
+			return
+		}
 	})
 
 	t.Run("fail_xml", func(tt *testing.T) {
