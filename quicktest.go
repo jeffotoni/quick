@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 )
 
 type QuickTestReturn interface {
@@ -118,6 +119,68 @@ func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...
 // 		response:   resp,
 // 	}, nil
 // }
+
+func MockGetJSON(c *Ctx, URI string, params map[string]string) error {
+	if c == nil {
+		return errors.New("ctx is null")
+	}
+	queryMap := make(map[string]string)
+
+	req := httptest.NewRequest("GET", URI, nil)
+	c.Request = req
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = params
+	query := req.URL.Query()
+	spltQuery := strings.Split(query.Encode(), "&")
+
+	for i := 0; i < len(spltQuery); i++ {
+		spltVal := strings.Split(spltQuery[i], "=")
+		if len(spltVal) > 1 {
+			queryMap[spltVal[0]] = spltVal[1]
+		}
+	}
+
+	c.Query = queryMap
+	return nil
+}
+
+func MockPostJSON(c *Ctx, URI string, params map[string]string, body []byte) error {
+	if c == nil {
+		return errors.New("ctx is null")
+	}
+
+	req := httptest.NewRequest("POST", URI, io.NopCloser(bytes.NewBuffer(body)))
+	c.Request = req
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = params
+	c.bodyByte = body
+	return nil
+}
+
+func MockPutJSON(c *Ctx, URI string, params map[string]string, body []byte) error {
+	if c == nil {
+		return errors.New("ctx is null")
+	}
+
+	req := httptest.NewRequest("PUT", URI, io.NopCloser(bytes.NewBuffer(body)))
+	c.Request = req
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = params
+	c.bodyByte = body
+	return nil
+}
+
+func MockDeleteJSON(c *Ctx, URI string, params map[string]string) error {
+	if c == nil {
+		return errors.New("ctx is null")
+	}
+
+	req := httptest.NewRequest("DELETE", URI, nil)
+	c.Request = req
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = params
+	return nil
+}
 
 func (qt *qTest) Body() []byte {
 	return qt.body
