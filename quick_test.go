@@ -2,6 +2,7 @@ package quick
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -170,6 +171,17 @@ func TestQuick_Post(t *testing.T) {
 		Age  int    `json:"age"`
 	}
 
+	type XmlData struct {
+		XMLName xml.Name `xml:"data"`
+		Name    string   `xml:"name"`
+		Age     int      `xml:"age"`
+	}
+
+	type myXmlType struct {
+		XMLName xml.Name `xml:"MyXMLType"`
+		Data    XmlData  `xml:"data"`
+	}
+
 	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		b := c.Body()
@@ -202,11 +214,21 @@ func TestQuick_Post(t *testing.T) {
 		return c.String(resp)
 	}
 
+	testSuccessMockXml := func(c *Ctx) error {
+		c.Set("Content-Type", ContentTypeTextXML)
+		mtx := new(myXmlType)
+		if err := c.Bind(&mtx); err != nil {
+			t.Errorf("error: %v", err)
+		}
+		return c.Status(200).XML(mtx)
+	}
+
 	r := New()
 	r.Post("/test", testSuccessMockHandler)
 	r.Post("/tester/:p1", testSuccessMockHandler)
 	r.Post("/", testSuccessMockHandlerString)
 	r.Post("/bind", testSuccessMockHandlerBind)
+	r.Post("/test/xml", testSuccessMockXml)
 
 	tests := []struct {
 		name string
@@ -252,6 +274,17 @@ func TestQuick_Post(t *testing.T) {
 				isWantedErr: false,
 				reqBody:     []byte(`{"name":"jeff","age":35}`),
 				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_xml",
+			args: args{
+				route:       "/test/xml",
+				wantCode:    200,
+				wantOut:     `<MyXMLType><data><name>Jeff</name><age>35</age></data></MyXMLType>`,
+				isWantedErr: false,
+				reqBody:     []byte(`<MyXMLType><data><name>Jeff</name><age>35</age></data></MyXMLType>`),
+				reqHeaders:  map[string]string{"Content-Type": ContentTypeTextXML},
 			},
 		},
 	}
