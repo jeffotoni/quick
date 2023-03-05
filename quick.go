@@ -15,6 +15,12 @@ import (
 	p "github.com/gojeffotoni/quick/internal/print"
 )
 
+const (
+	ContentTypeAppJSON = `application/json`
+	ContentTypeAppXML  = `application/xml`
+	ContentTypeTextXML = `text/xml`
+)
+
 type Ctx struct {
 	Response  http.ResponseWriter
 	Request   *http.Request
@@ -165,7 +171,7 @@ func extractHeaders(req http.Request) map[string][]string {
 
 func extractBind(c *Ctx, v interface{}) (err error) {
 	var req http.Request = *c.Request
-	if strings.ToLower(req.Header.Get("Content-Type")) == "application/json" ||
+	if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppJSON ||
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
 		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
@@ -289,7 +295,7 @@ func (q *Quick) appendRoute(route *Route) {
 }
 
 func (c *Ctx) Bind(v interface{}) (err error) {
-	if c.Request.Header.Get("Content-Type") == "application/json" {
+	if c.Request.Header.Get("Content-Type") == ContentTypeAppJSON {
 		err = extractBind(c, v)
 		if err != nil {
 			return err
@@ -300,15 +306,15 @@ func (c *Ctx) Bind(v interface{}) (err error) {
 }
 
 func (c *Ctx) BodyParser(v interface{}) (err error) {
-	if strings.Contains(c.Request.Header.Get("Content-Type"), "application/json") {
+	if strings.Contains(c.Request.Header.Get("Content-Type"), ContentTypeAppJSON) {
 		err = json.Unmarshal(c.bodyByte, v)
 		if err != nil {
 			return err
 		}
 	}
 
-	if strings.Contains(c.Request.Header.Get("Content-Type"), "text/xml") ||
-		strings.Contains(c.Request.Header.Get("Content-Type"), "application/xml") {
+	if strings.Contains(c.Request.Header.Get("Content-Type"), ContentTypeTextXML) ||
+		strings.Contains(c.Request.Header.Get("Content-Type"), ContentTypeAppXML) {
 		err = xml.Unmarshal(c.bodyByte, v)
 		if err != nil {
 			return err
@@ -421,7 +427,7 @@ func (c *Ctx) JSON(v interface{}) error {
 	if err != nil {
 		return err
 	}
-	c.Response.Header().Set("Content-Type", "application/json")
+	c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
 	return c.writeResponse(b)
 }
 
@@ -430,7 +436,7 @@ func (c *Ctx) XML(v interface{}) error {
 	if err != nil {
 		return err
 	}
-	c.Response.Header().Set("Content-Type", "text/xml")
+	c.Response.Header().Set("Content-Type", ContentTypeTextXML)
 	return c.writeResponse(b)
 }
 
