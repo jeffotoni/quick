@@ -1,5 +1,5 @@
 # quick - Route Go
-[![GoDoc](https://godoc.org/github.com/gojeffotoni/quick?status.svg)](https://godoc.org/github.com/gojeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/gojeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/gojeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/gojeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/gojeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/gojeffotoni/quick)](https://goreportcard.com/badge/github.com/gojeffotoni/quick) [![License](https://img.shields.io/github/license/gojeffotoni/quick)](https://img.shields.io/github/license/gojeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/gojeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/gojeffotoni/quick)
+[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
 
 O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com diversas funcionalidades, onde sua sintaxe foi inspirado no **framework fiber**.
 
@@ -7,7 +7,7 @@ O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com d
 
 Espero que possam participar e que gostem de Godar!!! 😍
 
-O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/gojeffotoni/examples).
+O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/examples).
 
 ## 📃| Rodmap do desenvolvimento
 
@@ -50,7 +50,7 @@ O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](http
 
 package main
 
-import "github.com/gojeffotoni/quick"
+import "github.com/jeffotoni/quick"
 
 func main() {
 	app := quick.New()
@@ -83,7 +83,7 @@ Quick em ação ❤️!
 
 package main
 
-import "github.com/gojeffotoni/quick"
+import "github.com/jeffotoni/quick"
 
 func main() {
 	app := quick.New()
@@ -127,7 +127,7 @@ Content-Length: 23
 
 package main
 
-import "github.com/gojeffotoni/quick"
+import "github.com/jeffotoni/quick"
 
 type My struct {
 	Name string `json:"name"`
@@ -183,7 +183,7 @@ Content-Type: text/plain; charset=utf-8
 
 ## 👁‍🗨| Examples
 
-Este repositório contém exemplos práticos do Framework Quick, um framework web rápido e leve, desenvolvido em Go. Os exemplos estão organizados em pastas separadas, cada uma contendo um exemplo completo de uso do framework em uma aplicação web simples. Se você tem algum exemplo interessante de uso do Framework Quick, sinta-se à vontade para enviar uma solicitação de pull request com sua contribuição. O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/gojeffotoni/examples).
+Este repositório contém exemplos práticos do Framework Quick, um framework web rápido e leve, desenvolvido em Go. Os exemplos estão organizados em pastas separadas, cada uma contendo um exemplo completo de uso do framework em uma aplicação web simples. Se você tem algum exemplo interessante de uso do Framework Quick, sinta-se à vontade para enviar uma solicitação de pull request com sua contribuição. O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/examples).
 
 
 ##### Quick Post Bind json
@@ -191,7 +191,7 @@ Este repositório contém exemplos práticos do Framework Quick, um framework we
 
 package main
 
-import "github.com/gojeffotoni/quick"
+import "github.com/jeffotoni/quick"
 
 type My struct {
 	Name string `json:"name"`
@@ -234,8 +234,8 @@ Content-Type: text/plain; charset=utf-8
 
 package main
 
-import "github.com/gojeffotoni/quick"
-import "github.com/gojeffotoni/quick/middleware/cors"
+import "github.com/jeffotoni/quick"
+import "github.com/jeffotoni/quick/middleware/cors"
 
 func main() {
 	app := quick.New()
@@ -256,7 +256,7 @@ func main() {
 
 package main
 
-import "github.com/gojeffotoni/quick"
+import "github.com/jeffotoni/quick"
 
 func main() {
 	app := quick.New(quick.Config{
@@ -277,7 +277,7 @@ func main() {
 ```go
 package main
 
-import "github.com/gojeffotoni/quick"
+import "github.com/jeffotoni/quick"
 
 func main() {
 	app := quick.New(quick.Config{
@@ -315,7 +315,7 @@ func main() {
 
 package main
 
-import "github.com/gojeffotoni/quick"
+import "github.com/jeffotoni/quick"
 
 func TestQuickExample(t *testing.T) {
 
@@ -361,8 +361,8 @@ func TestQuickExample(t *testing.T) {
 	package main
 
 	import (
-		"github.com/gojeffotoni/quick"
-		"github.com/gojeffotoni/quick/middleware/msgid"
+		"github.com/jeffotoni/quick"
+		"github.com/jeffotoni/quick/middleware/msgid"
 	)
 
 	func main() {
