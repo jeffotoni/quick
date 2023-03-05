@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gojeffotoni/quick/internal/concat"
+	"github.com/jeffotoni/quick/internal/concat"
 )
 
 // To test the entire package and check the coverage you can run those commands below:

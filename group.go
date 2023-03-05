@@ -3,7 +3,7 @@ package quick
 import (
 	"net/http"
 
-	"github.com/gojeffotoni/quick/internal/concat"
+	"github.com/jeffotoni/quick/internal/concat"
 )
 
 type Group struct {
