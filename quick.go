@@ -175,6 +175,9 @@ func extractBind(c *Ctx, v interface{}) (err error) {
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
 		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
+	} else if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeTextXML ||
+		strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppXML {
+		err = xml.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
 	}
 	return err
 }
@@ -295,14 +298,7 @@ func (q *Quick) appendRoute(route *Route) {
 }
 
 func (c *Ctx) Bind(v interface{}) (err error) {
-	if c.Request.Header.Get("Content-Type") == ContentTypeAppJSON {
-		err = extractBind(c, v)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return extractBind(c, v)
 }
 
 func (c *Ctx) BodyParser(v interface{}) (err error) {
