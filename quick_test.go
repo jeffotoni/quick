@@ -2,6 +2,7 @@ package quick
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -66,9 +67,9 @@ func TestQuick_Get(t *testing.T) {
 	mt.Name = "jeff"
 	mt.Age = 35
 
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
-		c.JSON(mt)
+		return c.JSON(mt)
 	}
 
 	r := New()
@@ -170,15 +171,26 @@ func TestQuick_Post(t *testing.T) {
 		Age  int    `json:"age"`
 	}
 
-	testSuccessMockHandler := func(c *Ctx) {
+	type XmlData struct {
+		XMLName xml.Name `xml:"data"`
+		Name    string   `xml:"name"`
+		Age     int      `xml:"age"`
+	}
+
+	type myXmlType struct {
+		XMLName xml.Name `xml:"MyXMLType"`
+		Data    XmlData  `xml:"data"`
+	}
+
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		b := c.Body()
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.SendString(resp)
+		return c.SendString(resp)
 	}
 
-	testSuccessMockHandlerString := func(c *Ctx) {
+	testSuccessMockHandlerString := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		mt := new(myType)
 		if err := c.BodyParser(mt); err != nil {
@@ -187,10 +199,10 @@ func TestQuick_Post(t *testing.T) {
 		b, _ := json.Marshal(mt)
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.String(resp)
+		return c.String(resp)
 	}
 
-	testSuccessMockHandlerBind := func(c *Ctx) {
+	testSuccessMockHandlerBind := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		mt := new(myType)
 		if err := c.Bind(&mt); err != nil {
@@ -199,7 +211,16 @@ func TestQuick_Post(t *testing.T) {
 		b, _ := json.Marshal(mt)
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.String(resp)
+		return c.String(resp)
+	}
+
+	testSuccessMockXml := func(c *Ctx) error {
+		c.Set("Content-Type", ContentTypeTextXML)
+		mtx := new(myXmlType)
+		if err := c.Bind(&mtx); err != nil {
+			t.Errorf("error: %v", err)
+		}
+		return c.Status(200).XML(mtx)
 	}
 
 	r := New()
@@ -207,6 +228,7 @@ func TestQuick_Post(t *testing.T) {
 	r.Post("/tester/:p1", testSuccessMockHandler)
 	r.Post("/", testSuccessMockHandlerString)
 	r.Post("/bind", testSuccessMockHandlerBind)
+	r.Post("/test/xml", testSuccessMockXml)
 
 	tests := []struct {
 		name string
@@ -254,6 +276,17 @@ func TestQuick_Post(t *testing.T) {
 				reqHeaders:  map[string]string{"Content-Type": "application/json"},
 			},
 		},
+		{
+			name: "success_xml",
+			args: args{
+				route:       "/test/xml",
+				wantCode:    200,
+				wantOut:     `<MyXMLType><data><name>Jeff</name><age>35</age></data></MyXMLType>`,
+				isWantedErr: false,
+				reqBody:     []byte(`<MyXMLType><data><name>Jeff</name><age>35</age></data></MyXMLType>`),
+				reqHeaders:  map[string]string{"Content-Type": ContentTypeTextXML},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -291,11 +324,12 @@ func TestQuick_Put(t *testing.T) {
 		reqHeaders  map[string]string
 	}
 
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		b := c.Body()
 		resp := concat.String(`"data":`, string(b))
 		c.Byte([]byte(resp))
+		return nil
 	}
 
 	r := New()
@@ -382,7 +416,7 @@ func Test_extractParamsPost(t *testing.T) {
 	type args struct {
 		quick       Quick
 		pathTmp     string
-		handlerFunc func(*Ctx)
+		handlerFunc func(*Ctx) error
 	}
 	tests := []struct {
 		name string
@@ -528,7 +562,7 @@ func TestQuick_ServeStaticFile(t *testing.T) {
 	}
 	type args struct {
 		pattern     string
-		handlerFunc func(*Ctx)
+		handlerFunc func(*Ctx) error
 	}
 	tests := []struct {
 		name   string
@@ -555,7 +589,7 @@ func Test_extractParamsGet(t *testing.T) {
 	type args struct {
 		pathTmp     string
 		paramsPath  string
-		handlerFunc func(*Ctx)
+		handlerFunc func(*Ctx) error
 	}
 	tests := []struct {
 		name string
