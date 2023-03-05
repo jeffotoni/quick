@@ -28,9 +28,9 @@ func TestQuick_GroupGet(t *testing.T) {
 	mt.Name = "jeff"
 	mt.Age = 35
 
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
-		c.JSON(mt)
+		return c.JSON(mt)
 	}
 
 	r := New()
@@ -133,15 +133,15 @@ func TestQuick_GroupPost(t *testing.T) {
 		Age  int    `json:"age"`
 	}
 
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		b := c.Body()
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.SendString(resp)
+		return c.SendString(resp)
 	}
 
-	testSuccessMockHandlerString := func(c *Ctx) {
+	testSuccessMockHandlerString := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		mt := new(myType)
 		if err := c.BodyParser(mt); err != nil {
@@ -150,10 +150,10 @@ func TestQuick_GroupPost(t *testing.T) {
 		b, _ := json.Marshal(mt)
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.String(resp)
+		return c.String(resp)
 	}
 
-	testSuccessMockHandlerBind := func(c *Ctx) {
+	testSuccessMockHandlerBind := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		mt := new(myType)
 		if err := c.Bind(&mt); err != nil {
@@ -162,7 +162,7 @@ func TestQuick_GroupPost(t *testing.T) {
 		b, _ := json.Marshal(mt)
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.String(resp)
+		return c.String(resp)
 	}
 
 	r := New()
@@ -256,11 +256,11 @@ func TestQuick_PutGroup(t *testing.T) {
 		reqHeaders  map[string]string
 	}
 
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		b := c.Body()
 		resp := concat.String(`"data":`, string(b))
-		c.Byte([]byte(resp))
+		return c.Byte([]byte(resp))
 	}
 
 	r := New()

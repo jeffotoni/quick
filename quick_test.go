@@ -66,9 +66,9 @@ func TestQuick_Get(t *testing.T) {
 	mt.Name = "jeff"
 	mt.Age = 35
 
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
-		c.JSON(mt)
+		return c.JSON(mt)
 	}
 
 	r := New()
@@ -170,15 +170,15 @@ func TestQuick_Post(t *testing.T) {
 		Age  int    `json:"age"`
 	}
 
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		b := c.Body()
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.SendString(resp)
+		return c.SendString(resp)
 	}
 
-	testSuccessMockHandlerString := func(c *Ctx) {
+	testSuccessMockHandlerString := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		mt := new(myType)
 		if err := c.BodyParser(mt); err != nil {
@@ -187,10 +187,10 @@ func TestQuick_Post(t *testing.T) {
 		b, _ := json.Marshal(mt)
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.String(resp)
+		return c.String(resp)
 	}
 
-	testSuccessMockHandlerBind := func(c *Ctx) {
+	testSuccessMockHandlerBind := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		mt := new(myType)
 		if err := c.Bind(&mt); err != nil {
@@ -199,7 +199,7 @@ func TestQuick_Post(t *testing.T) {
 		b, _ := json.Marshal(mt)
 		resp := concat.String(`"data":`, string(b))
 		c.Status(200)
-		c.String(resp)
+		return c.String(resp)
 	}
 
 	r := New()
@@ -291,11 +291,12 @@ func TestQuick_Put(t *testing.T) {
 		reqHeaders  map[string]string
 	}
 
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		b := c.Body()
 		resp := concat.String(`"data":`, string(b))
 		c.Byte([]byte(resp))
+		return nil
 	}
 
 	r := New()
@@ -382,7 +383,7 @@ func Test_extractParamsPost(t *testing.T) {
 	type args struct {
 		quick       Quick
 		pathTmp     string
-		handlerFunc func(*Ctx)
+		handlerFunc func(*Ctx) error
 	}
 	tests := []struct {
 		name string
@@ -528,7 +529,7 @@ func TestQuick_ServeStaticFile(t *testing.T) {
 	}
 	type args struct {
 		pattern     string
-		handlerFunc func(*Ctx)
+		handlerFunc func(*Ctx) error
 	}
 	tests := []struct {
 		name   string
@@ -555,7 +556,7 @@ func Test_extractParamsGet(t *testing.T) {
 	type args struct {
 		pathTmp     string
 		paramsPath  string
-		handlerFunc func(*Ctx)
+		handlerFunc func(*Ctx) error
 	}
 	tests := []struct {
 		name string
