@@ -32,6 +32,8 @@ type Ctx struct {
 	Query     map[string]string
 }
 
+type HandleFunc func(*Ctx) error
+
 type Route struct {
 	//Pattern *regexp.Regexp
 	Group   string
@@ -111,7 +113,7 @@ func (q *Quick) Use(mw any, nf ...string) {
 	q.mws2 = append(q.mws2, mw)
 }
 
-func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
+func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 	path, params, partternExist := extractParamsPattern(pattern)
 
 	route := Route{
@@ -126,7 +128,7 @@ func (q *Quick) Get(pattern string, handlerFunc func(*Ctx)) {
 	q.mux.HandleFunc(path, route.handler)
 }
 
-func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
+func (q *Quick) Post(pattern string, handlerFunc HandleFunc) {
 	_, params, partternExist := extractParamsPattern(pattern)
 	pathPost := concat.String("post#", pattern)
 
@@ -142,7 +144,7 @@ func (q *Quick) Post(pattern string, handlerFunc func(*Ctx)) {
 	q.mux.HandleFunc(pathPost, route.handler)
 }
 
-func (q *Quick) Put(pattern string, handlerFunc func(*Ctx)) {
+func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
 	_, params, partternExist := extractParamsPattern(pattern)
 
 	pathPut := concat.String("put#", pattern)
@@ -173,6 +175,9 @@ func extractBind(c *Ctx, v interface{}) (err error) {
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
 		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
+	} else if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeTextXML ||
+		strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppXML {
+		err = xml.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
 	}
 	return err
 }
@@ -194,7 +199,7 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	return
 }
 
-func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
+func extractParamsPost(q *Quick, pathTmp string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
@@ -215,11 +220,11 @@ func extractParamsPost(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Ha
 			bodyByte: extractBodyBytes(req.Body),
 			Headers:  headersMap,
 		}
-		handlerFunc(c)
+		execHandleFunc(c, handlerFunc)
 	}
 }
 
-func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.HandlerFunc {
+func extractParamsPut(q *Quick, pathTmp string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
@@ -244,7 +249,15 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc func(*Ctx)) http.Han
 			Params:   cval.ParamsMap,
 		}
 
-		handlerFunc(c)
+		execHandleFunc(c, handlerFunc)
+	}
+}
+
+func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
+	err := handleFunc(c)
+	if err != nil {
+		c.Set("Content-Type", "text/plain; charset=utf-8")
+		c.Status(500).SendString(err.Error())
 	}
 }
 
@@ -285,14 +298,7 @@ func (q *Quick) appendRoute(route *Route) {
 }
 
 func (c *Ctx) Bind(v interface{}) (err error) {
-	if c.Request.Header.Get("Content-Type") == ContentTypeAppJSON {
-		err = extractBind(c, v)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return extractBind(c, v)
 }
 
 func (c *Ctx) BodyParser(v interface{}) (err error) {
@@ -322,7 +328,7 @@ func (c *Ctx) BodyString() string {
 	return string(c.bodyByte)
 }
 
-func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.HandlerFunc {
+func extractParamsGet(pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
@@ -346,7 +352,7 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc func(*Ctx)) http.H
 			bodyByte: extractBodyBytes(req.Body),
 			Headers:  headersMap,
 		}
-		handlerFunc(c)
+		execHandleFunc(c, handlerFunc)
 	}
 }
 
