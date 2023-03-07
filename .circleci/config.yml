@@ -28,8 +28,7 @@ jobs:
       - run:
           name: "Upload coverage to Coveralls"
           command: |
-            go get github.com/mattn/goveralls
-            goveralls -coverprofile=coverage.out -service=circleci -repotoken $COVERALLS_TOKEN
+            $GOPATH/bin/goveralls -coverprofile=coverage.out -service=circleci -repotoken $COVERALLS_TOKEN
 
 workflows:
   version: 2.1
