@@ -18,7 +18,6 @@ jobs:
           name: "Test"
           command: |
             go test -v -covermode=count -coverprofile=coverage.out ./...
-
       - store_artifacts:
           path: coverage.out
 
@@ -28,7 +27,8 @@ jobs:
       - run:
           name: "Upload coverage to Coveralls"
           command: |
-            $GOPATH/bin/goveralls -coverprofile=coverage.out -service=circleci -repotoken $COVERALLS_TOKEN
+            go install github.com/mattn/goveralls@latest
+            goveralls -coverprofile=coverage.out -service=circleci -repotoken $COVERALLS_TOKEN
 
 workflows:
   version: 2.1
