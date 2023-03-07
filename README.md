@@ -55,9 +55,9 @@ import "github.com/jeffotoni/quick"
 func main() {
 	app := quick.New()
 
-	app.Get("/v1/user", func(c *quick.Ctx) {
+	app.Get("/v1/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação ❤️!")
+		return c.Status(200).SendString("Quick em ação ❤️!")
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -88,7 +88,7 @@ import "github.com/jeffotoni/quick"
 func main() {
 	app := quick.New()
 
-	app.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) {
+	app.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
 		type my struct {
@@ -97,7 +97,7 @@ func main() {
 			Val string `json:"val"`
 		}
 
-		c.Status(200).JSON(&my{
+		return c.Status(200).JSON(&my{
 			Msg: "Quick ❤️",
 			Key: c.Param("param1"),
 			Val: c.Param("param2"),
@@ -136,12 +136,11 @@ type My struct {
 
 func main() {
 	app := quick.New()
-	app.Post("/v1/user", func(c *quick.Ctx) {
+	app.Post("/v1/user", func(c *quick.Ctx) error {
 		var my My
 		err := c.Body(&my)
 		if err != nil {
-			c.Status(400).SendString(err.Error())
-			return
+			return c.Status(400).SendString(err.Error())
 		}
 
 		c.Status(200).String(c.BodyString())
@@ -200,14 +199,13 @@ type My struct {
 
 func main() {
 	app := quick.New()
-	app.Post("/v2/user", func(c *quick.Ctx) {
+	app.Post("/v2/user", func(c *quick.Ctx) error {
 		var my My
 		err := c.Bind(&my)
 		if err != nil {
-			c.Status(400).SendString(err.Error())
-			return
+			return c.Status(400).SendString(err.Error())
 		}
-		c.Status(200).JSON(&my)
+		return c.Status(200).JSON(&my)
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -241,9 +239,9 @@ func main() {
 	app := quick.New()
 	app.Use(cors.New(),cors)
 
-	app.Get("/v1/user", func(c *quick.Ctx) {
+	app.Get("/v1/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação com Cors❤️!")
+		return c.Status(200).SendString("Quick em ação com Cors❤️!")
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -263,9 +261,9 @@ func main() {
 		MaxBodySize: 5 * 1024 * 1024,
 	})
 
-	app.Get("/v1/user", func(c *quick.Ctx) {
+	app.Get("/v1/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação com Cors❤️!")
+		return c.Status(200).SendString("Quick em ação com Cors❤️!")
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -285,24 +283,22 @@ func main() {
 	})
 
 	v1 := app.Group("/v1")
-	v1.Get("/user", func(c *quick.Ctx) {
-		c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
-		return
+	v1.Get("/user", func(c *quick.Ctx) error {
+		return c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
 	})
-	v1.Post("/user", func(c *quick.Ctx) {
-		c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
-		return
+	v1.Post("/user", func(c *quick.Ctx) error {
+		return c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
 	})
 
 	v2 := app.Group("/v2")
-	v2.Get("/user", func(c *quick.Ctx) {
+	v2.Get("/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+		return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
 	})
 
-	v2.Post("/user", func(c *quick.Ctx) {
+	v2.Post("/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+		return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -320,7 +316,7 @@ import "github.com/jeffotoni/quick"
 func TestQuickExample(t *testing.T) {
 
     // Here is a handler function Mock
-	testSuccessMockHandler := func(c *Ctx) {
+	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		b, _ := io.ReadAll(c.Request.Body)
 		resp := ConcatStr(`"data":`, string(b))
@@ -370,10 +366,9 @@ func TestQuickExample(t *testing.T) {
 
 		app.Use(msgid.New())
 
-		app.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) {
+		app.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) error {
 			c.Set("Content-Type", "application/json")
-			c.Status(200).String("Quick ação total!!!")
-			return
+			return c.Status(200).String("Quick ação total!!!")
 		})
 
 		app.Listen("0.0.0.0:8080")
