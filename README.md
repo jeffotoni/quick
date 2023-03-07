@@ -143,7 +143,7 @@ func main() {
 			return c.Status(400).SendString(err.Error())
 		}
 
-		c.Status(200).String(c.BodyString())
+		return c.Status(200).String(c.BodyString())
 		// ou 
 		// c.Status(200).JSON(&my)
 	})
