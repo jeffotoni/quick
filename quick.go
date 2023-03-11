@@ -395,9 +395,9 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 		return nil, false
 	}
 
-	for pttrn := 0; pttrn < len(patternURISplt); pttrn++ {
+	for pttrn := 0; pttrn < len(patternURISplt); pttrn++ { // collecting params
 		if strings.Contains(patternURISplt[pttrn], ":") {
-			params[patternURISplt[pttrn]] = reqURISplt[pttrn]
+			params[patternURISplt[pttrn][1:]] = reqURISplt[pttrn]
 			tmpPath = concat.String(tmpPath, "/", reqURISplt[pttrn])
 		} else if strings.Contains(patternURISplt[pttrn], "{") { // regex support
 			regexPattern := patternURISplt[pttrn][1:]
