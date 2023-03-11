@@ -384,6 +384,7 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(w, req)
 }
 
+// createParamsAndValid: Create params map and check if the request URI and pattern URI are valid
 func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	params := make(map[string]string)
 	var tmpPath string
