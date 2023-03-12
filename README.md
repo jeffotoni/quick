@@ -9,7 +9,7 @@ O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com d
 
 Espero que possam participar e que gostem de Godar!!! 😍
 
-O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/examples).
+O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/letsgoquick/exemplos).
 
 ## 📃| Rodmap do desenvolvimento
 
