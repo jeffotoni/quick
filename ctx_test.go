@@ -1,6 +1,7 @@
 package quick
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -327,42 +328,47 @@ func TestCtx_writeResponse(t *testing.T) {
 	}
 }
 
+// go test -v -failfast -count=1 -run ^TestCtx_Byte$
 func TestCtx_Byte(t *testing.T) {
-	type fields struct {
-		Response  http.ResponseWriter
-		Request   *http.Request
-		resStatus int
-		bodyByte  []byte
-		JsonStr   string
-		Headers   map[string][]string
-		Params    map[string]string
-		Query     map[string]string
-	}
 	type args struct {
-		b []byte
+		response string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "success_string",
+			args: args{
+				response: `"data": "gopher"`,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			x := httptest.NewRecorder()
+
 			c := &Ctx{
-				Response:  tt.fields.Response,
-				Request:   tt.fields.Request,
-				resStatus: tt.fields.resStatus,
-				bodyByte:  tt.fields.bodyByte,
-				JsonStr:   tt.fields.JsonStr,
-				Headers:   tt.fields.Headers,
-				Params:    tt.fields.Params,
-				Query:     tt.fields.Query,
+				Response: x,
 			}
-			if err := c.Byte(tt.args.b); (err != nil) != tt.wantErr {
-				t.Errorf("Ctx.Byte() error = %v, wantErr %v", err, tt.wantErr)
+
+			if err := c.Byte([]byte(tt.args.response)); (err != nil) != tt.wantErr {
+				t.Errorf("Ctx.String() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			result := x.Result()
+			if result.Body != nil {
+				defer result.Body.Close()
+				b, err := io.ReadAll(result.Body)
+				if err != nil {
+					t.Errorf("error: %v", err)
+				}
+
+				if string(b) != tt.args.response {
+					t.Errorf("was suppose to have header value: %s and got %s", tt.args.response, string(b))
+				}
 			}
 		})
 	}
@@ -409,42 +415,47 @@ func TestCtx_SendString(t *testing.T) {
 	}
 }
 
+// go test -v -failfast -count=1 -run ^TestCtx_String$
 func TestCtx_String(t *testing.T) {
-	type fields struct {
-		Response  http.ResponseWriter
-		Request   *http.Request
-		resStatus int
-		bodyByte  []byte
-		JsonStr   string
-		Headers   map[string][]string
-		Params    map[string]string
-		Query     map[string]string
-	}
 	type args struct {
-		s string
+		response string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "success_string",
+			args: args{
+				response: `"data": "gopher"`,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			x := httptest.NewRecorder()
+
 			c := &Ctx{
-				Response:  tt.fields.Response,
-				Request:   tt.fields.Request,
-				resStatus: tt.fields.resStatus,
-				bodyByte:  tt.fields.bodyByte,
-				JsonStr:   tt.fields.JsonStr,
-				Headers:   tt.fields.Headers,
-				Params:    tt.fields.Params,
-				Query:     tt.fields.Query,
+				Response: x,
 			}
-			if err := c.String(tt.args.s); (err != nil) != tt.wantErr {
+
+			if err := c.String(tt.args.response); (err != nil) != tt.wantErr {
 				t.Errorf("Ctx.String() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			result := x.Result()
+			if result.Body != nil {
+				defer result.Body.Close()
+				b, err := io.ReadAll(result.Body)
+				if err != nil {
+					t.Errorf("error: %v", err)
+				}
+
+				if string(b) != tt.args.response {
+					t.Errorf("was suppose to have header value: %s and got %s", tt.args.response, string(b))
+				}
 			}
 		})
 	}
@@ -491,41 +502,61 @@ func TestCtx_SendFile(t *testing.T) {
 	}
 }
 
+// go test -v -failfast -count=1 -run ^TestCtx_Set$
 func TestCtx_Set(t *testing.T) {
 	type fields struct {
-		Response  http.ResponseWriter
-		Request   *http.Request
-		resStatus int
-		bodyByte  []byte
-		JsonStr   string
-		Headers   map[string][]string
-		Params    map[string]string
-		Query     map[string]string
+		Response http.ResponseWriter
 	}
+
 	type args struct {
 		key   string
 		value string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name            string
+		fields          fields
+		args            args
+		wantHeaderValue string
+		wantError       bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "success_Set_Headers",
+			fields: fields{
+				Response: func() http.ResponseWriter { x := httptest.NewRecorder(); return x }(),
+			},
+			args: args{
+				key:   "my-key",
+				value: "my-header-value",
+			},
+			wantHeaderValue: "my-header-value",
+			wantError:       false,
+		},
+		{
+			name: "wrong_header_check",
+			fields: fields{
+				Response: func() http.ResponseWriter { x := httptest.NewRecorder(); return x }(),
+			},
+			args: args{
+				key:   "my-key",
+				value: "my-header-valuee",
+			},
+			wantHeaderValue: "my-header-value",
+			wantError:       true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Ctx{
-				Response:  tt.fields.Response,
-				Request:   tt.fields.Request,
-				resStatus: tt.fields.resStatus,
-				bodyByte:  tt.fields.bodyByte,
-				JsonStr:   tt.fields.JsonStr,
-				Headers:   tt.fields.Headers,
-				Params:    tt.fields.Params,
-				Query:     tt.fields.Query,
+				Response: tt.fields.Response,
 			}
+
 			c.Set(tt.args.key, tt.args.value)
+
+			got := c.Response.Header().Get(tt.args.key)
+
+			if (!tt.wantError) && got != tt.wantHeaderValue {
+				t.Errorf("was suppose to have header value: %s and got %s", tt.wantHeaderValue, got)
+			}
 		})
 	}
 }
