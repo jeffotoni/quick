@@ -45,7 +45,7 @@ O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](http
 | Desenvolver suporte a ServeHTTP                  | 70%       |
 | Desenvolver suporte a middlewares                 | 10%       |
 | Desenvolve suporte Static Files                   | 0.%       |
-| Desenvolver suporte Cors                          | 0.%       |
+| Desenvolver suporte Cors                          | 100%       |
 
 ##### Primeiro exemplo Quick
 ```go
