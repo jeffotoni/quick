@@ -239,7 +239,7 @@ import "github.com/jeffotoni/quick/middleware/cors"
 
 func main() {
 	app := quick.New()
-	app.Use(cors.New(),cors)
+	app.Use(cors.New(),"cors")
 
 	app.Get("/v1/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
