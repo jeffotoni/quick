@@ -11,7 +11,7 @@
 
 🔍 O repositório de exemplos do Framework Quick pode ser encontrado [aqui](https://github.com/jeffotoni/examples).
 
-### 🗺️| Rodmap do desenvolvimento
+## 🗺️| Rodmap do desenvolvimento
 
 | Tarefa                                          | Progresso |
 |-------------------------------------------------|-----------|
@@ -47,7 +47,7 @@
 | Desenvolve suporte Static Files                   | 0.%       |
 | Desenvolver suporte Cors                          | 0.%       |
 
-#### Primeiro exemplo Quick
+### Primeiro exemplo Quick
 ```go
 
 package main
@@ -80,7 +80,7 @@ Quick em ação ❤️!
 
 ```
 
-#### Quick Get Params
+### Quick Get Params
 ```go
 
 package main
@@ -124,7 +124,7 @@ Content-Length: 23
 
 ```
 
-#### Quick Post Body json
+### Quick Post Body json
 ```go
 
 package main
@@ -170,7 +170,7 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
-### 🎛️| Funcionalidades
+## 🎛️| Funcionalidades
 
 | Funcionalidades                                 | Possui    |
 |-------------------------------------------------|-----------|
@@ -183,12 +183,12 @@ Content-Type: text/plain; charset=utf-8
 | 🔍 Suporte para regex                              |   sim     |
 
 
-### 📚| Examples
+## 📚| Examples
 
 Este repositório contém exemplos práticos do Framework Quick, um framework web rápido e leve, desenvolvido em Go. Os exemplos estão organizados em pastas separadas, cada uma contendo um exemplo completo de uso do framework em uma aplicação web simples. Se você tem algum exemplo interessante de uso do Framework Quick, sinta-se à vontade para enviar uma solicitação de pull request com sua contribuição. O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/examples).
 
 
-#### Quick Post Bind json
+### Quick Post Bind json
 ```go
 
 package main
@@ -231,7 +231,7 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
-#### Cors
+### Cors
 ```go
 
 package main
@@ -253,7 +253,7 @@ func main() {
 
 ```
 
-#### quick.New(quick.Config{})
+### quick.New(quick.Config{})
 ```go
 
 package main
@@ -275,7 +275,7 @@ func main() {
 
 ```
 
-#### quick.Group()
+### quick.Group()
 ```go
 package main
 
@@ -312,7 +312,7 @@ func main() {
 
 ```
 
-#### Quick Tests
+### Quick Tests
 ```go
 
 package main
@@ -358,7 +358,7 @@ func TestQuickExample(t *testing.T) {
 
 ```
 
-#### quick.regex
+### quick.regex
 ```go
 	package main
 
@@ -383,13 +383,13 @@ func TestQuickExample(t *testing.T) {
 ```
 
 
-### 🤝| Contribuições
+## 🤝| Contribuições
 
 Já temos diversos exemplos, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. 
 Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e claro reconhecimento como profissional Go 😍 no mercado de trabalho).
 
 
-### ☕| Apoiadores
+## ☕| Apoiadores
 
 **Quick** é um projeto open source, estamos desenvendo nos tempos livres e é claro nas madrugadas, e você está convidado a particpar e fique a vontade em deixar um café para ajudar e incentivar nosso trabalho 😍 
 **<img src="https://github.githubassets.com/images/icons/emoji/unicode/2615.png" height=20 alt="Stargazers over time"> [pode comprar um café aqui](https://www.buymeacoffee.com/ZlD8rtr1cq)**
