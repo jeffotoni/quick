@@ -389,16 +389,19 @@ Já temos diversos exemplos, e já podemos testar e brincar 😁. É claro, esta
 Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e claro reconhecimento como profissional Go 😍 no mercado de trabalho).
 
 
-## ☕| Apoiadores
+## 🚀 **Apoiadores do Projeto Quick** 🙏
 
-**Quick** é um projeto open source, estamos desenvendo nos tempos livres e é claro nas madrugadas, e você está convidado a particpar e fique a vontade em deixar um café para ajudar e incentivar nosso trabalho 😍 
-**<img src="https://github.githubassets.com/images/icons/emoji/unicode/2615.png" height=20 alt="Stargazers over time"> [pode comprar um café aqui](https://www.buymeacoffee.com/ZlD8rtr1cq)**
+O Projeto Quick visa desenvolver e disponibilizar softwares de qualidade para a comunidade de desenvolvedores. 💻 Para continuarmos a melhorar nossas ferramentas, contamos com o apoio de nossos patrocinadores no Patreon. 🤝
+
+Agradecemos a todos os nossos apoiadores! 🙌 Se você também acredita em nosso trabalho e quer contribuir para o avanço da comunidade de desenvolvimento, considere apoiar o Projeto Quick em nosso Patreon [aqui](https://www.patreon.com/jeffotoni_quick)
+
+Juntos podemos continuar a construir ferramentas incríveis! 🚀
 
 | Avatar | User | Donation |
 |--------|------|----------|
-| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | [@jeffotoni](https://github.com/jeffotoni) | ☕ x 10 |
-| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | [@Crow3442](https://github.com/Crow3442) | ☕ x 5  |
-| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | ☕ x 5 |
+| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | [@jeffotoni](https://github.com/jeffotoni) | x 10 |
+| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | [@Crow3442](https://github.com/Crow3442) | x 5  |
+| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | x 5 |
 
 
 
