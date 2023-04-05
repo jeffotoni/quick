@@ -50,12 +50,12 @@ type Config struct {
 }
 
 var defaultConfig = Config{
-	MaxBodySize:    3 * 1024 * 1024,
+	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
-	ReadHeaderTimeout: time.Duration(3) * time.Second,
+	// ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
 type Quick struct {
