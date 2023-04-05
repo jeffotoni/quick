@@ -299,8 +299,9 @@ func extractParamsGet(pathTmp, paramsPath string, handlerFunc HandleFunc) http.H
 			Request:  req,
 			Params:   cval.ParamsMap,
 			Query:    querys,
-			bodyByte: extractBodyBytes(req.Body),
-			Headers:  headersMap,
+			//bodyByte: extractBodyBytes(req.Body),
+			//bodyByte: extractBodyBytes(req.Body),
+			Headers: headersMap,
 		}
 		execHandleFunc(c, handlerFunc)
 	}
