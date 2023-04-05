@@ -9,7 +9,7 @@
 
 👍 Espero que possam participar e que gostem de **Godar**!!! 😍
 
-🔍 O repositório de exemplos do Framework Quick pode ser encontrado [aqui](https://github.com/jeffotoni/examples).
+🔍 O repositório de exemplos do Framework Quick [Exemplos Quick](https://github.com/gojeffotoni/examples).
 
 ## 🗺️| Rodmap do desenvolvimento
 
