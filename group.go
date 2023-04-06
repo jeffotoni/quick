@@ -77,3 +77,22 @@ func (g *Group) Put(pattern string, handlerFunc HandleFunc) {
 	g.quick.appendRoute(&route)
 	g.quick.mux.HandleFunc(pathPut, route.handler)
 }
+
+func (g *Group) Delete(pattern string, handlerFunc HandleFunc) {
+	pattern = concat.String(g.prefix, pattern)
+	_, params, partternExist := extractParamsPattern(pattern)
+
+	pathDelete := concat.String("delete#", pattern)
+
+	// Setting up the group
+	route := Route{
+		Pattern: partternExist,
+		Path:    pattern,
+		Params:  params,
+		handler: extractParamsDelete(handlerFunc),
+		Method:  http.MethodGet,
+		Group:   g.prefix,
+	}
+	g.quick.appendRoute(&route)
+	g.quick.mux.HandleFunc(pathDelete, route.handler)
+}
