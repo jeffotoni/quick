@@ -36,8 +36,10 @@
 | Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
 | Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
 | Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse | 90% |
-| Desenvolver para o MÉTODO DELETE                  | 0.%       |
+| Desenvolver para o MÉTODO DELETE                  | 90%       |
 | Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
+| Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
+
 | Desenvolver método para ListenAndServe           | 90%       |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
 | Desenvolver método para Facilitar a manipulação do ResponseWriter | 70% |
