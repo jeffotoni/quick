@@ -541,7 +541,7 @@ func Test_extractParamsPost(t *testing.T) {
 
 func TestQuick_ServeStaticFile(t *testing.T) {
 	type fields struct {
-		routes  []Route
+		routes  []*Route
 		mux     *http.ServeMux
 		handler http.Handler
 	}
@@ -594,7 +594,7 @@ func Test_extractParamsGet(t *testing.T) {
 
 func TestQuick_ServeHTTP(t *testing.T) {
 	type fields struct {
-		routes  []Route
+		routes  []*Route
 		mux     *http.ServeMux
 		handler http.Handler
 	}
@@ -665,14 +665,14 @@ func TestCtx_Json(t *testing.T) {
 
 func TestQuick_GetRoute(t *testing.T) {
 	type fields struct {
-		routes  []Route
+		routes  []*Route
 		mux     *http.ServeMux
 		handler http.Handler
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   []Route
+		want   []*Route
 	}{
 		// TODO: Add test cases.
 	}
@@ -693,7 +693,7 @@ func TestQuick_GetRoute(t *testing.T) {
 
 func TestQuick_Listen(t *testing.T) {
 	type fields struct {
-		routes  []Route
+		routes  []*Route
 		mux     *http.ServeMux
 		handler http.Handler
 	}
