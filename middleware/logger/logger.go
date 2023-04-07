@@ -2,7 +2,7 @@ package logger
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -16,9 +16,9 @@ func Logger(w http.ResponseWriter, req *http.Request) {
 
 	var bodySize int64
 	if req.Body != nil {
-		body, _ := ioutil.ReadAll(req.Body)
+		body, _ := io.ReadAll(req.Body)
 		bodySize = int64(len(body))
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		req.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
 	log.Printf("[%s]:%s %d - %s %s %v %d\n", ip, port, lw.status, req.Method, req.URL.Path, time.Since(start), bodySize)
 }

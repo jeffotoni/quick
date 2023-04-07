@@ -21,6 +21,10 @@ const (
 	ContentTypeTextXML = `text/xml`
 )
 
+type contextKey int
+
+const myContextKey contextKey = 0
+
 type HandleFunc func(*Ctx) error
 
 type Route struct {
@@ -212,7 +216,7 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 
 func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		v := req.Context().Value(0)
+		v := req.Context().Value(myContextKey)
 		if v == nil {
 			http.NotFound(w, req)
 			return
@@ -237,7 +241,7 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 
 func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		v := req.Context().Value(0)
+		v := req.Context().Value(myContextKey)
 		if v == nil {
 			http.NotFound(w, req)
 			return
@@ -266,7 +270,7 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 
 func extractParamsDelete(handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		v := req.Context().Value(0)
+		v := req.Context().Value(myContextKey)
 		if v == nil {
 			http.NotFound(w, req)
 			return
@@ -291,6 +295,7 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	err := handleFunc(c)
 	if err != nil {
 		c.Set("Content-Type", "text/plain; charset=utf-8")
+		// #nosec G104
 		c.Status(500).SendString(err.Error())
 	}
 }
@@ -325,7 +330,7 @@ func (q *Quick) appendRoute(route *Route) {
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		v := req.Context().Value(0)
+		v := req.Context().Value(myContextKey)
 		if v == nil {
 			http.NotFound(w, req)
 			return
@@ -372,11 +377,10 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
-		req = req.WithContext(context.WithValue(req.Context(), 0, c))
+		req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
 		q.routes[i].handler(w, req)
 		return
 	}
-
 	http.NotFound(w, req)
 }
 

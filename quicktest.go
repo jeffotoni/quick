@@ -42,8 +42,13 @@ func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...
 		buffBody = body[0]
 	}
 
-	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
+	println("")
+	println("")
+	println("method:", method, " URI:", URI, " Body:", len(buffBody))
+	println("")
+	println("")
 
+	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +65,7 @@ func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...
 	var b []byte
 	if resp.Body != nil {
 		b, err = io.ReadAll(resp.Body)
+		println("sssssb>", string(b))
 		if err != nil {
 			return nil, err
 		}

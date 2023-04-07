@@ -355,11 +355,6 @@ func TestQuick_DeleteGroup(t *testing.T) {
 		reqHeaders  map[string]string
 	}
 
-	type myType struct {
-		Name string `json:"name"`
-		Age  int    `json:"age"`
-	}
-
 	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
 		return c.Status(204).SendString("")
