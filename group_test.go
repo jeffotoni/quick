@@ -244,8 +244,8 @@ func TestQuick_GroupPost(t *testing.T) {
 	}
 }
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_GroupPut$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_GroupPut$; go tool cover -html=coverage.out
+// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_PutGroup$
+// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_PutGroup$; go tool cover -html=coverage.out
 func TestQuick_PutGroup(t *testing.T) {
 	type args struct {
 		route       string
@@ -344,27 +344,31 @@ func TestQuick_PutGroup(t *testing.T) {
 	}
 }
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_GroupDelete$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_GroupDelete$; go tool cover -html=coverage.out
+// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_DeleteGroup$
+// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_DeleteGroup$; go tool cover -html=coverage.out
 func TestQuick_DeleteGroup(t *testing.T) {
 	type args struct {
 		route       string
+		wantOut     string
 		wantCode    int
 		isWantedErr bool
-		reqBody     []byte
 		reqHeaders  map[string]string
+	}
+
+	type myType struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
 	}
 
 	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
-		b := c.Body()
-		return c.Byte([]byte(b))
+		return c.Status(204).SendString("")
 	}
 
 	r := New()
 	r.Delete("/", testSuccessMockHandler)
-	g1 := r.Group("/put/group")
-	g1.Delete("/test", testSuccessMockHandler)
+	g1 := r.Group("/del/group")
+	g1.Delete("/user", testSuccessMockHandler)
 	g1.Delete("/tester/:p1", testSuccessMockHandler)
 	r.Delete("/jeff", testSuccessMockHandler)
 
@@ -375,48 +379,62 @@ func TestQuick_DeleteGroup(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				route:       "/put/group/test",
-				wantCode:    200,
+				route:       "/",
+				wantOut:     ``,
+				wantCode:    204,
 				isWantedErr: false,
-				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+			},
+		},
+		{
+			name: "success",
+			args: args{
+				route:       "/del/group/user",
+				wantOut:     ``,
+				wantCode:    204,
+				isWantedErr: false,
 			},
 		},
 		{
 			name: "success_param",
 			args: args{
-				route:       "/put/group/tester/:p1",
-				wantCode:    200,
+				route:       "/del/group/tester/:p1",
+				wantOut:     ``,
+				wantCode:    204,
 				isWantedErr: false,
-				reqBody:     []byte(`{"name":"jeff", "age":35}`),
-			},
-		},
-		{
-			name: "success_without_param",
-			args: args{
-				route:       "/",
-				wantCode:    200,
-				isWantedErr: false,
-				reqBody:     []byte(`{"name":"jeff", "age":35}`),
-				reqHeaders:  map[string]string{"Content-Type": "application/json"},
 			},
 		},
 		{
 			name: "success_without_param",
 			args: args{
 				route:       "/jeff",
-				wantCode:    200,
+				wantOut:     ``,
+				wantCode:    204,
 				isWantedErr: false,
-				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_without_param",
+			args: args{
+				route:       "/nao/existe/esta/rota",
+				wantOut:     "404 page not found",
+				wantCode:    404,
+				isWantedErr: false,
 				reqHeaders:  map[string]string{"Content-Type": "application/json"},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// TODO: return 404 Not Found when use DELETE method
-			data, err := r.QuickTest("GET", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
+			data, err := r.QuickTest("DELETE", tt.args.route, tt.args.reqHeaders)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
+				return
+			}
+
+			s := strings.TrimSpace(data.BodyStr())
+			if s != tt.args.wantOut {
+				t.Errorf("was suppose to return %s and %s come", tt.args.wantOut, data.BodyStr())
 				return
 			}
 
@@ -425,10 +443,12 @@ func TestQuick_DeleteGroup(t *testing.T) {
 				return
 			}
 
-			t.Logf("\nOutputBodyString -> %v", data.BodyStr())
-			t.Logf("\nStatusCode -> %d", data.StatusCode())
-			t.Logf("\nOutputBody -> %v", string(data.Body())) // I have converted in this example to string but comes []byte as default
-			t.Logf("\nResponse -> %v", data.Response())
+			t.Logf("outputBody -> %v", data.BodyStr())
+
+			// t.Logf("\nOutputBodyString -> %v", data.BodyStr())
+			// t.Logf("\nStatusCode -> %d", data.StatusCode())
+			// t.Logf("\nOutputBody -> %v", string(data.Body())) // I have converted in this example to string but comes []byte as default
+			// t.Logf("\nResponse -> %v", data.Response())
 		})
 	}
 }

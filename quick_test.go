@@ -499,7 +499,7 @@ func TestQuick_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// TODO method DELETE is not acceptable
-			data, err := r.QuickTest("GET", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
+			data, err := r.QuickTest("DELETE", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return
@@ -533,7 +533,7 @@ func Test_extractParamsPost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := extractParamsPost(&tt.args.quick, tt.args.pathTmp, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+			if got := extractParamsPost(&tt.args.quick, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("extractParamsPost() = %v, want %v", got, tt.want)
 			}
 		})

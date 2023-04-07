@@ -116,7 +116,7 @@ func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 		Path:    path,
 		Params:  params,
 		handler: extractParamsGet(path, params, handlerFunc),
-		Method:  http.MethodGet,
+		Method:  MethodGet,
 	}
 
 	q.appendRoute(&route)
@@ -131,8 +131,8 @@ func (q *Quick) Post(pattern string, handlerFunc HandleFunc) {
 		Pattern: partternExist,
 		Params:  params,
 		Path:    pattern,
-		handler: extractParamsPost(q, pattern, handlerFunc),
-		Method:  http.MethodPost,
+		handler: extractParamsPost(q, handlerFunc),
+		Method:  MethodPost,
 	}
 
 	q.appendRoute(&route)
@@ -147,8 +147,8 @@ func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
 	route := Route{
 		Pattern: partternExist,
 		Path:    pattern,
-		handler: extractParamsPut(q, pattern, handlerFunc),
-		Method:  http.MethodPut,
+		handler: extractParamsPut(q, handlerFunc),
+		Method:  MethodPut,
 		Params:  params,
 	}
 
@@ -165,7 +165,7 @@ func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) {
 		Path:    pattern,
 		Params:  params,
 		handler: extractParamsDelete(handlerFunc),
-		Method:  http.MethodGet,
+		Method:  MethodDelete,
 	}
 
 	q.appendRoute(&route)
@@ -210,7 +210,7 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	return
 }
 
-func extractParamsPost(q *Quick, pathTmp string, handlerFunc HandleFunc) http.HandlerFunc {
+func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
@@ -235,7 +235,7 @@ func extractParamsPost(q *Quick, pathTmp string, handlerFunc HandleFunc) http.Ha
 	}
 }
 
-func extractParamsPut(q *Quick, pathTmp string, handlerFunc HandleFunc) http.HandlerFunc {
+func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(0)
 		if v == nil {
