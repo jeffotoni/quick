@@ -58,6 +58,12 @@ var defaultConfig = Config{
 	// ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
+type Zeroth int
+
+const (
+	Zero Zeroth = 0
+)
+
 type Quick struct {
 	config      Config
 	Cors        bool
@@ -150,6 +156,22 @@ func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
 	q.mux.HandleFunc(pathPut, route.handler)
 }
 
+func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) {
+	_, params, partternExist := extractParamsPattern(pattern)
+	pathDelete := concat.String("delete#", pattern)
+
+	route := Route{
+		Pattern: partternExist,
+		Path:    pattern,
+		Params:  params,
+		handler: extractParamsDelete(handlerFunc),
+		Method:  http.MethodGet,
+	}
+
+	q.appendRoute(&route)
+	q.mux.HandleFunc(pathDelete, route.handler)
+}
+
 func extractHeaders(req http.Request) map[string][]string {
 	headersMap := make(map[string][]string)
 	for key, values := range req.Header {
@@ -235,6 +257,29 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc HandleFunc) http.Han
 			Request:  req,
 			Headers:  headersMap,
 			bodyByte: extractBodyBytes(req.Body),
+			Params:   cval.ParamsMap,
+		}
+
+		execHandleFunc(c, handlerFunc)
+	}
+}
+
+func extractParamsDelete(handlerFunc HandleFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		v := req.Context().Value(0)
+		if v == nil {
+			http.NotFound(w, req)
+			return
+		}
+
+		headersMap := extractHeaders(*req)
+
+		cval := v.(ctxServeHttp)
+
+		c := &Ctx{
+			Response: w,
+			Request:  req,
+			Headers:  headersMap,
 			Params:   cval.ParamsMap,
 		}
 
