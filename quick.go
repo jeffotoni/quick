@@ -45,8 +45,10 @@ type ctxServeHttp struct {
 }
 
 type Config struct {
+	BodyLimit         int64
 	MaxBodySize       int64
 	MaxHeaderBytes    int64
+	RouteCapacity     int
 	ReadTimeout       time.Duration
 	WriteTimeout      time.Duration
 	IdleTimeout       time.Duration
@@ -54,8 +56,10 @@ type Config struct {
 }
 
 var defaultConfig = Config{
+	BodyLimit:      2 * 1024 * 1024,
 	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
+	RouteCapacity:  1000,
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
@@ -69,15 +73,16 @@ const (
 )
 
 type Quick struct {
-	config      Config
-	Cors        bool
-	groups      []Group
-	handler     http.Handler
-	mux         *http.ServeMux
-	routes      []Route
-	mws2        []any
-	CorsSet     func(http.Handler) http.Handler
-	CorsOptions map[string]string
+	config        Config
+	Cors          bool
+	groups        []Group
+	handler       http.Handler
+	mux           *http.ServeMux
+	routes        []*Route
+	routeCapacity int
+	mws2          []any
+	CorsSet       func(http.Handler) http.Handler
+	CorsOptions   map[string]string
 }
 
 func New(c ...Config) *Quick {
@@ -87,11 +92,16 @@ func New(c ...Config) *Quick {
 	} else {
 		config = defaultConfig
 	}
+	if config.RouteCapacity == 0 {
+		config.RouteCapacity = 1000
+	}
 
 	return &Quick{
-		mux:     http.NewServeMux(),
-		handler: http.NewServeMux(),
-		config:  config,
+		routes:        make([]*Route, 0, config.RouteCapacity),
+		routeCapacity: config.RouteCapacity,
+		mux:           http.NewServeMux(),
+		handler:       http.NewServeMux(),
+		config:        config,
 	}
 }
 
@@ -122,7 +132,6 @@ func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 		handler: extractParamsGet(path, params, handlerFunc),
 		Method:  MethodGet,
 	}
-
 	q.appendRoute(&route)
 	q.mux.HandleFunc(path, route.handler)
 }
@@ -325,7 +334,8 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 
 func (q *Quick) appendRoute(route *Route) {
 	route.handler = q.mwWrapper(route.handler).ServeHTTP
-	q.routes = append(q.routes, *route)
+	//q.routes = append(q.routes, *route)
+	q.routes = append(q.routes, route)
 }
 
 func extractParamsGet(pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
@@ -419,7 +429,7 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	return params, true
 }
 
-func (q *Quick) GetRoute() []Route {
+func (q *Quick) GetRoute() []*Route {
 	return q.routes
 }
 
