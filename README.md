@@ -23,7 +23,7 @@
 | Criação de função print para não usar fmt de forma demasiada | 100% |
 | Criação de função própria para Concat String     | 100%      |
 | Criação de benchmarking entre os.Stdout e fmt.Println | 100%   |
-| Desenvolver Routes Método GET                    | 50%       |
+| Desenvolver Routes Método GET                    | 80%       |
 | Desenvolver Routes Método GET aceitando Query String | 90%    |
 | Desenvolver Routes Método GET aceitando Parametros | 90%      |
 | Desenvolver Routes Método GET aceitando Query String e Parametros | 90% |
@@ -42,12 +42,12 @@
 
 | Desenvolver método para ListenAndServe           | 90%       |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
-| Desenvolver método para Facilitar a manipulação do ResponseWriter | 70% |
-| Desenvolver método para Facilitar a manipulação do Request | 70%  |
-| Desenvolver suporte a ServeHTTP                  | 70%       |
+| Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
+| Desenvolver método para Facilitar a manipulação do Request | 80%  |
+| Desenvolver suporte a ServeHTTP                  | 80%       |
 | Desenvolver suporte a middlewares                 | 10%       |
 | Desenvolve suporte Static Files                   | 0.%       |
-| Desenvolver suporte Cors                          | 0.%       |
+| Desenvolver suporte Cors                          | 98.%       |
 
 ### Primeiro exemplo Quick
 ```go
