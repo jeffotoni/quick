@@ -48,7 +48,7 @@ func (g *Group) Post(pattern string, handlerFunc HandleFunc) {
 	route := Route{
 		Pattern: partternExist,
 		Path:    pattern,
-		handler: extractParamsPost(g.quick, pattern, handlerFunc),
+		handler: extractParamsPost(g.quick, handlerFunc),
 		Method:  http.MethodPost,
 		Params:  params,
 		Group:   g.prefix,
@@ -68,7 +68,7 @@ func (g *Group) Put(pattern string, handlerFunc HandleFunc) {
 	route := Route{
 		Pattern: partternExist,
 		Path:    pattern,
-		handler: extractParamsPut(g.quick, pattern, handlerFunc),
+		handler: extractParamsPut(g.quick, handlerFunc),
 		Method:  http.MethodPut,
 		Params:  params,
 		Group:   g.prefix,
@@ -90,7 +90,7 @@ func (g *Group) Delete(pattern string, handlerFunc HandleFunc) {
 		Path:    pattern,
 		Params:  params,
 		handler: extractParamsDelete(handlerFunc),
-		Method:  http.MethodGet,
+		Method:  http.MethodDelete,
 		Group:   g.prefix,
 	}
 	g.quick.appendRoute(&route)
