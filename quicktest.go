@@ -42,11 +42,6 @@ func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...
 		buffBody = body[0]
 	}
 
-	println("................")
-	println("................")
-	println("URI:", URI, " method ", method, "  buffBody: ", string(buffBody))
-	println("................")
-	println("................")
 	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
 
 	if err != nil {
