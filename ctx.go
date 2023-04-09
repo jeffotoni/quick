@@ -87,6 +87,10 @@ func (c *Ctx) Byte(b []byte) (err error) {
 	return c.writeResponse(b)
 }
 
+func (c *Ctx) Send(b []byte) (err error) {
+	return c.writeResponse(b)
+}
+
 func (c *Ctx) SendString(s string) error {
 	return c.writeResponse([]byte(s))
 
