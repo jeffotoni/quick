@@ -62,7 +62,7 @@ var defaultConfig = Config{
 	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	RouteCapacity:  1000,
-	MoreRequests:   280, // valor de equilibrio
+	MoreRequests:   290, // valor de equilibrio
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
@@ -76,7 +76,7 @@ const (
 )
 
 type Quick struct {
-	Config        Config
+	config        Config
 	Cors          bool
 	groups        []Group
 	handler       http.Handler
@@ -104,7 +104,7 @@ func New(c ...Config) *Quick {
 		routeCapacity: config.RouteCapacity,
 		mux:           http.NewServeMux(),
 		handler:       http.NewServeMux(),
-		Config:        config,
+		config:        config,
 	}
 }
 
@@ -132,7 +132,7 @@ func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 		Pattern: partternExist,
 		Path:    path,
 		Params:  params,
-		handler: extractParamsGet(path, params, handlerFunc),
+		handler: extractParamsGet(q, path, params, handlerFunc),
 		Method:  MethodGet,
 	}
 	q.appendRoute(&route)
@@ -180,7 +180,7 @@ func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) {
 		Pattern: partternExist,
 		Path:    pattern,
 		Params:  params,
-		handler: extractParamsDelete(handlerFunc),
+		handler: extractParamsDelete(q, handlerFunc),
 		Method:  MethodDelete,
 	}
 
@@ -226,6 +226,36 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	return
 }
 
+func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		v := req.Context().Value(myContextKey)
+		if v == nil {
+			http.NotFound(w, req)
+			return
+		}
+
+		cval := v.(ctxServeHttp)
+		querys := make(map[string]string)
+		queryParams := req.URL.Query()
+		for key, values := range queryParams {
+			querys[key] = values[0]
+		}
+		headersMap := extractHeaders(*req)
+
+		c := &Ctx{
+			Response: w,
+			Request:  req,
+			Params:   cval.ParamsMap,
+			Query:    querys,
+			//bodyByte: extractBodyBytes(req.Body),
+			//bodyByte: extractBodyBytes(req.Body),
+			Headers:      headersMap,
+			MoreRequests: q.config.MoreRequests,
+		}
+		execHandleFunc(c, handlerFunc)
+	}
+}
+
 func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(myContextKey)
@@ -234,7 +264,7 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 			return
 		}
 
-		if req.ContentLength > q.Config.MaxBodySize {
+		if req.ContentLength > q.config.MaxBodySize {
 			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
@@ -242,10 +272,11 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		headersMap := extractHeaders(*req)
 
 		c := &Ctx{
-			Response: w,
-			Request:  req,
-			bodyByte: extractBodyBytes(req.Body),
-			Headers:  headersMap,
+			Response:     w,
+			Request:      req,
+			bodyByte:     extractBodyBytes(req.Body),
+			Headers:      headersMap,
+			MoreRequests: q.config.MoreRequests,
 		}
 		execHandleFunc(c, handlerFunc)
 	}
@@ -259,7 +290,7 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 			return
 		}
 
-		if req.ContentLength > q.Config.MaxBodySize {
+		if req.ContentLength > q.config.MaxBodySize {
 			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
@@ -269,18 +300,19 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		cval := v.(ctxServeHttp)
 
 		c := &Ctx{
-			Response: w,
-			Request:  req,
-			Headers:  headersMap,
-			bodyByte: extractBodyBytes(req.Body),
-			Params:   cval.ParamsMap,
+			Response:     w,
+			Request:      req,
+			Headers:      headersMap,
+			bodyByte:     extractBodyBytes(req.Body),
+			Params:       cval.ParamsMap,
+			MoreRequests: q.config.MoreRequests,
 		}
 
 		execHandleFunc(c, handlerFunc)
 	}
 }
 
-func extractParamsDelete(handlerFunc HandleFunc) http.HandlerFunc {
+func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(myContextKey)
 		if v == nil {
@@ -293,10 +325,11 @@ func extractParamsDelete(handlerFunc HandleFunc) http.HandlerFunc {
 		cval := v.(ctxServeHttp)
 
 		c := &Ctx{
-			Response: w,
-			Request:  req,
-			Headers:  headersMap,
-			Params:   cval.ParamsMap,
+			Response:     w,
+			Request:      req,
+			Headers:      headersMap,
+			Params:       cval.ParamsMap,
+			MoreRequests: q.config.MoreRequests,
 		}
 
 		execHandleFunc(c, handlerFunc)
@@ -339,35 +372,6 @@ func (q *Quick) appendRoute(route *Route) {
 	route.handler = q.mwWrapper(route.handler).ServeHTTP
 	//q.routes = append(q.routes, *route)
 	q.routes = append(q.routes, route)
-}
-
-func extractParamsGet(pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		v := req.Context().Value(myContextKey)
-		if v == nil {
-			http.NotFound(w, req)
-			return
-		}
-
-		cval := v.(ctxServeHttp)
-		querys := make(map[string]string)
-		queryParams := req.URL.Query()
-		for key, values := range queryParams {
-			querys[key] = values[0]
-		}
-		headersMap := extractHeaders(*req)
-
-		c := &Ctx{
-			Response: w,
-			Request:  req,
-			Params:   cval.ParamsMap,
-			Query:    querys,
-			//bodyByte: extractBodyBytes(req.Body),
-			//bodyByte: extractBodyBytes(req.Body),
-			Headers: headersMap,
-		}
-		execHandleFunc(c, handlerFunc)
-	}
 }
 
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -480,7 +484,7 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 			// WriteTimeout:
 			// MaxHeaderBytes:
 			// IdleTimeout:
-			ReadHeaderTimeout: q.Config.ReadHeaderTimeout,
+			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
 		}
 
 	} else if q.Cors {
@@ -491,7 +495,7 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 			// WriteTimeout:
 			// MaxHeaderBytes:
 			// IdleTimeout:
-			ReadHeaderTimeout: q.Config.ReadHeaderTimeout,
+			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
 		}
 	} else {
 		server = &http.Server{
@@ -501,7 +505,7 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 			// WriteTimeout:
 			// MaxHeaderBytes:
 			// IdleTimeout:
-			ReadHeaderTimeout: q.Config.ReadHeaderTimeout,
+			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
 		}
 	}
 	return server
@@ -509,8 +513,8 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 
-	if q.Config.MoreRequests > 0 {
-		debug.SetGCPercent(q.Config.MoreRequests)
+	if q.config.MoreRequests > 0 {
+		debug.SetGCPercent(q.config.MoreRequests)
 	}
 
 	server := q.httpServer(addr, handler...)

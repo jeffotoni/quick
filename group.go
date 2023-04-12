@@ -30,7 +30,7 @@ func (g *Group) Get(pattern string, handlerFunc HandleFunc) {
 		Pattern: partternExist,
 		Path:    path,
 		Params:  params,
-		handler: extractParamsGet(path, params, handlerFunc),
+		handler: extractParamsGet(g.quick, path, params, handlerFunc),
 		Method:  http.MethodGet,
 		Group:   g.prefix,
 	}
@@ -89,7 +89,7 @@ func (g *Group) Delete(pattern string, handlerFunc HandleFunc) {
 		Pattern: partternExist,
 		Path:    pattern,
 		Params:  params,
-		handler: extractParamsDelete(handlerFunc),
+		handler: extractParamsDelete(g.quick, handlerFunc),
 		Method:  http.MethodDelete,
 		Group:   g.prefix,
 	}
