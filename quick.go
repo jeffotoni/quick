@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -49,6 +50,7 @@ type Config struct {
 	MaxBodySize       int64
 	MaxHeaderBytes    int64
 	RouteCapacity     int
+	MoreRequests      int // 0 a 1000
 	ReadTimeout       time.Duration
 	WriteTimeout      time.Duration
 	IdleTimeout       time.Duration
@@ -60,6 +62,7 @@ var defaultConfig = Config{
 	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	RouteCapacity:  1000,
+	MoreRequests:   250, // valor de equilibrio
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
@@ -505,6 +508,11 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 }
 
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
+
+	if q.config.MoreRequests > 0 {
+		debug.SetGCPercent(MoreRequests)
+	}
+
 	server := q.httpServer(addr, handler...)
 	p.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m\n")
 	return server.ListenAndServe()
