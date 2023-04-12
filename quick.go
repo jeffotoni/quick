@@ -62,7 +62,7 @@ var defaultConfig = Config{
 	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	RouteCapacity:  1000,
-	MoreRequests:   250, // valor de equilibrio
+	MoreRequests:   280, // valor de equilibrio
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
