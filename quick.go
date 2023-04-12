@@ -76,7 +76,7 @@ const (
 )
 
 type Quick struct {
-	config        Config
+	Config        Config
 	Cors          bool
 	groups        []Group
 	handler       http.Handler
@@ -104,7 +104,7 @@ func New(c ...Config) *Quick {
 		routeCapacity: config.RouteCapacity,
 		mux:           http.NewServeMux(),
 		handler:       http.NewServeMux(),
-		config:        config,
+		Config:        config,
 	}
 }
 
@@ -234,7 +234,7 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 			return
 		}
 
-		if req.ContentLength > q.config.MaxBodySize {
+		if req.ContentLength > q.Config.MaxBodySize {
 			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
@@ -259,7 +259,7 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 			return
 		}
 
-		if req.ContentLength > q.config.MaxBodySize {
+		if req.ContentLength > q.Config.MaxBodySize {
 			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
@@ -480,7 +480,7 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 			// WriteTimeout:
 			// MaxHeaderBytes:
 			// IdleTimeout:
-			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+			ReadHeaderTimeout: q.Config.ReadHeaderTimeout,
 		}
 
 	} else if q.Cors {
@@ -491,7 +491,7 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 			// WriteTimeout:
 			// MaxHeaderBytes:
 			// IdleTimeout:
-			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+			ReadHeaderTimeout: q.Config.ReadHeaderTimeout,
 		}
 	} else {
 		server = &http.Server{
@@ -501,7 +501,7 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 			// WriteTimeout:
 			// MaxHeaderBytes:
 			// IdleTimeout:
-			ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+			ReadHeaderTimeout: q.Config.ReadHeaderTimeout,
 		}
 	}
 	return server
@@ -509,8 +509,8 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 
-	if q.config.MoreRequests > 0 {
-		debug.SetGCPercent(q.config.MoreRequests)
+	if q.Config.MoreRequests > 0 {
+		debug.SetGCPercent(q.Config.MoreRequests)
 	}
 
 	server := q.httpServer(addr, handler...)
