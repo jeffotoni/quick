@@ -45,6 +45,7 @@ func TestQuick_Get(t *testing.T) {
 
 	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
+		fmt.Println("More Requests:", c.MoreRequests)
 		return c.JSON(mt)
 	}
 
@@ -518,6 +519,71 @@ func TestQuick_Delete(t *testing.T) {
 	}
 }
 
+func Test_extractParamsDelete(t *testing.T) {
+	type args struct {
+		quick       Quick
+		handlerFunc func(*Ctx) error
+	}
+	tests := []struct {
+		name string
+		args args
+		want http.HandlerFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extractParamsDelete(&tt.args.quick, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("extractParamsDelete() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_extractParamsPut(t *testing.T) {
+	type args struct {
+		quick       Quick
+		handlerFunc func(*Ctx) error
+	}
+	tests := []struct {
+		name string
+		args args
+		want http.HandlerFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extractParamsPut(&tt.args.quick, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("extractParamsPut() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_extractParamsGet(t *testing.T) {
+	type args struct {
+		quick       Quick
+		pathTmp     string
+		paramsPath  string
+		handlerFunc func(*Ctx) error
+	}
+	tests := []struct {
+		name string
+		args args
+		want http.HandlerFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extractParamsGet(&tt.args.quick, tt.args.pathTmp, tt.args.paramsPath, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("extractParamsGet() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_extractParamsPost(t *testing.T) {
 	type args struct {
 		quick       Quick
@@ -566,28 +632,6 @@ func TestQuick_ServeStaticFile(t *testing.T) {
 				handler: tt.fields.handler,
 			}
 			r.Get(tt.args.pattern, tt.args.handlerFunc)
-		})
-	}
-}
-
-func Test_extractParamsGet(t *testing.T) {
-	type args struct {
-		pathTmp     string
-		paramsPath  string
-		handlerFunc func(*Ctx) error
-	}
-	tests := []struct {
-		name string
-		args args
-		want http.HandlerFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := extractParamsGet(tt.args.pathTmp, tt.args.paramsPath, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("extractParamsGet() = %v, want %v", got, tt.want)
-			}
 		})
 	}
 }
