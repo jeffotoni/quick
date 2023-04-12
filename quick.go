@@ -510,7 +510,7 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 
 	if q.config.MoreRequests > 0 {
-		debug.SetGCPercent(MoreRequests)
+		debug.SetGCPercent(q.config.MoreRequests)
 	}
 
 	server := q.httpServer(addr, handler...)
