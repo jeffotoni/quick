@@ -112,13 +112,11 @@ func (q *Quick) Use(mw any, nf ...string) {
 	if len(nf) > 0 {
 		if strings.ToLower(nf[0]) == "cors" {
 			switch mwc := mw.(type) {
-			// case func(next http.Handler, w http.ResponseWriter, r *http.Request):
-			// 	q.Cors = true
-			// 	q.CorsSet = mwc
 			case func(http.Handler) http.Handler:
-				//var handler http.Handler
-				q.Cors = true
-				q.CorsSet = mwc
+				if strings.ToLower(nf[0]) == "cors" {
+					q.Cors = true
+					q.CorsSet = mwc
+				}
 			}
 		}
 	}
