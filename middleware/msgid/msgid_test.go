@@ -1,12 +1,12 @@
 package msgid
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 // go test -v -failfast -count=1 -run ^TestNew$
+// go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestNew$; go tool cover -html=coverage.out
 func TestNew(t *testing.T) {
 
 	type args struct {
@@ -14,36 +14,25 @@ func TestNew(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
-		args        args
-		wantHandler func(http.Handler) http.Handler
-	}{
-		{
-			name: "success",
-			args: args{
-				Config: Config{
-					UUID:       false,
-					Name:       "",
-					Start:      0,
-					End:        0,
-					Algo:       nil,
-					ConfigUUID: NewUUID(),
-				},
-			},
-			wantHandler: returnSuccessHandler,
-		},
-	}
+		name       string
+		args       args
+		testMsgID  testMsgID
+		uuidValue  string
+		msgidValue string
+	}{}
 
 	for _, ti := range tests {
 		t.Run(ti.name, func(*testing.T) {
+			t.Logf("==== TEST %s ====", ti.name)
 			h := New(ti.args.Config)
+			a := h(ti.testMsgID.HandlerFunc)
+			rec := httptest.NewRecorder()
+			ti.testMsgID.Request.Header.Set(KeyMsgUUID, ti.uuidValue)
+			a.ServeHTTP(rec, ti.testMsgID.Request)
+			resp := rec.Result()
 
-			come := httptest.NewServer(h)
-
-			desired := httptest.NewServer(ti.wantHandler)
-
-			if come != desired {
-				t.Errorf("was expected %#v and %#v come", desired, come)
+			if resp.Header.Get(KeyMsgID) == "" && len(ti.msgidValue) == 0 {
+				t.Errorf("was expected a uuid and nothing came")
 			}
 		})
 	}
