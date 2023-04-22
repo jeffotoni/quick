@@ -1,9 +1,22 @@
 package msgid
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
-var returnSuccessHandler = func(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
+type testMsgID struct {
+	Request     *http.Request
+	HandlerFunc http.HandlerFunc
+}
+
+var testMsgIDSuccess = testMsgID{
+	Request: &http.Request{
+		Header: http.Header{},
+	},
+	HandlerFunc: http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		log.Printf("wr uuid -> %s", rw.Header().Get(KeyMsgUUID))
+		log.Printf("req uuid -> %s", req.Header.Get(KeyMsgUUID))
+	},
+	),
 }
