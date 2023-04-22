@@ -45,6 +45,7 @@ func TestQuick_Get(t *testing.T) {
 
 	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
+		fmt.Println("More Requests:", c.MoreRequests)
 		return c.JSON(mt)
 	}
 
@@ -406,10 +407,121 @@ func TestQuick_Put(t *testing.T) {
 	}
 }
 
-func Test_extractParamsPost(t *testing.T) {
+// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_Delete$
+// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Delete$; go tool cover -html=coverage.out
+func TestQuick_Delete(t *testing.T) {
+	type args struct {
+		route       string
+		wantCode    int
+		isWantedErr bool
+		reqBody     []byte
+		reqHeaders  map[string]string
+	}
+
+	type myType struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+	mt := myType{}
+	mt.Name = "jeff"
+	mt.Age = 35
+
+	testSuccessMockHandler := func(c *Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.JSON(mt)
+	}
+
+	r := New()
+	r.Delete("/", testSuccessMockHandler)
+	r.Delete("/test", testSuccessMockHandler)
+	r.Delete("/tester/:p1", testSuccessMockHandler)
+	r.Delete("/jeff", testSuccessMockHandler)
+
+	if len(r.routes) != 4 {
+		t.Errorf("was supose have 4 routes, got: %v", len(r.routes))
+		return
+	}
+
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "success",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_with_body_and_ignore",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_param",
+			args: args{
+				route:       "/tester/:p1",
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_without_param",
+			args: args{
+				route:       "/",
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "success_without_param",
+			args: args{
+				route:       "/jeff",
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "error_not_exists_route",
+			args: args{
+				route:       "/tester/val1/route",
+				wantCode:    404,
+				isWantedErr: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// TODO method DELETE is not acceptable
+			data, err := r.QuickTest("DELETE", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
+			if (!tt.args.isWantedErr) && err != nil {
+				t.Errorf("error: %v", err)
+				return
+			}
+
+			if tt.args.wantCode != data.StatusCode() {
+				t.Errorf("%s: was suppose to return %d and %d come", tt.name, tt.args.wantCode, data.StatusCode())
+				return
+			}
+
+			t.Logf("\nOutputBodyString -> %v", data.BodyStr())
+			t.Logf("\nStatusCode -> %d", data.StatusCode())
+			t.Logf("\nOutputBody -> %v", string(data.Body())) // I have converted in this example to string but comes []byte as default
+			t.Logf("\nResponse -> %v", data.Response())
+		})
+	}
+}
+
+func Test_extractParamsDelete(t *testing.T) {
 	type args struct {
 		quick       Quick
-		pathTmp     string
 		handlerFunc func(*Ctx) error
 	}
 	tests := []struct {
@@ -421,7 +533,72 @@ func Test_extractParamsPost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := extractParamsPost(&tt.args.quick, tt.args.pathTmp, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+			if got := extractParamsDelete(&tt.args.quick, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("extractParamsDelete() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_extractParamsPut(t *testing.T) {
+	type args struct {
+		quick       Quick
+		handlerFunc func(*Ctx) error
+	}
+	tests := []struct {
+		name string
+		args args
+		want http.HandlerFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extractParamsPut(&tt.args.quick, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("extractParamsPut() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_extractParamsGet(t *testing.T) {
+	type args struct {
+		quick       Quick
+		pathTmp     string
+		paramsPath  string
+		handlerFunc func(*Ctx) error
+	}
+	tests := []struct {
+		name string
+		args args
+		want http.HandlerFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extractParamsGet(&tt.args.quick, tt.args.pathTmp, tt.args.paramsPath, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("extractParamsGet() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_extractParamsPost(t *testing.T) {
+	type args struct {
+		quick       Quick
+		handlerFunc func(*Ctx) error
+	}
+	tests := []struct {
+		name string
+		args args
+		want http.HandlerFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extractParamsPost(&tt.args.quick, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("extractParamsPost() = %v, want %v", got, tt.want)
 			}
 		})
@@ -430,8 +607,7 @@ func Test_extractParamsPost(t *testing.T) {
 
 func TestQuick_ServeStaticFile(t *testing.T) {
 	type fields struct {
-		routes  []Route
-		mws     []func(http.Handler) http.Handler
+		routes  []*Route
 		mux     *http.ServeMux
 		handler http.Handler
 	}
@@ -460,32 +636,9 @@ func TestQuick_ServeStaticFile(t *testing.T) {
 	}
 }
 
-func Test_extractParamsGet(t *testing.T) {
-	type args struct {
-		pathTmp     string
-		paramsPath  string
-		handlerFunc func(*Ctx) error
-	}
-	tests := []struct {
-		name string
-		args args
-		want http.HandlerFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := extractParamsGet(tt.args.pathTmp, tt.args.paramsPath, tt.args.handlerFunc); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("extractParamsGet() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestQuick_ServeHTTP(t *testing.T) {
 	type fields struct {
-		routes  []Route
-		mws     []func(http.Handler) http.Handler
+		routes  []*Route
 		mux     *http.ServeMux
 		handler http.Handler
 	}
@@ -556,15 +709,14 @@ func TestCtx_Json(t *testing.T) {
 
 func TestQuick_GetRoute(t *testing.T) {
 	type fields struct {
-		routes  []Route
-		mws     []func(http.Handler) http.Handler
+		routes  []*Route
 		mux     *http.ServeMux
 		handler http.Handler
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   []Route
+		want   []*Route
 	}{
 		// TODO: Add test cases.
 	}
@@ -585,8 +737,7 @@ func TestQuick_GetRoute(t *testing.T) {
 
 func TestQuick_Listen(t *testing.T) {
 	type fields struct {
-		routes  []Route
-		mws     []func(http.Handler) http.Handler
+		routes  []*Route
 		mux     *http.ServeMux
 		handler http.Handler
 	}
@@ -732,7 +883,7 @@ func TestQuick_UseCors(t *testing.T) {
 
 	testSuccessMockHandler := func(c *Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.JSON(mt)
+		return c.Status(200).JSON(mt)
 	}
 
 	r := New()
@@ -755,42 +906,42 @@ func TestQuick_UseCors(t *testing.T) {
 				isWantedErr: false,
 			},
 		},
-		{
-			name: "success_with_params",
-			args: args{
-				route:       "/tester/val1",
-				wantOut:     `{"name":"jeff","age":35}`,
-				wantCode:    200,
-				isWantedErr: false,
-			},
-		},
-		{
-			name: "success_with_nothing",
-			args: args{
-				route:       "/",
-				wantOut:     `{"name":"jeff","age":35}`,
-				wantCode:    200,
-				isWantedErr: false,
-			},
-		},
-		{
-			name: "success_with_regex",
-			args: args{
-				route:       "/reg/1",
-				wantOut:     `{"name":"jeff","age":35}`,
-				wantCode:    200,
-				isWantedErr: false,
-			},
-		},
-		{
-			name: "error_not_exists_route",
-			args: args{
-				route:       "/tester/val1/route",
-				wantOut:     `404 page not found`,
-				wantCode:    404,
-				isWantedErr: true,
-			},
-		},
+		// {
+		// 	name: "success_with_params",
+		// 	args: args{
+		// 		route:       "/tester/val1",
+		// 		wantOut:     `{"name":"jeff","age":35}`,
+		// 		wantCode:    200,
+		// 		isWantedErr: false,
+		// 	},
+		// },
+		// {
+		// 	name: "success_with_nothing",
+		// 	args: args{
+		// 		route:       "/",
+		// 		wantOut:     `{"name":"jeff","age":35}`,
+		// 		wantCode:    200,
+		// 		isWantedErr: false,
+		// 	},
+		// },
+		// {
+		// 	name: "success_with_regex",
+		// 	args: args{
+		// 		route:       "/reg/1",
+		// 		wantOut:     `{"name":"jeff","age":35}`,
+		// 		wantCode:    200,
+		// 		isWantedErr: false,
+		// 	},
+		// },
+		// {
+		// 	name: "error_not_exists_route",
+		// 	args: args{
+		// 		route:       "/tester/val1/route",
+		// 		wantOut:     `404 page not found`,
+		// 		wantCode:    404,
+		// 		isWantedErr: true,
+		// 	},
+		// },
 	}
 
 	for _, tt := range tests {

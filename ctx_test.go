@@ -374,6 +374,52 @@ func TestCtx_Byte(t *testing.T) {
 	}
 }
 
+// go test -v -failfast -count=1 -run ^TestCtx_Send$
+func TestCtx_Send(t *testing.T) {
+	type args struct {
+		response string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "success_string",
+			args: args{
+				response: `"data": "jeffotoni send dados all"`,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			x := httptest.NewRecorder()
+
+			c := &Ctx{
+				Response: x,
+			}
+
+			if err := c.Send([]byte(tt.args.response)); (err != nil) != tt.wantErr {
+				t.Errorf("Ctx.String() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			result := x.Result()
+			if result.Body != nil {
+				defer result.Body.Close()
+				b, err := io.ReadAll(result.Body)
+				if err != nil {
+					t.Errorf("error: %v", err)
+				}
+
+				if string(b) != tt.args.response {
+					t.Errorf("was suppose to have header value: %s and got %s", tt.args.response, string(b))
+				}
+			}
+		})
+	}
+}
+
 func TestCtx_SendString(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter

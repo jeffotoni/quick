@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -20,6 +21,10 @@ const (
 	ContentTypeAppXML  = `application/xml`
 	ContentTypeTextXML = `text/xml`
 )
+
+type contextKey int
+
+const myContextKey contextKey = 0
 
 type HandleFunc func(*Ctx) error
 
@@ -41,8 +46,11 @@ type ctxServeHttp struct {
 }
 
 type Config struct {
+	BodyLimit         int64
 	MaxBodySize       int64
 	MaxHeaderBytes    int64
+	RouteCapacity     int
+	MoreRequests      int // 0 a 1000
 	ReadTimeout       time.Duration
 	WriteTimeout      time.Duration
 	IdleTimeout       time.Duration
@@ -50,24 +58,34 @@ type Config struct {
 }
 
 var defaultConfig = Config{
-	MaxBodySize:    3 * 1024 * 1024,
+	BodyLimit:      2 * 1024 * 1024,
+	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
+	RouteCapacity:  1000,
+	MoreRequests:   290, // valor de equilibrio
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
-	ReadHeaderTimeout: time.Duration(3) * time.Second,
+	// ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
+type Zeroth int
+
+const (
+	Zero Zeroth = 0
+)
+
 type Quick struct {
-	config      Config
-	Cors        bool
-	groups      []Group
-	handler     http.Handler
-	mux         *http.ServeMux
-	routes      []Route
-	mws2        []any
-	CorsSet     func(http.Handler) http.Handler
-	CorsOptions map[string]string
+	config        Config
+	Cors          bool
+	groups        []Group
+	handler       http.Handler
+	mux           *http.ServeMux
+	routes        []*Route
+	routeCapacity int
+	mws2          []any
+	CorsSet       func(http.Handler) http.Handler
+	CorsOptions   map[string]string
 }
 
 func New(c ...Config) *Quick {
@@ -77,11 +95,16 @@ func New(c ...Config) *Quick {
 	} else {
 		config = defaultConfig
 	}
+	if config.RouteCapacity == 0 {
+		config.RouteCapacity = 1000
+	}
 
 	return &Quick{
-		mux:     http.NewServeMux(),
-		handler: http.NewServeMux(),
-		config:  config,
+		routes:        make([]*Route, 0, config.RouteCapacity),
+		routeCapacity: config.RouteCapacity,
+		mux:           http.NewServeMux(),
+		handler:       http.NewServeMux(),
+		config:        config,
 	}
 }
 
@@ -109,10 +132,9 @@ func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 		Pattern: partternExist,
 		Path:    path,
 		Params:  params,
-		handler: extractParamsGet(path, params, handlerFunc),
-		Method:  http.MethodGet,
+		handler: extractParamsGet(q, path, params, handlerFunc),
+		Method:  MethodGet,
 	}
-
 	q.appendRoute(&route)
 	q.mux.HandleFunc(path, route.handler)
 }
@@ -125,8 +147,8 @@ func (q *Quick) Post(pattern string, handlerFunc HandleFunc) {
 		Pattern: partternExist,
 		Params:  params,
 		Path:    pattern,
-		handler: extractParamsPost(q, pattern, handlerFunc),
-		Method:  http.MethodPost,
+		handler: extractParamsPost(q, handlerFunc),
+		Method:  MethodPost,
 	}
 
 	q.appendRoute(&route)
@@ -141,13 +163,29 @@ func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
 	route := Route{
 		Pattern: partternExist,
 		Path:    pattern,
-		handler: extractParamsPut(q, pattern, handlerFunc),
-		Method:  http.MethodPut,
+		handler: extractParamsPut(q, handlerFunc),
+		Method:  MethodPut,
 		Params:  params,
 	}
 
 	q.appendRoute(&route)
 	q.mux.HandleFunc(pathPut, route.handler)
+}
+
+func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) {
+	_, params, partternExist := extractParamsPattern(pattern)
+	pathDelete := concat.String("delete#", pattern)
+
+	route := Route{
+		Pattern: partternExist,
+		Path:    pattern,
+		Params:  params,
+		handler: extractParamsDelete(q, handlerFunc),
+		Method:  MethodDelete,
+	}
+
+	q.appendRoute(&route)
+	q.mux.HandleFunc(pathDelete, route.handler)
 }
 
 func extractHeaders(req http.Request) map[string][]string {
@@ -188,9 +226,39 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	return
 }
 
-func extractParamsPost(q *Quick, pathTmp string, handlerFunc HandleFunc) http.HandlerFunc {
+func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		v := req.Context().Value(0)
+		v := req.Context().Value(myContextKey)
+		if v == nil {
+			http.NotFound(w, req)
+			return
+		}
+
+		cval := v.(ctxServeHttp)
+		querys := make(map[string]string)
+		queryParams := req.URL.Query()
+		for key, values := range queryParams {
+			querys[key] = values[0]
+		}
+		headersMap := extractHeaders(*req)
+
+		c := &Ctx{
+			Response: w,
+			Request:  req,
+			Params:   cval.ParamsMap,
+			Query:    querys,
+			//bodyByte: extractBodyBytes(req.Body),
+			//bodyByte: extractBodyBytes(req.Body),
+			Headers:      headersMap,
+			MoreRequests: q.config.MoreRequests,
+		}
+		execHandleFunc(c, handlerFunc)
+	}
+}
+
+func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		v := req.Context().Value(myContextKey)
 		if v == nil {
 			http.NotFound(w, req)
 			return
@@ -204,18 +272,19 @@ func extractParamsPost(q *Quick, pathTmp string, handlerFunc HandleFunc) http.Ha
 		headersMap := extractHeaders(*req)
 
 		c := &Ctx{
-			Response: w,
-			Request:  req,
-			bodyByte: extractBodyBytes(req.Body),
-			Headers:  headersMap,
+			Response:     w,
+			Request:      req,
+			bodyByte:     extractBodyBytes(req.Body),
+			Headers:      headersMap,
+			MoreRequests: q.config.MoreRequests,
 		}
 		execHandleFunc(c, handlerFunc)
 	}
 }
 
-func extractParamsPut(q *Quick, pathTmp string, handlerFunc HandleFunc) http.HandlerFunc {
+func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		v := req.Context().Value(0)
+		v := req.Context().Value(myContextKey)
 		if v == nil {
 			http.NotFound(w, req)
 			return
@@ -231,11 +300,36 @@ func extractParamsPut(q *Quick, pathTmp string, handlerFunc HandleFunc) http.Han
 		cval := v.(ctxServeHttp)
 
 		c := &Ctx{
-			Response: w,
-			Request:  req,
-			Headers:  headersMap,
-			bodyByte: extractBodyBytes(req.Body),
-			Params:   cval.ParamsMap,
+			Response:     w,
+			Request:      req,
+			Headers:      headersMap,
+			bodyByte:     extractBodyBytes(req.Body),
+			Params:       cval.ParamsMap,
+			MoreRequests: q.config.MoreRequests,
+		}
+
+		execHandleFunc(c, handlerFunc)
+	}
+}
+
+func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		v := req.Context().Value(myContextKey)
+		if v == nil {
+			http.NotFound(w, req)
+			return
+		}
+
+		headersMap := extractHeaders(*req)
+
+		cval := v.(ctxServeHttp)
+
+		c := &Ctx{
+			Response:     w,
+			Request:      req,
+			Headers:      headersMap,
+			Params:       cval.ParamsMap,
+			MoreRequests: q.config.MoreRequests,
 		}
 
 		execHandleFunc(c, handlerFunc)
@@ -246,6 +340,7 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	err := handleFunc(c)
 	if err != nil {
 		c.Set("Content-Type", "text/plain; charset=utf-8")
+		// #nosec G104
 		c.Status(500).SendString(err.Error())
 	}
 }
@@ -275,35 +370,8 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 
 func (q *Quick) appendRoute(route *Route) {
 	route.handler = q.mwWrapper(route.handler).ServeHTTP
-	q.routes = append(q.routes, *route)
-}
-
-func extractParamsGet(pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		v := req.Context().Value(0)
-		if v == nil {
-			http.NotFound(w, req)
-			return
-		}
-
-		cval := v.(ctxServeHttp)
-		querys := make(map[string]string)
-		queryParams := req.URL.Query()
-		for key, values := range queryParams {
-			querys[key] = values[0]
-		}
-		headersMap := extractHeaders(*req)
-
-		c := &Ctx{
-			Response: w,
-			Request:  req,
-			Params:   cval.ParamsMap,
-			Query:    querys,
-			bodyByte: extractBodyBytes(req.Body),
-			Headers:  headersMap,
-		}
-		execHandleFunc(c, handlerFunc)
-	}
+	//q.routes = append(q.routes, *route)
+	q.routes = append(q.routes, route)
 }
 
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -326,11 +394,10 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
-		req = req.WithContext(context.WithValue(req.Context(), 0, c))
+		req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
 		q.routes[i].handler(w, req)
 		return
 	}
-
 	http.NotFound(w, req)
 }
 
@@ -369,7 +436,7 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	return params, true
 }
 
-func (q *Quick) GetRoute() []Route {
+func (q *Quick) GetRoute() []*Route {
 	return q.routes
 }
 
@@ -445,6 +512,11 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 }
 
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
+
+	if q.config.MoreRequests > 0 {
+		debug.SetGCPercent(q.config.MoreRequests)
+	}
+
 	server := q.httpServer(addr, handler...)
 	p.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m\n")
 	return server.ListenAndServe()

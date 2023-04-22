@@ -1,29 +1,29 @@
-# quick Route Go ![Golang Logo](quick.png)
+![Logo do Quick](/quick_logo.png)
 
-[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/main) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/main)  [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
+[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
 
+# Quick Route Go ![Logo do Quick](/quick.png)
+🚀 O Quick é um **gerenciador de rotas flexível e extensível** para a linguagem Go. Seu objetivo é ser **rápido e de alto desempenho**, além de ser **100% compatível com net/http**. O Quick é um **projeto em constante desenvolvimento** e está aberto para **colaboração**, todos são bem-vindos para contribuir. 😍
 
-O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com diversas funcionalidades, onde sua sintaxe foi inspirado no **framework fiber**.
+💡 Se você é novo na programação, o Quick é uma ótima oportunidade para começar a aprender a trabalhar com Go. Com sua **facilidade de uso** e recursos, você pode **criar rotas personalizadas** e expandir seu conhecimento na linguagem.
 
-É um gerenciador de rotas que encontra em **desenvolvimento** constante, projetado para ser **rápido e de alto desempenho, 100% compatível com net/http**. **O objetivo é didático e colaborativo, todos são bem-vindos a ajudar. 😍** 
+👍 Espero que possam participar e que gostem de **Godar**!!! 😍
 
-Espero que possam participar e que gostem de Godar!!! 😍
+🔍 O repositório de exemplos do Framework Quick [Exemplos Quick](https://github.com/gojeffotoni/examples).
 
-O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/examples).
-
-## 📃| Rodmap do desenvolvimento
+## 🗺️| Rodmap do desenvolvimento
 
 | Tarefa                                          | Progresso |
 |-------------------------------------------------|-----------|
-| Desenvolver MaxBodySize metodos Post e Put       | <font color="green">100%</font>      |
+| Desenvolver MaxBodySize metodos Post e Put       | 100%      |
 | Desenvolver Padrão de Testes Unitários           | 90%       |
-| Desenvolver Config em New(Config{}) não obrigatório | <font color="green">100%</font>   |
+| Desenvolver Config em New(Config{}) não obrigatório | 100%   |
 | Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
 | Desenvolver e relacionar ao Listen o Config      | 30%       |
-| Criação de função print para não usar fmt de forma demasiada | <font color="green">100%</font> |
-| Criação de função própria para Concat String     | <font color="green">100%</font>      |
-| Criação de benchmarking entre os.Stdout e fmt.Println | <font color="green">100%</font>   |
-| Desenvolver Routes Método GET                    | 50%       |
+| Criação de função print para não usar fmt de forma demasiada | 100% |
+| Criação de função própria para Concat String     | 100%      |
+| Criação de benchmarking entre os.Stdout e fmt.Println | 100%   |
+| Desenvolver Routes Método GET                    | 80%       |
 | Desenvolver Routes Método GET aceitando Query String | 90%    |
 | Desenvolver Routes Método GET aceitando Parametros | 90%      |
 | Desenvolver Routes Método GET aceitando Query String e Parametros | 90% |
@@ -36,18 +36,20 @@ O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](http
 | Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
 | Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
 | Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse | 90% |
-| Desenvolver para o MÉTODO DELETE                  | 0.%       |
+| Desenvolver para o MÉTODO DELETE                  | 90%       |
 | Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
+| Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
+
 | Desenvolver método para ListenAndServe           | 90%       |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
-| Desenvolver método para Facilitar a manipulação do ResponseWriter | 70% |
-| Desenvolver método para Facilitar a manipulação do Request | 70%  |
-| Desenvolver suporte a ServeHTTP                  | 70%       |
+| Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
+| Desenvolver método para Facilitar a manipulação do Request | 80%  |
+| Desenvolver suporte a ServeHTTP                  | 80%       |
 | Desenvolver suporte a middlewares                 | 10%       |
 | Desenvolve suporte Static Files                   | 0.%       |
-| Desenvolver suporte Cors                          | 0.%       |
+| Desenvolver suporte Cors                          | 98.%       |
 
-##### Primeiro exemplo Quick
+### Primeiro exemplo Quick
 ```go
 
 package main
@@ -57,9 +59,9 @@ import "github.com/jeffotoni/quick"
 func main() {
 	app := quick.New()
 
-	app.Get("/v1/user", func(c *quick.Ctx) error {
+	app.Get("/v1/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação ❤️!")
+		c.Status(200).SendString("Quick em ação ❤️!")
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -80,7 +82,7 @@ Quick em ação ❤️!
 
 ```
 
-##### Quick Get Params
+### Quick Get Params
 ```go
 
 package main
@@ -90,7 +92,7 @@ import "github.com/jeffotoni/quick"
 func main() {
 	app := quick.New()
 
-	app.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) error {
+	app.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
 
 		type my struct {
@@ -99,7 +101,7 @@ func main() {
 			Val string `json:"val"`
 		}
 
-		return c.Status(200).JSON(&my{
+		c.Status(200).JSON(&my{
 			Msg: "Quick ❤️",
 			Key: c.Param("param1"),
 			Val: c.Param("param2"),
@@ -124,7 +126,7 @@ Content-Length: 23
 
 ```
 
-##### Quick Post Body json
+### Quick Post Body json
 ```go
 
 package main
@@ -138,14 +140,15 @@ type My struct {
 
 func main() {
 	app := quick.New()
-	app.Post("/v1/user", func(c *quick.Ctx) error {
+	app.Post("/v1/user", func(c *quick.Ctx) {
 		var my My
 		err := c.Body(&my)
 		if err != nil {
-			return c.Status(400).SendString(err.Error())
+			c.Status(400).SendString(err.Error())
+			return
 		}
 
-		return c.Status(200).String(c.BodyString())
+		c.Status(200).String(c.BodyString())
 		// ou 
 		// c.Status(200).JSON(&my)
 	})
@@ -169,25 +172,25 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
-## ⚙️| Funcionalidades
+## 🎛️| Funcionalidades
 
 | Funcionalidades                                 | Possui    |
 |-------------------------------------------------|-----------|
-| 🔴 Gerenciador de Rotas                           |   sim     |
-| 🟠 Server Files Static                            |   sim     |
-| 🟡 Grupo de Rotas                                  |   sim     |
-| 🟢 Middlewares                                     |   sim     |
-| 🔵 HTTP/2 support                                 |   sim     |
-| 🟣 Data binding for JSON, XML and form payload     |   sim     |
-| ⚫️ Suporte para regex                              |   sim     |
+| 🛣️ Gerenciador de Rotas                           |   sim     |
+| 📁 Server Files Static                            |   sim     |
+| 🚪 Grupo de Rotas                                  |   sim     |
+| 🌐 Middlewares                                     |   sim     |
+| 🚀 HTTP/2 support                                 |   sim     |
+| 🧬 Data binding for JSON, XML and form payload     |   sim     |
+| 🔍 Suporte para regex                              |   sim     |
 
 
-## 👁‍🗨| Examples
+## 📚| Examples
 
 Este repositório contém exemplos práticos do Framework Quick, um framework web rápido e leve, desenvolvido em Go. Os exemplos estão organizados em pastas separadas, cada uma contendo um exemplo completo de uso do framework em uma aplicação web simples. Se você tem algum exemplo interessante de uso do Framework Quick, sinta-se à vontade para enviar uma solicitação de pull request com sua contribuição. O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/examples).
 
 
-##### Quick Post Bind json
+### Quick Post Bind json
 ```go
 
 package main
@@ -201,13 +204,14 @@ type My struct {
 
 func main() {
 	app := quick.New()
-	app.Post("/v2/user", func(c *quick.Ctx) error {
+	app.Post("/v2/user", func(c *quick.Ctx) {
 		var my My
 		err := c.Bind(&my)
 		if err != nil {
-			return c.Status(400).SendString(err.Error())
+			c.Status(400).SendString(err.Error())
+			return
 		}
-		return c.Status(200).JSON(&my)
+		c.Status(200).JSON(&my)
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -229,7 +233,7 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
-##### Cors
+### Cors
 ```go
 
 package main
@@ -241,9 +245,9 @@ func main() {
 	app := quick.New()
 	app.Use(cors.New(),cors)
 
-	app.Get("/v1/user", func(c *quick.Ctx) error {
+	app.Get("/v1/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com Cors❤️!")
+		c.Status(200).SendString("Quick em ação com Cors❤️!")
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -251,7 +255,7 @@ func main() {
 
 ```
 
-##### quick.New(quick.Config{})
+### quick.New(quick.Config{})
 ```go
 
 package main
@@ -263,9 +267,9 @@ func main() {
 		MaxBodySize: 5 * 1024 * 1024,
 	})
 
-	app.Get("/v1/user", func(c *quick.Ctx) error {
+	app.Get("/v1/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com Cors❤️!")
+		c.Status(200).SendString("Quick em ação com Cors❤️!")
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -273,7 +277,7 @@ func main() {
 
 ```
 
-##### quick.Group()
+### quick.Group()
 ```go
 package main
 
@@ -285,22 +289,24 @@ func main() {
 	})
 
 	v1 := app.Group("/v1")
-	v1.Get("/user", func(c *quick.Ctx) error {
-		return c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
+	v1.Get("/user", func(c *quick.Ctx) {
+		c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
+		return
 	})
-	v1.Post("/user", func(c *quick.Ctx) error {
-		return c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
+	v1.Post("/user", func(c *quick.Ctx) {
+		c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
+		return
 	})
 
 	v2 := app.Group("/v2")
-	v2.Get("/user", func(c *quick.Ctx) error {
+	v2.Get("/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+		c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
 	})
 
-	v2.Post("/user", func(c *quick.Ctx) error {
+	v2.Post("/user", func(c *quick.Ctx) {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+		c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
 	})
 
 	app.Listen("0.0.0.0:8080")
@@ -308,7 +314,7 @@ func main() {
 
 ```
 
-##### Quick Tests
+### Quick Tests
 ```go
 
 package main
@@ -318,7 +324,7 @@ import "github.com/jeffotoni/quick"
 func TestQuickExample(t *testing.T) {
 
     // Here is a handler function Mock
-	testSuccessMockHandler := func(c *Ctx) error {
+	testSuccessMockHandler := func(c *Ctx) {
 		c.Set("Content-Type", "application/json")
 		b, _ := io.ReadAll(c.Request.Body)
 		resp := ConcatStr(`"data":`, string(b))
@@ -354,7 +360,7 @@ func TestQuickExample(t *testing.T) {
 
 ```
 
-#### quick.regex
+### quick.regex
 ```go
 	package main
 
@@ -368,9 +374,10 @@ func TestQuickExample(t *testing.T) {
 
 		app.Use(msgid.New())
 
-		app.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) error {
+		app.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) {
 			c.Set("Content-Type", "application/json")
-			return c.Status(200).String("Quick ação total!!!")
+			c.Status(200).String("Quick ação total!!!")
+			return
 		})
 
 		app.Listen("0.0.0.0:8080")
@@ -378,23 +385,25 @@ func TestQuickExample(t *testing.T) {
 ```
 
 
-## 🤍| Contribuições
+## 🤝| Contribuições
 
 Já temos diversos exemplos, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. 
 Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e claro reconhecimento como profissional Go 😍 no mercado de trabalho).
 
 
-### ☕| Apoiadores
+## 🚀 **Apoiadores do Projeto Quick** 🙏
 
-**Quick** é um projeto open source, estamos desenvendo nos tempos livres e é claro nas madrugadas, e você está convidado a particpar e fique a vontade em deixar um café para ajudar e incentivar nosso trabalho 😍 
-**<img src="https://github.githubassets.com/images/icons/emoji/unicode/2615.png" height=20 alt="Stargazers over time"> [pode comprar um café aqui](https://www.buymeacoffee.com/ZlD8rtr1cq)**
+O Projeto Quick visa desenvolver e disponibilizar softwares de qualidade para a comunidade de desenvolvedores. 💻 Para continuarmos a melhorar nossas ferramentas, contamos com o apoio de nossos patrocinadores no Patreon. 🤝
+
+Agradecemos a todos os nossos apoiadores! 🙌 Se você também acredita em nosso trabalho e quer contribuir para o avanço da comunidade de desenvolvimento, considere apoiar o Projeto Quick em nosso Patreon [aqui](https://www.patreon.com/jeffotoni_quick)
+
+Juntos podemos continuar a construir ferramentas incríveis! 🚀
 
 | Avatar | User | Donation |
 |--------|------|----------|
-| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | @jeffotoni | ☕ x 10 |
-| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | @Crow3442 | ☕ x 5  |
-| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | @Guilherme-De-Marchi | ☕ x 5 |
-
+| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | [@jeffotoni](https://github.com/jeffotoni) | x 10 |
+| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | [@Crow3442](https://github.com/Crow3442) | x 5  |
+| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | x 5 |
 
 
 
