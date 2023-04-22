@@ -2,17 +2,19 @@ package msgid
 
 import (
 	"crypto/rand"
+	"log"
 	"math/big"
 	"net/http"
 	"strconv"
 )
 
 const (
-	KeyMsgID = "Msgid"
+	KeyMsgID           = "Msgid"
+	DefaultStartConfig = 900000000
+	DefaultEndConfig   = 100000000
 )
 
 type Config struct {
-	UUID  bool
 	Name  string
 	Start int
 	End   int
@@ -21,10 +23,9 @@ type Config struct {
 
 var (
 	ConfigDefault = Config{
-		UUID:  false,
 		Name:  KeyMsgID,
-		Start: 900000000,
-		End:   100000000,
+		Start: DefaultStartConfig,
+		End:   DefaultEndConfig,
 	}
 )
 
@@ -40,6 +41,12 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			msgId := r.Header.Get(cfd.Name)
 			if len(msgId) == 0 {
 				if cfd.Algo == nil {
+					if cfd.Start == 0 {
+						cfd.Start = DefaultStartConfig
+					}
+					if cfd.End == 0 {
+						cfd.End = DefaultEndConfig
+					}
 					algo := AlgoDefault(cfd.Start, cfd.End)
 					r.Header.Set(cfd.Name, algo)
 					w.Header().Set(cfd.Name, algo)
@@ -58,7 +65,7 @@ func AlgoDefault(Start, End int) string {
 	max := big.NewInt(int64(End))
 	randInt, err := rand.Int(rand.Reader, max)
 	if err != nil {
-		panic(err)
+		log.Printf("error: %v", err)
 	}
 	return strconv.Itoa(Start + int(randInt.Int64()))
 }
