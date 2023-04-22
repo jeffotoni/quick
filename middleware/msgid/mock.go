@@ -15,8 +15,8 @@ var testMsgIDSuccess = testMsgID{
 		Header: http.Header{},
 	},
 	HandlerFunc: http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		log.Printf("wr uuid -> %s", rw.Header().Get(KeyMsgUUID))
-		log.Printf("req uuid -> %s", req.Header.Get(KeyMsgUUID))
+		log.Printf("wr uuid -> %s", rw.Header().Get(KeyMsgID))
+		log.Printf("req uuid -> %s", req.Header.Get(KeyMsgID))
 	},
 	),
 }
