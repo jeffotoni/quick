@@ -2,7 +2,6 @@ package quick
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -43,8 +42,13 @@ func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...
 		buffBody = body[0]
 	}
 
-	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
+	println("")
+	println("")
+	println("method:", method, " URI:", URI, " Body:", len(buffBody))
+	println("")
+	println("")
 
+	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
 	if err != nil {
 		return nil, err
 	}
@@ -58,20 +62,22 @@ func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...
 
 	resp := rec.Result()
 
+	var b []byte
 	if resp.Body != nil {
-		b, err := io.ReadAll(resp.Body)
+		b, err = io.ReadAll(resp.Body)
+		println("sssssb>", string(b))
 		if err != nil {
 			return nil, err
 		}
 
-		return &qTest{
-			body:       b,
-			bodyStr:    string(b),
-			statusCode: resp.StatusCode,
-			response:   resp,
-		}, nil
 	}
-	return nil, errors.New("return body is empty")
+
+	return &qTest{
+		body:       b,
+		bodyStr:    string(b),
+		statusCode: resp.StatusCode,
+		response:   resp,
+	}, nil
 }
 
 // commented just for now
