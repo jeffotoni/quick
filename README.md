@@ -40,7 +40,6 @@
 | Desenvolver para o MÉTODO DELETE                  | 90%       |
 | Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
 | Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
-
 | Desenvolver método para ListenAndServe           | 90%       |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
 | Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
@@ -49,6 +48,7 @@
 | Desenvolver suporte a middlewares                 | 10%       |
 | Desenvolve suporte Static Files                   | 0.%       |
 | Desenvolver suporte Cors                          | 98.%       |
+
 
 ### Primeiro exemplo Quick
 ```go
