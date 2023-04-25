@@ -26,3 +26,8 @@ draft/*
 
 # neovim ctags
 tags
+
+# coverage htmls
+*.html
+./middleware/msgid/*.html
+./middleware/msguuid/*.html
