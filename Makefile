@@ -12,9 +12,11 @@ update:
 	go mod init github.com/jeffotoni/quick
 	go mod tidy
 	@echo "fim"
+
 test: 
-	go test -race -v ./...
-	go test -v -tags musl -covermode atomic -coverprofile=coverage.out ./...
-	gosec ./...
-	staticcheck ./...
-	ineffassign ./...
+	@bash ./scripts/test.sh;
+	
+cover:
+	@bash ./scripts/coverage.sh;
+	@rm -f ./coverage.out;
+	@rm -f ./cover.out;
