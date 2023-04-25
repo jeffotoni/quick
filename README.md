@@ -1,3 +1,4 @@
+
 ![Logo do Quick](/quick_logo.png)
 
 [![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
@@ -39,7 +40,6 @@
 | Desenvolver para o MÉTODO DELETE                  | 90%       |
 | Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
 | Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
-
 | Desenvolver método para ListenAndServe           | 90%       |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
 | Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
@@ -49,6 +49,7 @@
 | Desenvolve suporte Static Files                   | 0.%       |
 | Desenvolver suporte Cors                          | 98.%       |
 
+
 ### Primeiro exemplo Quick
 ```go
 
@@ -57,14 +58,14 @@ package main
 import "github.com/jeffotoni/quick"
 
 func main() {
-	app := quick.New()
+    q := quick.New()
 
-	app.Get("/v1/user", func(c *quick.Ctx) {
-		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação ❤️!")
-	})
+    q.Get("/v1/user", func(c *quick.Ctx) {
+        c.Set("Content-Type", "application/json")
+        c.Status(200).SendString("Quick em ação ❤️!")
+    })
 
-	app.Listen("0.0.0.0:8080")
+    q.Listen("0.0.0.0:8080")
 }
 
 ```
@@ -90,25 +91,25 @@ package main
 import "github.com/jeffotoni/quick"
 
 func main() {
-	app := quick.New()
+    q := quick.New()
 
-	app.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) {
-		c.Set("Content-Type", "application/json")
+    q.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) {
+        c.Set("Content-Type", "application/json")
 
-		type my struct {
-			Msg string `json:"msg"`
-			Key string `json:"key"`
-			Val string `json:"val"`
-		}
+        type my struct {
+            Msg string `json:"msg"`
+            Key string `json:"key"`
+            Val string `json:"val"`
+        }
 
-		c.Status(200).JSON(&my{
-			Msg: "Quick ❤️",
-			Key: c.Param("param1"),
-			Val: c.Param("param2"),
-		})
-	})
+        c.Status(200).JSON(&my{
+            Msg: "Quick ❤️",
+            Key: c.Param("param1"),
+            Val: c.Param("param2"),
+        })
+    })
 
-	app.Listen("0.0.0.0:8080")
+    q.Listen("0.0.0.0:8080")
 }
 
 ```
@@ -134,26 +135,26 @@ package main
 import "github.com/jeffotoni/quick"
 
 type My struct {
-	Name string `json:"name"`
-	Year int    `json:"year"`
+    Name string `json:"name"`
+    Year int    `json:"year"`
 }
 
 func main() {
-	app := quick.New()
-	app.Post("/v1/user", func(c *quick.Ctx) {
-		var my My
-		err := c.Body(&my)
-		if err != nil {
-			c.Status(400).SendString(err.Error())
-			return
-		}
+    q := quick.New()
+    q.Post("/v1/user", func(c *quick.Ctx) {
+        var my My
+        err := c.Body(&my)
+        if err != nil {
+            c.Status(400).SendString(err.Error())
+            return
+        }
 
-		c.Status(200).String(c.BodyString())
-		// ou 
-		// c.Status(200).JSON(&my)
-	})
+        c.Status(200).String(c.BodyString())
+        // ou 
+        // c.Status(200).JSON(&my)
+    })
 
-	app.Listen("0.0.0.0:8080")
+    q.Listen("0.0.0.0:8080")
 }
 
 ```
@@ -198,23 +199,23 @@ package main
 import "github.com/jeffotoni/quick"
 
 type My struct {
-	Name string `json:"name"`
-	Year int    `json:"year"`
+    Name string `json:"name"`
+    Year int    `json:"year"`
 }
 
 func main() {
-	app := quick.New()
-	app.Post("/v2/user", func(c *quick.Ctx) {
-		var my My
-		err := c.Bind(&my)
-		if err != nil {
-			c.Status(400).SendString(err.Error())
-			return
-		}
-		c.Status(200).JSON(&my)
-	})
+    q := quick.New()
+    q.Post("/v2/user", func(c *quick.Ctx) {
+        var my My
+        err := c.Bind(&my)
+        if err != nil {
+            c.Status(400).SendString(err.Error())
+            return
+        }
+        c.Status(200).JSON(&my)
+    })
 
-	app.Listen("0.0.0.0:8080")
+    q.Listen("0.0.0.0:8080")
 }
 
 ```
@@ -242,15 +243,15 @@ import "github.com/jeffotoni/quick"
 import "github.com/jeffotoni/quick/middleware/cors"
 
 func main() {
-	app := quick.New()
-	app.Use(cors.New(),cors)
+    q := quick.New()
+    q.Use(cors.New(),cors)
 
-	app.Get("/v1/user", func(c *quick.Ctx) {
-		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação com Cors❤️!")
-	})
+    q.Get("/v1/user", func(c *quick.Ctx) {
+        c.Set("Content-Type", "application/json")
+        c.Status(200).SendString("Quick em ação com Cors❤️!")
+    })
 
-	app.Listen("0.0.0.0:8080")
+    q.Listen("0.0.0.0:8080")
 }
 
 ```
@@ -263,16 +264,16 @@ package main
 import "github.com/jeffotoni/quick"
 
 func main() {
-	app := quick.New(quick.Config{
-		MaxBodySize: 5 * 1024 * 1024,
-	})
+    q := quick.New(quick.Config{
+        MaxBodySize: 5 * 1024 * 1024,
+    })
 
-	app.Get("/v1/user", func(c *quick.Ctx) {
-		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação com Cors❤️!")
-	})
+    q.Get("/v1/user", func(c *quick.Ctx) {
+        c.Set("Content-Type", "application/json")
+        c.Status(200).SendString("Quick em ação com Cors❤️!")
+    })
 
-	app.Listen("0.0.0.0:8080")
+    q.Listen("0.0.0.0:8080")
 }
 
 ```
@@ -284,32 +285,32 @@ package main
 import "github.com/jeffotoni/quick"
 
 func main() {
-	app := quick.New(quick.Config{
-		MaxBodySize: 5 * 1024 * 1024,
-	})
+    q := quick.New(quick.Config{
+        MaxBodySize: 5 * 1024 * 1024,
+    })
 
-	v1 := app.Group("/v1")
-	v1.Get("/user", func(c *quick.Ctx) {
-		c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
-		return
-	})
-	v1.Post("/user", func(c *quick.Ctx) {
-		c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
-		return
-	})
+    v1 := q.Group("/v1")
+    v1.Get("/user", func(c *quick.Ctx) {
+        c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
+        return
+    })
+    v1.Post("/user", func(c *quick.Ctx) {
+        c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
+        return
+    })
 
-	v2 := app.Group("/v2")
-	v2.Get("/user", func(c *quick.Ctx) {
-		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
-	})
+    v2 := q.Group("/v2")
+    v2.Get("/user", func(c *quick.Ctx) {
+        c.Set("Content-Type", "application/json")
+        c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+    })
 
-	v2.Post("/user", func(c *quick.Ctx) {
-		c.Set("Content-Type", "application/json")
-		c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
-	})
+    v2.Post("/user", func(c *quick.Ctx) {
+        c.Set("Content-Type", "application/json")
+        c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+    })
 
-	app.Listen("0.0.0.0:8080")
+    q.Listen("0.0.0.0:8080")
 }
 
 ```
@@ -324,35 +325,35 @@ import "github.com/jeffotoni/quick"
 func TestQuickExample(t *testing.T) {
 
     // Here is a handler function Mock
-	testSuccessMockHandler := func(c *Ctx) {
-		c.Set("Content-Type", "application/json")
-		b, _ := io.ReadAll(c.Request.Body)
-		resp := ConcatStr(`"data":`, string(b))
-		c.Byte([]byte(resp))
-	}
+    testSuccessMockHandler := func(c *Ctx) {
+        c.Set("Content-Type", "application/json")
+        b, _ := io.ReadAll(c.Request.Body)
+        resp := ConcatStr(`"data":`, string(b))
+        c.Byte([]byte(resp))
+    }
 
-	app := quick.New()
-	// Here you can create all routes that you want to test
-	app.Post("/v1/user", testSuccessMockHandler)
-	app.Post("/v1/user/:p1", testSuccessMockHandler)
+    q := quick.New()
+    // Here you can create all routes that you want to test
+    q.Post("/v1/user", testSuccessMockHandler)
+    q.Post("/v1/user/:p1", testSuccessMockHandler)
 
-	wantOutData := `"data":{"name":"jeff", "age":35}`
-	reqBody := []byte(`{"name":"jeff", "age":35}`)
+    wantOutData := `"data":{"name":"jeff", "age":35}`
+    reqBody := []byte(`{"name":"jeff", "age":35}`)
     reqHeaders := map[string]string{"Content-Type": "application/json"}
 
-	data, err := app.QuickTest("POST", "/v1/user", reqHeaders, reqBody)
-	if err != nil {
-		t.Errorf("error: %v", err)
-		return
-	}
+    data, err := q.QuickTest("POST", "/v1/user", reqHeaders, reqBody)
+    if err != nil {
+        t.Errorf("error: %v", err)
+        return
+    }
 
-	s := strings.TrimSpace(data.BodyStr())
-	if s != wantOutData {
-		t.Errorf("was suppose to return %s and %s come", wantOutData, s)
-		return
-	}
+    s := strings.TrimSpace(data.BodyStr())
+    if s != wantOutData {
+        t.Errorf("was suppose to return %s and %s come", wantOutData, s)
+        return
+    }
 
-	t.Logf("\nOutputBodyString -> %v", data.BodyStr())
+    t.Logf("\nOutputBodyString -> %v", data.BodyStr())
     t.Logf("\nStatusCode -> %d", data.StatusCode())
     t.Logf("\nOutputBody -> %v", string(data.Body())) // I have converted in this example to string but comes []byte as default
     t.Logf("\nResponse -> %v", data.Response())
@@ -362,26 +363,26 @@ func TestQuickExample(t *testing.T) {
 
 ### quick.regex
 ```go
-	package main
+    package main
 
-	import (
-		"github.com/jeffotoni/quick"
-		"github.com/jeffotoni/quick/middleware/msgid"
-	)
+    import (
+        "github.com/jeffotoni/quick"
+        "github.com/jeffotoni/quick/middleware/msgid"
+    )
 
-	func main() {
-		app := quick.New()
+    func main() {
+        q := quick.New()
 
-		app.Use(msgid.New())
+        q.Use(msgid.New())
 
-		app.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) {
-			c.Set("Content-Type", "application/json")
-			c.Status(200).String("Quick ação total!!!")
-			return
-		})
+        q.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) {
+            c.Set("Content-Type", "application/json")
+            c.Status(200).String("Quick ação total!!!")
+            return
+        })
 
-		app.Listen("0.0.0.0:8080")
-	}
+        q.Listen("0.0.0.0:8080")
+    }
 ```
 
 
