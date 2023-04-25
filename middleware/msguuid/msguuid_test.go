@@ -136,3 +136,19 @@ func TestNew(t *testing.T) {
 		})
 	}
 }
+
+// go test -bench=. -benchtime=1s -benchmem
+func BenchmarkNew(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		New()
+	}
+	// b.StopTimer()
+}
+
+// go test -bench=. -benchtime=1s -benchmem
+func BenchmarkGenerateDefaultUUID(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+	generateDefaultUUID(DefaultConfig)
+	}
+	// b.StopTimer()
+}
