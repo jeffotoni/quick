@@ -9,15 +9,15 @@ import (
 )
 
 const (
-	KeyMsgID           = "Msgid"
 	DefaultStartConfig = 900000000
 	DefaultEndConfig   = 100000000
+	KeyMsgID           = "Msgid"
 )
 
 type Config struct {
-	Name  string
 	Start int
 	End   int
+	Name  string
 	Algo  func() string
 }
 
@@ -66,6 +66,7 @@ func AlgoDefault(Start, End int) string {
 	randInt, err := rand.Int(rand.Reader, max)
 	if err != nil {
 		log.Printf("error: %v", err)
+		return ""
 	}
 	return strconv.Itoa(Start + int(randInt.Int64()))
 }
