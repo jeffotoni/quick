@@ -29,5 +29,7 @@ tags
 
 # coverage htmls
 *.html
+./middleware/*.html
+./middleware/cors/*.html
 ./middleware/msgid/*.html
 ./middleware/msguuid/*.html
