@@ -30,6 +30,7 @@ tags
 # coverage htmls
 *.html
 ./middleware/*.html
+./middleware/compress/*.html
 ./middleware/cors/*.html
 ./middleware/msgid/*.html
 ./middleware/msguuid/*.html
