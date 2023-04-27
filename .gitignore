@@ -31,5 +31,6 @@ tags
 *.html
 ./middleware/*.html
 ./middleware/cors/*.html
+./middleware/maxbody/*.html
 ./middleware/msgid/*.html
 ./middleware/msguuid/*.html
