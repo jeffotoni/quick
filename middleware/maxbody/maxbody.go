@@ -5,10 +5,10 @@ import (
 	"net/http"
 )
 
-const DefaultMaxBytes int64 = 1024 * 1024 * 5
+const defaultMaxBytes int64 = 1024 * 1024 * 5
 
 func New(maxBytes ...int64) func(http.Handler) http.Handler {
-	mb := DefaultMaxBytes
+	mb := defaultMaxBytes
 	if len(maxBytes) > 0 {
 		mb = maxBytes[0]
 	}
