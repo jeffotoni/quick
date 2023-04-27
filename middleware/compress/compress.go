@@ -2,8 +2,8 @@ package compress
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -23,7 +23,9 @@ func Gzip() func(h http.Handler) http.Handler {
 				defer func() {
 					err := gz.Close()
 					if err != nil {
-						log.Printf("error closing gzip: %+v\n", err)
+						w.WriteHeader(http.StatusInternalServerError)
+						fmt.Fprintf(w, "error closing gzip: %+v\n", err)
+						return
 					}
 				}()
 
