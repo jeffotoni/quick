@@ -18,10 +18,10 @@ var (
 		Request: &http.Request{
 			Header:     http.Header{},
 			Host:       "localhost:3000",
-			RemoteAddr: ":3000",
+			RemoteAddr: "127.0.0.1:3000",
 			URL: &url.URL{
 				Scheme: "http",
-				Host:   "quick.com",
+				Host:   "letsgoquick.comm",
 			},
 		},
 		HandlerFunc: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -33,10 +33,10 @@ var (
 		Request: &http.Request{
 			Header:     http.Header{},
 			Host:       "localhost:3000",
-			RemoteAddr: ":3000",
+			RemoteAddr: "127.0.0.1:3000",
 			URL: &url.URL{
 				Scheme: "http",
-				Host:   "quick.com",
+				Host:   "letsgoquick.com",
 			},
 			Body: io.NopCloser(strings.NewReader(`{"data": "quick is awesome!"}`)),
 		},
@@ -51,10 +51,10 @@ var (
 		Request: &http.Request{
 			Header:     http.Header{},
 			Host:       "localhost:3000",
-			RemoteAddr: ":3000",
+			RemoteAddr: "127.0.0.1:3000",
 			URL: &url.URL{
 				Scheme: "http",
-				Host:   "quick.com",
+				Host:   "letsgoquick.com",
 			},
 			ContentLength: 0,
 			Body:          io.NopCloser(strings.NewReader(`<=>`)),
