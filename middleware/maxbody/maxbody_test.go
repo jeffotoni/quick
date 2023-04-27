@@ -1,6 +1,7 @@
 package maxbody
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -67,4 +68,31 @@ func BenchmarkNew(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		New()
 	}
+}
+
+func BenchmarkWriteFprint(b *testing.B) {
+	w := httptest.NewRecorder()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		w.WriteHeader(http.StatusRequestEntityTooLarge)
+		fmt.Fprint(w, "Request body too large")
+	}
+}
+
+func BenchmarkHttpError(b *testing.B) {
+	w := httptest.NewRecorder()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+	}
+}
+
+func TestMain(m *testing.M) {
+	http.DefaultServeMux = http.NewServeMux()
+	http.DefaultServeMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusRequestEntityTooLarge)
+		fmt.Fprint(w, "Request body too large")
+	})
+	httptest.NewServer(http.DefaultServeMux)
+	m.Run()
 }

@@ -17,7 +17,6 @@ var (
 		},
 		HandlerFunc: http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			log.Printf("req -> %v", req)
-
 		},
 		),
 	}
@@ -28,7 +27,6 @@ var (
 			ContentLength: DefaultMaxBytes + 1,
 		},
 		HandlerFunc: http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-
 		},
 		),
 	}
