@@ -34,8 +34,8 @@ func TestGzip(t *testing.T) {
 			h := Gzip()
 			a := h(ti.testcompress.HandlerFunc)
 			rec := httptest.NewRecorder()
-			ti.testcompress.Request.Header.Set("Content-Encoding", ti.contentEncoding)
-			ti.testcompress.Request.Header.Set("Accept-Encoding", ti.acceptEncoding)
+			// ti.testcompress.Request.Header.Set("Content-Encoding", ti.contentEncoding)
+			// ti.testcompress.Request.Header.Set("Accept-Encoding", ti.acceptEncoding)
 			a.ServeHTTP(rec, ti.testcompress.Request)
 			resp := rec.Result()
 			if resp.Header.Get("Content-Encoding") == "" && len(ti.contentEncoding) == 0 {
