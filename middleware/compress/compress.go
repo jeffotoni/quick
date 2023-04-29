@@ -7,6 +7,17 @@ import (
 	"net/http"
 )
 
+// write in gzip and Header() from http
+// this struct is to
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
 // Gzip functionality if the clients accepts it
 func Gzip() func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
@@ -27,15 +38,4 @@ func Gzip() func(h http.Handler) http.Handler {
 			h.ServeHTTP(gzr, r)
 		})
 	}
-}
-
-// write in gzip and Header() from http
-// this struct is to
-type gzipResponseWriter struct {
-	io.Writer
-	http.ResponseWriter
-}
-
-func (w gzipResponseWriter) Write(b []byte) (int, error) {
-	return w.Writer.Write(b)
 }
