@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 )
 
 // write in gzip and Header() from http
@@ -22,26 +21,20 @@ func (w gzipResponseWriter) Write(b []byte) (int, error) {
 func Gzip() func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			algSupp := r.Header.Get("Accept-Encoding")
-			supportGzip := strings.Contains(algSupp, "gzip")
-			if supportGzip {
-				w.Header().Set("Content-Encoding", "gzip")
-				w.Header().Set("Vary", "Accept-Encoding") // Add Vary header
-				gz := gzip.NewWriter(w)
+			w.Header().Set("Content-Encoding", "gzip")
+			w.Header().Set("Vary", "Accept-Encoding") // Add Vary header
+			gz := gzip.NewWriter(w)
 
-				defer func() {
-					err := gz.Close()
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						fmt.Fprintf(w, "error closing gzip: %+v\n", err)
-						return
-					}
-				}()
-				gzr := gzipResponseWriter{Writer: gz, ResponseWriter: w}
-				h.ServeHTTP(gzr, r)
-				return
-			}
-			h.ServeHTTP(w, r)
+			defer func() {
+				err := gz.Close()
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "error closing gzip: %+v\n", err)
+					return
+				}
+			}()
+			gzr := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+			h.ServeHTTP(gzr, r)
 		})
 	}
 }
