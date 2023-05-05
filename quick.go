@@ -220,7 +220,6 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 		params = strings.TrimPrefix(pattern, path)
 		partternExist = pattern
 	}
-
 	return
 }
 
