@@ -1,7 +1,6 @@
 package httpclient
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -21,16 +20,15 @@ func (hc *HttpClient) Get(url string) *ClientResponse {
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := hc.ClientHttp.Do(req)
 	if err != nil {
-		fmt.Printf("Error %s", err)
 		return &ClientResponse{Error: err}
 
 	}
+
 	defer resp.Body.Close()
 	code := resp.StatusCode
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Error %s", err)
 		return &ClientResponse{StatusCode: code, Error: err}
 
 	}
