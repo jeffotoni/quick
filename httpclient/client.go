@@ -21,6 +21,7 @@ type (
 	HttpClient struct {
 		Ctx        context.Context
 		ClientHttp httpGoClient
+		Headers    map[string]string
 	}
 
 	ClientGoConfig struct {
@@ -43,7 +44,7 @@ func New(hc ...HttpClient) HTTPClient {
 }
 
 func NewGoClientConfig(cgc ...ClientGoConfig) httpGoClient {
-	conf := ClientInsec
+	conf := ClientSec
 
 	if len(cgc) > 0 {
 		conf = &http.Client{
