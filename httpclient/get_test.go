@@ -72,7 +72,7 @@ func TestGet(t *testing.T) {
 				ClientHttp: confHttpGo,
 			})
 
-			resp := cl.Get("")
+			resp := cl.Get("some/url")
 
 			strBody, wantStrBody := string(resp.Body), string(tc.wantOut.Body)
 
@@ -103,6 +103,6 @@ func BenchmarkNew(b *testing.B) {
 func BenchmarkGet(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		c := New()
-		c.Get("")
+		c.Get("http://localhost:8000")
 	}
 }
