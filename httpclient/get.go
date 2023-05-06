@@ -17,11 +17,14 @@ func (hc *HttpClient) Get(url string) *ClientResponse {
 		return &ClientResponse{Error: err}
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	for k, v := range hc.Headers {
+		req.Header.Set(k, v)
+	}
+
 	resp, err := hc.ClientHttp.Do(req)
+
 	if err != nil {
 		return &ClientResponse{Error: err}
-
 	}
 
 	defer resp.Body.Close()
