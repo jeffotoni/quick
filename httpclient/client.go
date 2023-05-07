@@ -88,7 +88,7 @@ func (c *Client) Put(url string, body io.Reader) *ClientResponse {
 }
 
 func (c *Client) Delete(url string) *ClientResponse {
-	return c.createRequest(url, "Delete", nil)
+	return c.createRequest(url, "DELETE", nil)
 }
 
 func (c *Client) createRequest(url, method string, requestBody io.Reader) *ClientResponse {
