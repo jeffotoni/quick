@@ -55,24 +55,16 @@ func TestGet(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(*testing.T) {
-			confHttpGo := NewGoClientConfig(
-				ClientGoConfig{
-					Transport: &http.Transport{
-						DisableKeepAlives: false,
-						MaxIdleConns:      100,
-					},
-					Timeout: 0,
+
+			c := Client{
+				Ctx:        context.Background(),
+				ClientHttp: tc.mock,
+				Headers: map[string]string{
+					"Content-Type": "application/json",
 				},
-			)
+			}
 
-			confHttpGo = tc.mock
-
-			cl := New(HttpClient{
-				Ctx:        tc.ctx,
-				ClientHttp: confHttpGo,
-			})
-
-			resp := cl.Get("some/url")
+			resp := c.Get("some/url")
 
 			strBody, wantStrBody := string(resp.Body), string(tc.wantOut.Body)
 
@@ -94,15 +86,8 @@ func TestGet(t *testing.T) {
 	}
 }
 
-func BenchmarkNew(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		New()
-	}
-}
-
 func BenchmarkGet(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		c := New()
-		c.Get("http://localhost:8000")
+		Get("http://localhost:8000")
 	}
 }
