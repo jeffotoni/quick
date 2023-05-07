@@ -57,6 +57,40 @@ var (
 	}
 )
 
+// Global request Calls
+func Get(url string) *ClientResponse {
+	return defaultClient.Get(url)
+}
+
+func Post(url string, body io.Reader) *ClientResponse {
+	return defaultClient.Post(url, body)
+}
+
+func Put(url string, body io.Reader) *ClientResponse {
+	return defaultClient.Put(url, body)
+}
+
+func Delete(url string) *ClientResponse {
+	return defaultClient.Delete(url)
+}
+
+// Client request Calls
+func (c *Client) Get(url string) *ClientResponse {
+	return c.createRequest(url, "GET", nil)
+}
+
+func (c *Client) Post(url string, body io.Reader) *ClientResponse {
+	return c.createRequest(url, "POST", body)
+}
+
+func (c *Client) Put(url string, body io.Reader) *ClientResponse {
+	return c.createRequest(url, "PUT", body)
+}
+
+func (c *Client) Delete(url string) *ClientResponse {
+	return c.createRequest(url, "Delete", nil)
+}
+
 func (c *Client) createRequest(url, method string, requestBody io.Reader) *ClientResponse {
 
 	req, err := http.NewRequestWithContext(c.Ctx, method, url, requestBody)
