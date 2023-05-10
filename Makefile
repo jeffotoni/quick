@@ -20,3 +20,12 @@ cover:
 	@bash ./scripts/coverage.sh;
 	@rm -f ./coverage.out;
 	@rm -f ./cover.out;
+
+gosec:
+	gosec ./...
+
+ineffassign:
+	ineffassign ./...
+
+staticcheck:
+	staticcheck ./...
