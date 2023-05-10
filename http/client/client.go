@@ -1,4 +1,4 @@
-package httpclient
+package client
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type Client struct {
 
 var defaultClient = Client{
 	Ctx:        context.Background(),
-	ClientHttp: ClientInsec,
+	ClientHttp: ClientSec,
 	Headers: map[string]string{
 		"Content-Type": "application/json",
 	},
@@ -31,18 +31,6 @@ type ClientResponse struct {
 }
 
 var (
-	ClientInsec httpGoClient = &http.Client{
-		Transport: &http.Transport{
-			DisableKeepAlives:   true,
-			MaxIdleConns:        10,
-			MaxConnsPerHost:     10,
-			MaxIdleConnsPerHost: 10,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-	}
-
 	ClientSec httpGoClient = &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives:   true,
@@ -51,6 +39,7 @@ var (
 			MaxIdleConnsPerHost: 10,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: false,
+				MinVersion:         tls.VersionTLS12,
 			},
 		},
 	}
@@ -112,7 +101,18 @@ func (c *Client) createRequest(url, method string, requestBody io.Reader) (*Clie
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	var errClose error
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			errClose = err
+		}
+	}()
+
+	if errClose != nil {
+		return nil, errClose
+	}
+
 	code := resp.StatusCode
 
 	body, err := io.ReadAll(resp.Body)

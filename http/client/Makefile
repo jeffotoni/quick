@@ -4,3 +4,12 @@ cover:
 
 bench:
 	go test -bench=. -benchtime=1s -benchmem
+
+gosec:
+	gosec ./...
+
+ineffassign:
+	ineffassign ./...
+
+staticcheck:
+	staticcheck ./...
