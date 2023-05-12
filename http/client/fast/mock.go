@@ -2,6 +2,7 @@ package fast
 
 import (
 	"bytes"
+	"time"
 
 	f "github.com/valyala/fasthttp"
 )
@@ -11,6 +12,10 @@ type httpMock struct {
 }
 
 func (h *httpMock) Do(*f.Request, *f.Response) error {
+	return h.err
+}
+
+func (h *httpMock) DoTimeout(*f.Request, *f.Response, time.Duration) error {
 	return h.err
 }
 

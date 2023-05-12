@@ -3,12 +3,15 @@ package fast
 import (
 	"context"
 	"crypto/tls"
+	"net"
+	"time"
 
 	f "github.com/valyala/fasthttp"
 )
 
 type fastHttpClient interface {
-	Do(request *f.Request, resp *f.Response) error
+	Do(*f.Request, *f.Response) error
+	DoTimeout(*f.Request, *f.Response, time.Duration) error
 }
 
 type hostClient interface {
@@ -20,6 +23,8 @@ type Client struct {
 	ClientFastHttp fastHttpClient
 	Headers        map[string]string
 	IsTLS          bool
+	Name           string
+	Timeout        time.Duration
 	req            *f.Request
 }
 
@@ -28,7 +33,9 @@ var defaultClient = Client{
 	Headers: map[string]string{
 		"Content-Type": "application/json",
 	},
-	IsTLS: true,
+	Name:    "quick_fast",
+	IsTLS:   true,
+	Timeout: 100000,
 }
 
 type ClientResponse struct {
@@ -77,22 +84,25 @@ func (c *Client) Delete(url string) (*ClientResponse, error) {
 func (c *Client) createRequest(url, method string, requestBody []byte) (*ClientResponse, error) {
 
 	if c.req == nil {
-		c.req = new(f.Request)
+		c.req = f.AcquireRequest()
 		c.req.SetRequestURI(url)
-
+		c.req.SetTimeout(c.Timeout)
 	}
 
 	if requestBody != nil {
-		c.req.SetBody(requestBody)
+		c.req.SetBodyRaw(requestBody)
 	}
 
 	for k, v := range c.Headers {
 		c.req.Header.Set(k, v)
 	}
 
-	var resp *f.Response
+	var resp = f.AcquireResponse()
 
-	err := c.ClientFastHttp.Do(c.req, resp)
+	err := c.ClientFastHttp.DoTimeout(c.req, resp, c.Timeout)
+
+	// defer f.ReleaseRequest(c.req)
+	// defer f.ReleaseResponse(resp)
 
 	if err != nil {
 		return nil, err
@@ -102,14 +112,23 @@ func (c *Client) createRequest(url, method string, requestBody []byte) (*ClientR
 }
 
 func (c *Client) defaultConfig(URL string) {
-	c.req = new(f.Request)
+	c.req = f.AcquireRequest()
 	c.req.SetRequestURI(URL)
+	c.req.SetTimeout(c.Timeout)
+
+	addr := f.AddMissingPort(string(c.req.URI().Host()), c.IsTLS)
 	var cDefault fastHttpClient = &f.HostClient{
-		Addr:                     f.AddMissingPort(string(c.req.URI().Host()), c.IsTLS),
-		Name:                     "quick_fast",
-		NoDefaultUserAgentHeader: false,
-		DialDualStack:            false,
-		IsTLS:                    false,
+		Addr:                     addr,
+		Name:                     c.Name,
+		NoDefaultUserAgentHeader: true,
+		DialDualStack:            true,
+		IsTLS:                    c.IsTLS,
+		Dial: func(addr string) (net.Conn, error) {
+			return (&f.TCPDialer{
+				Concurrency:      4096,
+				DNSCacheDuration: 5 * time.Minute,
+			}).DialTimeout(addr, time.Hour)
+		},
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: false,
 			MinVersion:         tls.VersionTLS12,
@@ -118,16 +137,15 @@ func (c *Client) defaultConfig(URL string) {
 		MaxConnDuration:               100,
 		MaxIdleConnDuration:           100,
 		MaxIdemponentCallAttempts:     100,
-		ReadBufferSize:                100,
-		WriteBufferSize:               100,
-		ReadTimeout:                   10000,
-		WriteTimeout:                  10000,
+		ReadBufferSize:                5 * 1024 * 1024,
+		WriteBufferSize:               5 * 1024 * 1024,
+		ReadTimeout:                   c.Timeout,
+		WriteTimeout:                  c.Timeout,
 		MaxResponseBodySize:           100,
-		DisableHeaderNamesNormalizing: false,
-		DisablePathNormalizing:        false,
+		DisableHeaderNamesNormalizing: true,
+		DisablePathNormalizing:        true,
 		SecureErrorLogMessage:         true,
-		MaxConnWaitTimeout:            100,
-		ConnPoolStrategy:              100,
+		MaxConnWaitTimeout:            10000,
 		StreamResponseBody:            false,
 	}
 

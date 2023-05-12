@@ -55,6 +55,7 @@ func TestGet(t *testing.T) {
 				Headers: map[string]string{
 					"Content-Type": "application/json",
 				},
+				Timeout: 10000,
 			}
 
 			resp, err := c.Get(tc.URL)
