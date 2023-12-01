@@ -73,9 +73,9 @@ import "github.com/jeffotoni/quick"
 func main() {
     q := quick.New()
 
-    q.Get("/v1/user", func(c *quick.Ctx) {
+    q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação ❤️!")
+        return c.Status(200).SendString("Quick em ação ❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -106,7 +106,7 @@ import "github.com/jeffotoni/quick"
 func main() {
     q := quick.New()
 
-    q.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) {
+    q.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
 
         type my struct {
@@ -115,7 +115,7 @@ func main() {
             Val string `json:"val"`
         }
 
-        c.Status(200).JSON(&my{
+        return c.Status(200).JSON(&my{
             Msg: "Quick ❤️",
             Key: c.Param("param1"),
             Val: c.Param("param2"),
@@ -154,15 +154,14 @@ type My struct {
 
 func main() {
     q := quick.New()
-    q.Post("/v1/user", func(c *quick.Ctx) {
+    q.Post("/v1/user", func(c *quick.Ctx) error {
         var my My
-        err := c.Body(&my)
+        err := c.BodyParser(&my)
         if err != nil {
-            c.Status(400).SendString(err.Error())
-            return
+            return c.Status(400).SendString(err.Error())
         }
 
-        c.Status(200).String(c.BodyString())
+        return c.Status(200).String(c.BodyString())
         // ou 
         // c.Status(200).JSON(&my)
     })
@@ -218,14 +217,13 @@ type My struct {
 
 func main() {
     q := quick.New()
-    q.Post("/v2/user", func(c *quick.Ctx) {
+    q.Post("/v2/user", func(c *quick.Ctx) error {
         var my My
         err := c.Bind(&my)
         if err != nil {
-            c.Status(400).SendString(err.Error())
-            return
+            return c.Status(400).SendString(err.Error())
         }
-        c.Status(200).JSON(&my)
+        return c.Status(200).JSON(&my)
     })
 
     q.Listen("0.0.0.0:8080")
@@ -252,16 +250,18 @@ Content-Type: text/plain; charset=utf-8
 
 package main
 
-import "github.com/jeffotoni/quick"
-import "github.com/jeffotoni/quick/middleware/cors"
+import (
+    "github.com/jeffotoni/quick"
+    "github.com/jeffotoni/quick/middleware/cors"
+)
 
 func main() {
     q := quick.New()
-    q.Use(cors.New(),cors)
+    q.Use(cors.New())
 
-    q.Get("/v1/user", func(c *quick.Ctx) {
+    q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação com Cors❤️!")
+        return c.Status(200).SendString("Quick em ação com Cors❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -281,9 +281,9 @@ func main() {
         MaxBodySize: 5 * 1024 * 1024,
     })
 
-    q.Get("/v1/user", func(c *quick.Ctx) {
+    q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação com Cors❤️!")
+        return c.Status(200).SendString("Quick em ação com Cors❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -303,24 +303,22 @@ func main() {
     })
 
     v1 := q.Group("/v1")
-    v1.Get("/user", func(c *quick.Ctx) {
-        c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
-        return
+    v1.Get("/user", func(c *quick.Ctx) error {
+        return c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
     })
-    v1.Post("/user", func(c *quick.Ctx) {
-        c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
-        return
+    v1.Post("/user", func(c *quick.Ctx) error {
+        return c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
     })
 
     v2 := q.Group("/v2")
-    v2.Get("/user", func(c *quick.Ctx) {
+    v2.Get("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+        return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
     })
 
-    v2.Post("/user", func(c *quick.Ctx) {
+    v2.Post("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+        return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -333,16 +331,22 @@ func main() {
 
 package main
 
-import "github.com/jeffotoni/quick"
+import (
+    "io"
+    "strings"
+    "testing"
+
+    "github.com/jeffotoni/quick"
+)
 
 func TestQuickExample(t *testing.T) {
 
     // Here is a handler function Mock
-    testSuccessMockHandler := func(c *Ctx) {
+    testSuccessMockHandler := func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
         b, _ := io.ReadAll(c.Request.Body)
-        resp := ConcatStr(`"data":`, string(b))
-        c.Byte([]byte(resp))
+        resp := `"data":` + string(b)
+        return c.Byte([]byte(resp))
     }
 
     q := quick.New()
@@ -376,26 +380,27 @@ func TestQuickExample(t *testing.T) {
 
 ### quick.regex
 ```go
-    package main
 
-    import (
-        "github.com/jeffotoni/quick"
-        "github.com/jeffotoni/quick/middleware/msgid"
-    )
+package main
 
-    func main() {
-        q := quick.New()
+import (
+    "github.com/jeffotoni/quick"
+    "github.com/jeffotoni/quick/middleware/msgid"
+)
 
-        q.Use(msgid.New())
+func main() {
+    q := quick.New()
 
-        q.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) {
-            c.Set("Content-Type", "application/json")
-            c.Status(200).String("Quick ação total!!!")
-            return
-        })
+    q.Use(msgid.New())
 
-        q.Listen("0.0.0.0:8080")
-    }
+    q.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) error {
+        c.Set("Content-Type", "application/json")
+        return c.Status(200).String("Quick ação total!!!")
+    })
+
+    q.Listen("0.0.0.0:8080")
+}
+
 ```
 
 
