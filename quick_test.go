@@ -282,6 +282,83 @@ func TestQuick_Post(t *testing.T) {
 				reqHeaders:  map[string]string{"Content-Type": ContentTypeTextXML},
 			},
 		},
+		{
+			name: "success_different_valid_json",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				wantOut:     `"data":{"title":"Test","status":true}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"title":"Test","status":true}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_empty_body",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				wantOut:     `"data":{}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_json_with_numbers",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				wantOut:     `"data":{"value":12345,"percentage":99.9}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"value":12345,"percentage":99.9}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_xml_with_different_data",
+			args: args{
+				route:       "/test/xml",
+				wantCode:    200,
+				wantOut:     `<MyXMLType><data><name>Maria</name><age>28</age></data></MyXMLType>`,
+				isWantedErr: false,
+				reqBody:     []byte(`<MyXMLType><data><name>Maria</name><age>28</age></data></MyXMLType>`),
+				reqHeaders:  map[string]string{"Content-Type": "application/xml"},
+			},
+		},
+		{
+			name: "success_longer_json",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				wantOut:     `"data":{"name":"jeff","age":35,"city":"São Paulo","country":"Brazil"}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"name":"jeff","age":35,"city":"São Paulo","country":"Brazil"}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_json_with_array",
+			args: args{
+				route:       "/test",
+				wantCode:    200,
+				wantOut:     `"data":{"items":["item1","item2","item3"]}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{"items":["item1","item2","item3"]}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_xml_with_nested_data",
+			args: args{
+				route:       "/test/xml",
+				wantCode:    200,
+				wantOut:     `<MyXMLType><data><name>Lucas</name><age>40</age><details><hobby>Reading</hobby></details></data></MyXMLType>`,
+				isWantedErr: false,
+				reqBody:     []byte(`<MyXMLType><data><name>Lucas</name><age>40</age><details><hobby>Reading</hobby></details></data></MyXMLType>`),
+				reqHeaders:  map[string]string{"Content-Type": "application/xml"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -376,6 +453,17 @@ func TestQuick_Put(t *testing.T) {
 				wantOut:     `"data":{"name":"jeff", "age":35}`,
 				isWantedErr: false,
 				reqBody:     []byte(`{"name":"jeff", "age":35}`),
+				reqHeaders:  map[string]string{"Content-Type": "application/json"},
+			},
+		},
+		{
+			name: "success_json_empty",
+			args: args{
+				route:       "/jeff",
+				wantCode:    200,
+				wantOut:     `"data":{}`,
+				isWantedErr: false,
+				reqBody:     []byte(`{}`),
 				reqHeaders:  map[string]string{"Content-Type": "application/json"},
 			},
 		},
