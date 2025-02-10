@@ -16,7 +16,8 @@
 
 | Tarefa                                          | Progresso |
 |-------------------------------------------------|-----------|
-| Desenvolver MaxBodySize metodos Post e Put       | 100%      |
+| Desenvolver MaxBodySize metodo Post       | 100%      |
+| Desenvolver MaxBodySize metodo  Put             | 100%      |
 | Desenvolver Padrão de Testes Unitários           | 90%       |
 | Desenvolver Config em New(Config{}) não obrigatório | 100%   |
 | Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
@@ -38,10 +39,7 @@
 | Desenvolver para o MÉTODO PUT o parse JSON        | 100%       |
 | Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse | 100% |
 | Desenvolver para o MÉTODO DELETE                  | 100%       |
-| Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
-| Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
 | Desenvolver método para ListenAndServe           | 100%       |
-| Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
 | Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
 | Desenvolver método para Facilitar a manipulação do Request | 80%  |
 | Desenvolver suporte a ServeHTTP                  | 100%       |
@@ -52,7 +50,6 @@
 | Desenvolver suporte a middlewares maxbody                 | 100%       |
 | Desenvolver suporte a middlewares msgid                 | 100%       |
 | Desenvolver suporte a middlewares msguuid                 | 100%       |
-| Desenvolve suporte Static Files                   | 0.%       |
 | Desenvolver suporte Cors                          | 100.%       |
 | Desenvolver suporte Cient Get                     | 100.%       |
 | Desenvolver suporte Cient Post                     | 100.%       |
@@ -62,6 +59,18 @@
 | Desenvolver suporte Cient Fast Post                     | 80.%       |
 | Desenvolver suporte Cient Fast Put                    | 80.%       |
 | Desenvolver suporte Cient Fast Delete                | 80.%       |
+
+
+## 🚧| Rodmap em desenvolvimento
+
+
+| Tarefa                                          | Progresso |
+|-------------------------------------------------|-----------|
+| Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
+| Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
+| Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
+| Desenvolve suporte Static Files                   | 0.%       |
+
 
 ### Primeiro exemplo Quick
 ```go
