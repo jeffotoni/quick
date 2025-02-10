@@ -55,6 +55,13 @@ func TestQuick_Get(t *testing.T) {
 	r.Get("/tester/:p1", testSuccessMockHandler)
 	r.Get("/", testSuccessMockHandler)
 	r.Get("/reg/{[0-9]}", testSuccessMockHandler)
+	r.Get("/query", func(c *Ctx) error {
+		param := c.Request.URL.Query().Get("name")
+		if param == "" {
+			return c.Status(400).SendString("Falta o parametro de consulta")
+		}
+		return c.JSON(myType{Name: param, Age: 30})
+	})
 
 	tests := []struct {
 		name string
@@ -97,11 +104,38 @@ func TestQuick_Get(t *testing.T) {
 			},
 		},
 		{
-			name: "error_not_exists_route",
+			name: "success_with_different_regex",
 			args: args{
-				route:       "/tester/val1/route",
-				wantOut:     `404 page not found`,
+				route:       "/reg/5",
+				wantOut:     `{"name":"jeff","age":35}`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "error_regex_mismatch",
+			args: args{
+				route:       "/reg/abc",
+				wantOut:     "404 page not found",
 				wantCode:    404,
+				isWantedErr: true,
+			},
+		},
+		{
+			name: "success_query_param",
+			args: args{
+				route:       "/query?name=Alice",
+				wantOut:     `{"name":"Alice","age":30}`,
+				wantCode:    200,
+				isWantedErr: false,
+			},
+		},
+		{
+			name: "error_missing_query_param",
+			args: args{
+				route:       "/query",
+				wantOut:     "Falta o parametro de consulta",
+				wantCode:    400,
 				isWantedErr: true,
 			},
 		},
