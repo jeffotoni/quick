@@ -36,3 +36,4 @@ tags
 ./middleware/maxbody/*.html
 ./middleware/msgid/*.html
 ./middleware/msguuid/*.html
+./httpclient/*.html

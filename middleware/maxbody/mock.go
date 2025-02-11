@@ -24,7 +24,7 @@ var (
 	testMaxBodyFail = testMaxBody{
 		Request: &http.Request{
 			Header:        http.Header{},
-			ContentLength: DefaultMaxBytes + 1,
+			ContentLength: defaultMaxBytes + 1,
 		},
 		HandlerFunc: http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		},

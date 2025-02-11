@@ -29,6 +29,3 @@ ineffassign:
 
 staticcheck:
 	staticcheck ./...
-
-
-
