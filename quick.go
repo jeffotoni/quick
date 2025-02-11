@@ -88,6 +88,10 @@ type Quick struct {
 	CorsOptions   map[string]string
 }
 
+func GetDefaultConfig() Config {
+	return defaultConfig
+}
+
 func New(c ...Config) *Quick {
 	var config Config
 	if len(c) > 0 {
