@@ -56,27 +56,28 @@
 ## 🚧| Rodmap em Progresso
 
  | Tarefa                                          | Progresso |
-|-------------------------------------------------|-----------|
+|--------------------------------------------------|-----------|
 | Desenvolver e relacionar ao Listen o Config      | 30%       |
 | Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
 | Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
 | Desenvolver método para Facilitar a manipulação do Request | 80%  |
-| Desenvolver suporte Cient Fast Post                     | 80.%       |
-| Desenvolver suporte Cient Fast Put                    | 80.%       |
-| Desenvolver suporte Cient Fast Delete                | 80.%       |
-| Desenvolver suporte Cient Fast Get                     | 90.%       |
-| Desenvolver Padrão de Testes Unitários           | 90%       |
+| Desenvolver suporte Cient Fast Post                        | 80.%       |
+| Desenvolver suporte Cient Fast Put                         | 80.%       |
+| Desenvolver suporte Cient Fast Delete                      | 80.%       |
+| Desenvolver suporte Cient Fast Get                         | 90.%       |
+| Desenvolver Padrão de Testes Unitários                     | 90%        |
 
 
-## 🚀| Rodmap em desenvolvimento
+## 🚀| Rodmap para desenvolvimento
 
 
-| Tarefa                                          | Progresso |
-|-------------------------------------------------|-----------|
+| Tarefa                                            | Progresso |
+|---------------------------------------------------|-----------|
 | Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
 | Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
 | Desenvolve suporte Static Files                   | 0.%       |
+| Criar um CLI (Command Line Interface) Quick.      | 0.%       |
 
 
 ### Primeiro exemplo Quick
