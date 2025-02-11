@@ -36,7 +36,7 @@ func TestNew(t *testing.T) {
 		{
 			name:         "error_403",
 			testMaxBody:  testMaxBodyFail,
-			maxBodyValue: int2prt(DefaultMaxBytes),
+			maxBodyValue: int2prt(defaultMaxBytes),
 			wantErr:      true,
 		},
 	}
@@ -44,7 +44,7 @@ func TestNew(t *testing.T) {
 	for _, ti := range tests {
 		t.Run(ti.name, func(tt *testing.T) {
 			t.Logf("==== TEST %s ====", ti.name)
-			h := func(http.Handler) http.Handler { return nil }
+			var h func(http.Handler) http.Handler
 			if ti.maxBodyValue != nil {
 				h = New(*ti.maxBodyValue)
 			} else {
