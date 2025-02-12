@@ -57,7 +57,7 @@
 
  | Tarefa                                          | Progresso |
 |--------------------------------------------------|-----------|
-| Desenvolver e relacionar ao Listen o Config      | 30%       |
+| Desenvolver e relacionar ao Listen o Config      | 42%       |
 | Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
 | Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
 | Desenvolver método para Facilitar a manipulação do Request | 80%  |
@@ -440,10 +440,7 @@ Juntos podemos continuar a construir ferramentas incríveis! 🚀
 | <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | [@jeffotoni](https://github.com/jeffotoni) | x 10 |
 | <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | [@Crow3442](https://github.com/Crow3442) | x 5  |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | x 5 |
-
-
-
-
+| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height=20> | [@jaquelineabreu](https://github.com/jaquelineabreu) | x 1 |
 
 
 
