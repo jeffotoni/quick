@@ -88,6 +88,10 @@ type Quick struct {
 	CorsOptions   map[string]string
 }
 
+func GetDefaultConfig() Config {
+	return defaultConfig
+}
+
 func New(c ...Config) *Quick {
 	var config Config
 	if len(c) > 0 {
@@ -220,6 +224,7 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 		params = strings.TrimPrefix(pattern, path)
 		partternExist = pattern
 	}
+
 	return
 }
 

@@ -16,38 +16,68 @@
 
 | Tarefa                                          | Progresso |
 |-------------------------------------------------|-----------|
-| Desenvolver MaxBodySize metodos Post e Put       | 100%      |
-| Desenvolver Padrão de Testes Unitários           | 90%       |
+| Desenvolver MaxBodySize metodo Post       | 100%      |
+| Desenvolver MaxBodySize metodo  Put             | 100%      |
 | Desenvolver Config em New(Config{}) não obrigatório | 100%   |
-| Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
-| Desenvolver e relacionar ao Listen o Config      | 30%       |
 | Criação de função print para não usar fmt de forma demasiada | 100% |
 | Criação de função própria para Concat String     | 100%      |
 | Criação de benchmarking entre os.Stdout e fmt.Println | 100%   |
-| Desenvolver Routes Método GET                    | 80%       |
-| Desenvolver Routes Método GET aceitando Query String | 90%    |
-| Desenvolver Routes Método GET aceitando Parametros | 90%      |
-| Desenvolver Routes Método GET aceitando Query String e Parametros | 90% |
-| Desenvolver Routes Método GET aceitando expressão regular | 90.% |
-| Desenvolver Routes Método POST                   | 80%       |
-| Desenvolver Routes Método POST aceitando JSON    | 90%       |
-| Desenvolver para o MÉTODO POST o parse JSON       | 90%       |
-| Desenvolver para o MÉTODO POST funções para acessar byte ou string do Parse | 90% |
-| Desenvolver para o MÉTODO PUT                    | 80%       |
-| Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
-| Desenvolver para o MÉTODO PUT o parse JSON        | 90%       |
-| Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse | 90% |
-| Desenvolver para o MÉTODO DELETE                  | 90%       |
-| Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
-| Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
-| Desenvolver método para ListenAndServe           | 90%       |
-| Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
+| Desenvolver Routes Método GET                    | 100%       |
+| Desenvolver Routes Método GET aceitando Query String | 100%    |
+| Desenvolver Routes Método GET aceitando Parametros | 100%      |
+| Desenvolver Routes Método GET aceitando Query String e Parametros | 100% |
+| Desenvolver Routes Método GET aceitando expressão regular | 100.% |
+| Desenvolver Routes Método POST                   | 100%       |
+| Desenvolver Routes Método POST aceitando JSON    | 100%       |
+| Desenvolver para o MÉTODO POST o parse JSON       | 100%       |
+| Desenvolver para o MÉTODO POST funções para acessar byte ou string do Parse | 100% |
+| Desenvolver para o MÉTODO PUT                    | 100%       |
+| Desenvolver para o MÉTODO PUT o parse JSON        | 100%       |
+| Desenvolver para o MÉTODO PUT o parse JSON        | 100%       |
+| Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse | 100% |
+| Desenvolver para o MÉTODO DELETE                  | 100%       |
+| Desenvolver método para ListenAndServe           | 100%       |
+| Desenvolver suporte a ServeHTTP                  | 100%       |
+| Desenvolver suporte a middlewares                 | 100%       |
+| Desenvolver suporte a middleware compress                 | 100%       |
+| Desenvolver suporte a middlewares cors                 | 100%       |
+| Desenvolver suporte a middlewares logger                 | 100%       |
+| Desenvolver suporte a middlewares maxbody                 | 100%       |
+| Desenvolver suporte a middlewares msgid                 | 100%       |
+| Desenvolver suporte a middlewares msguuid                 | 100%       |
+| Desenvolver suporte Cors                          | 100.%       |
+| Desenvolver suporte Cient Get                     | 100.%       |
+| Desenvolver suporte Cient Post                     | 100.%       |
+| Desenvolver suporte Cient Put                     | 100.%       |
+| Desenvolver suporte Cient Delete                     | 100.%       |
+
+
+
+## 🚧| Rodmap em Progresso
+
+ | Tarefa                                          | Progresso |
+|--------------------------------------------------|-----------|
+| Desenvolver e relacionar ao Listen o Config      | 30%       |
+| Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
 | Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
 | Desenvolver método para Facilitar a manipulação do Request | 80%  |
-| Desenvolver suporte a ServeHTTP                  | 80%       |
-| Desenvolver suporte a middlewares                 | 10%       |
+| Desenvolver suporte Cient Fast Post                        | 80.%       |
+| Desenvolver suporte Cient Fast Put                         | 80.%       |
+| Desenvolver suporte Cient Fast Delete                      | 80.%       |
+| Desenvolver suporte Cient Fast Get                         | 90.%       |
+| Desenvolver Padrão de Testes Unitários                     | 90%        |
+
+
+## 🚀| Rodmap para desenvolvimento
+
+
+| Tarefa                                            | Progresso |
+|---------------------------------------------------|-----------|
+| Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
+| Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
+| Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
 | Desenvolve suporte Static Files                   | 0.%       |
-| Desenvolver suporte Cors                          | 98.%       |
+| Criar um CLI (Command Line Interface) Quick.      | 0.%       |
 
 
 ### Primeiro exemplo Quick
@@ -60,9 +90,9 @@ import "github.com/jeffotoni/quick"
 func main() {
     q := quick.New()
 
-    q.Get("/v1/user", func(c *quick.Ctx) {
+    q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação ❤️!")
+        return c.Status(200).SendString("Quick em ação ❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -93,7 +123,7 @@ import "github.com/jeffotoni/quick"
 func main() {
     q := quick.New()
 
-    q.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) {
+    q.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
 
         type my struct {
@@ -102,7 +132,7 @@ func main() {
             Val string `json:"val"`
         }
 
-        c.Status(200).JSON(&my{
+        return c.Status(200).JSON(&my{
             Msg: "Quick ❤️",
             Key: c.Param("param1"),
             Val: c.Param("param2"),
@@ -141,15 +171,14 @@ type My struct {
 
 func main() {
     q := quick.New()
-    q.Post("/v1/user", func(c *quick.Ctx) {
+    q.Post("/v1/user", func(c *quick.Ctx) error {
         var my My
-        err := c.Body(&my)
+        err := c.BodyParser(&my)
         if err != nil {
-            c.Status(400).SendString(err.Error())
-            return
+            return c.Status(400).SendString(err.Error())
         }
 
-        c.Status(200).String(c.BodyString())
+        return c.Status(200).String(c.BodyString())
         // ou 
         // c.Status(200).JSON(&my)
     })
@@ -205,14 +234,13 @@ type My struct {
 
 func main() {
     q := quick.New()
-    q.Post("/v2/user", func(c *quick.Ctx) {
+    q.Post("/v2/user", func(c *quick.Ctx) error {
         var my My
         err := c.Bind(&my)
         if err != nil {
-            c.Status(400).SendString(err.Error())
-            return
+            return c.Status(400).SendString(err.Error())
         }
-        c.Status(200).JSON(&my)
+        return c.Status(200).JSON(&my)
     })
 
     q.Listen("0.0.0.0:8080")
@@ -239,16 +267,18 @@ Content-Type: text/plain; charset=utf-8
 
 package main
 
-import "github.com/jeffotoni/quick"
-import "github.com/jeffotoni/quick/middleware/cors"
+import (
+    "github.com/jeffotoni/quick"
+    "github.com/jeffotoni/quick/middleware/cors"
+)
 
 func main() {
     q := quick.New()
-    q.Use(cors.New(),cors)
+    q.Use(cors.New())
 
-    q.Get("/v1/user", func(c *quick.Ctx) {
+    q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação com Cors❤️!")
+        return c.Status(200).SendString("Quick em ação com Cors❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -268,9 +298,9 @@ func main() {
         MaxBodySize: 5 * 1024 * 1024,
     })
 
-    q.Get("/v1/user", func(c *quick.Ctx) {
+    q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação com Cors❤️!")
+        return c.Status(200).SendString("Quick em ação com Cors❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -290,24 +320,22 @@ func main() {
     })
 
     v1 := q.Group("/v1")
-    v1.Get("/user", func(c *quick.Ctx) {
-        c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
-        return
+    v1.Get("/user", func(c *quick.Ctx) error {
+        return c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
     })
-    v1.Post("/user", func(c *quick.Ctx) {
-        c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
-        return
+    v1.Post("/user", func(c *quick.Ctx) error {
+        return c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
     })
 
     v2 := q.Group("/v2")
-    v2.Get("/user", func(c *quick.Ctx) {
+    v2.Get("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+        return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
     })
 
-    v2.Post("/user", func(c *quick.Ctx) {
+    v2.Post("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+        return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -320,16 +348,22 @@ func main() {
 
 package main
 
-import "github.com/jeffotoni/quick"
+import (
+    "io"
+    "strings"
+    "testing"
+
+    "github.com/jeffotoni/quick"
+)
 
 func TestQuickExample(t *testing.T) {
 
     // Here is a handler function Mock
-    testSuccessMockHandler := func(c *Ctx) {
+    testSuccessMockHandler := func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
         b, _ := io.ReadAll(c.Request.Body)
-        resp := ConcatStr(`"data":`, string(b))
-        c.Byte([]byte(resp))
+        resp := `"data":` + string(b)
+        return c.Byte([]byte(resp))
     }
 
     q := quick.New()
@@ -363,26 +397,27 @@ func TestQuickExample(t *testing.T) {
 
 ### quick.regex
 ```go
-    package main
 
-    import (
-        "github.com/jeffotoni/quick"
-        "github.com/jeffotoni/quick/middleware/msgid"
-    )
+package main
 
-    func main() {
-        q := quick.New()
+import (
+    "github.com/jeffotoni/quick"
+    "github.com/jeffotoni/quick/middleware/msgid"
+)
 
-        q.Use(msgid.New())
+func main() {
+    q := quick.New()
 
-        q.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) {
-            c.Set("Content-Type", "application/json")
-            c.Status(200).String("Quick ação total!!!")
-            return
-        })
+    q.Use(msgid.New())
 
-        q.Listen("0.0.0.0:8080")
-    }
+    q.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) error {
+        c.Set("Content-Type", "application/json")
+        return c.Status(200).String("Quick ação total!!!")
+    })
+
+    q.Listen("0.0.0.0:8080")
+}
+
 ```
 
 
