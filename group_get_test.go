@@ -35,7 +35,7 @@ func TestQuick_GroupGet(t *testing.T) {
 	g1.Get("/test", testSuccessMockHandler)
 	r.Get("/tester/:p1", testSuccessMockHandler)
 	r.Get("/", testSuccessMockHandler)
-	r.Get(`/my/reg/(\S+)/route`, testSuccessMockHandler)
+	g1.Get(`/reg/{(\S+)}/route`, testSuccessMockHandler)
 
 	tests := []struct {
 		name string
