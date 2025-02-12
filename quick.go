@@ -514,12 +514,22 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 }
 
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
-
 	if q.config.MoreRequests > 0 {
 		debug.SetGCPercent(q.config.MoreRequests)
 	}
 
-	server := q.httpServer(addr, handler...)
+	var handlerDefault http.Handler
+
+	server := &http.Server{
+		Addr:              addr,
+		Handler:           handlerDefault,
+		ReadTimeout:       q.config.ReadTimeout,
+		WriteTimeout:      q.config.WriteTimeout,
+		IdleTimeout:       q.config.IdleTimeout,
+		ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+		MaxHeaderBytes:    int(q.config.MaxHeaderBytes),
+	}
+
 	p.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m\n")
 	return server.ListenAndServe()
 }
