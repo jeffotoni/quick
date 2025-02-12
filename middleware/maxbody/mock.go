@@ -10,6 +10,8 @@ type testMaxBody struct {
 	HandlerFunc http.HandlerFunc
 }
 
+const DefaultMaxBytes = 2 * 1024 * 1024
+
 var (
 	testMaxBodySuccess = testMaxBody{
 		Request: &http.Request{
