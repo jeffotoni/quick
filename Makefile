@@ -18,6 +18,7 @@ test:
 	
 cover:
 	@bash ./scripts/coverage.sh;
+	@cd http/client && make cover
 	@rm -f ./coverage.out;
 	@rm -f ./cover.out;
 
