@@ -46,19 +46,19 @@ var (
 	}
 )
 
-var (
-	testLoggerErrorBody = testLogger{
-		Request: &http.Request{
-			Header:     http.Header{},
-			Host:       "localhost:3000",
-			RemoteAddr: "127.0.0.1:3000",
-			URL: &url.URL{
-				Scheme: "http",
-				Host:   "letsgoquick.com",
-			},
-			ContentLength: 0,
-			Body:          io.NopCloser(strings.NewReader(`<=>`)),
-		},
-		HandlerFunc: http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
-	}
-)
+// var (
+// 	testLoggerErrorBody = testLogger{
+// 		Request: &http.Request{
+// 			Header:     http.Header{},
+// 			Host:       "localhost:3000",
+// 			RemoteAddr: "127.0.0.1:3000",
+// 			URL: &url.URL{
+// 				Scheme: "http",
+// 				Host:   "letsgoquick.com",
+// 			},
+// 			ContentLength: 0,
+// 			Body:          io.NopCloser(strings.NewReader(`<=>`)),
+// 		},
+// 		HandlerFunc: http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+// 	}
+// )
