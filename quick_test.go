@@ -1,6 +1,7 @@
 package quick
 
 import (
+	"io"
 	"net/http"
 	"reflect"
 	"runtime/debug"
@@ -156,6 +157,7 @@ func TestQuick_Listen(t *testing.T) {
 		wantErr      bool
 		moreRequests int
 		timeout      time.Duration
+		checkRoute   bool
 	}{
 		{
 			name: "Inicia servidor com sucesso",
@@ -164,8 +166,9 @@ func TestQuick_Listen(t *testing.T) {
 				mux:     http.NewServeMux(),
 				handler: nil,
 			},
-			args:    args{addr: "127.0.0.1:8081"},
-			wantErr: false,
+			args:       args{addr: "127.0.0.1:8081"},
+			wantErr:    false,
+			checkRoute: false,
 		},
 		{
 			name: "Erro ao iniciar servidor - porta inválida",
@@ -174,8 +177,9 @@ func TestQuick_Listen(t *testing.T) {
 				mux:     http.NewServeMux(),
 				handler: nil,
 			},
-			args:    args{addr: "99999"},
-			wantErr: true,
+			args:       args{addr: "99999"},
+			wantErr:    true,
+			checkRoute: false,
 		},
 		{
 			name: "Config MoreRequests > 0 ajusta GC",
@@ -187,6 +191,7 @@ func TestQuick_Listen(t *testing.T) {
 			args:         args{addr: "127.0.0.1:8082"},
 			moreRequests: 100,
 			wantErr:      false,
+			checkRoute:   false,
 		},
 		{
 			name: "Testar Listen com handler customizado",
@@ -198,8 +203,9 @@ func TestQuick_Listen(t *testing.T) {
 					w.Write([]byte("Handler customizado"))
 				}),
 			},
-			args:    args{addr: "127.0.0.1:8083"},
-			wantErr: false,
+			args:       args{addr: "127.0.0.1:8083"},
+			wantErr:    false,
+			checkRoute: false,
 		},
 		{
 			name: "Erro ao tentar rodar servidor na mesma porta",
@@ -208,8 +214,9 @@ func TestQuick_Listen(t *testing.T) {
 				mux:     http.NewServeMux(),
 				handler: nil,
 			},
-			args:    args{addr: "127.0.0.1:8084"},
-			wantErr: true,
+			args:       args{addr: "127.0.0.1:8084"},
+			wantErr:    true,
+			checkRoute: false,
 		},
 		{
 			name: "MoreRequests = 0 não deve alterar GC",
@@ -221,6 +228,7 @@ func TestQuick_Listen(t *testing.T) {
 			args:         args{addr: "127.0.0.1:8085"},
 			moreRequests: 0,
 			wantErr:      false,
+			checkRoute:   false,
 		},
 		{
 			name: "Respeita ReadTimeout e WriteTimeout",
@@ -229,9 +237,32 @@ func TestQuick_Listen(t *testing.T) {
 				mux:     http.NewServeMux(),
 				handler: nil,
 			},
-			args:    args{addr: "127.0.0.1:8086"},
-			timeout: 2 * time.Second,
-			wantErr: false,
+			args:       args{addr: "127.0.0.1:8086"},
+			timeout:    2 * time.Second,
+			wantErr:    false,
+			checkRoute: false,
+		},
+		{
+			name: "Verifica se rota registrada responde corretamente",
+			fields: fields{
+				routes:  []*Route{},
+				mux:     http.NewServeMux(),
+				handler: nil,
+			},
+			args:       args{addr: "127.0.0.1:8087"},
+			wantErr:    false,
+			checkRoute: true,
+		},
+		{
+			name: "Falha ao acessar rota não registrada",
+			fields: fields{
+				routes:  []*Route{},
+				mux:     http.NewServeMux(),
+				handler: nil,
+			},
+			args:       args{addr: "127.0.0.1:8088"},
+			wantErr:    false,
+			checkRoute: true,
 		},
 	}
 
@@ -251,6 +282,26 @@ func TestQuick_Listen(t *testing.T) {
 				},
 			}
 
+			if tt.checkRoute {
+				q.Get("/ping", func(c *Ctx) error {
+					c.String("pong")
+					return nil
+				})
+			}
+
+			if tt.name == "Falha ao acessar rota não registrada" {
+				resp, err := http.Get("http://" + tt.args.addr + "/rota-inexistente")
+
+				if err != nil {
+					t.Errorf("Erro ao acessar rota não registrada: %v", err)
+				} else {
+					defer resp.Body.Close()
+					if resp.StatusCode != http.StatusNotFound {
+						t.Errorf("Esperado status 404 para rota inexistente, mas obteve %d", resp.StatusCode)
+					}
+				}
+			}
+
 			if q.config.MoreRequests > 0 {
 				debug.SetGCPercent(q.config.MoreRequests)
 			}
@@ -262,14 +313,35 @@ func TestQuick_Listen(t *testing.T) {
 				}
 			}()
 
-			time.Sleep(200 * time.Millisecond)
+			maxAttempts := 10
+			for i := 0; i < maxAttempts; i++ {
+				resp, err := http.Get("http://" + tt.args.addr)
+				if err == nil {
+					resp.Body.Close()
+					break
+				}
+				time.Sleep(100 * time.Millisecond)
+			}
 
 			if !tt.wantErr {
-				resp, err := http.Get("http://" + tt.args.addr)
-				if err != nil {
-					t.Errorf("Erro ao acessar servidor: %v", err)
+				if tt.checkRoute {
+					resp, err := http.Get("http://" + tt.args.addr + "/ping")
+					if err != nil {
+						t.Errorf("Erro ao acessar /ping: %v", err)
+					} else {
+						defer resp.Body.Close()
+						body, _ := io.ReadAll(resp.Body)
+						if string(body) != "pong" {
+							t.Errorf("Resposta esperada: 'pong', mas obteve: %s", body)
+						}
+					}
 				} else {
-					resp.Body.Close()
+					resp, err := http.Get("http://" + tt.args.addr)
+					if err != nil {
+						t.Errorf("Erro ao acessar servidor: %v", err)
+					} else {
+						resp.Body.Close()
+					}
 				}
 			}
 
