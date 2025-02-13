@@ -24,6 +24,7 @@ func main() {
 			if r.Header.Get("Block") == "true" {
 				w.WriteHeader(200)
 				w.Write([]byte(""))
+				//h.ServeHTTP(w, r)
 				return
 			}
 			h.ServeHTTP(w, r)

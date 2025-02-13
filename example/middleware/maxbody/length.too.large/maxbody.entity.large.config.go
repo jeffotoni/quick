@@ -11,7 +11,7 @@ import (
 func main() {
 	q := quick.New()
 
-	q.Use(maxbody.New(0))
+	q.Use(maxbody.New(50000))
 
 	q.Post("/v1/user/maxbody/large", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")

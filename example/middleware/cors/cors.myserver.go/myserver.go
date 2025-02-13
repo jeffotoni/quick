@@ -12,7 +12,7 @@ type MyHandler struct{}
 func (h *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	b, err := io.ReadAll(r.Body)
-	if err != nil {
+	if err != nil || len(b) == 0 {
 		w.WriteHeader(400)
 		w.Write([]byte(`{"msg":"error"}`))
 		return
