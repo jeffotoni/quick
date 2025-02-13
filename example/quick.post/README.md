@@ -1,0 +1,34 @@
+# POST
+
+```go
+package main
+
+import "github.com/jeffotoni/quick"
+
+type My struct {
+	Name string `json:"name"`
+	Year int    `json:"year"`
+}
+
+func main() {
+	q := quick.New()
+	q.Post("/v1/user", func(c *quick.Ctx) error {
+		var my My
+		err := c.BodyParser(&my)
+		if err != nil {
+			c.Status(400).SendString(err.Error())
+		}
+
+		return c.Status(200).JSON(&my)
+		// ou
+		//c.Status(200).String(c.BodyString())
+	})
+
+	q.Listen("0.0.0.0:8080")
+}
+```
+```go
+curl --location 'http://localhost:8080/v1/user' \
+--header 'Content-Type: application/json/' \
+--data '{"name":"crow3442","year":2005}'
+```
