@@ -1,9 +1,9 @@
 module github.com/jeffotoni/quick
 
-go 1.22.2
+go 1.23.6
 
 require (
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.6.0
 	github.com/valyala/fasthttp v1.58.0
 )
 
