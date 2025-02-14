@@ -89,7 +89,662 @@
 		},
 		{
 			"name": "Middleware",
-			"item": []
+			"item": [
+				{
+					"name": "Basicauth",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "true"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/blocked",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Compress",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Encoding",
+								"value": "gzip"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/compress",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"compress"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cors blocked",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "false"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/blocked",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cors myserver",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"Alice\", \"age\": 30}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cors myserver sem body",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cors nativo quick",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"Alice\", \"year\": 2025}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cors",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"Alice\", \"year\": 2025}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cors sem body",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cors com json malformado",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"Alice\", \"year\": }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Etag",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "true"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/blocked",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filesystem",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "true"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/blocked",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Limiter",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "true"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/blocked",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logger",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/v1/logger",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"logger"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Maxbody",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"data\":\"quick is awesome!\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/user/maxbody/any",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user",
+								"maxbody",
+								"any"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Maxbody com body acima do limite",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/user/maxbody/any",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user",
+								"maxbody",
+								"any"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Default config",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"data\":\"quick is awesome!\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/user/maxbody",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user",
+								"maxbody"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Length too large",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"data\":\"quick is awesome!\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/user/maxbody/large",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user",
+								"maxbody",
+								"large"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Msguuid - any config",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/v1/user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Msguuid - default config",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/v1/msguuid/default",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"msguuid",
+								"default"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pprof",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "false",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/blocked",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Proxy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "false"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/v1/blocked",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RequestId",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "true"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/v1/blocked",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Skip",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "true"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/v1/blocked",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Timeout",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Block",
+								"value": "true"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/v1/blocked",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"blocked"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "Client",
@@ -788,7 +1443,20 @@
 					"name": "Regex - numerico",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/v1/user/123",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"user",
+								"123"
+							]
+						}
 					},
 					"response": []
 				},
@@ -813,6 +1481,31 @@
 								"v1",
 								"user",
 								"789"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Middleware Dinamico",
+			"item": [
+				{
+					"name": "Middleware Dinamico",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/greet/João",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"greet",
+								"João"
 							]
 						}
 					},
