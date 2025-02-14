@@ -36,7 +36,7 @@ func TestNew(t *testing.T) {
 		{
 			name:         "error_403",
 			testMaxBody:  testMaxBodyFail,
-			maxBodyValue: int2prt(DefaultMaxBytes),
+			maxBodyValue: int2prt(defaultMaxBytes),
 			wantErr:      true,
 		},
 	}

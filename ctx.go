@@ -19,6 +19,22 @@ type Ctx struct {
 	Query        map[string]string
 }
 
+func (c *Ctx) GetReqHeadersAll() map[string][]string {
+	return c.Headers
+}
+
+func (c *Ctx) GetHeadersAll() map[string][]string {
+	return c.Headers
+}
+
+// func (c *Ctx) GetHeaders(key string, defaultValue ...string) (err error) {
+
+// }
+
+// func (c *Ctx) GetReqHeaders(key string, defaultValue ...string) (err error) {
+
+// }
+
 func (c *Ctx) Bind(v interface{}) (err error) {
 	return extractBind(c, v)
 }
