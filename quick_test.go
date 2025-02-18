@@ -1,6 +1,7 @@
 package quick
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"reflect"
@@ -267,6 +268,7 @@ func TestQuick_Listen(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+
 		t.Run(tt.name, func(t *testing.T) {
 			q := &Quick{
 				routes:  tt.fields.routes,
@@ -282,11 +284,42 @@ func TestQuick_Listen(t *testing.T) {
 				},
 			}
 
+			if q.config.MoreRequests > 0 {
+				debug.SetGCPercent(q.config.MoreRequests)
+			}
+
 			if tt.checkRoute {
 				q.Get("/ping", func(c *Ctx) error {
 					c.String("pong")
 					return nil
 				})
+			}
+
+			if tt.args.addr == "99999" {
+				err := q.Listen(tt.args.addr)
+				if err == nil {
+					t.Errorf("Esperado erro ao iniciar servidor com porta inválida (%s), mas não ocorreu erro.", tt.args.addr)
+				} else {
+					fmt.Println("Porta inválida detectada corretamente.")
+				}
+				return
+			}
+
+			go func() {
+				err := q.Listen(tt.args.addr)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("Quick.Listen() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			}()
+
+			maxAttempts := 20
+			for i := 0; i < maxAttempts; i++ {
+				resp, err := http.Get("http://" + tt.args.addr)
+				if err == nil {
+					resp.Body.Close()
+					break
+				}
+				time.Sleep(200 * time.Millisecond)
 			}
 
 			if tt.name == "Falha ao acessar rota não registrada" {
@@ -300,27 +333,6 @@ func TestQuick_Listen(t *testing.T) {
 						t.Errorf("Esperado status 404 para rota inexistente, mas obteve %d", resp.StatusCode)
 					}
 				}
-			}
-
-			if q.config.MoreRequests > 0 {
-				debug.SetGCPercent(q.config.MoreRequests)
-			}
-
-			go func() {
-				err := q.Listen(tt.args.addr)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("Quick.Listen() error = %v, wantErr %v", err, tt.wantErr)
-				}
-			}()
-
-			maxAttempts := 10
-			for i := 0; i < maxAttempts; i++ {
-				resp, err := http.Get("http://" + tt.args.addr)
-				if err == nil {
-					resp.Body.Close()
-					break
-				}
-				time.Sleep(100 * time.Millisecond)
 			}
 
 			if !tt.wantErr {
