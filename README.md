@@ -61,10 +61,6 @@
 | Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
 | Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
 | Desenvolver método para Facilitar a manipulação do Request | 80%  |
-| Desenvolver suporte Cient Fast Post                        | 80.%       |
-| Desenvolver suporte Cient Fast Put                         | 80.%       |
-| Desenvolver suporte Cient Fast Delete                      | 80.%       |
-| Desenvolver suporte Cient Fast Get                         | 90.%       |
 | Desenvolver Padrão de Testes Unitários                     | 90%        |
 
 
@@ -73,6 +69,9 @@
 
 | Tarefa                                            | Progresso |
 |---------------------------------------------------|-----------|
+| Docuemntação Tests Examples PKG Go                | 0.%       |
+| Cobertura de Testes go test -cover                | 0.%       |
+| Cobertura de recursos Regex, mas possibilidades   | 0.%      |
 | Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
 | Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
