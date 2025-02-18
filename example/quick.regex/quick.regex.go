@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/jeffotoni/quick"
 	"github.com/jeffotoni/quick/middleware/msgid"
 )
@@ -11,16 +13,17 @@ func main() {
 	// adicionando middleware msgid
 	q.Use(msgid.New())
 
-	q.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-		return c.Status(200).String("Quick ação total!!!")
-	})
+	// q.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) error {
+	// 	c.Set("Content-Type", "application/json")
+	// 	return c.Status(200).String("Quick ação total!!!")
+	// })
 
-	q.Use(msgid.New())
+	// q.Use(msgid.New())
 
 	q.Get("/v2/tipos/{id:[0-9]+}", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).String("Quick funcionando!!!")
+		fmt.Println("teste")
+		return c.Status(200).SendString("Quick funcionando!!!")
 	})
 
 	q.Listen(":8080")
