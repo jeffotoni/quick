@@ -77,6 +77,10 @@
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
 | Desenvolve suporte Static Files                   | 0.%       |
 | Criar um CLI (Command Line Interface) Quick.      | 0.%       |
+| WebSocket Support                                 | 0.%       |
+| Rate Limiter Support                              | 0.%       |
+| Template Engines                                  | 0.%       |
+
 
 
 ### Primeiro exemplo Quick
