@@ -1,3 +1,10 @@
+/*
+🚀 O Quick é um gerenciador de rotas flexível e extensível
+para a linguagem Go. Seu objetivo é ser rápido e de alto desempenho,
+além de ser 100% compatível com net/http.
+O Quick é um projeto em constante desenvolvimento e está aberto
+para colaboração, todos são bem-vindos para contribuir. 😍
+*/
 package quick
 
 import (
@@ -88,10 +95,14 @@ type Quick struct {
 	CorsOptions   map[string]string
 }
 
+// GetDefaultConfig Function is responsible for returning a default configuration that is pre-defined for the system
+// The result will be GetDefaultConfig() Config
 func GetDefaultConfig() Config {
 	return defaultConfig
 }
 
+// The New function creates a new instance of the Quick structure to manage HTTP routes and handlers
+// The result will New(c ...Config) *Quick
 func New(c ...Config) *Quick {
 	var config Config
 	if len(c) > 0 {
