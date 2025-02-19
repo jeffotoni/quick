@@ -1,3 +1,10 @@
+/*
+🚀 O Quick é um gerenciador de rotas flexível e extensível
+para a linguagem Go. Seu objetivo é ser rápido e de alto desempenho,
+além de ser 100% compatível com net/http.
+O Quick é um projeto em constante desenvolvimento e está aberto
+para colaboração, todos são bem-vindos para contribuir. 😍
+*/
 package quick
 
 import (
@@ -88,10 +95,14 @@ type Quick struct {
 	CorsOptions   map[string]string
 }
 
+// GetDefaultConfig Function is responsible for returning a default configuration that is pre-defined for the system
+// The result will be GetDefaultConfig() Config
 func GetDefaultConfig() Config {
 	return defaultConfig
 }
 
+// New function creates a new instance of the Quick structure to manage HTTP routes and handlers
+// The result will New(c ...Config) *Quick
 func New(c ...Config) *Quick {
 	var config Config
 	if len(c) > 0 {
@@ -112,6 +123,8 @@ func New(c ...Config) *Quick {
 	}
 }
 
+// Use function adds middleware to the Quick server, with special treatment for CORS
+// The result will Use(mw any, nf ...string)
 func (q *Quick) Use(mw any, nf ...string) {
 	if len(nf) > 0 {
 		if strings.ToLower(nf[0]) == "cors" {
@@ -127,6 +140,8 @@ func (q *Quick) Use(mw any, nf ...string) {
 	q.mws2 = append(q.mws2, mw)
 }
 
+// Get function is an HTTP route with the GET method on the Quick server
+// The result will Get(pattern string, handlerFunc HandleFunc)
 func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 	path, params, partternExist := extractParamsPattern(pattern)
 
@@ -141,6 +156,8 @@ func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 	q.mux.HandleFunc(path, route.handler)
 }
 
+// Post function registers an HTTP route with the POST method on the Quick server
+// The result will Post(pattern string, handlerFunc HandleFunc)
 func (q *Quick) Post(pattern string, handlerFunc HandleFunc) {
 	_, params, partternExist := extractParamsPattern(pattern)
 	pathPost := concat.String("post#", pattern)
@@ -157,6 +174,8 @@ func (q *Quick) Post(pattern string, handlerFunc HandleFunc) {
 	q.mux.HandleFunc(pathPost, route.handler)
 }
 
+// Put function registers an HTTP route with the PUT method on the Quick server.
+// The result will Put(pattern string, handlerFunc HandleFunc)
 func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
 	_, params, partternExist := extractParamsPattern(pattern)
 
