@@ -19,10 +19,14 @@ type Ctx struct {
 	Query        map[string]string
 }
 
+// GetReqHeadersAll returns all the request headers
+// The result will GetReqHeadersAll() map[string][]string
 func (c *Ctx) GetReqHeadersAll() map[string][]string {
 	return c.Headers
 }
 
+// GetHeadersAll returns all HTTP response headers stored in the context
+// The result will GetHeadersAll() map[string][]string
 func (c *Ctx) GetHeadersAll() map[string][]string {
 	return c.Headers
 }
@@ -35,10 +39,14 @@ func (c *Ctx) GetHeadersAll() map[string][]string {
 
 // }
 
+// Bind analyzes and links the request body to a Go structure
+// The result will Bind(v interface{}) (err error)
 func (c *Ctx) Bind(v interface{}) (err error) {
 	return extractBind(c, v)
 }
 
+// BodyParser analyzes the request body and deserializes it to the Go structure reported.
+// The result will BodyParser(v interface{}) (err error)
 func (c *Ctx) BodyParser(v interface{}) (err error) {
 	if strings.Contains(c.Request.Header.Get("Content-Type"), ContentTypeAppJSON) {
 		err = json.Unmarshal(c.bodyByte, v)
