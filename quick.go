@@ -35,6 +35,7 @@ const myContextKey contextKey = 0
 
 type HandleFunc func(*Ctx) error
 
+// Route represents a registered HTTP route in the Quick framework
 type Route struct {
 	//Pattern *regexp.Regexp
 	Group   string
@@ -396,7 +397,7 @@ func extractBodyBytes(r io.ReadCloser) []byte {
 }
 
 // mwWrapper applies all registered middlewares to an HTTP handler
-// The result will (q *Quick) mwWrapper(handler http.Handler) http.Handler
+// The result will mwWrapper(handler http.Handler) http.Handler
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	for i := range q.mws2 {
 		switch mw := q.mws2[i].(type) {
@@ -412,13 +413,15 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 }
 
 // appendRoute registers a new route in the Quick router and applies middlewares
-// The result will (q *Quick) appendRoute(route *Route)
+// The result will appendRoute(route *Route)
 func (q *Quick) appendRoute(route *Route) {
 	route.handler = q.mwWrapper(route.handler).ServeHTTP
 	//q.routes = append(q.routes, *route)
 	q.routes = append(q.routes, route)
 }
 
+// ServeHTTP is the main HTTP request dispatcher for the Quick router
+// The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for i := 0; i < len(q.routes); i++ {
 		var requestURI = req.URL.Path
@@ -446,7 +449,8 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(w, req)
 }
 
-// createParamsAndValid: Create params map and check if the request URI and pattern URI are valid
+// createParamsAndValid create params map and check if the request URI and pattern URI are valid
+// The result will createParamsAndValid(reqURI, patternURI string) (map[string]string, bool)
 func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	params := make(map[string]string)
 	var tmpPath string
@@ -481,10 +485,13 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	return params, true
 }
 
+// GetRoute returns all registered routes in the Quick framework
+// The result will GetRoute() []*Route
 func (q *Quick) GetRoute() []*Route {
 	return q.routes
 }
 
+// The result will Static(staticFolder string)
 func (q *Quick) Static(staticFolder string) {
 	// generate route get with a pattern like this: /static/:file
 	// pattern := concat.String(staticFolder, ":file")
@@ -507,16 +514,22 @@ func (q *Quick) Static(staticFolder string) {
 	// })
 }
 
+// execHandler wraps an HTTP handler with additional processing
+// The result will execHandler(next http.Handler) http.Handler
 func (q *Quick) execHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
 	})
 }
 
+// corsHandler returns an HTTP handler that applies CORS settings
+// The result will corsHandler() http.Handler
 func (q *Quick) corsHandler() http.Handler {
 	return q.CorsSet(q)
 }
 
+// httpServer creates and returns an HTTP server instance configured with Quick.
+// The result will httpServer(addr string, handler ...http.Handler) *http.Server
 func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 	var server *http.Server
 
@@ -556,6 +569,8 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 	return server
 }
 
+// Listen starts an HTTP server using the Quick framework.
+// The result will Listen(addr string, handler ...http.Handler) error
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	if q.config.MoreRequests > 0 {
 		debug.SetGCPercent(q.config.MoreRequests)
