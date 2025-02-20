@@ -35,6 +35,7 @@ const myContextKey contextKey = 0
 
 type HandleFunc func(*Ctx) error
 
+// Route represents a registered HTTP route in the Quick framework
 type Route struct {
 	//Pattern *regexp.Regexp
 	Group   string
@@ -193,6 +194,8 @@ func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
 	q.mux.HandleFunc(pathPut, route.handler)
 }
 
+// Delete function registers an HTTP route with the DELETE method on the Quick server.
+// The result will Delete(pattern string, handlerFunc HandleFunc)
 func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) {
 	_, params, partternExist := extractParamsPattern(pattern)
 	pathDelete := concat.String("delete#", pattern)
@@ -209,6 +212,8 @@ func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) {
 	q.mux.HandleFunc(pathDelete, route.handler)
 }
 
+// extractHeaders extracts all headers from an HTTP request and returns them
+// The result will extractHeaders(req http.Request) map[string][]string
 func extractHeaders(req http.Request) map[string][]string {
 	headersMap := make(map[string][]string)
 	for key, values := range req.Header {
@@ -217,6 +222,8 @@ func extractHeaders(req http.Request) map[string][]string {
 	return headersMap
 }
 
+// extractBind decodes the request body into the provided interface based on the Content-Type header
+// The result will extractBind(c *Ctx, v interface{}) (err error)
 func extractBind(c *Ctx, v interface{}) (err error) {
 	var req http.Request = *c.Request
 	if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppJSON ||
@@ -230,6 +237,8 @@ func extractBind(c *Ctx, v interface{}) (err error) {
 	return err
 }
 
+// extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern
+// The result will extractParamsPattern(pattern string) (path, params, partternExist string)
 func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	path = pattern
 	index := strings.Index(pattern, ":")
@@ -247,6 +256,8 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	return
 }
 
+// extractParamsGet processes an HTTP request for a dynamic GET route, extracting query parameters, headers, and handling the request using the provided handler function
+// The result will extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(myContextKey)
@@ -277,6 +288,8 @@ func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFu
 	}
 }
 
+// extractParamsPost processes an HTTP POST request, extracting the request body and headers and handling the request using the provided handler function
+// The result will extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(myContextKey)
@@ -303,6 +316,8 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	}
 }
 
+// extractParamsPut processes an HTTP PUT request, extracting request parameters, headers and request body before executing the provided handler function
+// The result will extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(myContextKey)
@@ -333,6 +348,8 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	}
 }
 
+// extractParamsDelete processes an HTTP DELETE request, extracting request parameters and headers before executing the provided handler function
+// The result will extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		v := req.Context().Value(myContextKey)
@@ -357,6 +374,8 @@ func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	}
 }
 
+// execHandleFunc executes the provided handler function and handles errors if they occur
+// The result will execHandleFunc(c *Ctx, handleFunc HandleFunc)
 func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	err := handleFunc(c)
 	if err != nil {
@@ -366,6 +385,8 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	}
 }
 
+// extractBodyBytes reads the request body and returns it as a byte slice
+// The result will extractBodyBytes(r io.ReadCloser) []byte
 func extractBodyBytes(r io.ReadCloser) []byte {
 	b, err := io.ReadAll(r)
 	if err != nil {
@@ -375,6 +396,8 @@ func extractBodyBytes(r io.ReadCloser) []byte {
 	return b
 }
 
+// mwWrapper applies all registered middlewares to an HTTP handler
+// The result will mwWrapper(handler http.Handler) http.Handler
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	for i := range q.mws2 {
 		switch mw := q.mws2[i].(type) {
@@ -389,12 +412,16 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	return handler
 }
 
+// appendRoute registers a new route in the Quick router and applies middlewares
+// The result will appendRoute(route *Route)
 func (q *Quick) appendRoute(route *Route) {
 	route.handler = q.mwWrapper(route.handler).ServeHTTP
 	//q.routes = append(q.routes, *route)
 	q.routes = append(q.routes, route)
 }
 
+// ServeHTTP is the main HTTP request dispatcher for the Quick router
+// The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for i := 0; i < len(q.routes); i++ {
 		var requestURI = req.URL.Path
@@ -422,7 +449,8 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(w, req)
 }
 
-// createParamsAndValid: Create params map and check if the request URI and pattern URI are valid
+// createParamsAndValid create params map and check if the request URI and pattern URI are valid
+// The result will createParamsAndValid(reqURI, patternURI string) (map[string]string, bool)
 func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	params := make(map[string]string)
 	var tmpPath string
@@ -457,10 +485,13 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	return params, true
 }
 
+// GetRoute returns all registered routes in the Quick framework
+// The result will GetRoute() []*Route
 func (q *Quick) GetRoute() []*Route {
 	return q.routes
 }
 
+// The result will Static(staticFolder string)
 func (q *Quick) Static(staticFolder string) {
 	// generate route get with a pattern like this: /static/:file
 	// pattern := concat.String(staticFolder, ":file")
@@ -483,16 +514,22 @@ func (q *Quick) Static(staticFolder string) {
 	// })
 }
 
+// execHandler wraps an HTTP handler with additional processing
+// The result will execHandler(next http.Handler) http.Handler
 func (q *Quick) execHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
 	})
 }
 
+// corsHandler returns an HTTP handler that applies CORS settings
+// The result will corsHandler() http.Handler
 func (q *Quick) corsHandler() http.Handler {
 	return q.CorsSet(q)
 }
 
+// httpServer creates and returns an HTTP server instance configured with Quick.
+// The result will httpServer(addr string, handler ...http.Handler) *http.Server
 func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 	var server *http.Server
 
@@ -532,6 +569,8 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 	return server
 }
 
+// Listen starts an HTTP server using the Quick framework.
+// The result will Listen(addr string, handler ...http.Handler) error
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	if q.config.MoreRequests > 0 {
 		debug.SetGCPercent(q.config.MoreRequests)
