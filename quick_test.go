@@ -2,8 +2,10 @@ package quick
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/jeffotoni/quick/middleware/cors"
 )
@@ -109,6 +111,62 @@ func ExampleQuick_Delete() {
 	fmt.Println(res.BodyStr())
 
 	// Out put: Recurso deletado!
+}
+
+// This function is named ExampleQuick_ServeHTTP()
+// It is used as an example for Godoc.
+func ExampleQuick_ServeHTTP() {
+	q := New()
+
+	q.Get("/users/:id", func(c *Ctx) error {
+		return c.Status(200).String("User Id: " + c.Params["id"])
+	})
+
+	res, _ := q.QuickTest("GET", "/users/42", nil)
+
+	fmt.Println(res.StatusCode())
+	fmt.Println(res.BodyStr())
+
+	// Out put:	200, 42
+}
+
+// This function is named ExampleQuick_GetRoute()
+// It is used as an example for Godoc.
+func ExampleQuick_GetRoute() {
+	q := New()
+
+	q.Get("/users/:id", func(c *Ctx) error {
+		return c.Status(200).String("User ID: " + c.Params["id"])
+	})
+	q.Post("/users", func(c *Ctx) error {
+		return c.Status(201).String("User created")
+	})
+
+	routes := q.GetRoute()
+
+	fmt.Println(len(routes))
+
+	for _, route := range routes {
+		fmt.Println(route.Method, route.Pattern)
+	}
+
+	// Out put: 2, GET /users/:id, POST /users
+}
+
+func ExampleQuick_Listen() {
+	q := New()
+
+	q.Get("/", func(c *Ctx) error {
+		return c.Status(200).String("Hello, Quick!")
+	})
+
+	err := q.Listen(":8080")
+	if err != nil {
+		fmt.Println("Error starting server:", err)
+	}
+
+	// Out put:
+	// (This function starts a server and does not return an output directly)
 }
 
 // go test -v -run ^TestExampleGetDefaultConfig
@@ -269,5 +327,96 @@ func TestExampleDelete(t *testing.T) {
 	expectedBody := "Recurso deletado!"
 	if data.BodyStr() != expectedBody {
 		t.Errorf("It was expected '%s', but received '%s'", expectedBody, data.BodyStr())
+	}
+}
+
+// go test -v -run ^TestServeHTTP
+func TestServeHTTP(t *testing.T) {
+	q := New()
+
+	q.Get("/users/:id", func(c *Ctx) error {
+		return c.Status(200).String("User Id: " + c.Params["id"])
+	})
+
+	res, err := q.QuickTest("GET", "/users/42", nil)
+	if err != nil {
+		t.Fatalf("QuickTest failed: %v", err)
+	}
+
+	expectedStatus := 200
+	if res.StatusCode() != expectedStatus {
+		t.Errorf("Expected status %d, but got %d", expectedStatus, res.StatusCode())
+	}
+
+	expectedBody := "User Id: 42"
+	if res.BodyStr() != expectedBody {
+		t.Errorf("Expected body '%s', but got '%s'", expectedBody, res.BodyStr())
+	}
+}
+
+// go test -v -run ^TestGetRoute
+func TestGetRoute(t *testing.T) {
+	q := New()
+
+	q.Get("/users/:id", func(c *Ctx) error {
+		return c.Status(200).String("User ID: " + c.Params["id"])
+	})
+	q.Post("/users", func(c *Ctx) error {
+		return c.Status(201).String("User created")
+	})
+
+	routes := q.GetRoute()
+
+	expectedNumRoutes := 2
+	if len(routes) != expectedNumRoutes {
+		t.Errorf("Expected %d routes, but got %d", expectedNumRoutes, len(routes))
+	}
+
+	expectedRoutes := map[string]string{
+		"GET":  "/users/:id",
+		"POST": "/users",
+	}
+
+	for _, route := range routes {
+		pattern := route.Pattern
+		if pattern == "" {
+			pattern = route.Path
+		}
+
+		expectedPattern, exists := expectedRoutes[route.Method]
+		if !exists {
+			t.Errorf("Unexpected HTTP method: %s", route.Method)
+		} else if pattern != expectedPattern {
+			t.Errorf("Expected pattern for %s: %s, but got %s", route.Method, expectedPattern, route.Pattern)
+		}
+	}
+}
+
+// go test -v -run ^TestQuick_ExampleListen
+func TestQuick_ExampleListen(t *testing.T) {
+	q := New()
+
+	q.Get("/", func(c *Ctx) error {
+		return c.Status(200).String("Hello, Quick!")
+	})
+
+	go func() {
+		err := q.Listen(":8089")
+		if err != nil {
+			t.Errorf("Server failed to start: %v", err)
+		}
+	}()
+
+	time.Sleep(500 * time.Millisecond)
+
+	resp, err := http.Get("http://localhost:8089/")
+	if err != nil {
+		t.Fatalf("Failed to connect to server: %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		t.Errorf("Expected status 200, but got %d", resp.StatusCode)
 	}
 }
