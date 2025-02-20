@@ -268,6 +268,114 @@ func ExampleStatusText() {
 	// Internal Server Error
 }
 
+// This function is named ExampleCtx_GetReqHeadersAll()
+// It is used as an example for Godoc
+func ExampleCtx_GetReqHeadersAll() {
+	q := New()
+
+	q.Get("/headers", func(c *Ctx) error {
+		headers := c.GetReqHeadersAll()
+		fmt.Println(headers["Content-Type"])
+		fmt.Println(headers["Accept"])
+		return nil
+	})
+
+	res, _ := q.QuickTest("GET", "/headers", map[string]string{
+		"Content-Type": "application/json",
+		"Accept":       "application/xml",
+	}, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// [application/json]
+	// [application/xml]
+}
+
+// This function is named ExampleCtx_GetHeadersAll()
+// It is used as an example for Godoc
+func ExampleCtx_GetHeadersAll() {
+	q := New()
+
+	q.Get("/headers", func(c *Ctx) error {
+		headers := c.GetHeadersAll()
+		fmt.Println(headers["Content-Type"])
+		fmt.Println(headers["Accept"])
+		return nil
+	})
+
+	res, _ := q.QuickTest("GET", "/headers", map[string]string{
+		"Content-Type": "application/json",
+		"Accept":       "application/xml",
+	}, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// [application/json]
+	// [application/xml]
+}
+
+// This function is named ExampleCtx_Bind()
+// It is used as an example for Godoc
+func ExampleCtx_Bind() {
+	q := New()
+
+	q.Post("/bind", func(c *Ctx) error {
+		var data struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		err := c.Bind(&data)
+		if err != nil {
+			fmt.Println("Erro ao fazer bind:", err)
+			return err
+		}
+
+		fmt.Println(data.Name, data.Age)
+		return nil
+	})
+
+	body := []byte(`{"name": "Quick", "age": 30}`)
+
+	res, _ := q.QuickTest("POST", "/bind", map[string]string{"Content-Type": "application/json"}, body)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put: Quick 30
+}
+
+// This function is named ExampleCtx_BodyParser()
+// It is used as an example for Godoc
+func ExampleCtx_BodyParser() {
+	q := New()
+
+	q.Post("/parse", func(c *Ctx) error {
+		var data struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		err := c.BodyParser(&data)
+		if err != nil {
+			fmt.Println("Erro ao analisar o corpo:", err)
+			return err
+		}
+
+		fmt.Println(data.Name, data.Age)
+		return nil
+	})
+
+	body := []byte(`{"name": "Quick", "age": 28}`)
+
+	res, _ := q.QuickTest("POST", "/parse", map[string]string{"Content-Type": "application/json"}, body)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put: Quick 28
+}
+
 // go test -v -run ^TestExampleGetDefaultConfig
 func TestExampleGetDefaultConfig(t *testing.T) {
 	expected := Config{
@@ -656,5 +764,117 @@ func TestStatusText(t *testing.T) {
 
 	if StatusText(999) != "" {
 		t.Errorf("Expected empty string for unknown status code, but got '%s'", StatusText(999))
+	}
+}
+
+// go test -v -run ^TestCtx_GetReqHeadersAll
+func TestCtx_GetReqHeadersAll(t *testing.T) {
+	ctx := &Ctx{
+		Headers: map[string][]string{
+			"Content-Type": {"application/json"},
+			"Accept":       {"application/xml"},
+		},
+	}
+
+	headers := ctx.GetReqHeadersAll()
+
+	if headers["Content-Type"][0] != "application/json" {
+		t.Errorf("Expected 'application/json', got '%s'", headers["Content-Type"][0])
+	}
+
+	if headers["Accept"][0] != "application/xml" {
+		t.Errorf("Expected 'application/xml', got '%s'", headers["Accept"][0])
+	}
+}
+
+// go test -v -run ^TestCtx_GetHeadersAll
+func TestCtx_GetHeadersAll(t *testing.T) {
+	ctx := &Ctx{
+		Headers: map[string][]string{
+			"Content-Type": {"application/json"},
+			"Accept":       {"application/xml"},
+		},
+	}
+
+	headers := ctx.GetHeadersAll()
+
+	if headers["Content-Type"][0] != "application/json" {
+		t.Errorf("Expected 'application/json', got '%s'", headers["Content-Type"][0])
+	}
+
+	if headers["Accept"][0] != "application/xml" {
+		t.Errorf("Expected 'application/xml', got '%s'", headers["Accept"][0])
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleBind
+func TestCtx_ExampleBind(t *testing.T) {
+	q := New()
+
+	q.Post("/bind", func(c *Ctx) error {
+		var data struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		err := c.Bind(&data)
+		if err != nil {
+			t.Errorf("Bind failed: %v", err)
+			return err
+		}
+
+		return c.Status(200).JSON(data)
+	})
+
+	body := []byte(`{"name": "Quick", "age": 30}`)
+
+	res, err := q.QuickTest("POST", "/bind", map[string]string{"Content-Type": "application/json"}, body)
+	if err != nil {
+		t.Fatalf("QuickTest failed: %v", err)
+	}
+
+	if res.StatusCode() != 200 {
+		t.Errorf("Expected status 200, got %d", res.StatusCode())
+	}
+
+	expected := `{"name":"Quick","age":30}`
+	if res.BodyStr() != expected {
+		t.Errorf("Expected response '%s', but got '%s'", expected, res.BodyStr())
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleBodyParser
+func TestCtx_ExampleBodyParser(t *testing.T) {
+	q := New()
+
+	q.Post("/test", func(c *Ctx) error {
+		var data struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		err := c.BodyParser(&data)
+		if err != nil {
+			t.Errorf("BodyParser failed: %v", err)
+			return err
+		}
+
+		return c.Status(200).JSON(data)
+	})
+
+	body := []byte(`{"name": "Quick", "age": 28}`)
+
+	res, err := q.QuickTest("POST", "/test", map[string]string{"Content-Type": "application/json"}, body)
+	if err != nil {
+		t.Fatalf("QuickTest failed: %v", err)
+	}
+
+	if res.StatusCode() != 200 {
+		t.Errorf("Expected status 200, got %d", res.StatusCode())
+	}
+
+	expected := `{"name":"Quick","age":28}`
+	if res.BodyStr() != expected {
+		t.Errorf("Expected response '%s', but got '%s'", expected, res.BodyStr())
 	}
 }
