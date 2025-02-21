@@ -460,6 +460,54 @@ func ExampleCtx_XML() {
 	// Out put:<message>Hello, Quick!</message>
 }
 
+// This function is named ExampleCtx_writeResponse()
+// it with the Examples type.
+func ExampleCtx_writeResponse() {
+	q := New()
+
+	q.Get("/response", func(c *Ctx) error {
+		return c.writeResponse([]byte("Hello, Quick!"))
+	})
+
+	res, _ := q.QuickTest("GET", "/response", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put: Hello, Quick!
+}
+
+// This function is named ExampleCtx_Byte()
+// it with the Examples type.
+func ExampleCtx_Byte() {
+	q := New()
+
+	q.Get("/byte", func(c *Ctx) error {
+		return c.Byte([]byte("Hello, Quick!"))
+	})
+
+	res, _ := q.QuickTest("GET", "/byte", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put: Hello, Quick!
+}
+
+// This function is named ExampleCtx_Send()
+// it with the Examples type.
+func ExampleCtx_Send() {
+	q := New()
+
+	q.Get("/send", func(c *Ctx) error {
+		return c.Send([]byte("Hello, Quick!"))
+	})
+
+	res, _ := q.QuickTest("GET", "/send", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put: Hello, Quick!
+}
+
 // go test -v -run ^TestExampleGetDefaultConfig
 func TestExampleGetDefaultConfig(t *testing.T) {
 	expected := Config{
@@ -1057,7 +1105,7 @@ func TestCtx_ExampleXML(t *testing.T) {
 
 	res, err := q.QuickTest("GET", "/xml", nil, nil)
 	if err != nil {
-		t.Fatalf("Erro ao executar QuickTest: %v", err)
+		t.Fatalf("QuickTest failed: %v", err)
 	}
 
 	expectedBody := `<message>Hello, Quick!</message>`
@@ -1071,5 +1119,80 @@ func TestCtx_ExampleXML(t *testing.T) {
 
 	if contentType != expectedContentType {
 		t.Errorf("Esperado Content-Type: %s, Obtido: %s", expectedContentType, contentType)
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleXML
+func TestCtx_ExamplewriteResponse(t *testing.T) {
+	q := New()
+
+	q.Get("/response", func(c *Ctx) error {
+		return c.writeResponse([]byte("Hello, Quick!"))
+	})
+
+	res, err := q.QuickTest("GET", "/response", nil, nil)
+	if err != nil {
+		t.Fatalf("QuickTest failed: %v", err)
+	}
+
+	expectedBody := "Hello, Quick!"
+
+	if res.BodyStr() != expectedBody {
+		t.Errorf("Esperado: %s, Obtido: %s", expectedBody, res.BodyStr())
+	}
+
+	expectedStatus := 200
+	if res.Response().StatusCode != expectedStatus {
+		t.Errorf("Esperado Status Code: %d, Obtido: %d", expectedStatus, res.Response().StatusCode)
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleByte
+func TestCtx_ExampleByte(t *testing.T) {
+	q := New()
+
+	q.Get("/byte", func(c *Ctx) error {
+		return c.Byte([]byte("Hello, Quick!"))
+	})
+
+	res, err := q.QuickTest("GET", "/byte", nil, nil)
+	if err != nil {
+		t.Fatalf("Erro ao executar QuickTest: %v", err)
+	}
+
+	expectedBody := "Hello, Quick!"
+
+	if res.BodyStr() != expectedBody {
+		t.Errorf("Esperado: %s, Obtido: %s", expectedBody, res.BodyStr())
+	}
+
+	expectedStatus := 200
+	if res.Response().StatusCode != expectedStatus {
+		t.Errorf("Esperado Status Code: %d, Obtido: %d", expectedStatus, res.Response().StatusCode)
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleSend
+func TestCtx_ExampleSend(t *testing.T) {
+	q := New()
+
+	q.Get("/send", func(c *Ctx) error {
+		return c.Send([]byte("Hello, Quick!"))
+	})
+
+	res, err := q.QuickTest("GET", "/send", nil, nil)
+	if err != nil {
+		t.Fatalf("Erro ao executar QuickTest: %v", err)
+	}
+
+	expectedBody := "Hello, Quick!"
+
+	if res.BodyStr() != expectedBody {
+		t.Errorf("Esperado: %s, Obtido: %s", expectedBody, res.BodyStr())
+	}
+
+	expectedStatus := 200
+	if res.Response().StatusCode != expectedStatus {
+		t.Errorf("Esperado Status Code: %d, Obtido: %d", expectedStatus, res.Response().StatusCode)
 	}
 }
