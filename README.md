@@ -12,6 +12,19 @@
 
 🔍 O repositório de exemplos do Framework Quick [Exemplos Quick](https://github.com/gojeffotoni/examples).
 
+## 🎛️| Funcionalidades
+
+| Funcionalidades                                 | Possui    |
+|-------------------------------------------------|-----------|
+| 🛣️ Gerenciador de Rotas                           |   sim     |
+| 📁 Server Files Static                            |   sim     |
+| 🚪 Grupo de Rotas                                  |   sim     |
+| 🌐 Middlewares                                     |   sim     |
+| 🚀 HTTP/2 support                                 |   sim     |
+| 🧬 Data binding for JSON, XML and form payload     |   sim     |
+| 🔍 Suporte para regex                              |   sim     |
+
+
 ## 🗺️| Rodmap do desenvolvimento
 
 | Tarefa                                          | Progresso |
@@ -70,7 +83,7 @@
 | Tarefa                                            | Progresso |
 |---------------------------------------------------|-----------|
 | Documentação Tests Examples PKG Go                | 45.%       |
-| Cobertura de Testes go test -cover                | 74.6%     |
+| Cobertura de Testes go test -cover                | 74.6%      |
 | Cobertura de recursos Regex, mas possibilidades   | 0.%       |
 | Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
 | Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
@@ -229,18 +242,6 @@ Content-Type: text/plain; charset=utf-8
 {"name":"jeffotoni","year":1990}
 
 ```
-
-## 🎛️| Funcionalidades
-
-| Funcionalidades                                 | Possui    |
-|-------------------------------------------------|-----------|
-| 🛣️ Gerenciador de Rotas                           |   sim     |
-| 📁 Server Files Static                            |   sim     |
-| 🚪 Grupo de Rotas                                  |   sim     |
-| 🌐 Middlewares                                     |   sim     |
-| 🚀 HTTP/2 support                                 |   sim     |
-| 🧬 Data binding for JSON, XML and form payload     |   sim     |
-| 🔍 Suporte para regex                              |   sim     |
 
 
 ## 📚| Examples
