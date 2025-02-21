@@ -87,7 +87,7 @@
 | Task   | Progress |
 |---------------------------------------------------|-----------|
 | Documentation Tests Examples PKG Go   | 45. %   |
-| Test coverage go test -cover   | 74.6%   |
+| Test coverage go test -cover   | 75.5%   |
 | Coverage of Regex resources, but possibilities   | 0.%   |
 | Develop for METHOD OPTIONS   | 0.%   |
 | Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)   | 0.%   |
@@ -96,22 +96,22 @@
 | Create a CLI (Command Line Interface) Quick.   | 0.%   |
 
 
-## 📊| Roadmap de Cobertura de Testes dos Arquivos
+## 📊| File Test Coverage Roadmap
 
-| Arquivo   | Cobertura | Status  |
+| Archive   | Coverage | Status  |
 |---------------|-----------|---------|
-| Ctx   | 75.0%   | 🟡   |
-| Grupo   | 100.0%   | 🟢   |
+| Ctx   | 84.1%   | 🟡   |
+| Group   | 100.0%   | 🟢   |
 | Http Status  | 7.8%   | 🔴   |
-| Cliente   | 83.3%   | 🟢   |
+| Client   | 83.3%   | 🟢   |
 | Mock   | 100.0%   | 🟢   |
 | Concat   | 100.0%   | 🟢   |
 | Log   | 0.0%   | 🔴   |
-| Imprimir   | 66.7%   |  🟡   |
+| Print   | 66.7%   |  🟡   |
 | Qos   | 0.0%   |  🔴   |
 | Rand   | 0.0%   |  🔴   |
 | Compressa   | 71,4%   | 🟡   |
-| Compressa   | 76.0%   | 🟡   |
+| Cors   | 76.0%   | 🟡   |
 | Logger   | 100.0%   | 🟢   |
 | Maxbody   | 100.0%   | 🟢   |
 | Msgid   | 100.0%   | 🟢   |
