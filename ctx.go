@@ -132,33 +132,47 @@ func (c *Ctx) Send(b []byte) (err error) {
 	return c.writeResponse(b)
 }
 
+// SendString writes a string in the HTTP response, converting it to an array of bytes and using writeResponse()
+// The result will SendString(s string) error
 func (c *Ctx) SendString(s string) error {
 	return c.writeResponse([]byte(s))
 
 }
 
+// String escreve uma string na resposta HTTP, convertendo-a para um array de bytes e utilizando writeResponse()
+// The result will String(s string) error
 func (c *Ctx) String(s string) error {
 	return c.writeResponse([]byte(s))
 }
 
+// SendFile writes a file in the HTTP response as an array of bytes
+// The result will SendFile(file []byte) error
 func (c *Ctx) SendFile(file []byte) error {
 	_, err := c.Response.Write(file)
 	return err
 }
 
+// Set defines an HTTP header in the response
+// The result will Set(key, value string)
 func (c *Ctx) Set(key, value string) {
 	c.Response.Header().Set(key, value)
 }
 
+// Append adds a value to the HTTP header specified in the response
+// The result will Append(key, value string)
 func (c *Ctx) Append(key, value string) {
 	c.Response.Header().Add(key, value)
 }
 
+// Accepts defines the HTTP header "Accept" in the response
+// The result will Accepts(acceptType string) *Ctx
 func (c *Ctx) Accepts(acceptType string) *Ctx {
 	c.Response.Header().Set("Accept", acceptType)
 	return c
 }
 
+// Status defines the HTTP status code of the response
+// The result will Status(status int) *Ctx
 func (c *Ctx) Status(status int) *Ctx {
 	c.resStatus = status
 	return c
