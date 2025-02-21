@@ -1,6 +1,7 @@
 package quick
 
 import (
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -11,7 +12,7 @@ import (
 )
 
 // This function is named ExampleGetDefaultConfig()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleGetDefaultConfig() {
 	result := GetDefaultConfig()
 	fmt.Printf("BodyLimit: %d\n", result.BodyLimit)
@@ -27,7 +28,7 @@ func ExampleGetDefaultConfig() {
 }
 
 // This function is named ExampleNew()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleNew() {
 	q := New()
 	q.Get("/", func(c *Ctx) error {
@@ -41,7 +42,7 @@ func ExampleNew() {
 }
 
 // This function is named ExampleQuick_Use()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_Use() {
 	q := New()
 	q.Use(cors.New())
@@ -56,7 +57,7 @@ func ExampleQuick_Use() {
 }
 
 // This function is named ExampleQuick_Get()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_Get() {
 	q := New()
 	q.Get("/hello", func(c *Ctx) error {
@@ -70,7 +71,7 @@ func ExampleQuick_Get() {
 }
 
 // This function is named ExampleQuick_Post()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_Post() {
 	q := New()
 	q.Post("/create", func(c *Ctx) error {
@@ -84,7 +85,7 @@ func ExampleQuick_Post() {
 }
 
 // This function is named ExampleQuick_Put()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_Put() {
 	q := New()
 	q.Put("/update", func(c *Ctx) error {
@@ -99,7 +100,7 @@ func ExampleQuick_Put() {
 }
 
 // This function is named ExampleQuick_Delete()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_Delete() {
 	q := New()
 	q.Delete("/delete", func(c *Ctx) error {
@@ -114,7 +115,7 @@ func ExampleQuick_Delete() {
 }
 
 // This function is named ExampleQuick_ServeHTTP()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_ServeHTTP() {
 	q := New()
 
@@ -131,7 +132,7 @@ func ExampleQuick_ServeHTTP() {
 }
 
 // This function is named ExampleQuick_GetRoute()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_GetRoute() {
 	q := New()
 
@@ -154,7 +155,7 @@ func ExampleQuick_GetRoute() {
 }
 
 // This function is named ExampleQuick_Listen()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_Listen() {
 	q := New()
 
@@ -172,7 +173,7 @@ func ExampleQuick_Listen() {
 }
 
 // This function is named ExampleQuick_Group()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleQuick_Group() {
 	q := New()
 
@@ -184,7 +185,7 @@ func ExampleQuick_Group() {
 }
 
 // This function is named ExampleGroup_Get()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleGroup_Get() {
 	q := New()
 
@@ -202,7 +203,7 @@ func ExampleGroup_Get() {
 }
 
 // This function is named ExampleGroup_Post()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleGroup_Post() {
 	q := New()
 
@@ -220,7 +221,7 @@ func ExampleGroup_Post() {
 }
 
 // This function is named ExampleGroup_Put()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleGroup_Put() {
 	q := New()
 
@@ -238,7 +239,7 @@ func ExampleGroup_Put() {
 }
 
 // This function is named ExampleGroup_Delete()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleGroup_Delete() {
 	q := New()
 
@@ -256,7 +257,7 @@ func ExampleGroup_Delete() {
 }
 
 // This function is named ExampleStatusText()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleStatusText() {
 	fmt.Println(StatusText(200))
 	fmt.Println(StatusText(404))
@@ -269,7 +270,7 @@ func ExampleStatusText() {
 }
 
 // This function is named ExampleCtx_GetReqHeadersAll()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleCtx_GetReqHeadersAll() {
 	q := New()
 
@@ -293,7 +294,7 @@ func ExampleCtx_GetReqHeadersAll() {
 }
 
 // This function is named ExampleCtx_GetHeadersAll()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleCtx_GetHeadersAll() {
 	q := New()
 
@@ -317,7 +318,7 @@ func ExampleCtx_GetHeadersAll() {
 }
 
 // This function is named ExampleCtx_Bind()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleCtx_Bind() {
 	q := New()
 
@@ -347,7 +348,7 @@ func ExampleCtx_Bind() {
 }
 
 // This function is named ExampleCtx_BodyParser()
-// It is used as an example for Godoc
+// it with the Examples type.
 func ExampleCtx_BodyParser() {
 	q := New()
 
@@ -374,6 +375,89 @@ func ExampleCtx_BodyParser() {
 	fmt.Println(res.BodyStr())
 
 	// Out put: Quick 28
+}
+
+// This function is named ExampleCtx_Param()
+// it with the Examples type.
+func ExampleCtx_Param() {
+	q := New()
+
+	q.Get("/user/:id", func(c *Ctx) error {
+		id := c.Param("id")
+		return c.SendString(id)
+	})
+
+	res, _ := q.QuickTest("GET", "/user/42", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put: 42
+}
+
+// This function is named ExampleCtx_Body()
+// it with the Examples type.
+func ExampleCtx_Body() {
+	c := &Ctx{
+		bodyByte: []byte(`{"name": "Quick", "age": 28}`),
+	}
+
+	body := c.Body()
+
+	fmt.Println(string(body))
+
+	// Out put: {"name": "Quick", "age": 28}
+}
+
+// This function is named ExampleCtx_Body()
+// it with the Examples type.
+func ExampleCtx_BodyString() {
+	c := &Ctx{
+		bodyByte: []byte(`{"name": "Quick", "age": 28}`),
+	}
+
+	bodyStr := c.BodyString()
+
+	fmt.Println(bodyStr)
+
+	// Out put: {"name": "Quick", "age": 28}
+}
+
+// This function is named ExampleCtx_JSON()
+// it with the Examples type.
+func ExampleCtx_JSON() {
+	q := New()
+
+	q.Get("/json", func(c *Ctx) error {
+		data := map[string]string{"message": "Hello, Quick!"}
+		return c.JSON(data)
+	})
+
+	res, _ := q.QuickTest("GET", "/json", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put: {"message":"Hello, Quick!"}
+}
+
+// This function is named ExampleCtx_XML()
+// it with the Examples type.
+func ExampleCtx_XML() {
+	q := New()
+
+	q.Get("/xml", func(c *Ctx) error {
+		data := struct {
+			Message string `xml:"message"`
+		}{
+			Message: "Hello, Quick!",
+		}
+		return c.XML(data)
+	})
+
+	res, _ := q.QuickTest("GET", "/xml", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put:<message>Hello, Quick!</message>
 }
 
 // go test -v -run ^TestExampleGetDefaultConfig
@@ -876,5 +960,116 @@ func TestCtx_ExampleBodyParser(t *testing.T) {
 	expected := `{"name":"Quick","age":28}`
 	if res.BodyStr() != expected {
 		t.Errorf("Expected response '%s', but got '%s'", expected, res.BodyStr())
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleParam
+func TestCtx_ExampleParam(t *testing.T) {
+	q := New()
+
+	q.Get("/user/:id", func(c *Ctx) error {
+		id := c.Param("id")
+		return c.SendString(id)
+	})
+
+	res, err := q.QuickTest("GET", "/user/42", nil, nil)
+	if err != nil {
+		t.Fatalf("QuickTest failed: %v", err)
+	}
+
+	expectedBody := "42"
+	if res.BodyStr() != expectedBody {
+		t.Errorf("Expected: %s, received: %s", expectedBody, res.BodyStr())
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleBody
+func TestCtx_ExampleBody(t *testing.T) {
+	expectedBody := `{"name": "Quick", "age": 28}`
+
+	c := &Ctx{
+		bodyByte: []byte(expectedBody),
+	}
+
+	body := c.Body()
+
+	if string(body) != expectedBody {
+		t.Errorf("Expected: %s, received: %s", expectedBody, string(body))
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleBodyString
+func TestCtx_ExampleBodyString(t *testing.T) {
+	expectedBody := `{"name": "Quick", "age": 28}`
+
+	c := &Ctx{
+		bodyByte: []byte(expectedBody),
+	}
+
+	bodyStr := c.BodyString()
+
+	if bodyStr != expectedBody {
+		t.Errorf("Expected: %s, received: %s", expectedBody, bodyStr)
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleJSON
+func TestCtx_ExampleJSON(t *testing.T) {
+	q := New()
+
+	q.Get("/json", func(c *Ctx) error {
+		data := map[string]string{"message": "Hello, Quick!"}
+		return c.JSON(data)
+	})
+
+	res, err := q.QuickTest("GET", "/json", nil, nil)
+	if err != nil {
+		t.Fatalf("QuickTest failed: %v", err)
+	}
+
+	expectedBody := `{"message":"Hello, Quick!"}`
+
+	if res.BodyStr() != expectedBody {
+		t.Errorf("Expected: %s, received: %s", expectedBody, res.BodyStr())
+	}
+
+	expectedContentType := "application/json"
+	contentType := res.Response().Header.Get("Content-Type")
+
+	if contentType != expectedContentType {
+		t.Errorf("Expected Content-Type: %s, received: %s", expectedContentType, contentType)
+	}
+}
+
+type XMLMessage struct {
+	XMLName xml.Name `xml:"message"`
+	Message string   `xml:",chardata"`
+}
+
+// go test -v -run ^TestCtx_ExampleXML
+func TestCtx_ExampleXML(t *testing.T) {
+	q := New()
+
+	q.Get("/xml", func(c *Ctx) error {
+		data := XMLMessage{Message: "Hello, Quick!"}
+		return c.XML(data)
+	})
+
+	res, err := q.QuickTest("GET", "/xml", nil, nil)
+	if err != nil {
+		t.Fatalf("Erro ao executar QuickTest: %v", err)
+	}
+
+	expectedBody := `<message>Hello, Quick!</message>`
+
+	if res.BodyStr() != expectedBody {
+		t.Errorf("Esperado: %s, Obtido: %s", expectedBody, res.BodyStr())
+	}
+
+	expectedContentType := "text/xml"
+	contentType := res.Response().Header.Get("Content-Type")
+
+	if contentType != expectedContentType {
+		t.Errorf("Esperado Content-Type: %s, Obtido: %s", expectedContentType, contentType)
 	}
 }
