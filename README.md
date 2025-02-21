@@ -86,7 +86,6 @@
 
 | Task   | Progress |
 |---------------------------------------------------|-----------|
-<<<<<<< HEAD
 | Documentação Tests Examples PKG Go                | 45.%       |
 | Cobertura de Testes go test -cover                | 74.6%      |
 | Cobertura de recursos Regex, mas possibilidades   | 0.%       |
@@ -98,8 +97,6 @@
 | WebSocket Support                                 | 0.%       |
 | Rate Limiter Support                              | 0.%       |
 | Template Engines                                  | 0.%       |
-
-=======
 | Documentation Tests Examples PKG Go   | 45. %   |
 | Test coverage go test -cover   | 75.5%   |
 | Coverage of Regex resources, but possibilities   | 0.%   |
@@ -108,7 +105,7 @@
 | Develop method for ListenAndServeTLS (http2) | 0.%   |
 | Develops Static Files support   | 0.%   |
 | Create a CLI (Command Line Interface) Quick.   | 0.%   |
->>>>>>> origin/docs/improve-examples
+
 
 
 ## 📊| File Test Coverage Roadmap
@@ -260,11 +257,7 @@ Content-Type: text/plain; charset=utf-8
 
 ## 📚| More Examples
 
-<<<<<<< HEAD
-Este repositório contém exemplos práticos do Framework Quick, um framework web rápido e leve, desenvolvido em Go. Os exemplos estão organizados em pastas separadas, cada uma contendo um exemplo completo de uso do framework em uma aplicação web simples. Se você tem algum exemplo interessante de uso do Framework Quick, sinta-se à vontade para enviar uma solicitação de pull request com sua contribuição. O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/quick/tree/main/example).
-=======
 This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/examples).
->>>>>>> origin/docs/improve-examples
 
 
 ### Quick Post Bind json
