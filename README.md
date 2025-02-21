@@ -15,15 +15,18 @@
 
 ## 🎛️| Features
 
-| Features   | Has | Status |
-|-------------------------------------------------|--------|--------|
-| 🛣️ Route Manager   | yes   | 🟢   |
-| 📁 Server Files Static   | yes   | 🟢   |
-| 🚪 Route Group   | yes   | 🟢   |
-| 🌐 Middlewares   | yes   | 🟢   |
-| 🚀 HTTP/2 support   | yes   | 🟢   |
-| 🧬 Data binding for JSON, XML and form payload   | yes   | 🟢   |
-| 🔍 Regex support   | yes   | 🟢   |
+| Features                                         | Has  | Status | Completion |
+|--------------------------------------------------|------|--------|------------|
+| 🛣️ Route Manager                                  | yes  | 🟢     | 100%       |
+| 📁 Server Files Static                           | yes  | 🟢     | 100%       |
+| 🚪 Route Group                                   | yes  | 🟢     | 100%       |
+| 🌐 Middlewares                                   | yes  | 🟢     | 100%       |
+| 🚀 HTTP/2 support                                | yes  | 🟢     | 100%       |
+| 🧬 Data binding for JSON, XML and form payload   | yes  | 🟢     | 100%       |
+| 🔍 Regex support                                 | yes  | 🟢     | 100%       |
+| 🌐 Site                                             | yes  | 🟢     | 90%        |
+| 📚 Docs                                             | yes  | 🟡     | 40%        |
+
 
 
 
