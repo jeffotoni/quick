@@ -69,9 +69,9 @@
 
 | Tarefa                                            | Progresso |
 |---------------------------------------------------|-----------|
-| Docuemntação Tests Examples PKG Go                | 0.%       |
-| Cobertura de Testes go test -cover                | 0.%       |
-| Cobertura de recursos Regex, mas possibilidades   | 0.%      |
+| Documentação Tests Examples PKG Go                | 45.%       |
+| Cobertura de Testes go test -cover                | 74.6%     |
+| Cobertura de recursos Regex, mas possibilidades   | 0.%       |
 | Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
 | Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
@@ -80,6 +80,31 @@
 | WebSocket Support                                 | 0.%       |
 | Rate Limiter Support                              | 0.%       |
 | Template Engines                                  | 0.%       |
+
+
+
+## 📊| Roadmap de Cobertura de Testes dos Arquivos
+
+| Arquivo       | Cobertura | Status  |
+|---------------|-----------|---------|
+| Ctx           | 75.0%     | 🟡      |
+| Group         | 100.0%    | 🟢      |
+| Http Status  | 7.8%      | 🔴      |
+| Client        | 83.3%     | 🟢      |
+| Mock         | 100.0%    | 🟢      |
+| Concat         | 100.0%    | 🟢      |
+| Log         | 0.0%    | 🔴      |
+| Print         | 66.7%    |  🟡       |
+| Qos         | 0.0%    |  🔴        |
+| Rand         | 0.0%    |  🔴        |
+| Compress           | 71.4%     | 🟡      |
+| Compress           | 76.0%     | 🟡      |
+| Logger         | 100.0%    | 🟢      |
+| Maxbody         | 100.0%    | 🟢      |
+| Msgid         | 100.0%    | 🟢      |
+| Msguuid         | 86.4%    | 🟢      |
+| Quick         | 79.5%    | 🟡       |
+| QuickTest         | 100.0%    | 🟢      |
 
 
 
