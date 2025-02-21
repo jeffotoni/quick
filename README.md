@@ -3,120 +3,121 @@
 
 [![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
 
-# Quick Route Go ![Logo do Quick](/quick.png)
-🚀 O Quick é um **gerenciador de rotas flexível e extensível** para a linguagem Go. Seu objetivo é ser **rápido e de alto desempenho**, além de ser **100% compatível com net/http**. O Quick é um **projeto em constante desenvolvimento** e está aberto para **colaboração**, todos são bem-vindos para contribuir. 😍
+# Quick Route Go! [Quick Logo](/quick.png)
+🚀 Quick is a **flexible and extensible** route manager for the Go language. Its goal is to be **fast and high-performance**, as well as being **100% compatible with net/http**. Quick is a **project in constant development** and is open for **collaboration**, everyone is welcome to contribute. 😍
 
-💡 Se você é novo na programação, o Quick é uma ótima oportunidade para começar a aprender a trabalhar com Go. Com sua **facilidade de uso** e recursos, você pode **criar rotas personalizadas** e expandir seu conhecimento na linguagem.
+💡 If you’re new to coding, Quick is a great opportunity to start learning how to work with Go. With its **ease of use** and features, you can **create custom routes** and expand your knowledge of the language.
 
-👍 Espero que possam participar e que gostem de **Godar**!!! 😍
+👍 I hope you can participate and enjoy **Enjoy**! 😍
 
-🔍 O repositório de exemplos do Framework Quick [Exemplos Quick](https://github.com/gojeffotoni/examples).
+🔍 The repository of examples of the Framework Quick [Quick Examples](https://github.com/gojeffotoni/examples).
 
-## 🎛️| Funcionalidades
 
-| Funcionalidades                                 | Possui | Status |
+## 🎛️| Features
+
+| Features   | Has | Status |
 |-------------------------------------------------|--------|--------|
-| 🛣️ Gerenciador de Rotas                          | sim    | 🟢     |
-| 📁 Server Files Static                           | sim    | 🟢     |
-| 🚪 Grupo de Rotas                                 | sim    | 🟢     |
-| 🌐 Middlewares                                    | sim    | 🟢     |
-| 🚀 HTTP/2 support                                | sim    | 🟢     |
-| 🧬 Data binding for JSON, XML and form payload    | sim    | 🟢     |
-| 🔍 Suporte para regex                             | sim    | 🟢     |
+| 🛣️ Route Manager   | yes   | 🟢   |
+| 📁 Server Files Static   | yes   | 🟢   |
+| 🚪 Route Group   | yes   | 🟢   |
+| 🌐 Middlewares   | yes   | 🟢   |
+| 🚀 HTTP/2 support   | yes   | 🟢   |
+| 🧬 Data binding for JSON, XML and form payload   | yes   | 🟢   |
+| 🔍 Regex support   | yes   | 🟢   |
 
 
-## 🗺️| Rodmap do desenvolvimento
 
-| Tarefa                                          | Progresso |
+## 🗺️| Development Rodmap
+
+| Task   | Progress |
 |-------------------------------------------------|-----------|
-| Desenvolver MaxBodySize metodo Post       | 100%      |
-| Desenvolver MaxBodySize metodo  Put             | 100%      |
-| Desenvolver Config em New(Config{}) não obrigatório | 100%   |
-| Criação de função print para não usar fmt de forma demasiada | 100% |
-| Criação de função própria para Concat String     | 100%      |
-| Criação de benchmarking entre os.Stdout e fmt.Println | 100%   |
-| Desenvolver Routes Método GET                    | 100%       |
-| Desenvolver Routes Método GET aceitando Query String | 100%    |
-| Desenvolver Routes Método GET aceitando Parametros | 100%      |
-| Desenvolver Routes Método GET aceitando Query String e Parametros | 100% |
-| Desenvolver Routes Método GET aceitando expressão regular | 100.% |
-| Desenvolver Routes Método POST                   | 100%       |
-| Desenvolver Routes Método POST aceitando JSON    | 100%       |
-| Desenvolver para o MÉTODO POST o parse JSON       | 100%       |
-| Desenvolver para o MÉTODO POST funções para acessar byte ou string do Parse | 100% |
-| Desenvolver para o MÉTODO PUT                    | 100%       |
-| Desenvolver para o MÉTODO PUT o parse JSON        | 100%       |
-| Desenvolver para o MÉTODO PUT o parse JSON        | 100%       |
-| Desenvolver para o MÉTODO PUT funções para acessar byte ou string do Parse | 100% |
-| Desenvolver para o MÉTODO DELETE                  | 100%       |
-| Desenvolver método para ListenAndServe           | 100%       |
-| Desenvolver suporte a ServeHTTP                  | 100%       |
-| Desenvolver suporte a middlewares                 | 100%       |
-| Desenvolver suporte a middleware compress                 | 100%       |
-| Desenvolver suporte a middlewares cors                 | 100%       |
-| Desenvolver suporte a middlewares logger                 | 100%       |
-| Desenvolver suporte a middlewares maxbody                 | 100%       |
-| Desenvolver suporte a middlewares msgid                 | 100%       |
-| Desenvolver suporte a middlewares msguuid                 | 100%       |
-| Desenvolver suporte Cors                          | 100.%       |
-| Desenvolver suporte Cient Get                     | 100.%       |
-| Desenvolver suporte Cient Post                     | 100.%       |
-| Desenvolver suporte Cient Put                     | 100.%       |
-| Desenvolver suporte Cient Delete                     | 100.%       |
+| Develop MaxBodySize method Post   | 100%   |
+| Develop MaxBodySize method Put   | 100%   |
+| Develop Config in New(Config{}) not required | 100%   |
+| Create print function to not use fmt too much | 100% |
+| Creation of own function for Concat String   | 100%   |
+| Creation of benchmarking between the. Stdout and fmt.Println | 100%   |
+| Develop Routes GET method   | 100%   |
+| Develop Routes GET method by accepting Query String | 100%   |
+| Develop Routes GET method accepting Parameters | 100%   |
+| Develop Routes GET method accepting Query String and Parameters | 100% |
+| Develop Routes GET method accepting regular expression | 100. % |
+| Develop Routes Method POST   | 100%   |
+| Develop Routes POST method accepting JSON   | 100%   |
+| Develop for METHOD POST the parse JSON   | 100%   |
+| Develop for the POST METHOD functions to access byte or string from Parse | 100% |
+| Develop for PUT METHOD   | 100%   |
+| Develop for the PUT METHOD the JSON parse   | 100%   |
+| Develop for the PUT METHOD the JSON parse   | 100%   |
+| Develop for METHOD PUT functions to access byte or string from the Parse | 100% |
+| Develop for DELETE METHOD   | 100%   |
+| Develop method for ListenAndServe   | 100%   |
+| Develop ServeHTTP support   | 100%   |
+| Develop middleware support   | 100%   |
+| Develop support for middleware compress   | 100%   |
+| Develop support for middleware cors   | 100%   |
+| Develop logger middleware support   | 100%   |
+| Develop support for maxbody middlewares   | 100%   |
+| Develop middleware support msgid   | 100%   |
+| Develop middleware support msguuid   | 100%   |
+| Develop support Cors   | 100. %   |
+| Develop Cient Get   | 100. %   |
+| Develop Cient Post support   | 100. %   |
+| Develop Cient Put support   | 100. %   |
+| Develop Cient support Delete   | 100. %   |
 
 
+## 🚧| Rodmap in progress
 
-## 🚧| Rodmap em Progresso
-
- | Tarefa                                          | Progresso |
+ | Task   | Progress |
 |--------------------------------------------------|-----------|
-| Desenvolver e relacionar ao Listen o Config      | 42%       |
-| Desenvolve suporte a Grupo de Rotas - Group Get e Post | 70% |
-| Desenvolver método para Facilitar a manipulação do ResponseWriter | 80% |
-| Desenvolver método para Facilitar a manipulação do Request | 80%  |
-| Desenvolver Padrão de Testes Unitários                     | 90%        |
+| Develop and relate to Listen the Config   | 42%   |
+| Develops support for Group Routes - Group Get and Post | 70% |
+| Develop method to Facilitate ResponseWriter handling | 80% |
+| Develop method to Facilitate the handling of the Request | 80%  |
+| Develop Standard of Unit Testing   | 90%   |
 
 
-## 🚀| Rodmap para desenvolvimento
+## 🚀| Rodmap for development
 
 
-| Tarefa                                            | Progresso |
+| Task   | Progress |
 |---------------------------------------------------|-----------|
-| Documentação Tests Examples PKG Go                | 45.%       |
-| Cobertura de Testes go test -cover                | 74.6%      |
-| Cobertura de recursos Regex, mas possibilidades   | 0.%       |
-| Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
-| Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
-| Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
-| Desenvolve suporte Static Files                   | 0.%       |
-| Criar um CLI (Command Line Interface) Quick.      | 0.%       |
+| Documentation Tests Examples PKG Go   | 45. %   |
+| Test coverage go test -cover   | 74.6%   |
+| Coverage of Regex resources, but possibilities   | 0.%   |
+| Develop for METHOD OPTIONS   | 0.%   |
+| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)   | 0.%   |
+| Develop method for ListenAndServeTLS (http2) | 0.%   |
+| Develops Static Files support   | 0.%   |
+| Create a CLI (Command Line Interface) Quick.   | 0.%   |
 
 
 ## 📊| Roadmap de Cobertura de Testes dos Arquivos
 
-| Arquivo       | Cobertura | Status  |
+| Arquivo   | Cobertura | Status  |
 |---------------|-----------|---------|
-| Ctx           | 75.0%     | 🟡      |
-| Group         | 100.0%    | 🟢      |
-| Http Status  | 7.8%      | 🔴      |
-| Client        | 83.3%     | 🟢      |
-| Mock         | 100.0%    | 🟢      |
-| Concat         | 100.0%    | 🟢      |
-| Log         | 0.0%    | 🔴      |
-| Print         | 66.7%    |  🟡       |
-| Qos         | 0.0%    |  🔴        |
-| Rand         | 0.0%    |  🔴        |
-| Compress           | 71.4%     | 🟡      |
-| Compress           | 76.0%     | 🟡      |
-| Logger         | 100.0%    | 🟢      |
-| Maxbody         | 100.0%    | 🟢      |
-| Msgid         | 100.0%    | 🟢      |
-| Msguuid         | 86.4%    | 🟢      |
-| Quick         | 79.5%    | 🟡       |
-| QuickTest         | 100.0%    | 🟢      |
+| Ctx   | 75.0%   | 🟡   |
+| Grupo   | 100.0%   | 🟢   |
+| Http Status  | 7.8%   | 🔴   |
+| Cliente   | 83.3%   | 🟢   |
+| Mock   | 100.0%   | 🟢   |
+| Concat   | 100.0%   | 🟢   |
+| Log   | 0.0%   | 🔴   |
+| Imprimir   | 66.7%   |  🟡   |
+| Qos   | 0.0%   |  🔴   |
+| Rand   | 0.0%   |  🔴   |
+| Compressa   | 71,4%   | 🟡   |
+| Compressa   | 76.0%   | 🟡   |
+| Logger   | 100.0%   | 🟢   |
+| Maxbody   | 100.0%   | 🟢   |
+| Msgid   | 100.0%   | 🟢   |
+| Msguuid   | 86.4%   | 🟢   |
+| Quick   | 79.5%   | 🟡   |
+| QuickTest   | 100.0%   | 🟢   |
 
 
-### Primeiro exemplo Quick
+### First example Quick
 ```go
 
 package main
@@ -239,9 +240,9 @@ Content-Type: text/plain; charset=utf-8
 ```
 
 
-## 📚| Examples
+## 📚| More Examples
 
-Este repositório contém exemplos práticos do Framework Quick, um framework web rápido e leve, desenvolvido em Go. Os exemplos estão organizados em pastas separadas, cada uma contendo um exemplo completo de uso do framework em uma aplicação web simples. Se você tem algum exemplo interessante de uso do Framework Quick, sinta-se à vontade para enviar uma solicitação de pull request com sua contribuição. O repositório de exemplos do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/examples).
+This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/examples).
 
 
 ### Quick Post Bind json
@@ -444,20 +445,19 @@ func main() {
 
 ```
 
+## 🤝| Contributions
 
-## 🤝| Contribuições
-
-Já temos diversos exemplos, e já podemos testar e brincar 😁. É claro, estamos no início, ainda tem muito para fazer. 
-Fiquem à vontade em fazer **PR** (com risco de ganhar uma camiseta Go ❤️ e claro reconhecimento como profissional Go 😍 no mercado de trabalho).
+We already have several examples, and we can already test and play 😁. Of course, we are at the beginning, still has much to do. 
+Feel free to do **PR** (at risk of winning a Go t-shirt ❤️ and of course recognition as a professional Go 😍 in the labor market).
 
 
-## 🚀 **Apoiadores do Projeto Quick** 🙏
+## 🚀 **Quick Project Supporters** 🙏
 
-O Projeto Quick visa desenvolver e disponibilizar softwares de qualidade para a comunidade de desenvolvedores. 💻 Para continuarmos a melhorar nossas ferramentas, contamos com o apoio de nossos patrocinadores no Patreon. 🤝
+The Quick Project aims to develop and provide quality software for the developer community. 💻 To continue improving our tools, we rely on the support of our sponsors in Patreon. 🤝
 
-Agradecemos a todos os nossos apoiadores! 🙌 Se você também acredita em nosso trabalho e quer contribuir para o avanço da comunidade de desenvolvimento, considere apoiar o Projeto Quick em nosso Patreon [aqui](https://www.patreon.com/jeffotoni_quick)
+We thank all our supporters! 🙌 If you also believe in our work and want to contribute to the advancement of the development community, consider supporting Project Quick on our Patreon [here](https://www.patreon.com/jeffotoni_quick)
 
-Juntos podemos continuar a construir ferramentas incríveis! 🚀
+Together we can continue to build amazing tools! 🚀
 
 | Avatar | User | Donation |
 |--------|------|----------|
