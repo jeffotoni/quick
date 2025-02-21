@@ -10,7 +10,7 @@
 
 👍 I hope you can participate and enjoy **Enjoy**! 😍
 
-🔍 The repository of examples of the Framework Quick [Quick Examples](https://github.com/gojeffotoni/examples).
+🔍 The repository of examples of the Framework Quick [Quick Examples](https://github.com/jeffotoni/quick/tree/main/example).
 
 
 ## 🎛️| Features
@@ -257,7 +257,7 @@ Content-Type: text/plain; charset=utf-8
 
 ## 📚| More Examples
 
-This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/examples).
+This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/quick/tree/main/example).
 
 
 ### Quick Post Bind json
