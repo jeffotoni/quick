@@ -66,6 +66,8 @@ func (c *Ctx) BodyParser(v interface{}) (err error) {
 	return nil
 }
 
+// Param returns the value of the URL parameter corresponding to the given key
+// The result will Param(key string) string
 func (c *Ctx) Param(key string) string {
 	val, ok := c.Params[key]
 	if ok {
@@ -74,14 +76,20 @@ func (c *Ctx) Param(key string) string {
 	return ""
 }
 
+// Body returns the request body as a byte slice ([]byte)
+// The result will Body() []byte
 func (c *Ctx) Body() []byte {
 	return c.bodyByte
 }
 
+// BodyString returns the request body as a string
+// The result will BodyString() string
 func (c *Ctx) BodyString() string {
 	return string(c.bodyByte)
 }
 
+// JSON serializes the value provided in JSON and writes to the HTTP response
+// The result will JSON(v interface{}) error
 func (c *Ctx) JSON(v interface{}) error {
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -91,6 +99,8 @@ func (c *Ctx) JSON(v interface{}) error {
 	return c.writeResponse(b)
 }
 
+// XML serializes the provided value in XML and writes to the HTTP response
+// The result will XML(v interface{}) error
 func (c *Ctx) XML(v interface{}) error {
 	b, err := xml.Marshal(v)
 	if err != nil {
