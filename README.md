@@ -14,15 +14,15 @@
 
 ## 🎛️| Funcionalidades
 
-| Funcionalidades                                 | Possui    |
-|-------------------------------------------------|-----------|
-| 🛣️ Gerenciador de Rotas                           |   sim     |
-| 📁 Server Files Static                            |   sim     |
-| 🚪 Grupo de Rotas                                  |   sim     |
-| 🌐 Middlewares                                     |   sim     |
-| 🚀 HTTP/2 support                                 |   sim     |
-| 🧬 Data binding for JSON, XML and form payload     |   sim     |
-| 🔍 Suporte para regex                              |   sim     |
+| Funcionalidades                                 | Possui | Status |
+|-------------------------------------------------|--------|--------|
+| 🛣️ Gerenciador de Rotas                          | sim    | 🟢     |
+| 📁 Server Files Static                           | sim    | 🟢     |
+| 🚪 Grupo de Rotas                                 | sim    | 🟢     |
+| 🌐 Middlewares                                    | sim    | 🟢     |
+| 🚀 HTTP/2 support                                | sim    | 🟢     |
+| 🧬 Data binding for JSON, XML and form payload    | sim    | 🟢     |
+| 🔍 Suporte para regex                             | sim    | 🟢     |
 
 
 ## 🗺️| Rodmap do desenvolvimento
@@ -118,7 +118,6 @@
 | Msguuid         | 86.4%    | 🟢      |
 | Quick         | 79.5%    | 🟡       |
 | QuickTest         | 100.0%    | 🟢      |
-
 
 
 ### Primeiro exemplo Quick
