@@ -110,6 +110,8 @@ func (c *Ctx) XML(v interface{}) error {
 	return c.writeResponse(b)
 }
 
+// writeResponse writes the content provided in the current request ResponseWriter
+// The result will writeResponse(b []byte) error
 func (c *Ctx) writeResponse(b []byte) error {
 	if c.resStatus != 0 {
 		c.Response.WriteHeader(c.resStatus)
@@ -118,10 +120,14 @@ func (c *Ctx) writeResponse(b []byte) error {
 	return err
 }
 
+// Byte writes an array of bytes to the HTTP response, using writeResponse()
+// The result will Byte(b []byte) (err error)
 func (c *Ctx) Byte(b []byte) (err error) {
 	return c.writeResponse(b)
 }
 
+// Send writes a byte array to the HTTP response, using writeResponse()
+// The result will Send(b []byte) (err error)
 func (c *Ctx) Send(b []byte) (err error) {
 	return c.writeResponse(b)
 }
