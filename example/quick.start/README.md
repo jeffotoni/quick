@@ -13,7 +13,7 @@ func main() {
 	q := quick.New()
 	q.Get("/v1/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com Cors❤️!")
+		return c.Status(200).SendString("Quick in action com Cors❤️!")
 	})
 	q.Listen("0.0.0.0:8080")
 }
@@ -23,5 +23,5 @@ func main() {
 ```go
 $ curl --location --request GET 'http://localhost:8080/v1/user' \
 --header 'Content-Type: application/json/' \
---data 'Quick em ação com Cors❤️!'
+--data 'Quick in action com Cors❤️!'
 ```

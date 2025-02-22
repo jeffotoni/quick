@@ -20,12 +20,12 @@ func main() {
 
 	group2.Get("/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+		return c.Status(200).SendString("Quick in action com [GET] /v2/user ❤️!")
 	})
 
 	group2.Post("/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+		return c.Status(200).SendString("Quick in action com [POST] /v2/user ❤️!")
 	})
 
 	q.Listen("0.0.0.0:8080")

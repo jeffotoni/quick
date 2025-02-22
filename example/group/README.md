@@ -50,12 +50,12 @@ func main() {
 
 	group2.Get("/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+		return c.Status(200).SendString("Quick in action com [GET] /v2/user ❤️!")
 	})
 
 	group2.Post("/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+		return c.Status(200).SendString("Quick in action com [POST] /v2/user ❤️!")
 	})
 
 
@@ -65,7 +65,7 @@ func main() {
 ```go
 $ curl --location --request GET 'http://localhost:8080/v2/user' \
 --header 'Content-Type: application/json/' \
---data 'Quick em ação com [POST] /v2/user ❤️!'
+--data 'Quick in action com [POST] /v2/user ❤️!'
 ```
 
 
