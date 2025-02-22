@@ -19,8 +19,8 @@ test:
 cover:
 	@bash ./scripts/coverage.sh;
 	@cd http/client && make cover
-	@rm -f ./coverage.out;
-	@rm -f ./cover.out;
+	#@rm -f ./coverage.out;
+	#@rm -f ./cover.out;
 
 #### install
 ### go install github.com/securego/gosec/v2/cmd/gosec@latest
