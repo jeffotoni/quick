@@ -144,7 +144,7 @@ func main() {
 
     q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("GoQuick em ação ❤️!")
+        return c.Status(200).SendString("Quick in action ❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -161,7 +161,7 @@ Content-Type: application/json
 Date: Wed, 22 Feb 2023 07:45:36 GMT
 Content-Length: 23
 
-Quick em ação ❤️!
+Quick in action ❤️!
 
 ```
 
@@ -319,7 +319,7 @@ func main() {
 
     q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("Quick em ação com Cors❤️!")
+        return c.Status(200).SendString("Quick in action com Cors❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -341,7 +341,7 @@ func main() {
 
     q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("Quick em ação com Cors❤️!")
+        return c.Status(200).SendString("Quick in action com Cors❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -371,12 +371,12 @@ func main() {
     v2 := q.Group("/v2")
     v2.Get("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
+        return c.Status(200).SendString("Quick in action com [GET] /v2/user ❤️!")
     })
 
     v2.Post("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
+        return c.Status(200).SendString("Quick in action com [POST] /v2/user ❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
