@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 // curl -i -H "Block:true" -XGET localhost:8080/v1/blocked

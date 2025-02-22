@@ -1,4 +1,4 @@
-package goquick
+package quick
 
 import (
 	"net/http"

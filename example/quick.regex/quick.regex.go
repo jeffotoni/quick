@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jeffotoni/goquick/middleware/msgid"
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 func main() {

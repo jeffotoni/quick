@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 func main() {

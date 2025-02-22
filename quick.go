@@ -5,7 +5,7 @@ além de ser 100% compatível com net/http.
 O Quick é um projeto em constante desenvolvimento e está aberto
 para colaboração, todos são bem-vindos para contribuir. 😍
 */
-package goquick
+package quick
 
 import (
 	"bytes"

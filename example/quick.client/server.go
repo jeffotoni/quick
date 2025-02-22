@@ -1,6 +1,6 @@
 package main
 
-import "github.com/jeffotoni/quick"
+import "github.com/jeffotoni/goquick"
 
 func main() {
 
