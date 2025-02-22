@@ -303,6 +303,7 @@ Content-Type: text/plain; charset=utf-8
 ```
 
 ### Cors
+
 ```go
 
 package main
