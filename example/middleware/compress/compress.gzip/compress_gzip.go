@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/jeffotoni/goquick/middleware/compress"
-	"github.com/jeffotoni/goquick"
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/compress"
 )
 
 // curl -i -H 'Accept-Encoding: gzip' -GET localhost:8080/v1/compress

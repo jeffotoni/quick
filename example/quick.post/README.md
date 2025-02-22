@@ -3,7 +3,7 @@
 ```go
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 type My struct {
 	Name string `json:"name"`

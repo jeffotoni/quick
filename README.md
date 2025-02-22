@@ -1,7 +1,7 @@
 
 ![Logo do Quick](/quick_logo.png)
 
-[![GoDoc](https://godoc.org/github.com/jeffotoni/goquick?status.svg)](https://godoc.org/github.com/jeffotoni/goquick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/goquick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/goquick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/goquick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/goquick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/goquick)](https://goreportcard.com/badge/github.com/jeffotoni/goquick) [![License](https://img.shields.io/github/license/jeffotoni/goquick)](https://img.shields.io/github/license/jeffotoni/goquick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/goquick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/goquick)
+[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
 
 # goquick Route Go! ![Quick Logo](/quick.png)
 🚀 Quick is a **flexible and extensible** route manager for the Go language. Its goal is to be **fast and high-performance**, as well as being **100% compatible with net/http**. Quick is a **project in constant development** and is open for **collaboration**, everyone is welcome to contribute. 😍
@@ -10,7 +10,7 @@
 
 👍 I hope you can participate and enjoy **Enjoy**! 😍
 
-🔍 The repository of examples of the Framework Quick Run [Examples](https://github.com/jeffotoni/goquick/tree/main/example).
+🔍 The repository of examples of the Framework Quick Run [Examples](https://github.com/jeffotoni/quick/tree/main/example).
 
 
 ## 🎛️| Features
@@ -137,14 +137,14 @@
 
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 func main() {
     q := quick.New()
 
     q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("GoGoQuick em ação ❤️!")
+        return c.Status(200).SendString("GoQuick em ação ❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -161,7 +161,7 @@ Content-Type: application/json
 Date: Wed, 22 Feb 2023 07:45:36 GMT
 Content-Length: 23
 
-GoQuick em ação ❤️!
+Quick em ação ❤️!
 
 ```
 
@@ -170,7 +170,7 @@ GoQuick em ação ❤️!
 
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 func main() {
     q := quick.New()
@@ -214,7 +214,7 @@ Content-Length: 23
 
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 type My struct {
     Name string `json:"name"`
@@ -257,7 +257,7 @@ Content-Type: text/plain; charset=utf-8
 
 ## 📚| More Examples
 
-This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/goquick/tree/main/example).
+This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/quick/tree/main/example).
 
 
 ### Quick Post Bind json
@@ -265,7 +265,7 @@ This directory contains practical examples of the Quick Framework, a fast and li
 
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 type My struct {
     Name string `json:"name"`
@@ -308,8 +308,8 @@ Content-Type: text/plain; charset=utf-8
 package main
 
 import (
-    "github.com/jeffotoni/goquick"
-    "github.com/jeffotoni/goquick/middleware/cors"
+    "github.com/jeffotoni/quick"
+    "github.com/jeffotoni/quick/middleware/cors"
 )
 
 func main() {
@@ -318,7 +318,7 @@ func main() {
 
     q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("GoQuick em ação com Cors❤️!")
+        return c.Status(200).SendString("Quick em ação com Cors❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -331,7 +331,7 @@ func main() {
 
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 func main() {
     q := quick.New(quick.Config{
@@ -340,7 +340,7 @@ func main() {
 
     q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("GoQuick em ação com Cors❤️!")
+        return c.Status(200).SendString("Quick em ação com Cors❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -352,7 +352,7 @@ func main() {
 ```go
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 func main() {
     q := quick.New(quick.Config{
@@ -370,12 +370,12 @@ func main() {
     v2 := q.Group("/v2")
     v2.Get("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("GoQuick em ação com [GET] /v2/user ❤️!")
+        return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
     })
 
     v2.Post("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("GoQuick em ação com [POST] /v2/user ❤️!")
+        return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
     })
 
     q.Listen("0.0.0.0:8080")
@@ -393,7 +393,7 @@ import (
     "strings"
     "testing"
 
-    "github.com/jeffotoni/goquick"
+    "github.com/jeffotoni/quick"
 )
 
 func TestQuickExample(t *testing.T) {
@@ -441,8 +441,8 @@ func TestQuickExample(t *testing.T) {
 package main
 
 import (
-    "github.com/jeffotoni/goquick"
-    "github.com/jeffotoni/goquick/middleware/msgid"
+    "github.com/jeffotoni/quick"
+    "github.com/jeffotoni/quick/middleware/msgid"
 )
 
 func main() {

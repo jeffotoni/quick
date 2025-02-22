@@ -4,12 +4,12 @@
 GO111MODULE=on
 GOPROXY=direct
 GOSUMDB=off
-GOPRIVATE=github.com/jeffotoni/goquick
+GOPRIVATE=github.com/jeffotoni/quick
 
 update:
 	@echo "########## Compilando nossa API ... "
 	@rm -f go.*
-	go mod init github.com/jeffotoni/goquick
+	go mod init github.com/jeffotoni/quick
 	go mod tidy
 	@echo "fim"
 

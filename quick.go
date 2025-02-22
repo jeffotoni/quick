@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeffotoni/goquick/internal/concat"
-	p "github.com/jeffotoni/goquick/internal/print"
+	"github.com/jeffotoni/quick/internal/concat"
+	p "github.com/jeffotoni/quick/internal/print"
 )
 
 const (

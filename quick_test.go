@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeffotoni/goquick/middleware/cors"
+	"github.com/jeffotoni/quick/middleware/cors"
 )
 
 // This function is named ExampleGetDefaultConfig()
@@ -32,7 +32,7 @@ func ExampleNew() {
 	q := New()
 	q.Get("/", func(c *Ctx) error {
 		c.Set("Content-Type", "text/plain")
-		return c.Status(200).String("GoQuick em ação ❤️!")
+		return c.Status(200).String("Quick em ação ❤️!")
 	})
 
 	res, _ := q.QuickTest("GET", "/", nil)
@@ -47,7 +47,7 @@ func ExampleQuick_Use() {
 	q.Use(cors.New())
 	q.Get("/use", func(c *Ctx) error {
 		c.Set("Content-Type", "text/plain")
-		return c.Status(200).String("GoQuick em ação com middleware ❤️!")
+		return c.Status(200).String("Quick em ação com middleware ❤️!")
 	})
 
 	res, _ := q.QuickTest("GET", "/use", nil)
@@ -192,7 +192,7 @@ func TestExampleNew(t *testing.T) {
 	q := New()
 	q.Get("/", func(c *Ctx) error {
 		c.Set("Content-Type", "text/plain")
-		return c.Status(200).String("GoQuick em ação ❤️!")
+		return c.Status(200).String("Quick em ação ❤️!")
 	})
 
 	data, err := q.QuickTest("GET", "/", nil)
@@ -205,7 +205,7 @@ func TestExampleNew(t *testing.T) {
 		t.Errorf("was supposed to return status 200, but got %d", data.StatusCode())
 	}
 
-	expectedBody := "GoQuick em ação ❤️!"
+	expectedBody := "Quick em ação ❤️!"
 	if data.BodyStr() != expectedBody {
 		t.Errorf("was supposed to return '%s', but got '%s'", expectedBody, data.BodyStr())
 	}
@@ -217,7 +217,7 @@ func TestExampleUse(t *testing.T) {
 	q.Use(cors.New())
 	q.Get("/use", func(c *Ctx) error {
 		c.Set("Content-Type", "text/plain")
-		return c.Status(200).String("GoQuick em ação com middleware ❤️!")
+		return c.Status(200).String("Quick em ação com middleware ❤️!")
 	})
 
 	data, err := q.QuickTest("GET", "/use", nil)
@@ -230,7 +230,7 @@ func TestExampleUse(t *testing.T) {
 		t.Errorf("was supposed to return status 200, but got %d", data.StatusCode())
 	}
 
-	expectedBody := "GoQuick em ação com middleware ❤️!"
+	expectedBody := "Quick em ação com middleware ❤️!"
 	if data.BodyStr() != expectedBody {
 		t.Errorf("was supposed to return '%s', but got '%s'", expectedBody, data.BodyStr())
 	}

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jeffotoni/goquick/internal/concat"
+	"github.com/jeffotoni/quick/internal/concat"
 )
 
 // cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_PutGroup$

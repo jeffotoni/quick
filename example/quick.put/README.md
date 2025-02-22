@@ -8,7 +8,7 @@ Para definir uma rota PUT usando o Quick, basta chamar o método Put() em uma in
 package main
 
 import (
-	"github.com/jeffotoni/goquick"
+	"github.com/jeffotoni/quick"
 )
 
 func main() {

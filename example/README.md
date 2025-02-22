@@ -1,6 +1,6 @@
 ![Logo do Quick](/Logo.png)
 
-[![GoDoc](https://godoc.org/github.com/jeffotoni/goquick?status.svg)](https://godoc.org/github.com/jeffotoni/goquick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/goquick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/goquick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/goquick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/goquick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/goquick)](https://goreportcard.com/badge/github.com/jeffotoni/goquick) [![License](https://img.shields.io/github/license/jeffotoni/goquick)](https://img.shields.io/github/license/jeffotoni/goquick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/goquick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/goquick)
+[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/master) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/master) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
 
 # Exemplos Quick
 
@@ -10,7 +10,7 @@
 
   
 
-O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com diversas funcionalidades. O repositório do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/goquick).
+O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com diversas funcionalidades. O repositório do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/quick).
 
   
 
@@ -58,7 +58,7 @@ package main
 
   
 
-import  "github.com/jeffotoni/goquick"
+import  "github.com/jeffotoni/quick"
 
   
 
@@ -70,7 +70,7 @@ q.Get("/v1/user", func(c *quick.Ctx) error {
 
 c.Set("Content-Type", "application/json")
 
-return c.Status(200).SendString("GoQuick em ação com Cors❤️!")
+return c.Status(200).SendString("Quick em ação com Cors❤️!")
 
 })
 
