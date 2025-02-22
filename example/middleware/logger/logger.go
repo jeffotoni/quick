@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/jeffotoni/goquick/middleware/logger"
 	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/logger"
 )
 
 // curl -i -XGET localhost:8080/v1/logger

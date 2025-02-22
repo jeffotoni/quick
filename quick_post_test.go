@@ -1,4 +1,4 @@
-package quick
+package goquick
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jeffotoni/quick/internal/concat"
+	"github.com/jeffotoni/goquick/internal/concat"
 )
 
 // cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_Post$

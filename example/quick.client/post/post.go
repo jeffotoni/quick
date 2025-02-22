@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/jeffotoni/quick/http/client"
+	"github.com/jeffotoni/goquick/http/client"
 )
 
 func main() {

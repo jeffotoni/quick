@@ -5,7 +5,7 @@ além de ser 100% compatível com net/http.
 O Quick é um projeto em constante desenvolvimento e está aberto
 para colaboração, todos são bem-vindos para contribuir. 😍
 */
-package quick
+package goquick
 
 import (
 	"bytes"
@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeffotoni/quick/internal/concat"
-	p "github.com/jeffotoni/quick/internal/print"
+	"github.com/jeffotoni/goquick/internal/concat"
+	p "github.com/jeffotoni/goquick/internal/print"
 )
 
 const (

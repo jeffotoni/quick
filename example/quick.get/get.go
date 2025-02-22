@@ -28,7 +28,7 @@ func main() {
 
 	q.Get("/v1/userx/:p1/:p2/cust/:p3/:p4", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação ❤️!")
+		return c.Status(200).SendString("GoQuick em ação ❤️!")
 	})
 
 	q.Get("/hello/:name", func(c *quick.Ctx) error {

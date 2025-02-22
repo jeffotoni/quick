@@ -6,7 +6,7 @@ O método get pode ser usado para gerar valores aleatórios de diferentes tipos 
 package main
 
 import (
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 func main() {
@@ -32,7 +32,7 @@ $ curl --location --request GET 'http://localhost:8080/greet/:name' \
 package main
 
 import (
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 func main() {
@@ -56,7 +56,7 @@ $ curl --location --request GET 'http://localhost:8080/v2/user' \
 package main
 
 import (
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 func main() {
@@ -64,7 +64,7 @@ func main() {
 
 	q.Get("/v1/userx/:p1/:p2/cust/:p3/:p4", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação ❤️!")
+		return c.Status(200).SendString("GoQuick em ação ❤️!")
 	})
 
 	q.Listen("0.0.0.0:8080")
@@ -73,14 +73,14 @@ func main() {
 ```go
 curl --location --request GET 'http://localhost:8080/v1/userx/:p1/:p2/cust/:p3/:p4' \
 --header 'Content-Type: application/json/' \
---data 'Quick em ação ❤️!'
+--data 'GoQuick em ação ❤️!'
 ```
 
 ```go
 package main
 
 import (
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 func main() {

@@ -6,7 +6,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 func main() {

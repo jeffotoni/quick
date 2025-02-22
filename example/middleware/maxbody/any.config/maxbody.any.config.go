@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/jeffotoni/goquick/middleware/maxbody"
 	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/maxbody"
 )
 
 // curl -i -XPOST http://0.0.0.0:8080/v1/user/maxbody/any -d '{"data":"quick is awesome!"}'

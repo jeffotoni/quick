@@ -4,12 +4,12 @@
 GO111MODULE=on
 GOPROXY=direct
 GOSUMDB=off
-GOPRIVATE=github.com/jeffotoni/quick
+GOPRIVATE=github.com/jeffotoni/goquick
 
 update:
 	@echo "########## Compilando nossa API ... "
 	@rm -f go.*
-	go mod init github.com/jeffotoni/quick
+	go mod init github.com/jeffotoni/goquick
 	go mod tidy
 	@echo "fim"
 
@@ -22,11 +22,18 @@ cover:
 	@rm -f ./coverage.out;
 	@rm -f ./cover.out;
 
+#### install
+### go install github.com/securego/gosec/v2/cmd/gosec@latest
 gosec:
 	gosec ./...
 
+#### install
+#### go install github.com/gordonklaus/ineffassign@latest
 ineffassign:
 	ineffassign ./...
 
+
+#### install
+#### go install honnef.co/go/tools/cmd/staticcheck@latest
 staticcheck:
 	staticcheck ./...
