@@ -1,4 +1,4 @@
-package quick
+package goquick
 
 import (
 	"bytes"

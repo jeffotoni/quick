@@ -1,9 +1,9 @@
-package quick
+package goquick
 
 import (
 	"net/http"
 
-	"github.com/jeffotoni/quick/internal/concat"
+	"github.com/jeffotoni/goquick/internal/concat"
 )
 
 // Group represents a collection of routes that share a common prefix

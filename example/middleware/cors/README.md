@@ -2,7 +2,7 @@
 
 CORS significa **"Cross-Origin Resource Sharing"**, que é uma técnica de segurança usada pelos navegadores da web para permitir que um servidor restrinja o acesso de outros sites ou domínios aos seus recursos. O objetivo principal do CORS é proteger os recursos do servidor de ataques maliciosos de outros domínios.
 
-O Quick é um framework web em Go que suporta o middleware de CORS para lidar com solicitações de outros domínios. O middleware de CORS pode ser adicionado ao Quick usando a biblioteca "github.com/jeffotoni/quick/middleware/cors".
+O Quick é um framework web em Go que suporta o middleware de CORS para lidar com solicitações de outros domínios. O middleware de CORS pode ser adicionado ao Quick usando a biblioteca "github.com/jeffotoni/goquick/middleware/cors".
 
 Para adicionar o middleware de CORS em um aplicativo Quick, basta importar a biblioteca e chamar a função Cors() passando as opções de configuração desejadas.
 
@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/cors"
+	"github.com/jeffotoni/goquick"
+	"github.com/jeffotoni/goquick/middleware/cors"
 )
 
 func main() {
@@ -67,7 +67,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 // curl -i -H "Block:true" -XGET localhost:8080/v1/blocked
@@ -128,7 +128,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 	"github.com/rs/cors"
 )
 
@@ -176,7 +176,7 @@ import (
     "io"
     "net/http"
 
-    "github.com/jeffotoni/quick/middleware/cors"
+    "github.com/jeffotoni/goquick/middleware/cors"
 )
 
 type MyHandler struct{}

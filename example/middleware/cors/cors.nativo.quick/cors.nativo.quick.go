@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/jeffotoni/goquick/middleware/cors"
 	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/cors"
 )
 
 func main() {

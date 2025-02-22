@@ -6,7 +6,7 @@ func main() {
 	q := quick.New()
 	q.Get("/v1/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("Quick em ação com Cors❤️!")
+		return c.Status(200).SendString("GoQuick em ação com Cors❤️!")
 	})
 
 	q.Get("/v2", func(c *quick.Ctx) error {
