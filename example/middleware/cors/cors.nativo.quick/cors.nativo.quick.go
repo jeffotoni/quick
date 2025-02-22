@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/jeffotoni/goquick/middleware/cors"
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 func main() {

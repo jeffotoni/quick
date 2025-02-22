@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/jeffotoni/goquick/middleware/maxbody"
-	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/goquick"
 )
 
 // curl -i -XPOST http://0.0.0.0:8080/v1/user/maxbody/large -d '{"data":"quick is awesome!"}'
