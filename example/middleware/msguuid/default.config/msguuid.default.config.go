@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jeffotoni/goquick/middleware/msguuid"
-	"github.com/jeffotoni/goquick"
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/msguuid"
 )
 
 func main() {

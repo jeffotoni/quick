@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/jeffotoni/goquick/middleware/cors"
+	"github.com/jeffotoni/quick/middleware/cors"
 )
 
 type MyHandler struct{}

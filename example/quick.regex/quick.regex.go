@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/jeffotoni/goquick/middleware/msgid"
-	"github.com/jeffotoni/goquick"
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/msgid"
 )
 
 func main() {

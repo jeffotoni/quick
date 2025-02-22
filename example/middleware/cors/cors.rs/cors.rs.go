@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jeffotoni/goquick"
+	"github.com/jeffotoni/quick"
 )
 
 func main() {

@@ -3,7 +3,7 @@ package quick
 import (
 	"net/http"
 
-	"github.com/jeffotoni/goquick/internal/concat"
+	"github.com/jeffotoni/quick/internal/concat"
 )
 
 // Group represents a collection of routes that share a common prefix

@@ -8,8 +8,8 @@ Para usar regex em rotas no Quick, o desenvolvedor precisa definir uma rota usan
 package main
 
 import (
-	"github.com/jeffotoni/goquick"
-	"github.com/jeffotoni/goquick/middleware/msgid"
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/msgid"
 )
 
 func main() {

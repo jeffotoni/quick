@@ -9,7 +9,7 @@ Por exemplo, se você tiver um conjunto de rotas que precisam de autenticação 
 ```go
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 func main() {
 	q := quick.New(quick.Config{
@@ -39,7 +39,7 @@ $ curl --location --request GET 'http://localhost:8080/v1/user' \
 ```go
 package main
 
-import "github.com/jeffotoni/goquick"
+import "github.com/jeffotoni/quick"
 
 func main() {
 	q := quick.New(quick.Config{
@@ -50,12 +50,12 @@ func main() {
 
 	group2.Get("/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("GoQuick em ação com [GET] /v2/user ❤️!")
+		return c.Status(200).SendString("Quick em ação com [GET] /v2/user ❤️!")
 	})
 
 	group2.Post("/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.Status(200).SendString("GoQuick em ação com [POST] /v2/user ❤️!")
+		return c.Status(200).SendString("Quick em ação com [POST] /v2/user ❤️!")
 	})
 
 
@@ -65,7 +65,7 @@ func main() {
 ```go
 $ curl --location --request GET 'http://localhost:8080/v2/user' \
 --header 'Content-Type: application/json/' \
---data 'GoQuick em ação com [POST] /v2/user ❤️!'
+--data 'Quick em ação com [POST] /v2/user ❤️!'
 ```
 
 

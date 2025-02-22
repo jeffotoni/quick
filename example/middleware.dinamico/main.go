@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/jeffotoni/goquick"
+	"github.com/jeffotoni/quick"
 )
 
 func main() {
