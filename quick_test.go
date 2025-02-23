@@ -2,8 +2,11 @@ package quick
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -421,4 +424,116 @@ func TestQuick_ExampleListen(t *testing.T) {
 	if resp.StatusCode != 200 {
 		t.Errorf("Expected status 200, but got %d", resp.StatusCode)
 	}
+}
+
+// traditional test
+///
+
+// Tests if the static/* server functionality redirects correctly to index.html
+// The will test TestServeStaticIndex(t *testing.T)
+func TestQuickStatic(t *testing.T) {
+	q := New()
+	q.Static("/static", "./static")
+
+	q.Get("/", func(c *Ctx) error {
+		c.File("static/*") // Testing if `static/index.html` is found
+		return nil
+	})
+
+	// Creating a test server
+	server := httptest.NewServer(q)
+	defer server.Close()
+
+	// Makes a GET request to "/"
+	resp, err := http.Get(server.URL + "/")
+	if err != nil {
+		t.Fatalf("Error making request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Checks if the response is 200 OK
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status 200 OK, but received: %d", resp.StatusCode)
+	}
+
+	// Read the response content
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Error reading response: %v", err)
+	}
+
+	// Check if the response contains any content expected from index.html
+	expectedContent := "<h1>File Server Go example html</h1>" // Example: if index.html has a <title> tag
+	if !strings.Contains(string(body), expectedContent) {
+		t.Errorf("Expected to find '%s' in the content, but did not find it", expectedContent)
+	}
+}
+
+// Table-driven test
+///
+
+func TestQuickStaticDriven(t *testing.T) {
+	q := New()
+	q.Static("/static", "./static")
+
+	q.Get("/", func(c *Ctx) error {
+		c.File("static/*") // Deve encontrar `static/index.html`
+		return nil
+	})
+
+	server := httptest.NewServer(q)
+	defer server.Close()
+
+	tests := []struct {
+		name       string
+		path       string
+		statusCode int
+		expectBody string
+	}{
+		{"Serve index.html", "/", http.StatusOK, "<h1>File Server Go example html</h1>"},
+		{"Serve static/index.html direct", "/static/index.html", http.StatusNotFound, "404"},
+		{"Arquivo not found", "/static/missing.html", http.StatusNotFound, "404"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			resp, err := http.Get(server.URL + tc.path)
+			if err != nil {
+				t.Fatalf("Error making request to %s: %v", tc.path, err)
+			}
+			defer resp.Body.Close()
+
+			// Check the status code
+			if resp.StatusCode != tc.statusCode {
+				t.Errorf("Expected status %d, but received %d", tc.statusCode, resp.StatusCode)
+			}
+
+			// Read the response body
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("Error reading response: %v", err)
+			}
+
+			// Check if the body contains the expected text
+			if tc.expectBody != "" && !strings.Contains(string(body), tc.expectBody) {
+				t.Errorf("Expected to find '%s' in the response body, but did not find it", tc.expectBody)
+			}
+		})
+	}
+}
+
+// ExampleServeStaticIndex demonstrates how to start the Quick server and serve static files correctly.
+// The will return func ExampleServeStaticIndex()
+func ExampleQuick_Static() {
+	//Quick Start
+	q := New()
+
+	// start FileServer
+	q.Static("/static", "./static")
+
+	// send ServeFile
+	q.Get("/", func(c *Ctx) error {
+		c.File("./static/index.html")
+		return nil
+	})
 }

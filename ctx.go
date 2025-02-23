@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -31,13 +33,18 @@ func (c *Ctx) GetHeadersAll() map[string][]string {
 	return c.Headers
 }
 
-// func (c *Ctx) GetHeaders(key string, defaultValue ...string) (err error) {
-
-// }
-
-// func (c *Ctx) GetReqHeaders(key string, defaultValue ...string) (err error) {
-
-// }
+// Http serveFile send specific file
+// The result will File(filePath string)
+func (c *Ctx) File(filePath string) error {
+	if strings.HasSuffix(filePath, "/*") {
+		filePath = strings.TrimSuffix(filePath, "/*")
+	}
+	if stat, err := os.Stat(filePath); err == nil && stat.IsDir() {
+		filePath = filepath.Join(filePath, "index.html")
+	}
+	http.ServeFile(c.Response, c.Request, filePath)
+	return nil
+}
 
 // Bind analyzes and links the request body to a Go structure
 // The result will Bind(v interface{}) (err error)
