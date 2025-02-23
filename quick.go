@@ -1,9 +1,8 @@
 /*
-🚀 O Quick é um gerenciador de rotas flexível e extensível
-para a linguagem Go. Seu objetivo é ser rápido e de alto desempenho,
-além de ser 100% compatível com net/http.
-O Quick é um projeto em constante desenvolvimento e está aberto
-para colaboração, todos são bem-vindos para contribuir. 😍
+🚀 Quick is a flexible and extensible route manager for the Go language.
+It aims to be fast and performant, and 100% net/http compatible.
+Quick is a project under constant development and is open for collaboration,
+everyone is welcome to contribute. 😍
 */
 package quick
 
@@ -14,6 +13,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"runtime/debug"
 	"strings"
@@ -22,6 +22,10 @@ import (
 	"github.com/jeffotoni/quick/internal/concat"
 	p "github.com/jeffotoni/quick/internal/print"
 )
+
+// show in console
+// Run Server Quick:0.0.0.0:<PORT>
+var PRINT_SERVER = os.Getenv("PRINT_SERVER")
 
 const (
 	ContentTypeAppJSON = `application/json`
@@ -577,7 +581,8 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	}
 
 	server := q.httpServer(addr, handler...)
-
-	p.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m\n")
+	if PRINT_SERVER == "true" {
+		p.Stdout("\033[0;33mRun Server Quick:", addr, "\033[0m\n")
+	}
 	return server.ListenAndServe()
 }
