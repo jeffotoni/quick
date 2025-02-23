@@ -495,28 +495,31 @@ func (q *Quick) GetRoute() []*Route {
 	return q.routes
 }
 
-// The result will Static(staticFolder string)
-func (q *Quick) Static(staticFolder string) {
-	// generate route get with a pattern like this: /static/:file
-	// pattern := concat.String(staticFolder, ":file")
-	// q.Get(pattern, func(c *Ctx) {
-	// 	path, _, _ := extractParamsPattern(pattern)
-	// 	file := c.Params["file"]
-	// 	filePath := concat.String(".", path, "/", file)
-	// 	err := qos.FileExist(filePath)
-	// 	if err != nil {
-	// 		c.Status(http.StatusForbidden).SendString(err.Error())
-	// 		return
-	// 	}
-
-	// 	fileBytes, err := os.ReadFile(filePath)
-	// 	if err != nil {
-	// 		c.Status(http.StatusInternalServerError).SendString(err.Error())
-	// 		return
-	// 	}
-	// 	c.Status(http.StatusOK).SendFile(fileBytes)
-	// })
+// Static server files html, css, js etc
+// The result will Static(route string, dir string)
+func (q *Quick) Static(route string, dir string) {
+	if strings.HasSuffix(route, "/") {
+		route = strings.TrimSuffix(route, "/")
+	}
+	fileServer := http.FileServer(http.Dir(dir))
+	q.mux.Handle(route+"/", http.StripPrefix(route, fileServer))
 }
+
+// Handle adds a new route with method and handler
+// The result will Handle(method, path string, handler func(*Ctx))
+// func (q *Quick) Handler(method, path string, handler func(*Quick)) {
+// 	q.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+// 		if r.Method == method {
+// 			ctx := &Quick{
+// 				Writer:  w,
+// 				Request: r,
+// 			}
+// 			handler(ctx)
+// 		} else {
+// 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+// 		}
+// 	})
+// }
 
 // execHandler wraps an HTTP handler with additional processing
 // The result will execHandler(next http.Handler) http.Handler
