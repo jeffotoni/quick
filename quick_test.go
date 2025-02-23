@@ -1,6 +1,7 @@
 package quick
 
 import (
+	"embed"
 	"fmt"
 	"io"
 	"net/http"
@@ -429,8 +430,8 @@ func TestQuick_ExampleListen(t *testing.T) {
 // traditional test
 ///
 
-// Tests if the static/* server functionality redirects correctly to index.html
-// The will test TestServeStaticIndex(t *testing.T)
+// TestQuickStatic Tests if the static/* server functionality redirects correctly to index.html
+// The will test TestQuickStatic(t *testing.T)
 func TestQuickStatic(t *testing.T) {
 	q := New()
 	q.Static("/static", "./static")
@@ -472,31 +473,48 @@ func TestQuickStatic(t *testing.T) {
 // Table-driven test
 ///
 
+//go:embed static/*
+var staticFiles embed.FS
+
+// TestQuickStaticDriven Tests if the static/* server functionality redirects correctly to index.html
+// The will test TestQuickStaticDriven(t *testing.T)
 func TestQuickStaticDriven(t *testing.T) {
-	q := New()
-	q.Static("/static", "./static")
-
-	q.Get("/", func(c *Ctx) error {
-		c.File("static/*") // Deve encontrar `static/index.html`
-		return nil
-	})
-
-	server := httptest.NewServer(q)
-	defer server.Close()
-
 	tests := []struct {
 		name       string
+		useEmbed   bool
 		path       string
 		statusCode int
 		expectBody string
 	}{
-		{"Serve index.html", "/", http.StatusOK, "<h1>File Server Go example html</h1>"},
-		{"Serve static/index.html direct", "/static/index.html", http.StatusNotFound, "404"},
-		{"Arquivo not found", "/static/missing.html", http.StatusNotFound, "404"},
+		{"Serve index.html from file system", false, "/", http.StatusOK, "<h1>File Server Go example html</h1>"},
+		{"Serve static/index.html directly from file system", false, "/static/index.html", StatusNotFound, "404"},
+		{"Arquivo not found from file system", false, "/static/missing.html", http.StatusNotFound, "404"},
+		{"Serve index.html from embed FS", true, "/", http.StatusOK, "<h1>File Server Go example html</h1>"},
+		{"Serve static/index.html directly from embed FS", true, "/static/index.html", http.StatusNotFound, "404"},
+		{"Arquivo not found from embed FS", true, "/static/missing.html", http.StatusNotFound, "404"},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			q := New()
+
+			// Decide se usa embed ou arquivo local
+			if tc.useEmbed {
+				q.Static("/static", staticFiles)
+			} else {
+				q.Static("/static", "./static")
+			}
+
+			q.Get("/", func(c *Ctx) error {
+				c.File("static/*") // Must find `static/index.html`
+				return nil
+			})
+
+			// Creating a test server
+			server := httptest.NewServer(q)
+			defer server.Close()
+
+			// Making test request
 			resp, err := http.Get(server.URL + tc.path)
 			if err != nil {
 				t.Fatalf("Error making request to %s: %v", tc.path, err)
@@ -514,7 +532,7 @@ func TestQuickStaticDriven(t *testing.T) {
 				t.Fatalf("Error reading response: %v", err)
 			}
 
-			// Check if the body contains the expected text
+			// Checks if the response contains the expected content
 			if tc.expectBody != "" && !strings.Contains(string(body), tc.expectBody) {
 				t.Errorf("Expected to find '%s' in the response body, but did not find it", tc.expectBody)
 			}
@@ -528,7 +546,14 @@ func ExampleQuick_Static() {
 	//Quick Start
 	q := New()
 
+	/**
+	//go:embed static/*
+	var staticFiles embed.FS
+	*/
+
 	// start FileServer
+	// or
+	// q.Static("/static", staticFiles)
 	q.Static("/static", "./static")
 
 	// send ServeFile
