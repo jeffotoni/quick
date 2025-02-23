@@ -9,6 +9,7 @@ package quick
 import (
 	"bytes"
 	"context"
+	"embed"
 	"encoding/json"
 	"encoding/xml"
 	"io"
@@ -98,6 +99,7 @@ type Quick struct {
 	mws2          []any
 	CorsSet       func(http.Handler) http.Handler
 	CorsOptions   map[string]string
+	embedFS       embed.FS
 }
 
 // GetDefaultConfig Function is responsible for returning a default configuration that is pre-defined for the system
@@ -496,30 +498,32 @@ func (q *Quick) GetRoute() []*Route {
 }
 
 // Static server files html, css, js etc
-// The result will Static(route string, dir string)
-func (q *Quick) Static(route string, dir string) {
+// Embed.FS allows you to include files directly into
+// the binary during compilation, eliminating the need to load files
+// from the file system at runtime. This means that
+// static files (HTML, CSS, JS, images, etc.)
+// are embedded into the executable.
+// The result will Static(route string, dirOrFS any)
+func (q *Quick) Static(route string, dirOrFS any) {
 	if strings.HasSuffix(route, "/") {
 		route = strings.TrimSuffix(route, "/")
 	}
-	fileServer := http.FileServer(http.Dir(dir))
-	q.mux.Handle(route+"/", http.StripPrefix(route, fileServer))
-}
 
-// Handle adds a new route with method and handler
-// The result will Handle(method, path string, handler func(*Ctx))
-// func (q *Quick) Handler(method, path string, handler func(*Quick)) {
-// 	q.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-// 		if r.Method == method {
-// 			ctx := &Quick{
-// 				Writer:  w,
-// 				Request: r,
-// 			}
-// 			handler(ctx)
-// 		} else {
-// 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-// 		}
-// 	})
-// }
+	var fileServer http.Handler
+
+	// check of dirOrFS is a embed.FS
+	switch v := dirOrFS.(type) {
+	case string:
+		fileServer = http.FileServer(http.Dir(v))
+	case embed.FS:
+		q.embedFS = v
+		fileServer = http.FileServer(http.FS(v))
+	default:
+		panic("Static: invalid parameter, must be string or embed.FS")
+	}
+
+	q.mux.Handle(concat.String(route, "/"), http.StripPrefix(route, fileServer))
+}
 
 // execHandler wraps an HTTP handler with additional processing
 // The result will execHandler(next http.Handler) http.Handler
