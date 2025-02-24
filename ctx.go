@@ -25,7 +25,7 @@ type Ctx struct {
 	Headers        map[string][]string
 	Params         map[string]string
 	Query          map[string]string
-	UploadFileSize int64 // Upload limit in bytes
+	uploadFileSize int64 // Upload limit in bytes
 }
 
 // UploadedFile holds details of an uploaded file.
@@ -246,7 +246,7 @@ func (c *Ctx) FormFileLimit(limit string) error {
 	if err != nil {
 		return err
 	}
-	c.UploadFileSize = size
+	c.uploadFileSize = size
 	return nil
 }
 
@@ -268,8 +268,8 @@ func (c *Ctx) FormFile(fieldName string) (*UploadedFile, error) {
 // FormFiles processes an uploaded file and returns its details.
 // The result will FormFiles(fieldName string) (*UploadedFile, error)
 func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
-	if c.UploadFileSize == 0 {
-		return nil, errors.New("upload limit not set, use c.FormFileLimit() before uploading")
+	if c.uploadFileSize == 0 {
+		c.uploadFileSize = 1 << 2 // set default 1MB
 	}
 
 	// check request
@@ -381,7 +381,7 @@ func SaveAll(files []*UploadedFile, destination string) error {
 // MultipartForm allows access to the raw multipart form data (for advanced users)
 // The result will MultipartForm() (*multipart.Form, error)
 func (c *Ctx) MultipartForm() (*multipart.Form, error) {
-	if err := c.Request.ParseMultipartForm(c.UploadFileSize); err != nil {
+	if err := c.Request.ParseMultipartForm(c.uploadFileSize); err != nil {
 		return nil, err
 	}
 	return c.Request.MultipartForm, nil
