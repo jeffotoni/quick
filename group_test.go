@@ -1,3 +1,11 @@
+// Package quick provides a minimalistic and high-performance web framework for Go.
+//
+// This file contains **unit tests** for the `Group` functionality in Quick, ensuring that
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
