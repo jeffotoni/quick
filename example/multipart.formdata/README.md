@@ -1,10 +1,10 @@
-# 📂 Uploading Files in Quick
+## 📂 Uploading Files in Quick ![Quick Logo](/quick.png)
 
 **Quick** provides an intuitive and efficient interface for **uploading files** via `multipart/form-data`. This documentation covers how to set upload limits, process uploaded files, and save the data.
 
 ---
 
-### 📌 What is `multipart/form-data`?
+#### 📌 What is `multipart/form-data`?
 
 **`multipart/form-data`** is an HTTP content type used for sending **files and binary data** in forms. Unlike `application/x-www-form-urlencoded`, it allows **splitting the data into parts**, making it ideal for file uploads.
 
@@ -30,7 +30,7 @@ Content-Type: image/png
 
 ---
 
-### 📌 How does it work in Quick?
+#### 📌 How does it work in Quick?
 
 Quick provides a simplified API for managing uploads, allowing you to easily retrieve and manipulate files.
 
@@ -48,7 +48,7 @@ Quick provides a simplified API for managing uploads, allowing you to easily ret
 
 ---
 
-### 📌 File Upload Example
+#### 📌 File Upload Example
 
 ```go
 q.Post("/upload", func(c *quick.Ctx) error {
@@ -63,6 +63,7 @@ q.Post("/upload", func(c *quick.Ctx) error {
 fmt.Println("Name:", uploadedFile.FileName())
 fmt.Println("Size:", uploadedFile.Size())
 fmt.Println("MIME Type:", uploadedFile.ContentType())
+fmt.Println("Bytes:", file.Bytes())
 
 // Save the file (optional)
 // uploadedFile.Save("/tmp/uploads/")
@@ -70,7 +71,7 @@ fmt.Println("MIME Type:", uploadedFile.ContentType())
 return c.Status(200).JSONIN(uploadedFile)
 })
 ```
-### 📌 Multiple Upload Example
+#### 📌 Multiple Upload Example
 
 ```go
 q.Post("/upload-multiple", func(c *quick.Ctx) error {
@@ -91,7 +92,7 @@ q.Post("/upload-multiple", func(c *quick.Ctx) error {
         fmt.Println("Name:", file.FileName())
         fmt.Println("Size:", file.Size())
         fmt.Println("Type MINE:", file.ContentType())
-         fmt.Println("Type MINE:", file.Bytes())
+        fmt.Println("Bytes:", file.Bytes())
     }
 
     // optional
@@ -100,7 +101,7 @@ q.Post("/upload-multiple", func(c *quick.Ctx) error {
     return c.Status(200).JSONIN(files)
 })
 ```
-### 📌 Testing with cURL
+#### 📌 Testing with cURL
 
 ##### 🔹Upload a single file:
 ```bash
@@ -135,12 +136,13 @@ $ curl -X POST http://localhost:8080/upload-multiple \
 
 ##### 🚀 You can now implement fast and efficient file uploads in Quick! 🔥
 
-## **📌 What I included in this README**
-✅ **Detailed description of `multipart/form-data`**
-✅ **Explanation of form-data objects**
-✅ **Comparative table between Quick, Fiber, Gin, Echo and `net/http`**
-✅ **Space for code examples in Go and tests with cURL**
+#### **📌 What I included in this README**
 
-Now you can **complete with your specific examples** where I left the spaces ` ```go ... ``` `.
+- ✅ **Detailed description of `multipart/form-data`**
+- ✅ **Explanation of form-data objects**
+- ✅ **Comparative table between Quick, Fiber, Gin, Echo and `net/http`**
+- ✅ **Space for code examples in Go and tests with cURL**- 
 
-🚀 **If you need adjustments or improvements, just let me know!** 😃🔥
+Now you can **complete with your specific examples** where I left the spaces
+
+##### 🚀 **If you need adjustments or improvements, just let me know!** 😃🔥
