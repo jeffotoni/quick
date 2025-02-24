@@ -1,3 +1,5 @@
+// The BasicAuth middleware implements HTTP Basic Authentication
+// to secure specific routes on an HTTP server.
 package basicauth
 
 import (
@@ -5,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/jeffotoni/quick/internal/concat"
 )
 
 // TestBasicAuth various types of tests
@@ -29,12 +33,12 @@ func TestBasicAuth(t *testing.T) {
 	}{
 		{
 			name:           "Authentication successful",
-			authHeader:     "Basic " + base64.StdEncoding.EncodeToString([]byte("admin:1234")),
+			authHeader:     concat.String("Basic ", base64.StdEncoding.EncodeToString([]byte("admin:1234"))),
 			expectedStatus: http.StatusOK,
 		},
 		{
 			name:           "Invalid credentials",
-			authHeader:     "Basic " + base64.StdEncoding.EncodeToString([]byte("wronguser:wrongpass")),
+			authHeader:     concat.String("Basic ", base64.StdEncoding.EncodeToString([]byte("wronguser:wrongpass"))),
 			expectedStatus: http.StatusUnauthorized,
 		},
 		{
