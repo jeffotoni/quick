@@ -1,3 +1,8 @@
+// quick tests
+// ..
+// ..
+// $ go test -v ./..
+// $ go test -v
 package quick
 
 import (
@@ -360,7 +365,9 @@ func TestServeHTTP(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestGetRoute
+// TestGetRoute ...
+// The result will TestGetRoute(t *testing.T)
+// $ go test -v -run ^TestGetRoute
 func TestGetRoute(t *testing.T) {
 	q := New()
 

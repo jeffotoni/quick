@@ -18,8 +18,6 @@ import (
 type Ctx struct {
 	Response       http.ResponseWriter
 	Request        *http.Request
-	w              http.ResponseWriter
-	r              *http.Request
 	resStatus      int
 	MoreRequests   int
 	bodyByte       []byte
@@ -132,7 +130,7 @@ func (c *Ctx) JSON(v interface{}) error {
 
 // JSON serializes the value provided in JSON and writes to the HTTP response
 // The result will JSON(v interface{}) error
-func (c *Ctx) JSONIN(v interface{}) error {
+func (c *Ctx) JSONIN(v interface{}, params ...string) error {
 	b, err := json.MarshalIndent(v, "", " ")
 	if err != nil {
 		return err

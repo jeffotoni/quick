@@ -24,7 +24,7 @@ func uploadToS3(bucket, name, contentType string, size int64, data []byte) error
 	fmt.Printf("File Name: %s\n", name)
 	fmt.Printf("Content Type: %s\n", contentType)
 	fmt.Printf("Size: %d bytes\n", size)
-	fmt.Println("Upload successful!\n")
+	fmt.Println("Upload successful!")
 	return nil
 }
 
@@ -75,6 +75,8 @@ func main() {
 				})
 			}
 		}
+
+		// SaveAll("")
 
 		// Respond with success
 		return c.Status(200).JSON(Msg{

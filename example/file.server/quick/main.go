@@ -5,10 +5,14 @@ import (
 )
 
 func main() {
+
+	// start Quick
 	q := quick.New()
 
+	// start dir files
 	q.Static("/static", "./static")
 
+	// server files
 	q.Get("/", func(c *quick.Ctx) error {
 		c.File("./static/*")
 		return nil
