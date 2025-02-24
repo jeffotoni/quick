@@ -34,6 +34,7 @@ func main() {
 
 	q.Post("/upload", func(c *quick.Ctx) error {
 
+		// Default Size Upload 1MB
 		// Set upload limit (10MB)
 		err := c.FormFileLimit("10MB")
 		if err != nil {
