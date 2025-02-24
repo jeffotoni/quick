@@ -44,8 +44,9 @@ Quick provides a simplified API for managing uploads, allowing you to easily ret
 | `uploadedFile.Size()` | Returns the file size in bytes. |
 | `uploadedFile.ContentType()` | Returns the MIME type of the file. |
 | `uploadedFile.Bytes()` | Returns the bytes of the file. |
-| `uploadedFile.Save("/path/")` | Saves the file to a specified directory. |
-
+| `uploadedFile.Save("/path")` | Saves the file to a specified directory. |
+| `uploadedFile.Save("/path", "your-name-file")` | Saves the file with your name. |
+| `uploadedFile.SaveAll("/path")` | Saves the file to a specified directory. |
 ---
 
 ### 📌 File Upload Example
@@ -65,7 +66,8 @@ fmt.Println("Size:", uploadedFile.Size())
 fmt.Println("MIME Type:", uploadedFile.ContentType())
 
 // Save the file (optional)
-// uploadedFile.Save("/tmp/uploads/")
+// uploadedFile.Save("/tmp/uploads")
+// uploadedFile.Save("/tmp/uploads", "your-name-file")
 
 return c.Status(200).JSONIN(uploadedFile)
 })
@@ -118,10 +120,10 @@ $ curl -X POST http://localhost:8080/upload-multiple \
 
 ##### 📌 File Upload Feature Comparison with other Frameworks
 
-| Framework  | `FormFile()` | `FormFiles()` | Dynamic Limit | File Metadata Methods (`FileName()`, `Size()`) | `Save()` Method |
+| Framework  | `FormFile()` | `FormFiles()` | Dynamic Limit | File Metadata Methods (`FileName()`, `Size()`) | `Save()`, `SaveAll()` Method |
 |------------|-------------|--------------|---------------|---------------------------------|------------|
 | **Quick**  | ✅ Yes | ✅ Yes | ✅ Yes (`c.FormFileLimit("10MB")`) | ✅ Yes | ✅ Yes |
-| Fiber      | ✅ Yes | ✅ Yes | ❌ No | ❌ No (uses `FileHeader` directly) | ❌ No |
+| Fiber      | ✅ Yes | ✅ Yes | ❌ No | ❌ No (uses `FileHeader` directly) | ✅ Yes |
 | Gin        | ✅ Yes | ✅ Yes | ❌ No | ❌ No (uses `FileHeader` directly) | ❌ No |
 | Echo       | ✅ Yes | ❌ No  | ❌ No | ❌ No | ❌ No |
 | net/http   | ✅ Yes | ❌ No  | ❌ No | ❌ No | ❌ No |

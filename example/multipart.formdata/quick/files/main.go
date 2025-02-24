@@ -77,7 +77,7 @@ func main() {
 			}
 		}
 
-		// SaveAll("")
+		// uploadedFiles.SaveAll("/tmp/uploads")
 
 		// Respond with success
 		return c.Status(200).JSON(Msg{

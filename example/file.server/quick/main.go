@@ -14,7 +14,6 @@ func main() {
 
 	// server files
 	q.Get("/", func(c *quick.Ctx) error {
-		//c.File("./static/*") // it's ok
 		c.File("./static/index.html")
 		return nil
 	})
