@@ -46,6 +46,9 @@ func main() {
 		fmt.Println("Content-Type:", uploadedFile.Info.ContentType)
 		fmt.Println("Bytes:", len(uploadedFile.Info.Bytes)) // remove the len to get the bytes
 
+		// uploadedFile.Save("/tmp/uploads/")
+
+		//
 		// Respond with success
 		return c.Status(200).JSONIN(uploadedFile)
 	})
