@@ -30,9 +30,9 @@ type Ctx struct {
 
 // UploadedFile holds details of an uploaded file.
 type UploadedFile struct {
-	File    multipart.File
-	Handler *multipart.FileHeader
-	Info    FileInfo
+	File      multipart.File
+	Multipart *multipart.FileHeader
+	Info      FileInfo
 }
 
 // FileInfo contains metadata of the uploaded file.
@@ -269,7 +269,7 @@ func (c *Ctx) FormFile(fieldName string) (*UploadedFile, error) {
 // The result will FormFiles(fieldName string) (*UploadedFile, error)
 func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
 	if c.uploadFileSize == 0 {
-		c.uploadFileSize = 1 << 2 // set default 1MB
+		c.uploadFileSize = 1 << 20 // set default 1MB
 	}
 
 	// check request
@@ -325,8 +325,8 @@ func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
 
 		// Append file details
 		uploadedFiles = append(uploadedFiles, &UploadedFile{
-			File:    file,
-			Handler: handler,
+			File:      file,
+			Multipart: handler,
 			Info: FileInfo{
 				Filename:    handler.Filename,
 				Size:        handler.Size,
