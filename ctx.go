@@ -58,9 +58,8 @@ func (c *Ctx) GetHeadersAll() map[string][]string {
 // Http serveFile send specific file
 // The result will File(filePath string)
 func (c *Ctx) File(filePath string) error {
-	if strings.HasSuffix(filePath, "/*") {
-		filePath = strings.TrimSuffix(filePath, "/*")
-	}
+	filePath = strings.TrimSuffix(filePath, "/*")
+
 	if stat, err := os.Stat(filePath); err == nil && stat.IsDir() {
 		filePath = filepath.Join(filePath, "index.html")
 	}
