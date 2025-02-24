@@ -281,12 +281,10 @@ func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFu
 		headersMap := extractHeaders(*req)
 
 		c := &Ctx{
-			Response: w,
-			Request:  req,
-			Params:   cval.ParamsMap,
-			Query:    querys,
-			//bodyByte: extractBodyBytes(req.Body),
-			//bodyByte: extractBodyBytes(req.Body),
+			Response:     w,
+			Request:      req,
+			Params:       cval.ParamsMap,
+			Query:        querys,
 			Headers:      headersMap,
 			MoreRequests: q.config.MoreRequests,
 		}
@@ -311,13 +309,19 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 
 		headersMap := extractHeaders(*req)
 
+		bodyBytes, bodyReader := extractBodyBytes(req.Body)
+
 		c := &Ctx{
 			Response:     w,
 			Request:      req,
-			bodyByte:     extractBodyBytes(req.Body),
+			bodyByte:     bodyBytes,
 			Headers:      headersMap,
 			MoreRequests: q.config.MoreRequests,
 		}
+
+		// reset `Request.Body` with `bodyReader`
+		c.Request.Body = bodyReader
+
 		execHandleFunc(c, handlerFunc)
 	}
 }
@@ -341,14 +345,19 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 
 		cval := v.(ctxServeHttp)
 
+		bodyBytes, bodyReader := extractBodyBytes(req.Body)
+
 		c := &Ctx{
 			Response:     w,
 			Request:      req,
 			Headers:      headersMap,
-			bodyByte:     extractBodyBytes(req.Body),
+			bodyByte:     bodyBytes,
 			Params:       cval.ParamsMap,
 			MoreRequests: q.config.MoreRequests,
 		}
+
+		// reset `Request.Body` with `bodyReader`
+		c.Request.Body = bodyReader
 
 		execHandleFunc(c, handlerFunc)
 	}
@@ -393,13 +402,12 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 
 // extractBodyBytes reads the request body and returns it as a byte slice
 // The result will extractBodyBytes(r io.ReadCloser) []byte
-func extractBodyBytes(r io.ReadCloser) []byte {
+func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
 	b, err := io.ReadAll(r)
 	if err != nil {
-		return nil
+		return nil, io.NopCloser(bytes.NewBuffer(nil))
 	}
-
-	return b
+	return b, io.NopCloser(bytes.NewReader(b))
 }
 
 // mwWrapper applies all registered middlewares to an HTTP handler
