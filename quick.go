@@ -505,9 +505,7 @@ func (q *Quick) GetRoute() []*Route {
 // are embedded into the executable.
 // The result will Static(route string, dirOrFS any)
 func (q *Quick) Static(route string, dirOrFS any) {
-	if strings.HasSuffix(route, "/") {
-		route = strings.TrimSuffix(route, "/")
-	}
+	route = strings.TrimSuffix(route, "/")
 
 	var fileServer http.Handler
 
