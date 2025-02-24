@@ -20,7 +20,8 @@ func main() {
 	q.Static("/static", staticFiles)
 
 	q.Get("/", func(c *quick.Ctx) error {
-		c.File("./static/*")
+		//c.File("./static/*") // it's ok
+		c.File("./static/index.html")
 		return nil
 	})
 
