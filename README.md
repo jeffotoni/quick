@@ -20,10 +20,10 @@
 | 🛣️ Route Manager                                  | yes  | 🟢     | 100%       |
 | 📁 Server Files Static                           | yes  | 🟢     | 100%       |
 | 🚪 Route Group                                   | yes  | 🟢     | 100%       |
-| 🌐 Middlewares                                   | yes  | 🟢     | 100%       |
+| 🌐 Middlewares                                   | yes  | 🟢     | 50%       |
 | 🚀 HTTP/2 support                                | yes  | 🟢     | 100%       |
 | 🧬 Data binding for JSON, XML and form payload   | yes  | 🟢     | 100%       |
-| 🔍 Regex support                                 | yes  | 🟢     | 100%       |
+| 🔍 Regex support                                 | yes  | 🟢     | 80%       |
 | 🌐 Site                                             | yes  | 🟢     | 90%        |
 | 📚 Docs                                             | yes  | 🟡     | 40%        |
 
@@ -86,15 +86,15 @@
 
 | Task   | Progress |
 |---------------------------------------------------|-----------|
-| Documentação Tests Examples PKG Go                | 45.%       |
-| Cobertura de Testes go test -cover                | 74.6%      |
-| Cobertura de recursos Regex, mas possibilidades   | 0.%       |
-| Desenvolver para o MÉTODO OPTIONS                 | 0.%       |
-| Desenvolver para o MÉTODO CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)                 | 0.%       |
-| Desenvolver método para ListenAndServeTLS (http2) | 0.%       |
-| Desenvolve suporte Static Files                   | 0.%       |
-| Criar um CLI (Command Line Interface) Quick.      | 0.%       |
-| WebSocket Support                                 | 0.%       |
+| Documentation Tests Examples PKG Go | 45.% |
+| Test Coverage go test -cover | 74.6% |
+| Regex feature coverage, but possibilities | 0.% |
+| Develop for OPTIONS METHOD | 0.% |
+| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.% |
+| Develop method for ListenAndServeTLS (http2) | 0.% |
+| Develop Static Files support | 0.% |
+| Create a CLI (Command Line Interface) Quick. | 0.% |
+| WebSocket Support | 0.% |
 | Rate Limiter Support                              | 0.%       |
 | Template Engines                                  | 0.%       |
 | Documentation Tests Examples PKG Go   | 45. %   |
@@ -254,6 +254,91 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
+
+### Quick provides a simplified API for managing uploads, allowing you to easily retrieve and manipulate files.
+
+✅ **Main Methods and Functionalities**:
+| Method | Description |
+|--------|-----------|
+| `c.FormFile("file")` | Returns a single file uploaded in the form. |
+| `c.FormFiles("files")` | Returns a list of uploaded files (multiple uploads). |
+| `c.FormFileLimit("10MB")` | Sets an upload limit (default is `1MB`). |
+| `uploadedFile.FileName()` | Returns the file name. |
+| `uploadedFile.Size()` | Returns the file size in bytes. |
+| `uploadedFile.ContentType()` | Returns the MIME type of the file. |
+| `uploadedFile.Bytes()` | Returns the bytes of the file. |
+| `uploadedFile.Save("/path/")` | Saves the file to a specified directory. |
+| `uploadedFile.Save("/path", "your-name-file")` | Saves the file with your name. |
+| `uploadedFile.SaveAll("/path")` | Saves the file to a specified directory. |
+
+---
+
+### 📌 File Upload Example
+
+```go
+q.Post("/upload", func(c *quick.Ctx) error {
+    uploadedFile, err := c.FormFile("file")
+    if err != nil {
+        return c.Status(400).JSON(Msg{
+            Msg: "Upload error",
+            Error: err.Error(),
+         })
+    }
+
+fmt.Println("Name:", uploadedFile.FileName())
+fmt.Println("Size:", uploadedFile.Size())
+fmt.Println("MIME Type:", uploadedFile.ContentType())
+
+// Save the file (optional)
+// uploadedFile.Save("/tmp/uploads")
+
+return c.Status(200).JSONIN(uploadedFile)
+})
+```
+### 📌 Multiple Upload Example
+
+```go
+q.Post("/upload-multiple", func(c *quick.Ctx) error {
+    // set limit upload
+    c.FormFileLimit("10MB")
+
+    // recebereceiving files
+    files, err := c.FormFiles("files")
+    if err != nil {
+        return c.Status(400).JSON(Msg{
+            Msg:   "Upload error",
+            Error: err.Error(),
+        })
+    }
+
+    // listing all files
+    for _, file := range files {
+        fmt.Println("Name:", file.FileName())
+        fmt.Println("Size:", file.Size())
+        fmt.Println("Type MINE:", file.ContentType())
+         fmt.Println("Type MINE:", file.Bytes())
+    }
+
+    // optional
+    // files.SaveAll("/my-dir/uploads")
+
+    return c.Status(200).JSONIN(files)
+})
+```
+### 📌 Testing with cURL
+
+##### 🔹Upload a single file:
+```bash
+
+$ curl -X POST http://localhost:8080/upload -F "file=@example.png"
+```
+
+##### 🔹 Upload multiple files:
+```bash
+
+$ curl -X POST http://localhost:8080/upload-multiple \
+-F "files=@image1.jpg" -F "files=@document.pdf"
+```
 
 ## 📚| More Examples
 
