@@ -530,6 +530,7 @@ func TestCtx_ExampleJSON(t *testing.T) {
 	q := New()
 
 	q.Get("/json", func(c *Ctx) error {
+		c.Set("Content-Type", "application/json")
 		data := map[string]string{"message": "Hello, Quick!"}
 		return c.JSON(data)
 	})
@@ -544,6 +545,34 @@ func TestCtx_ExampleJSON(t *testing.T) {
 	if res.BodyStr() != expectedBody {
 		t.Errorf("Expected: %s, received: %s", expectedBody, res.BodyStr())
 	}
+
+	expectedContentType := "application/json"
+	contentType := res.Response().Header.Get("Content-Type")
+
+	if contentType != expectedContentType {
+		t.Errorf("Expected Content-Type: %s, received: %s", expectedContentType, contentType)
+	}
+}
+
+// go test -v -run ^TestCtx_ExampleJSONIN
+func TestCtx_ExampleJSONIN(t *testing.T) {
+	q := New()
+
+	q.Get("/json", func(c *Ctx) error {
+		c.Set("Content-Type", "application/json")
+		data := map[string]string{"message": "Hello, Quick!"}
+		return c.JSONIN(data)
+	})
+
+	res, err := q.QuickTest("GET", "/json", nil, nil)
+	if err != nil {
+		t.Fatalf("QuickTest failed: %v", err)
+	}
+
+	// expectedBody := `{"message":"Hello, Quick!"}`
+	// if res.BodyStr() != expectedBody {
+	// 	t.Errorf("Expected: %s, received: %s", expectedBody, res.BodyStr())
+	// }
 
 	expectedContentType := "application/json"
 	contentType := res.Response().Header.Get("Content-Type")

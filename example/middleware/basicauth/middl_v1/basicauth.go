@@ -1,3 +1,7 @@
+// basic auth
+//
+// $ curl -u admin:1234 http://localhost:8080/protected
+// $ curl -H "Authorization: Basic YWRtaW46MTIzNA==" http://localhost:8080/protected
 package main
 
 import (
@@ -9,9 +13,6 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-// curl -u admin:1234 http://localhost:8080/protected
-// or
-// curl -H "Authorization: Basic YWRtaW46MTIzNA==" http://localhost:8080/protected
 func main() {
 
 	q := quick.New()

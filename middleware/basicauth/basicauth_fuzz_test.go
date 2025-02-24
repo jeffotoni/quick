@@ -1,3 +1,5 @@
+// The BasicAuth middleware implements HTTP Basic Authentication
+// to secure specific routes on an HTTP server.
 package basicauth
 
 import (
@@ -5,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/jeffotoni/quick/internal/concat"
 )
 
 // FuzzBasicAuth func to Fuzz
@@ -29,7 +33,7 @@ func FuzzBasicAuth(f *testing.F) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
 		// Generate Authorization header using random credentials
-		auth := "Basic " + base64.StdEncoding.EncodeToString([]byte(username+":"+password))
+		auth := concat.String("Basic ", base64.StdEncoding.EncodeToString([]byte(concat.String(username, ":", password))))
 		req.Header.Set("Authorization", auth)
 
 		rec := httptest.NewRecorder()

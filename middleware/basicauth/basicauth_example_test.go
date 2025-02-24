@@ -1,9 +1,9 @@
-/*
-Example of how to use middleware in Quick
-$ curl -H "Authorization: Basic $(echo -n 'wronguser:wrongpass' | base64)" http://localhost:8080/protected
-$ curl -H "Authorization: Basic $(echo -n 'admin:1234' | base64)" http://localhost:8080/protected
-$ curl http://localhost:8080/protected
-*/
+// The BasicAuth middleware implements HTTP Basic Authentication
+// to secure specific routes on an HTTP server.
+// Example of how to use middleware in Quick
+// $ curl -H "Authorization: Basic $(echo -n 'wronguser:wrongpass' | base64)" http://localhost:8080/protected
+// $ curl -H "Authorization: Basic $(echo -n 'admin:1234' | base64)" http://localhost:8080/protected
+// $ curl http://localhost:8080/protected
 package basicauth
 
 import (
