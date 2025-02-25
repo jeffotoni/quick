@@ -776,7 +776,25 @@ func main() {
 ```
 ---
 
-### Serving Static Files with Quick Framework
+#### 📂 STATIC FILES
+🔹 How It Works
+    
+1. The server listens for HTTP requests targeting static file paths.
+2. If a requested file exists in the configured directory, the server reads and returns the file as a response.
+3. MIME types are automatically determined based on the file extension.
+
+:zap: Key Features
+- Efficient handling: Serves files directly without additional processing.
+- MIME type detection: Automatically identifies file types for proper rendering.
+- Caching support: Can be configured to improve performance via HTTP headers.
+- Directory listing: (Optional) Allows browsing available static files.
+
+:warning: Security Considerations
+- Restrict access to sensitive files (.env, .git, etc.).
+- Configure CORS policies when necessary.
+- Use a Content Security Policy (CSP) to mitigate XSS risks.
+
+#### Serving Static Files with Quick Framework
 
 This example sets up a basic web server that serves static files, such as HTML, CSS, or JavaScript.
 
@@ -808,6 +826,19 @@ func main() {
 
 
 ```
+---
+
+#### 📁 EMBED
+🔹 How Embedded Static Files Work
+    
+1. Static assets are compiled directly into the binary at build time (e.g., using Go’s embed package).
+2. The application serves these files from memory instead of reading from disk.
+3. This eliminates external dependencies, making deployment easier.
+
+:zap:  Advantages of Embedded Files
+- Portability: Single binary distribution without extra files.
+- Performance: Faster access to static assets as they are stored in memory.
+- Security: Reduces exposure to external file system attacks.
 
 ### Embedding Files
 
