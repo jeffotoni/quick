@@ -279,9 +279,9 @@ Quick provides a simplified API for managing uploads, allowing you to easily ret
 
 ##### 📌 File Upload Feature Comparison with other Frameworks
 
-| Framework  | `FormFile()` | `FormFiles()` | Dynamic Limit | File Metadata Methods (`FileName()`, `Size()`) | `Save()`, `SaveAll()` Method |
+| Framework  | `FormFile()` | `FormFiles()` | Dynamic Limit | Methods (`FileName()`, `Size()`) | `Save()`, `SaveAll()` Method |
 |------------|-------------|--------------|---------------|---------------------------------|------------|
-| **Quick**  | ✅ Yes | ✅ Yes | ✅ Yes (`c.FormFileLimit("10MB")`) | ✅ Yes | ✅ Yes |
+| **Quick**  | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
 | Fiber      | ✅ Yes | ✅ Yes | ❌ No | ❌ No (uses `FileHeader` directly) | ✅ Yes |
 | Gin        | ✅ Yes | ✅ Yes | ❌ No | ❌ No (uses `FileHeader` directly) | ❌ No |
 | Echo       | ✅ Yes | ❌ No  | ❌ No | ❌ No | ❌ No |
