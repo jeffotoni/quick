@@ -17,7 +17,7 @@ jobs:
       - run:
           name: "Test"
           command: |
-            go test -v -covermode=count -coverprofile=coverage.out ./...
+            go test -v -covermode=count -coverprofile=coverage.out -tags exclude_test ./...
       - store_artifacts:
           path: coverage.out
 
