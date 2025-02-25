@@ -62,7 +62,7 @@ func TestQuickStatic(t *testing.T) {
 // Table-driven test
 // /
 //
-//go:embed static/*
+//go:embed static/index.html
 var staticFiles embed.FS
 
 // TestQuickStaticDriven Tests if the static/* server functionality redirects correctly to index.html
