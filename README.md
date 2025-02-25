@@ -345,7 +345,7 @@ func main() {
             fmt.Println("Name:", file.FileName())
             fmt.Println("Size:", file.Size())
             fmt.Println("Type MINE:", file.ContentType())
-             fmt.Println("Type MINE:", file.Bytes())
+            fmt.Println("Bytes:", file.Bytes())
         }
 
         // optional
