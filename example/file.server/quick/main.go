@@ -1,22 +1,18 @@
 package main
 
-import (
-	"github.com/jeffotoni/quick"
-)
-
 func main() {
 
-	// start Quick
-	q := quick.New()
+	// // start Quick
+	// q := quick.New()
 
-	// start dir files
-	q.Static("/static", "./static")
+	// // start dir files
+	// q.Static("/static", "./static")
 
-	// server files
-	q.Get("/", func(c *quick.Ctx) error {
-		c.File("./static/index.html")
-		return nil
-	})
+	// // server files
+	// q.Get("/", func(c *quick.Ctx) error {
+	// 	c.File("./static/index.html")
+	// 	return nil
+	// })
 
-	q.Listen("0.0.0.0:8080")
+	// q.Listen("0.0.0.0:8080")
 }
