@@ -1,4 +1,4 @@
-# 📂 Middleware - Quick Framework
+# 📂 Middleware - Quick Framework ![Quick Logo](/quick.png)
 
 The **`middleware`** directory contains useful middleware implementations for the Quick Framework, making it easy to integrate common features such as authentication, compression, logging, request size limits, and UUID tracking.
 
