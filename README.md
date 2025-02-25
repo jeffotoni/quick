@@ -591,6 +591,131 @@ func main() {
 }
 
 ```
+### Manual implementation of BasicAuth
+
+```go
+func main() {
+	q := quick.New()
+
+	// BasicAuth Middleware manual
+	q.Use(func(next http.Handler) http.Handler {
+		username := "admin"
+		password := "1234"
+
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" || !strings.HasPrefix(authHeader, "Basic ") {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			// Decoding credentials
+			payload, err := base64.StdEncoding.DecodeString(authHeader[len("Basic "):])
+			if err != nil || len(strings.SplitN(string(payload), ":", 2)) != 2 {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			creds := strings.SplitN(string(payload), ":", 2)
+			if creds[0] != username || creds[1] != password {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	})
+
+	// Protected route
+	q.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+---
+
+### Basic Authusing environment variables
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+	middleware "github.com/jeffotoni/quick/middleware/basicauth"
+)
+
+var (
+	User     = os.Getenv("USER")
+	Password = os.Getenv("PASSWORD")
+)
+
+func main() {
+
+	q := quick.New()
+	// Adding BasicAuth middleware
+	q.Use(middleware.BasicAuth(User, Password))
+
+	// Protected route
+	q.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	// Starting the server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+---
+
+### Basic Authentication with Quick Middleware
+
+```go
+	q := quick.New()
+	// Applying BasicAuth middleware
+	q.Use(middleware.BasicAuth("admin", "1234"))
+
+	// All routes below `Use` will require authentication
+	q.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	// Start server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+```
+### Basic Authentication with Quick Route Groups
+```go
+
+func main() {
+	q := quick.New()
+
+	// Using a group to isolate protected routes
+	gr := q.Group("/")
+
+	// Applying BasicAuth middleware to the group
+	gr.Use(middleware.BasicAuth("admin", "1234"))
+
+	// Public route
+	q.Get("/v1/user", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("Public quick route")
+	})
+
+	// Protected route
+	gr.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	// Start server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
 
 ## 🤝| Contributions
 
