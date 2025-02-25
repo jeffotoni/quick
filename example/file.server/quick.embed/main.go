@@ -5,24 +5,24 @@
 // are embedded into the executable.
 package main
 
-import (
-	"embed"
+// import (
+// 	"embed"
 
-	"github.com/jeffotoni/quick"
-)
+// 	"github.com/jeffotoni/quick"
+// )
 
-//go:embed static/*
-var staticFiles embed.FS
+// //go:embed static/*
+// var staticFiles embed.FS
 
-func main() {
-	q := quick.New()
+// func main() {
+// 	q := quick.New()
 
-	q.Static("/static", staticFiles)
+// 	q.Static("/static", staticFiles)
 
-	q.Get("/", func(c *quick.Ctx) error {
-		c.File("./static/index.html")
-		return nil
-	})
+// 	q.Get("/", func(c *quick.Ctx) error {
+// 		c.File("./static/index.html")
+// 		return nil
+// 	})
 
-	q.Listen("0.0.0.0:8080")
-}
+// 	q.Listen("0.0.0.0:8080")
+// }
