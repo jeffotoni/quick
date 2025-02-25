@@ -18,14 +18,16 @@
 | Features                                         | Has  | Status | Completion |
 |--------------------------------------------------|------|--------|------------|
 | 🛣️ Route Manager                                  | yes  | 🟢     | 100%       |
-| 📁 Server Files Static                           | yes  | 🟢     | 100%       |
-| 🚪 Route Group                                   | yes  | 🟢     | 100%       |
-| 🌐 Middlewares                                   | yes  | 🟢     | 50%       |
-| 🚀 HTTP/2 support                                | yes  | 🟢     | 100%       |
-| 🧬 Data binding for JSON, XML and form payload   | yes  | 🟢     | 100%       |
-| 🔍 Regex support                                 | yes  | 🟢     | 80%       |
-| 🌐 Site                                             | yes  | 🟢     | 90%        |
-| 📚 Docs                                             | yes  | 🟡     | 40%        |
+| 📁 Server Files Static                            | yes  | 🟢     | 100%       |
+| 🔗 Http Client                                    | yes  | 🟢     | 100%       |
+| 📤 Upload Files (multipart/form-data)             | yes  | 🟢     | 100%       |
+| 🚪 Route Group                                    | yes  | 🟢     | 100%       |
+| 🛡️ Middlewares                                    | yes  | 🟡     | 50%        |
+| ⚡ HTTP/2 support                                  | yes  | 🟢     | 100%       |
+| 🔄 Data binding for JSON, XML and form payload    | yes  | 🟢     | 100%       |
+| 🔍 Regex support                                  | yes  | 🟡     | 80%        |
+| 🌎 Site                                           | yes  | 🟡     | 90%        |
+| 📚 Docs                                           | yes  | 🟡     | 40%        |
 
 
 
@@ -75,7 +77,6 @@
  | Task   | Progress |
 |--------------------------------------------------|-----------|
 | Develop and relate to Listen the Config   | 42%   |
-| Develops support for Group Routes - Group Get and Post | 70% |
 | Develops support for Uploads and Uploads Multiples | 100% |
 | Develops support for JWT | 10% |
 | Develop method to Facilitate ResponseWriter handling | 80% |
@@ -256,8 +257,9 @@ Content-Type: text/plain; charset=utf-8
 
 ```
 
+### Uploads multipart/form-data
 
-### Quick provides a simplified API for managing uploads, allowing you to easily retrieve and manipulate files.
+Quick provides a simplified API for managing uploads, allowing you to easily retrieve and manipulate files.
 
 ✅ **Main Methods and Functionalities**:
 | Method | Description |
@@ -386,11 +388,6 @@ $ curl -X POST http://localhost:8080/upload-multiple \
 -F "files=@image1.jpg" -F "files=@document.pdf"
 ```
 
-## 📚| More Examples
-
-This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/quick/tree/main/example).
-
-
 ### Quick Post Bind json
 ```go
 
@@ -419,6 +416,7 @@ func main() {
 
 ```
 
+### 📌 cURL
 ```bash
 
 $ curl -i -XPOST -H "Content-Type:application/json" \
@@ -591,77 +589,30 @@ func main() {
 }
 
 ```
-### Manual implementation of BasicAuth
+### 🔑 Basic Authentication
 
-This example shows a custom implementation of Basic Authentication without using any middleware. It manually verifies user credentials and applies authentication to protected routes.
+Basic Authentication (Basic Auth) is a simple authentication mechanism defined in RFC 7617. It is commonly used for HTTP-based authentication, allowing clients to provide credentials (username and password) in the request header.
 
-```go
-package main
+**🔹 How it Works** 
+  1.	The client encodes the username and password in Base64 (username:password → dXNlcm5hbWU6cGFzc3dvcmQ=).
+  2.	The encoded credentials are sent in the Authorization header:
+```bash
 
-import (
-	"encoding/base64"
-	"log"
-	"net/http"
-	"strings"
-
-	"github.com/jeffotoni/quick"
-)
-
-func main() {
-	q := quick.New()
-
-	// implementing middleware directly in Use
-	q.Use(func(next http.Handler) http.Handler {
-		// credentials
-		username := "admin"
-		password := "1234"
-
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			// Check if it starts with "Basic"
-			if !strings.HasPrefix(authHeader, "Basic ") {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			// Decode credentials
-			payload, err := base64.StdEncoding.DecodeString(authHeader[len("Basic "):])
-			if err != nil {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			creds := strings.SplitN(string(payload), ":", 2)
-			if len(creds) != 2 || creds[0] != username || creds[1] != password {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	})
-
-	q.Get("/protected", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-		return c.SendString("You have accessed a protected route!")
-	})
-
-	// Start server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
-
-}
-
+Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
 ```
----
+  3.	The server decodes the credentials and verifies them before granting access.
 
-### Basic Authusing environment variables
+**⚠️ Security Considerations**
+	• Not encrypted: Basic Auth only encodes credentials in Base64, but does not encrypt them.
+	• Use over HTTPS: Always use Basic Auth with TLS/SSL (HTTPS) to prevent credentials from being exposed.
+	• Alternative authentication methods: For higher security, consider OAuth2, JWT, or API keys.
+
+Basic Auth is suitable for simple use cases, but for production applications, stronger authentication mechanisms are recommended. 🚀
+
+#### Basic Authusing environment variables
 
 This example sets up Basic Authentication using environment variables to store the credentials securely.
-
+the routes below are affected, to isolate the route use group to apply only to routes in the group.
 ```go
 package main
 
@@ -735,7 +686,7 @@ func main() {
 ### Basic Authentication with Quick Route Groups
 
 This example shows how to apply Basic Authentication to a specific group of routes using Quick's Group functionality.
-
+When we use group we can isolate the middleware, this works for any middleware in quick.
 ```go
 
 package main
@@ -774,9 +725,82 @@ func main() {
 }
 
 ```
----
+### Manual implementation of BasicAuth
 
-### Serving Static Files with Quick Framework
+This example shows a custom implementation of Basic Authentication without using any middleware. It manually verifies user credentials and applies authentication to protected routes.
+
+In quick you are allowed to make your own custom implementation directly in q.Use(..), that is, you will be able to implement it directly if you wish.
+
+
+
+```go
+package main
+
+import (
+	"encoding/base64"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// implementing middleware directly in Use
+	q.Use(func(next http.Handler) http.Handler {
+		// credentials
+		username := "admin"
+		password := "1234"
+
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			// Check if it starts with "Basic"
+			if !strings.HasPrefix(authHeader, "Basic ") {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			// Decode credentials
+			payload, err := base64.StdEncoding.DecodeString(authHeader[len("Basic "):])
+			if err != nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			creds := strings.SplitN(string(payload), ":", 2)
+			if len(creds) != 2 || creds[0] != username || creds[1] != password {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
+
+	q.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	// Start server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+
+}
+
+```
+---
+### 📂 Static File Server
+
+A Static File Server is a fundamental feature in web frameworks, allowing the efficient serving of static content such as HTML, CSS, JavaScript, images, and other assets. It is useful for hosting front-end applications, providing downloadable files, or serving resources directly from the backend.
+
+
+### Serving Static Files with Quick
 
 This example sets up a basic web server that serves static files, such as HTML, CSS, or JavaScript.
 
@@ -810,6 +834,7 @@ func main() {
 ```
 
 ### Embedding Files
+When embedding static files into a binary executable, the server does not rely on an external file system to serve assets. This approach is useful for standalone applications, CLI tools, and cross-platform deployments where dependencies should be minimized.
 
 This example incorporates static files into the binary using the embed package and serves them using the Quick structure.
 
@@ -848,6 +873,9 @@ func main() {
 
 ```
 
+## 📚| More Examples
+
+This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/quick/tree/main/example).
 
 ## 🤝| Contributions
 
