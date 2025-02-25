@@ -878,6 +878,119 @@ func main() {
 }
 
 ```
+---
+### 🌍 HTTP Client 
+The HTTP Client package in Quick provides a simple and flexible way to make HTTP requests, supporting GET, POST, PUT, and DELETE operations. It is designed to handle different types of request bodies and parse responses easily.
+
+This client abstracts low-level HTTP handling and offers:
+
+- Convenience functions (Get, Post, Put, Delete) for making quick requests using a default client.
+- Customizable requests with support for headers, authentication, and transport settings.
+- Flexible body parsing, allowing users to send JSON, plain text, or custom io.Reader types.
+- Automatic JSON marshaling and unmarshaling, simplifying interaction with APIs.
+
+#### GET Request Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Use the default client
+	resp, err := client.Get("https://example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("GET response:", string(resp.Body))
+}
+
+```
+
+#### POST Request Example (Using a Struct)
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Define a struct to send as JSON
+	data := struct {
+		Message string `json:"message"`
+	}{
+		Message: "Hello, POST!",
+	}
+
+	resp, err := client.Post("https://example.com", data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Unmarshal the JSON response (if applicable)
+	var result map[string]string
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("POST response:", result["message"])
+}
+
+```
+
+#### PUT Request Example (Using a String)
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Use a simple string as the PUT body
+	resp, err := client.Put("https://example.com", "Hello, PUT!")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("PUT response:", string(resp.Body))
+}
+
+```
+
+#### DELETE Request Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	resp, err := client.Delete("https://example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("DELETE response:", string(resp.Body))
+}
+
+```
+---
 
 
 ## 🤝| Contributions
