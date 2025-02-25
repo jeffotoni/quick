@@ -35,7 +35,12 @@ func main() {
 		}
 
 		// saving file to disk
-		uploadedFile.Save("/tmp/uploads/")
+		uploadedFile.Save("/tmp/uploads")
+
+		// or Can do It
+
+		// saving file to disk
+		uploadedFile.Save("/tmp/uploads", "codeJeff.go")
 
 		// accessing file upload objects
 

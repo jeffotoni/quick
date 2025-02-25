@@ -363,9 +363,9 @@ func TestQuick_Listen(t *testing.T) {
 			if tt.args.addr == "99999" {
 				err := q.Listen(tt.args.addr)
 				if err == nil {
-					t.Errorf("Esperado erro ao iniciar servidor com porta inválida (%s), mas não ocorreu erro.", tt.args.addr)
+					t.Errorf("Expected error starting server with invalid port (%s), but no error occurred.", tt.args.addr)
 				} else {
-					fmt.Println("Porta inválida detectada corretamente.")
+					fmt.Println("Invalid port detected correctly.")
 				}
 				return
 			}
