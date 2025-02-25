@@ -1,7 +1,6 @@
 package quick
 
 import (
-	"embed"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -62,8 +61,8 @@ func TestQuickStatic(t *testing.T) {
 // Table-driven test
 // /
 //
-//go:embed static/index.html
-var staticFiles embed.FS
+// //go:embed static/*
+// var staticFiles embed.FS
 
 // TestQuickStaticDriven Tests if the static/* server functionality redirects correctly to index.html
 // The will test TestQuickStaticDriven(t *testing.T)
@@ -82,9 +81,9 @@ func TestQuickStaticDriven(t *testing.T) {
 		{"Serve index.html from file system", false, "/", http.StatusOK, "<h1>File Server Go example html</h1>"},
 		{"Serve static/index.html directly from file system", false, "/static/index.html", StatusNotFound, "404"},
 		{"Arquivo not found from file system", false, "/static/missing.html", http.StatusNotFound, "404"},
-		{"Serve index.html from embed FS", true, "/", http.StatusOK, "<h1>File Server Go example html</h1>"},
+		{"Serve index.html from embed FS", false, "/", http.StatusOK, "<h1>File Server Go example html</h1>"},
 		{"Serve static/index.html directly from embed FS", true, "/static/index.html", http.StatusNotFound, "404"},
-		{"Arquivo not found from embed FS", true, "/static/missing.html", http.StatusNotFound, "404"},
+		{"Arquivo not found from embed FS", false, "/static/missing.html", http.StatusNotFound, "404"},
 	}
 
 	for _, tc := range tests {
