@@ -82,6 +82,14 @@ func main() {
 ### 📌 Basic Authusing environment variables
 
 ```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+	middleware "github.com/jeffotoni/quick/middleware/basicauth"
+)
 
 var (
 	User     = os.Getenv("USER")
