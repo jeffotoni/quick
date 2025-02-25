@@ -15,10 +15,10 @@ func main() {
 
 	q := quick.New()
 
-	q.Get("/get", h)
-	q.Post("/post", h)
-	q.Put("/put", h)
-	q.Delete("/delete", h)
+	q.Get("/v1/user/:id", h)
+	q.Post("/v1/user", h)
+	q.Put("/v1/user/:id", h)
+	q.Delete("/v1/user/:id", h)
 
-	q.Listen(":8000")
+	q.Listen("0.0.0.0:3000")
 }
