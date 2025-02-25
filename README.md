@@ -242,6 +242,7 @@ func main() {
 }
 
 ```
+### 📌 cURL
 
 ```bash
 
@@ -609,7 +610,7 @@ Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
 
 Basic Auth is suitable for simple use cases, but for production applications, stronger authentication mechanisms are recommended. 🚀
 
-#### Basic Authusing environment variables
+#### Basic Auth environment variables
 
 This example sets up Basic Authentication using environment variables to store the credentials securely.
 the routes below are affected, to isolate the route use group to apply only to routes in the group.
@@ -725,13 +726,10 @@ func main() {
 }
 
 ```
-### Manual implementation of BasicAuth
-
+### BasicAuth Customized
 This example shows a custom implementation of Basic Authentication without using any middleware. It manually verifies user credentials and applies authentication to protected routes.
 
 In quick you are allowed to make your own custom implementation directly in q.Use(..), that is, you will be able to implement it directly if you wish.
-
-
 
 ```go
 package main
@@ -795,12 +793,30 @@ func main() {
 
 ```
 ---
-### 📂 Static File Server
+
+#### 📂 STATIC FILES
 
 A Static File Server is a fundamental feature in web frameworks, allowing the efficient serving of static content such as HTML, CSS, JavaScript, images, and other assets. It is useful for hosting front-end applications, providing downloadable files, or serving resources directly from the backend.
 
 
-### Serving Static Files with Quick
+🔹 How It Works
+    
+1. The server listens for HTTP requests targeting static file paths.
+2. If a requested file exists in the configured directory, the server reads and returns the file as a response.
+3. MIME types are automatically determined based on the file extension.
+
+:zap: Key Features
+- Efficient handling: Serves files directly without additional processing.
+- MIME type detection: Automatically identifies file types for proper rendering.
+- Caching support: Can be configured to improve performance via HTTP headers.
+- Directory listing: (Optional) Allows browsing available static files.
+
+:warning: Security Considerations
+- Restrict access to sensitive files (.env, .git, etc.).
+- Configure CORS policies when necessary.
+- Use a Content Security Policy (CSP) to mitigate XSS risks.
+
+#### Serving Static Files with Quick Framework
 
 This example sets up a basic web server that serves static files, such as HTML, CSS, or JavaScript.
 
@@ -815,7 +831,8 @@ func main() {
     q := quick.New()
 
     // Static Files Setup
-    // Serves files from the "./static" directory under the "/static" URL path.
+    // Serves files from the "./static" directory 
+    // under the "/static" URL path.
     q.Static("/static", "./static")
 
     // Route Definition
@@ -832,6 +849,19 @@ func main() {
 
 
 ```
+---
+
+#### 📁 EMBED
+🔹 How Embedded Static Files Work
+    
+1. Static assets are compiled directly into the binary at build time (e.g., using Go’s embed package).
+2. The application serves these files from memory instead of reading from disk.
+3. This eliminates external dependencies, making deployment easier.
+
+:zap:  Advantages of Embedded Files
+- Portability: Single binary distribution without extra files.
+- Performance: Faster access to static assets as they are stored in memory.
+- Security: Reduces exposure to external file system attacks.
 
 ### Embedding Files
 When embedding static files into a binary executable, the server does not rely on an external file system to serve assets. This approach is useful for standalone applications, CLI tools, and cross-platform deployments where dependencies should be minimized.
@@ -872,6 +902,119 @@ func main() {
 }
 
 ```
+---
+### 🌍 HTTP Client 
+The HTTP Client package in Quick provides a simple and flexible way to make HTTP requests, supporting GET, POST, PUT, and DELETE operations. It is designed to handle different types of request bodies and parse responses easily.
+
+This client abstracts low-level HTTP handling and offers:
+
+- Convenience functions (Get, Post, Put, Delete) for making quick requests using a default client.
+- Customizable requests with support for headers, authentication, and transport settings.
+- Flexible body parsing, allowing users to send JSON, plain text, or custom io.Reader types.
+- Automatic JSON marshaling and unmarshaling, simplifying interaction with APIs.
+
+#### GET Request Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Use the default client
+	resp, err := client.Get("https://example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("GET response:", string(resp.Body))
+}
+
+```
+
+#### POST Request Example (Using a Struct)
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Define a struct to send as JSON
+	data := struct {
+		Message string `json:"message"`
+	}{
+		Message: "Hello, POST!",
+	}
+
+	resp, err := client.Post("https://example.com", data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Unmarshal the JSON response (if applicable)
+	var result map[string]string
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("POST response:", result["message"])
+}
+
+```
+
+#### PUT Request Example (Using a String)
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Use a simple string as the PUT body
+	resp, err := client.Put("https://example.com", "Hello, PUT!")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("PUT response:", string(resp.Body))
+}
+
+```
+
+#### DELETE Request Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	resp, err := client.Delete("https://example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("DELETE response:", string(resp.Body))
+}
+
+```
+---
 
 ## 📚| More Examples
 
