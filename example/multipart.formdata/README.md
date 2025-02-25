@@ -8,6 +8,14 @@
 
 **`multipart/form-data`** is an HTTP content type used for sending **files and binary data** in forms. Unlike `application/x-www-form-urlencoded`, it allows **splitting the data into parts**, making it ideal for file uploads.
 
+##### Example HTML
+```html
+<form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="files" multiple>
+    <button type="submit">Enviar</button>
+</form>
+```
+
 #### 📝 **Structure of a `multipart/form-data`** Request
 Each part of the request contains **headers and a body**:
 
