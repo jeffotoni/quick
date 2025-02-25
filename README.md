@@ -716,6 +716,62 @@ func main() {
 	log.Fatal(q.Listen("0.0.0.0:8080"))
 }
 ```
+---
+
+### Serving Static Files with Quick Framework
+```go
+func main() {
+    
+    // Create a new Quick server instance
+    q := quick.New()
+
+    // Static Files Setup
+    // Serves files from the "./static" directory under the "/static" URL path.
+    q.Static("/static", "./static")
+
+    // Route Definition
+    // Defines a route to serve the "index.html" file when accessing "/".
+    q.Get("/", func(c *quick.Ctx) error {
+        c.File("./static/index.html")
+        return nil
+    })
+
+    // Starting the Server
+    // Starts the server to listen for incoming requests on port 8080.
+    q.Listen("0.0.0.0:8080")
+}
+
+
+```
+
+### Embedding Files
+```go
+//go:embed static/*
+var staticFiles embed.FS
+
+func main() {
+	// Server Initialization
+	// Creates a new instance of the Quick server
+	q := quick.New()
+
+	// Static Files Setup
+	// Defines the directory for serving static files using the embedded files
+	q.Static("/static", staticFiles)
+
+	// Route Definition
+	// Defines a route that serves the HTML index file
+	q.Get("/", func(c *quick.Ctx) error {
+		c.File("./static/index.html") // Renders the index.html file
+		return nil
+	})
+
+	// Starting the Server
+	// Starts the server on port 8080, listening on all addresses
+	q.Listen("0.0.0.0:8080")
+}
+
+```
+
 
 ## 🤝| Contributions
 
