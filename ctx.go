@@ -291,7 +291,7 @@ func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
 	}
 
 	// Parse multipart form with the defined limit
-	if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
+	if err := c.Request.ParseMultipartForm(c.uploadFileSize); err != nil {
 		return nil, errors.New("failed to parse multipart form: " + err.Error())
 	}
 
