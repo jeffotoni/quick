@@ -593,51 +593,115 @@ func main() {
 ```
 ### Manual implementation of BasicAuth
 
+This example shows a custom implementation of Basic Authentication without using any middleware. It manually verifies user credentials and applies authentication to protected routes.
+
 ```go
+package main
+
+import (
+	"encoding/base64"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/jeffotoni/quick"
+)
+
 func main() {
 	q := quick.New()
 
-	// BasicAuth Middleware manual
+	// implementing middleware directly in Use
 	q.Use(func(next http.Handler) http.Handler {
+		// credentials
 		username := "admin"
 		password := "1234"
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" || !strings.HasPrefix(authHeader, "Basic ") {
+			if authHeader == "" {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
 
-			// Decoding credentials
+			// Check if it starts with "Basic"
+			if !strings.HasPrefix(authHeader, "Basic ") {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			// Decode credentials
 			payload, err := base64.StdEncoding.DecodeString(authHeader[len("Basic "):])
-			if err != nil || len(strings.SplitN(string(payload), ":", 2)) != 2 {
+			if err != nil {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
 
 			creds := strings.SplitN(string(payload), ":", 2)
-			if creds[0] != username || creds[1] != password {
+			if len(creds) != 2 || creds[0] != username || creds[1] != password {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
-
 			next.ServeHTTP(w, r)
 		})
 	})
 
-	// Protected route
 	q.Get("/protected", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		return c.SendString("You have accessed a protected route!")
 	})
 
+	// Start server
 	log.Fatal(q.Listen("0.0.0.0:8080"))
+
 }
+
 ```
 ---
 
 ### Basic Authusing environment variables
+
+This example sets up Basic Authentication using environment variables to store the credentials securely.
+
+```go
+package main
+
+import (
+	"log"
+	"os"
+
+	"github.com/jeffotoni/quick"
+	middleware "github.com/jeffotoni/quick/middleware/basicauth"
+)
+
+// export USER=admin
+// export PASSWORD=1234
+
+var (
+	User     = os.Getenv("USER")
+	Password = os.Getenv("PASSORD")
+)
+
+func main() {
+
+	q := quick.New()
+
+	q.Use(middleware.BasicAuth(User, Password))
+
+	q.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	// Start server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+
+```
+---
+
+### Basic Authentication with Quick Middleware
+
+This example uses the built-in BasicAuth middleware provided by Quick, offering a simple authentication setup.
 
 ```go
 package main
@@ -649,37 +713,15 @@ import (
 	middleware "github.com/jeffotoni/quick/middleware/basicauth"
 )
 
-var (
-	User     = os.Getenv("USER")
-	Password = os.Getenv("PASSWORD")
-)
-
 func main() {
 
+	//starting Quick
 	q := quick.New()
-	// Adding BasicAuth middleware
-	q.Use(middleware.BasicAuth(User, Password))
 
-	// Protected route
-	q.Get("/protected", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-		return c.SendString("You have accessed a protected route!")
-	})
-
-	// Starting the server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
-}
-```
----
-
-### Basic Authentication with Quick Middleware
-
-```go
-	q := quick.New()
-	// Applying BasicAuth middleware
+	// calling middleware
 	q.Use(middleware.BasicAuth("admin", "1234"))
 
-	// All routes below `Use` will require authentication
+	// everything below Use will apply the middleware
 	q.Get("/protected", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		return c.SendString("You have accessed a protected route!")
@@ -687,26 +729,41 @@ func main() {
 
 	// Start server
 	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+
 ```
 ### Basic Authentication with Quick Route Groups
+
+This example shows how to apply Basic Authentication to a specific group of routes using Quick's Group functionality.
+
 ```go
 
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+	middleware "github.com/jeffotoni/quick/middleware/basicauth"
+)
+
 func main() {
+
 	q := quick.New()
 
-	// Using a group to isolate protected routes
+	// using group to isolate routes and middlewares
 	gr := q.Group("/")
 
-	// Applying BasicAuth middleware to the group
+	// middleware BasicAuth
 	gr.Use(middleware.BasicAuth("admin", "1234"))
 
-	// Public route
+	// route public
 	q.Get("/v1/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		return c.SendString("Public quick route")
 	})
 
-	// Protected route
+	// protected route
 	gr.Get("/protected", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		return c.SendString("You have accessed a protected route!")
@@ -715,11 +772,19 @@ func main() {
 	// Start server
 	log.Fatal(q.Listen("0.0.0.0:8080"))
 }
+
 ```
 ---
 
 ### Serving Static Files with Quick Framework
+
+This example sets up a basic web server that serves static files, such as HTML, CSS, or JavaScript.
+
 ```go
+package main
+
+import "github.com/jeffotoni/quick"
+
 func main() {
     
     // Create a new Quick server instance
@@ -745,7 +810,18 @@ func main() {
 ```
 
 ### Embedding Files
+
+This example incorporates static files into the binary using the embed package and serves them using the Quick structure.
+
 ```go
+package main
+
+import (
+	"embed"
+
+	"github.com/jeffotoni/quick"
+)
+
 //go:embed static/*
 var staticFiles embed.FS
 
