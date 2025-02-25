@@ -1,13 +1,26 @@
 ## 📦 Files Server in Quick ![Quick Logo](/quick.png)
 
+#### 📂 STATIC FILES
+🔹 How It Works
+    
+1. The server listens for HTTP requests targeting static file paths.
+2. If a requested file exists in the configured directory, the server reads and returns the file as a response.
+3. MIME types are automatically determined based on the file extension.
 
-#### 📌 What is Static Files?
-**`Static files`** are files that are served as-is to the client without any server-side processing. These files include HTML, CSS, JavaScript, images, and other assets that are not generated dynamically by the server. Using static files allows you to build efficient and fast web applications.
+:zap: Key Features
+- Efficient handling: Serves files directly without additional processing.
+- MIME type detection: Automatically identifies file types for proper rendering.
+- Caching support: Can be configured to improve performance via HTTP headers.
+- Directory listing: (Optional) Allows browsing available static files.
 
+:warning: Security Considerations
+- Restrict access to sensitive files (.env, .git, etc.).
+- Configure CORS policies when necessary.
+- Use a Content Security Policy (CSP) to mitigate XSS risks.
 
-### Serving Static Files with Quick Framework
+#### Serving Static Files with Quick Framework
 
-This example sets up a basic web server that serves static files, such as HTML, CSS, or JavaScript, using the Quick framework.
+This example sets up a basic web server that serves static files, such as HTML, CSS, or JavaScript.
 
 ```go    
     // Create a new Quick server instance
@@ -29,10 +42,21 @@ This example sets up a basic web server that serves static files, such as HTML, 
     q.Listen("0.0.0.0:8080")
 
 ```
+#### 📁 EMBED
+🔹 How Embedded Static Files Work
+    
+1. Static assets are compiled directly into the binary at build time (e.g., using Go’s embed package).
+2. The application serves these files from memory instead of reading from disk.
+3. This eliminates external dependencies, making deployment easier.
+
+:zap:  Advantages of Embedded Files
+- Portability: Single binary distribution without extra files.
+- Performance: Faster access to static assets as they are stored in memory.
+- Security: Reduces exposure to external file system attacks.
 
 ### Embedding Files
 
-This example incorporates static files into the binary using the embed package and serves them using the Quick framework. This allows you to include all static files directly into the executable, making deployment easier.
+This example incorporates static files into the binary using the embed package and serves them using the Quick structure.
 
 ```go
 //go:embed static/*
