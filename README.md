@@ -276,54 +276,86 @@ Content-Type: text/plain; charset=utf-8
 ### 📌 File Upload Example
 
 ```go
-q.Post("/upload", func(c *quick.Ctx) error {
-    uploadedFile, err := c.FormFile("file")
-    if err != nil {
-        return c.Status(400).JSON(Msg{
-            Msg: "Upload error",
-            Error: err.Error(),
-         })
-    }
+package main
 
-fmt.Println("Name:", uploadedFile.FileName())
-fmt.Println("Size:", uploadedFile.Size())
-fmt.Println("MIME Type:", uploadedFile.ContentType())
+import (
+    "fmt"
+    "github.com/jeffotoni/quick"
+)
 
-// Save the file (optional)
-// uploadedFile.Save("/tmp/uploads")
+func main() {
+    // start Quick
+    q := quick.New()
 
-return c.Status(200).JSONIN(uploadedFile)
-})
+    q.Post("/upload", func(c *quick.Ctx) error {
+        // set limit upload
+        c.FormFileLimit("10MB")
+
+        uploadedFile, err := c.FormFile("file")
+        if err != nil {
+            return c.Status(400).JSON(Msg{
+                Msg: "Upload error",
+                Error: err.Error(),
+             })
+        }
+
+        fmt.Println("Name:", uploadedFile.FileName())
+        fmt.Println("Size:", uploadedFile.Size())
+        fmt.Println("MIME Type:", uploadedFile.ContentType())
+
+        // Save the file (optional)
+        // uploadedFile.Save("/tmp/uploads")
+
+        return c.Status(200).JSONIN(uploadedFile)
+
+    })
+
+     q.Listen("0.0.0.0:8080")
+}
 ```
 ### 📌 Multiple Upload Example
 
 ```go
-q.Post("/upload-multiple", func(c *quick.Ctx) error {
-    // set limit upload
-    c.FormFileLimit("10MB")
+package main
 
-    // recebereceiving files
-    files, err := c.FormFiles("files")
-    if err != nil {
-        return c.Status(400).JSON(Msg{
-            Msg:   "Upload error",
-            Error: err.Error(),
-        })
-    }
+import (
+    "fmt"
+    "github.com/jeffotoni/quick"
+)
 
-    // listing all files
-    for _, file := range files {
-        fmt.Println("Name:", file.FileName())
-        fmt.Println("Size:", file.Size())
-        fmt.Println("Type MINE:", file.ContentType())
-         fmt.Println("Type MINE:", file.Bytes())
-    }
+func main() {
+    // start Quick
+    q := quick.New()
 
-    // optional
-    // files.SaveAll("/my-dir/uploads")
+    q.Post("/upload-multiple", func(c *quick.Ctx) error {
+        // set limit upload
+        c.FormFileLimit("10MB")
 
-    return c.Status(200).JSONIN(files)
-})
+        // recebereceiving files
+        files, err := c.FormFiles("files")
+        if err != nil {
+            return c.Status(400).JSON(Msg{
+                Msg:   "Upload error",
+                Error: err.Error(),
+            })
+        }
+
+        // listing all files
+        for _, file := range files {
+            fmt.Println("Name:", file.FileName())
+            fmt.Println("Size:", file.Size())
+            fmt.Println("Type MINE:", file.ContentType())
+             fmt.Println("Type MINE:", file.Bytes())
+        }
+
+        // optional
+        // files.SaveAll("/my-dir/uploads")
+
+        return c.Status(200).JSONIN(files)
+    })
+        
+    q.Listen("0.0.0.0:8080")
+}
 ```
 ### 📌 Testing with cURL
 
