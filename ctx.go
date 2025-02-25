@@ -13,6 +13,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/jeffotoni/quick/internal/concat"
 )
 
 type Ctx struct {
@@ -341,9 +343,20 @@ func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
 
 // Save stores the uploaded file in the specified directory.
 // The result will Save(destination string) error
-func (uf *UploadedFile) Save(destination string) error {
-	if uf.File == nil {
-		return errors.New("no file available to save")
+func (uf *UploadedFile) Save(destination string, nameFile ...string) error {
+	var fullPath string
+
+	if len(nameFile) > 0 {
+		// Join the files into a single string separated by "/"
+		fullPath = filepath.Join(destination, filepath.Join(nameFile...))
+
+	} else {
+
+		if uf.File == nil {
+			return errors.New("no file available to save")
+		}
+		fullPath = concat.String(destination, "/", uf.Info.Filename)
+
 	}
 
 	// Ensure the destination directory exists
@@ -352,7 +365,7 @@ func (uf *UploadedFile) Save(destination string) error {
 	}
 
 	// Create the file on disk
-	dst, err := os.Create(destination + uf.Info.Filename)
+	dst, err := os.Create(fullPath)
 	if err != nil {
 		return errors.New("failed to create file on disk")
 	}
