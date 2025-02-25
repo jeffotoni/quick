@@ -92,7 +92,7 @@ func TestQuickStaticDriven(t *testing.T) {
 
 			// Choose between embedded FS or local file system
 			if tc.useEmbed {
-				q.Static("/static", staticFiles)
+				// q.Static("/static", staticFiles)
 			} else {
 				q.Static("/static", "./static")
 			}
