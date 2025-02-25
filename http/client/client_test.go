@@ -2,666 +2,262 @@ package client
 
 import (
 	"context"
-	"errors"
+	"crypto/tls"
+	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestGet$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestGet$; go tool cover -html=coverage.out
-func TestGet(t *testing.T) {
-	tests := []struct {
-		name    string
-		URL     string
-		ctx     context.Context
-		wantOut *ClientResponse
-		mock    *httpMock
-		wantErr bool
-	}{
-		{
-			name: "success",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				Body:       []byte(`{"data": "quick is awesome!"}`),
-				StatusCode: 200,
-			},
-			wantErr: false,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 200,
-					Body:       io.NopCloser(strings.NewReader(`{"data": "quick is awesome!"}`)),
-				},
-				err: nil,
-			},
-		},
-		{
-			name: "error_request",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 500,
-					Body:       nil,
-				},
-				err: errors.New("request_error"),
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(*testing.T) {
-
-			c := Client{
-				Ctx:        context.Background(),
-				ClientHttp: tc.mock,
-				Headers: map[string]string{
-					"Content-Type": "application/json",
-				},
-			}
-
-			resp, err := c.Get(tc.URL)
-			if (!tc.wantErr) && err != nil {
-				t.Errorf("want nil and got %v", err)
-			}
-
-			if resp != nil {
-				strBody, wantStrBody := string(resp.Body), string(tc.wantOut.Body)
-
-				if strBody != wantStrBody {
-					t.Errorf("want %s and got %s", strBody, wantStrBody)
-				}
-
-				if resp.StatusCode != tc.wantOut.StatusCode {
-					t.Errorf("want %d and got %d", tc.wantOut.StatusCode, resp.StatusCode)
-				}
-			}
-
-		})
+// testHandler is used by the test server to simulate various HTTP methods.
+// The result will testHandler(w http.ResponseWriter, r *http.Request)
+func testHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("GET OK"))
+	case http.MethodPost:
+		body, _ := io.ReadAll(r.Body)
+		w.WriteHeader(http.StatusCreated)
+		w.Write(body)
+	case http.MethodPut:
+		body, _ := io.ReadAll(r.Body)
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	case http.MethodDelete:
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("DELETE OK"))
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestPost$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestPost$; go tool cover -html=coverage.out
-func TestPost(t *testing.T) {
-	tests := []struct {
-		name    string
-		ctx     context.Context
-		URL     string
-		bodyReq string
-		wantOut *ClientResponse
-		mock    *httpMock
-		wantErr bool
-	}{
-		{
-			name:    "success",
-			ctx:     context.Background(),
-			URL:     "https://letsgoquick.com",
-			bodyReq: `{"data": "quick is awesome!"}`,
-			wantOut: &ClientResponse{
-				Body:       []byte(`{"data": "quick is awesome!"}`),
-				StatusCode: 200,
-			},
-			wantErr: false,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 200,
-					Body:       io.NopCloser(strings.NewReader(`{"data": "quick is awesome!"}`)),
-				},
-				err: nil,
-			},
-		},
-		{
-			name: "error_request",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 500,
-					Body:       nil,
-				},
-				err: errors.New("request_error"),
-			},
-		},
+// TestClient_Get verifies the GET method.
+// The result will TestClient_Get(t *testing.T)
+func TestClient_Get(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(testHandler))
+	defer ts.Close()
+
+	client := NewClient() // Use default client configuration
+	resp, err := client.Get(ts.URL)
+	if err != nil {
+		t.Fatalf("GET request failed: %v", err)
 	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(*testing.T) {
-
-			c := Client{
-				Ctx:        context.Background(),
-				ClientHttp: tc.mock,
-				Headers: map[string]string{
-					"Content-Type": "application/json",
-				},
-			}
-
-			resp, err := c.Post(tc.URL, io.NopCloser(strings.NewReader(tc.bodyReq)))
-			if (!tc.wantErr) && err != nil {
-				t.Errorf("want nil and got %v", err)
-			}
-
-			if resp != nil {
-				strBody, wantStrBody := string(resp.Body), string(tc.wantOut.Body)
-
-				if strBody != wantStrBody {
-					t.Errorf("want %s and got %s", strBody, wantStrBody)
-				}
-
-				if resp.StatusCode != tc.wantOut.StatusCode {
-					t.Errorf("want %d and got %d", tc.wantOut.StatusCode, resp.StatusCode)
-				}
-			}
-
-		})
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	if string(resp.Body) != "GET OK" {
+		t.Errorf("Expected body 'GET OK', got '%s'", string(resp.Body))
 	}
 }
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestPut$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestPut$; go tool cover -html=coverage.out
-func TestPut(t *testing.T) {
-	tests := []struct {
-		name    string
-		ctx     context.Context
-		bodyReq string
-		URL     string
-		wantOut *ClientResponse
-		mock    *httpMock
-		wantErr bool
-	}{
-		{
-			name:    "success",
-			ctx:     context.Background(),
-			bodyReq: `{"data": "quick is awesome!"}`,
-			URL:     "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				Body:       []byte(`{"data": "quick is awesome!"}`),
-				StatusCode: 200,
-			},
-			wantErr: false,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 200,
-					Body:       io.NopCloser(strings.NewReader(`{"data": "quick is awesome!"}`)),
-				},
-				err: nil,
-			},
-		},
-		{
-			name: "error_request",
-			ctx:  context.Background(),
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-			URL:     "https://letsgoquick.com",
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 500,
-					Body:       nil,
-				},
-				err: errors.New("request_error"),
-			},
-		},
+// TestClient_Post verifies the POST method with various body types.
+// The result will TestClient_Post(t *testing.T)
+func TestClient_Post(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(testHandler))
+	defer ts.Close()
+
+	client := NewClient()
+
+	// Test with a string body
+	bodyStr := "Test POST"
+	resp, err := client.Post(ts.URL, bodyStr)
+	if err != nil {
+		t.Fatalf("POST request failed: %v", err)
+	}
+	if resp.StatusCode != http.StatusCreated {
+		t.Errorf("Expected status %d, got %d", http.StatusCreated, resp.StatusCode)
+	}
+	if string(resp.Body) != bodyStr {
+		t.Errorf("Expected body '%s', got '%s'", bodyStr, string(resp.Body))
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(*testing.T) {
+	// Test with a struct body (marshaled to JSON)
+	type TestData struct {
+		Message string `json:"message"`
+	}
+	data := TestData{Message: "Hello JSON"}
+	resp, err = client.Post(ts.URL, data)
+	if err != nil {
+		t.Fatalf("POST request with struct failed: %v", err)
+	}
+	if resp.StatusCode != http.StatusCreated {
+		t.Errorf("Expected status %d, got %d", http.StatusCreated, resp.StatusCode)
+	}
+	var result TestData
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		t.Fatalf("Error unmarshalling response: %v", err)
+	}
+	if result.Message != data.Message {
+		t.Errorf("Expected message '%s', got '%s'", data.Message, result.Message)
+	}
 
-			c := Client{
-				Ctx:        context.Background(),
-				ClientHttp: tc.mock,
-				Headers: map[string]string{
-					"Content-Type": "application/json",
-				},
-			}
-
-			resp, err := c.Put(tc.URL, io.NopCloser(strings.NewReader(tc.bodyReq)))
-			if (!tc.wantErr) && err != nil {
-				t.Errorf("want nil and got %v", err)
-			}
-
-			if resp != nil {
-				strBody, wantStrBody := string(resp.Body), string(tc.wantOut.Body)
-
-				if strBody != wantStrBody {
-					t.Errorf("want %s and got %s", strBody, wantStrBody)
-				}
-
-				if resp.StatusCode != tc.wantOut.StatusCode {
-					t.Errorf("want %d and got %d", tc.wantOut.StatusCode, resp.StatusCode)
-				}
-			}
-
-		})
+	// Test with an io.Reader body
+	reader := strings.NewReader("Reader POST")
+	resp, err = client.Post(ts.URL, reader)
+	if err != nil {
+		t.Fatalf("POST request with io.Reader failed: %v", err)
+	}
+	if resp.StatusCode != http.StatusCreated {
+		t.Errorf("Expected status %d, got %d", http.StatusCreated, resp.StatusCode)
+	}
+	if string(resp.Body) != "Reader POST" {
+		t.Errorf("Expected body 'Reader POST', got '%s'", string(resp.Body))
 	}
 }
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestDelete$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestDelete$; go tool cover -html=coverage.out
-func TestDelete(t *testing.T) {
-	tests := []struct {
-		name    string
-		ctx     context.Context
-		URL     string
-		wantOut *ClientResponse
-		mock    *httpMock
-		wantErr bool
-	}{
-		{
-			name: "success",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				Body:       []byte(`{"data": "quick is awesome!"}`),
-				StatusCode: 200,
-			},
-			wantErr: false,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 200,
-					Body:       io.NopCloser(strings.NewReader(`{"data": "quick is awesome!"}`)),
-				},
-				err: nil,
-			},
-		},
-		{
-			name: "error_request",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 500,
-					Body:       nil,
-				},
-				err: errors.New("request_error"),
-			},
-		},
+// TestClient_Put verifies the PUT method with various body types.
+// The result will TestClient_Put(t *testing.T)
+func TestClient_Put(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(testHandler))
+	defer ts.Close()
+
+	client := NewClient()
+
+	// Test with a string body
+	bodyStr := "Test PUT"
+	resp, err := client.Put(ts.URL, bodyStr)
+	if err != nil {
+		t.Fatalf("PUT request failed: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	if string(resp.Body) != bodyStr {
+		t.Errorf("Expected body '%s', got '%s'", bodyStr, string(resp.Body))
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(*testing.T) {
-
-			c := Client{
-				Ctx:        context.Background(),
-				ClientHttp: tc.mock,
-				Headers: map[string]string{
-					"Content-Type": "application/json",
-				},
-			}
-
-			resp, err := c.Delete(tc.URL)
-
-			if (!tc.wantErr) && err != nil {
-				t.Errorf("want nil and got %v", err)
-			}
-
-			if resp != nil {
-				strBody, wantStrBody := string(resp.Body), string(tc.wantOut.Body)
-
-				if strBody != wantStrBody {
-					t.Errorf("want %s and got %s", strBody, wantStrBody)
-				}
-
-				if resp.StatusCode != tc.wantOut.StatusCode {
-					t.Errorf("want %d and got %d", tc.wantOut.StatusCode, resp.StatusCode)
-				}
-			}
-
-		})
+	// Test with a struct body (marshaled to JSON)
+	type TestData struct {
+		Value int `json:"value"`
+	}
+	data := TestData{Value: 123}
+	resp, err = client.Put(ts.URL, data)
+	if err != nil {
+		t.Fatalf("PUT request with struct failed: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	var result TestData
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		t.Fatalf("Error unmarshalling response: %v", err)
+	}
+	if result.Value != data.Value {
+		t.Errorf("Expected value %d, got %d", data.Value, result.Value)
 	}
 }
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestExternalGet$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestExternalGet$; go tool cover -html=coverage.out
-func TestExternalGet(t *testing.T) {
-	tests := []struct {
-		name    string
-		URL     string
-		ctx     context.Context
-		wantOut *ClientResponse
-		wantErr bool
-	}{
-		{
-			name: "success",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				Body:       []byte(letsgoquickOutMock),
-				StatusCode: 200,
-			},
-			wantErr: false,
-		},
-		{
-			name: "error_request_unsupported_protocol",
-			ctx:  context.Background(),
-			URL:  "letsgoquick.com",
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-		},
-		{
-			name: "error_request_no_such_host",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.co",
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-		},
+// TestClient_Delete verifies the DELETE method.
+// The result will TestClient_Delete(t *testing.T)
+func TestClient_Delete(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(testHandler))
+	defer ts.Close()
+
+	client := NewClient()
+	resp, err := client.Delete(ts.URL)
+	if err != nil {
+		t.Fatalf("DELETE request failed: %v", err)
 	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(*testing.T) {
-
-			resp, err := Get(tc.URL)
-			if (!tc.wantErr) && err != nil {
-				t.Errorf("want nil and got %v", err)
-			}
-
-			if resp != nil {
-
-				removeSpaces(&resp.Body)
-				strBody, wantStrBody := string(resp.Body), string(tc.wantOut.Body)
-
-				if strBody != wantStrBody {
-					t.Errorf("want %s and got %s", strBody, wantStrBody)
-				}
-
-				if resp.StatusCode != tc.wantOut.StatusCode {
-					t.Errorf("want %d and got %d", tc.wantOut.StatusCode, resp.StatusCode)
-				}
-			}
-
-		})
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	if string(resp.Body) != "DELETE OK" {
+		t.Errorf("Expected body 'DELETE OK', got '%s'", string(resp.Body))
 	}
 }
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestExternalPost$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestExternalPost$; go tool cover -html=coverage.out
-func TestExternalPost(t *testing.T) {
-	tests := []struct {
-		name    string
-		ctx     context.Context
-		URL     string
-		bodyReq string
-		wantOut *ClientResponse
-		mock    *httpMock
-		wantErr bool
-	}{
-		{
-			name:    "success",
-			ctx:     context.Background(),
-			URL:     "https://go.dev/",
-			bodyReq: `{"data": "quick is awesome!"}`,
-			wantOut: &ClientResponse{
-				StatusCode: 200,
-			},
-			wantErr: false,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 200,
-					Body:       io.NopCloser(strings.NewReader(`{"data": "quick is awesome!"}`)),
-				},
-				err: nil,
-			},
-		},
-		{
-			name:    "error_unsuported_procol",
-			ctx:     context.Background(),
-			URL:     "letsgoquick.com",
-			bodyReq: `{"data": "quick is awesome!"}`,
-			wantOut: &ClientResponse{
-				StatusCode: 200,
-			},
-			wantErr: true,
-		},
-		{
-			name: "error_request_no_such_host",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.co",
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-		},
-		{
-			name: "error_request_403",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				StatusCode: 403,
-			},
-			wantErr: true,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 500,
-					Body:       nil,
-				},
-				err: errors.New("request_error"),
-			},
-		},
+// TestParseBody verifies the parseBody function with various input types.
+// The result will TestParseBody(t *testing.T)
+func TestParseBody(t *testing.T) {
+	// Test with nil input
+	reader, err := parseBody(nil)
+	if err != nil {
+		t.Fatalf("parseBody(nil) failed: %v", err)
+	}
+	if reader != nil {
+		t.Errorf("Expected nil reader for nil body, got %v", reader)
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(*testing.T) {
+	// Test with io.Reader input
+	original := "test"
+	inputReader := strings.NewReader(original)
+	reader, err = parseBody(inputReader)
+	if err != nil {
+		t.Fatalf("parseBody(io.Reader) failed: %v", err)
+	}
+	buf, _ := io.ReadAll(reader)
+	if string(buf) != original {
+		t.Errorf("Expected '%s', got '%s'", original, string(buf))
+	}
 
-			resp, err := Post(tc.URL, io.NopCloser(strings.NewReader(tc.bodyReq)))
-			if (!tc.wantErr) && err != nil {
-				t.Errorf("want nil and got %v", err)
-			}
+	// Test with string input
+	reader, err = parseBody("test string")
+	if err != nil {
+		t.Fatalf("parseBody(string) failed: %v", err)
+	}
+	buf, _ = io.ReadAll(reader)
+	if string(buf) != "test string" {
+		t.Errorf("Expected 'test string', got '%s'", string(buf))
+	}
 
-			if resp != nil {
-				removeSpaces(&resp.Body)
-				if resp.StatusCode != tc.wantOut.StatusCode {
-					t.Errorf("want %d and got %d", tc.wantOut.StatusCode, resp.StatusCode)
-				}
-			}
-
-		})
+	// Test with struct input (should be marshaled to JSON)
+	type sample struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+	s := sample{Name: "John", Age: 30}
+	reader, err = parseBody(s)
+	if err != nil {
+		t.Fatalf("parseBody(struct) failed: %v", err)
+	}
+	buf, _ = io.ReadAll(reader)
+	var result sample
+	if err := json.Unmarshal(buf, &result); err != nil {
+		t.Fatalf("Error unmarshalling JSON: %v", err)
+	}
+	if result != s {
+		t.Errorf("Expected %+v, got %+v", s, result)
 	}
 }
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestExternalPut$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestExternalPut$; go tool cover -html=coverage.out
-func TestExternalPut(t *testing.T) {
-	tests := []struct {
-		name    string
-		ctx     context.Context
-		URL     string
-		bodyReq string
-		wantOut *ClientResponse
-		mock    *httpMock
-		wantErr bool
-	}{
-		{
-			name:    "success",
-			ctx:     context.Background(),
-			URL:     "https://go.dev/",
-			bodyReq: `{"data": "quick is awesome!"}`,
-			wantOut: &ClientResponse{
-				StatusCode: 200,
-			},
-			wantErr: false,
-		},
-		{
-			name:    "error_unsuported_procol",
-			ctx:     context.Background(),
-			URL:     "letsgoquick.com",
-			bodyReq: `{"data": "quick is awesome!"}`,
-			wantOut: &ClientResponse{
-				StatusCode: 200,
-			},
-			wantErr: true,
-		},
-		{
-			name: "error_request_no_such_host",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.co",
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-		},
-		{
-			name: "error_request_403",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				StatusCode: 403,
-			},
-			wantErr: true,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 500,
-					Body:       nil,
-				},
-				err: errors.New("request_error"),
-			},
+// TestClient_WithCustomConfig verifies that a custom HTTPClientConfig is applied correctly.
+// The result will TestClient_WithCustomConfig(t *testing.T)
+func TestClient_WithCustomConfig(t *testing.T) {
+	// Create a custom configuration with a shorter timeout and different transport settings.
+	cfg := &HTTPClientConfig{
+		Timeout:             5 * time.Second,
+		DisableKeepAlives:   false,
+		MaxIdleConns:        20,
+		MaxConnsPerHost:     20,
+		MaxIdleConnsPerHost: 20,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+			MinVersion:         tls.VersionTLS12,
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(*testing.T) {
+	// Create a client with the custom configuration.
+	customClient := NewClient(
+		WithContext(context.TODO()),
+		WithHeaders(map[string]string{"Content-Type": "application/xml"}),
+		WithHTTPClientConfig(cfg),
+	)
 
-			resp, err := Put(tc.URL, io.NopCloser(strings.NewReader(tc.bodyReq)))
-			if (!tc.wantErr) && err != nil {
-				t.Errorf("want nil and got %v", err)
-			}
-
-			if resp != nil {
-				removeSpaces(&resp.Body)
-				if resp.StatusCode != tc.wantOut.StatusCode {
-					t.Errorf("want %d and got %d", tc.wantOut.StatusCode, resp.StatusCode)
-				}
-			}
-
-		})
-	}
-}
-
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestExternalDelete$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestExternalDelete$; go tool cover -html=coverage.out
-func TestExternalDelete(t *testing.T) {
-	tests := []struct {
-		name    string
-		ctx     context.Context
-		URL     string
-		bodyReq string
-		wantOut *ClientResponse
-		mock    *httpMock
-		wantErr bool
-	}{
-		{
-			name:    "success",
-			ctx:     context.Background(),
-			URL:     "https://go.dev/",
-			bodyReq: `{"data": "quick is awesome!"}`,
-			wantOut: &ClientResponse{
-				StatusCode: 200,
-			},
-			wantErr: false,
-		},
-		{
-			name:    "error_unsuported_procol",
-			ctx:     context.Background(),
-			URL:     "letsgoquick.com",
-			bodyReq: `{"data": "quick is awesome!"}`,
-			wantOut: &ClientResponse{
-				StatusCode: 200,
-			},
-			wantErr: true,
-		},
-		{
-			name: "error_request_no_such_host",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.co",
-			wantOut: &ClientResponse{
-				Body:       nil,
-				StatusCode: 0,
-			},
-			wantErr: true,
-		},
-		{
-			name: "error_request_403",
-			ctx:  context.Background(),
-			URL:  "https://letsgoquick.com",
-			wantOut: &ClientResponse{
-				StatusCode: 403,
-			},
-			wantErr: true,
-			mock: &httpMock{
-				response: &http.Response{
-					StatusCode: 500,
-					Body:       nil,
-				},
-				err: errors.New("request_error"),
-			},
-		},
+	// Verify that the custom client has the expected header.
+	if customClient.Headers["Content-Type"] != "application/xml" {
+		t.Errorf("Expected header 'application/xml', got '%s'", customClient.Headers["Content-Type"])
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(*testing.T) {
-
-			resp, err := Delete(tc.URL)
-			if (!tc.wantErr) && err != nil {
-				t.Errorf("want nil and got %v", err)
-			}
-
-			if resp != nil {
-				removeSpaces(&resp.Body)
-				if resp.StatusCode != tc.wantOut.StatusCode {
-					t.Errorf("want %d and got %d", tc.wantOut.StatusCode, resp.StatusCode)
-				}
-			}
-
-		})
+	// Verify that the custom HTTP client has the custom timeout.
+	httpClient, ok := customClient.ClientHTTP.(*http.Client)
+	if !ok {
+		t.Fatalf("ClientHTTP is not of type *http.Client")
 	}
-}
-
-func BenchmarkGet(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		Get("https://letsgoquick:8000")
-	}
-}
-
-func BenchmarkPost(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		Post("https://letsgoquick:8000", io.NopCloser(strings.NewReader(`{"data": "quick is awesome!"}`)))
-	}
-}
-
-func BenchmarkPut(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		Put("https://letsgoquick:8000", io.NopCloser(strings.NewReader(`{"data": "quick is awesome!"}`)))
-	}
-}
-
-func BenchmarkDelete(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		Delete("https://letsgoquick:8000")
+	if httpClient.Timeout != cfg.Timeout {
+		t.Errorf("Expected timeout %v, got %v", cfg.Timeout, httpClient.Timeout)
 	}
 }
