@@ -76,6 +76,8 @@
 |--------------------------------------------------|-----------|
 | Develop and relate to Listen the Config   | 42%   |
 | Develops support for Group Routes - Group Get and Post | 70% |
+| Develops support for Uploads and Uploads Multiples | 100% |
+| Develops support for JWT | 10% |
 | Develop method to Facilitate ResponseWriter handling | 80% |
 | Develop method to Facilitate the handling of the Request | 80%  |
 | Develop Standard of Unit Testing   | 90%   |
