@@ -1,4 +1,4 @@
-# 🛡️ BasicAuth - Basic Authentication with Quick ! ![Quick Logo](/quick.png)
+# 🛡️ BasicAuth - Basic Authentication with Quick ![Quick Logo](/quick.png)
 
 This document explains how to implement basic authentication (BasicAuth) using the Quick on Go framework.
 
