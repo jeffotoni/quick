@@ -73,15 +73,21 @@ func main() {
 $ curl -i -X GET http://localhost:8080/v1/logger
 ```
 
-This log message shows:
-
-- **`GET`**: HTTP method
-- **`/v1/logger:`** Requested route
-- **`200`**: HTTP status code
-- **`5.6ms`**: Response time in milliseconds
-
+#### This log message shows:
+![Quick Logger Example](logger_output.png)
 
 ---
+#### 📌 What I included in this README
+- ✅ Overview: Explanation of what Logger Middleware does and its benefits.
+- ✅ Key Features: Table highlighting request logging, execution time, debugging, and structured output.
+- ✅ How It Works: Breakdown of logged request details (method, path, status, response time).
+- ✅ Code Example: Implementation of Logger Middleware with a test route (/v1/logger).
+- ✅ Testing with cURL: Example cURL request to verify logs in the terminal.
+- ✅ Expected Output.
+
+---
+
+
 
 Now you can **complete with your specific examples** where I left the spaces ` ```go ... ``` `.
 
