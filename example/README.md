@@ -1,88 +1,69 @@
-![Logo do Quick](/Logo.png)
 
-[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/main) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/main) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick)
-
-# Exemplos Quick
-
+# Quick examples! ![Quick Logo](/quick.png)
   
 
-### **Bem-vindo ao repositório de exemplos do Quick!**
+### Welcome to the Quick example repository! 🚀
 
-  
+ **Quick** was born to be a simple route manager, but with time we saw that it could expand into something bigger.
+We started abstracting everything that was repetitive and became too verbose and we were leaving everything minimalistic as possible.
 
-O **Quick** é um gerenciador de rotas para Go bem flexível e extensível com diversas funcionalidades. O repositório do Framework Quick pode ser encontrado em [aqui](https://github.com/jeffotoni/quick).
+Quick is now a lightweight and performative framework for route management in Go, built on the native net/http library. It offers flexibility, extensibility and an intuitive design to facilitate the development of high-performance APIs.
 
-  
+📌 The official **Quick** repository can be found here. [Quick](https://github.com/jeffotoni/quick)
 
-Este repositório contém exemplos práticos de como utilizar a biblioteca Quick em Go, uma biblioteca de teste baseada em propriedades que permite escrever testes mais robustos e completos para sua aplicação.
+### About this repository
 
-  
+This repository contains practical examples that demonstrate how to use **Quick** to create and manage routes efficiently. Here you’ll find everything from basic examples to advanced implementations, helping accelerate learning and adopting best practices in web development with Go.
 
-Os exemplos apresentados aqui mostram como utilizar o Quick em diferentes tipos de testes, desde simples até mais complexos, ajudando a começar rapidamente e aprender as melhores práticas de teste.
+### 📌 What will you find here?
 
-  
+- ✔ Basic and advanced routing examples
+- ✔ Middleware for authentication and logs
+- ✔ Integration with JSON and other response formats
+- ✔ Upload and manipulation of files
+- ✔ Automated tests to ensure quality and robustness
 
-O Quick é desenvolvido por **jeffotoni** e é uma excelente opção para escrever testes em Go, encontrando falhas em sua aplicação que podem não ser encontradas em testes tradicionais e aumentando a qualidade do código.
+### ⚒️ About the Quick
 
-  
+Developed by [Jeffotoni] (https://jeffotoni.com/),  **Quick** was created to offer a lean and powerful alternative to traditional frameworks, providing high performance without giving up simplicity. If you are looking for an efficient framework to create **APIs in Go**, the **Quick** is the right choice!
 
-Sinta-se à vontade para explorar o repositório, contribuir com seus próprios exemplos e melhorias para a biblioteca Quick. Obrigado por usar Quick!
+### 📌 What will you find here?
 
-  
+Here are some examples that demonstrate how to use **Quick** for managing routes, middlewares and handling HTTP requests:
 
-## Quais exemplos você encontrará no repositório?
+### 🌍 Examples of HTTP Routes and Manipulation
 
-  
+| 📂 Directory   | 📌 Description   |
+|---------------------------|---------------------------------------------------------|
+| [`file.server/`](file.server/) | Serving static files using Quick.   |
+| [`Group`](/group/) | Example of route grouping for organization and security. |
+| [`quick.http.client/`](quick.http.client/) | HTTP client for GET, POST, PUT and DELETE requests. |
+| [`quick.delete/`](quick.delete/) | Example of a DELETE request using Quick.   |
+| [`quick.get/`](quick.get/) | JSON Request and Response Example.   |
+| [`quick.post/`](quick.post/) | Example of sending data via POST.   |
+| [`quick.put/`](quick.put/) | Example of updating data via PUT.   |
+| [`quick.regex/`](quick.regex/) | Use of Regular Expressions for dynamic routes.   |
+| [`quick.start/`](quick.start/) | Quick Start Guide.   |
 
-* [Group](/group/)
+---
 
-* [Middleware](/middleware/)
+### ⚡ Examples of Middleware
 
-* [Delete](quick.delete/)
+| 📂 Directory   | 📌 Description   |
+|------------------------------|------------------------------------------------------------|
+| [`middleware/`](middleware)  | Useful middlewares like CORS, Logger, Compression and more.   |
+| [`middleware.dynamic/`](middleware.dynamic/) | Dynamic middlewares for custom processing. |
+| [`multipart.formdata/`](multipart.formdata/) | Example of file upload manipulation ‘multipart/form-data‘. |
 
-* [Get](quick.get/)
+---
+### 🤝 Contribute!
 
-* [Post](quick.post/)
+This project is **open source** and contributions are always welcome! Feel free to explore the code, suggest improvements, send pull requests or share your own examples.
 
-* [Put](quick.put/)
+🚀 Try **Quick** and speed up your APIs development in Go!
 
-* [Regex](quick.regex/)
+The Quick Project aims to develop and provide quality software for the developer community. 💻 To continue improving our tools, we rely on the support of our sponsors in Patreon. 🤝
 
-* [Start](quick.start/)
+We thank all our supporters! 🙌 If you also believe in our work and want to contribute to the advancement of the development community, consider supporting Project Quick at our Patreon [here](https://www.patreon.com/jeffotoni_quick)
 
-  
-
-```go
-
-package main
-
-  
-
-import  "github.com/jeffotoni/quick"
-
-  
-
-func  main() {
-
-q  := quick.New()
-
-q.Get("/v1/user", func(c *quick.Ctx) error {
-
-c.Set("Content-Type", "application/json")
-
-return c.Status(200).SendString("Quick in action com Cors❤️!")
-
-})
-
-q.Listen("0.0.0.0:8080")
-
-}
-```
-
-## 🚀 **Apoiadores do Projeto Quick** 🙏
-
-O Projeto Quick visa desenvolver e disponibilizar softwares de qualidade para a comunidade de desenvolvedores. 💻 Para continuarmos a melhorar nossas ferramentas, contamos com o apoio de nossos patrocinadores no Patreon. 🤝
-
-Agradecemos a todos os nossos apoiadores! 🙌 Se você também acredita em nosso trabalho e quer contribuir para o avanço da comunidade de desenvolvimento, considere apoiar o Projeto Quick em nosso Patreon [aqui](https://www.patreon.com/jeffotoni_quick)
-
-Juntos podemos continuar a construir ferramentas incríveis! 🚀
+Together we can continue to build amazing tools! 🚀
