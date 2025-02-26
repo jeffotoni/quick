@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/google/uuid"
+	"github.com/jeffotoni/quick/internal/uuid"
 )
 
 const (
