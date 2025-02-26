@@ -35,7 +35,7 @@ Here are some examples that demonstrate how to use **Quick** for managing routes
 
 | 📂 Directory   | 📌 Description   |
 |---------------------------|---------------------------------------------------------|
-| [`file.server/`](file.server/) | Serving static files using Quick.   |
+| [`Static`](/static/) | Serving static files using Quick.   |
 | [`Group`](/group/) | Example of route grouping for organization and security. |
 | [`quick.http.client/`](quick.http.client/) | HTTP client for GET, POST, PUT and DELETE requests. |
 | [`quick.delete/`](quick.delete/) | Example of a DELETE request using Quick.   |
