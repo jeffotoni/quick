@@ -12,6 +12,8 @@
 
 🔍 The repository of examples of the Framework Quick Run [Examples](https://github.com/jeffotoni/quick/tree/main/example).
 
+### Quick in action 💕🐧🚀😍
+![Quick](quick_server.gif)
 
 ## 🎛️| Features
 
