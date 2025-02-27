@@ -17,6 +17,28 @@ import (
 +==============================================================================================================================+
 */
 
+func TestRouteGET(t *testing.T) {
+	q := New()
+
+	q.Get("/v1/user", func(c *Ctx) error {
+		return c.String("Hello, GET!")
+	})
+
+	data, err := q.QuickTest("GET", "/v1/user", nil)
+	if err != nil {
+		t.Errorf("Error during QuickTest: %v", err)
+		return
+	}
+
+	if data.StatusCode() != 200 {
+		t.Errorf("Expected status 200, got %d", data.StatusCode())
+	}
+
+	if data.BodyStr() != "Hello, GET!" {
+		t.Errorf("Expected body 'Hello, GET!', got '%s'", data.BodyStr())
+	}
+}
+
 // cover     ->  go test -v -count=1 -cover -failfast -run ^TestQuick_Get$
 // coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Get$; go tool cover -html=coverage.out
 func TestQuick_Get(t *testing.T) {

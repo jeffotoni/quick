@@ -32,8 +32,6 @@
 | 📚 Docs                                           | yes  | 🟡     | 40%        |
 
 
-
-
 ## 🗺️| Development Rodmap
 
 | Task   | Progress |
@@ -94,21 +92,19 @@
 | Documentation Tests Examples PKG Go | 45.% |
 | Test Coverage go test -cover | 74.6% |
 | Regex feature coverage, but possibilities | 0.% |
-| Develop for OPTIONS METHOD | 0.% |
+| Develop for OPTIONS METHOD | 100% |
 | Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.% |
 | Develop method for ListenAndServeTLS (http2) | 0.% |
-| Develop Static Files support | 0.% |
-| Create a CLI (Command Line Interface) Quick. | 0.% |
+| Develop Static Files support | 100% |
 | WebSocket Support | 0.% |
 | Rate Limiter Support                              | 0.%       |
 | Template Engines                                  | 0.%       |
 | Documentation Tests Examples PKG Go   | 45. %   |
 | Test coverage go test -cover   | 75.5%   |
 | Coverage of Regex resources, but possibilities   | 0.%   |
-| Develop for METHOD OPTIONS   | 0.%   |
+| Develop for METHOD OPTIONS   | 100%   |
 | Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)   | 0.%   |
 | Develop method for ListenAndServeTLS (http2) | 0.%   |
-| Develops Static Files support   | 0.%   |
 | Create a CLI (Command Line Interface) Quick.   | 0.%   |
 
 
@@ -1016,6 +1012,75 @@ func main() {
 }
 
 ```
+---
+
+# Qtest - HTTP Testing Utility for Quick Framework
+
+Qtest is an **advanced HTTP testing function** designed to simplify route validation within the **Quick** framework. It enables seamless testing of simulated HTTP requests using `httptest`, supporting:
+
+- **Custom HTTP methods** (`GET`, `POST`, `PUT`, `DELETE`, etc.).
+- **Custom headers**.
+- **Query parameters**.
+- **Request body**.
+- **Cookies**.
+- **Built-in validation methods** for status codes, headers, and response bodies.
+
+## 📌 Overview
+The `Qtest` function takes a `QuickTestOptions` struct containing request parameters, executes the request, and returns a `QtestReturn` object, which provides methods for analyzing and validating the result.
+
+
+```go
+func TestQTest_Options_POST(t *testing.T) {
+    // start Quick
+    q := New()
+
+    // Define the POST route
+    q.Post("/v1/user/api", func(c *Ctx) error {
+        c.Set("Content-Type", "application/json") // Simplified header setting
+        return c.Status(StatusOK).String(`{"message":"Success"}`)
+    })
+
+    // Configure test parameters
+    opts := QuickTestOptions{
+        Method: "POST",
+        URI:    "/v1/user/api",
+        QueryParams: map[string]string{
+            "param1": "value1",
+            "param2": "value2",
+        },
+        Body: []byte(`{"key":"value"}`),
+        Headers: map[string]string{
+            "Content-Type": "application/json",
+        },
+        Cookies: []*http.Cookie{
+            {Name: "session", Value: "abc123"},
+        },
+        LogDetails: true, // Enables detailed logging
+    }
+
+    // Execute test
+    result, err := q.Qtest(opts)
+    if err != nil {
+        t.Fatalf("Error in Qtest: %v", err)
+    }
+
+    // Validations
+    if err := result.AssertStatus(StatusOK); err != nil {
+        t.Errorf("Status assertion failed: %v", err)
+    }
+
+    if err := result.AssertHeader("Content-Type", "application/json"); err != nil {
+        t.Errorf("Header assertion failed: %v", err)
+    }
+
+    if err := result.AssertBodyContains("Success"); err != nil {
+        t.Errorf("Body assertion failed: %v", err)
+    }
+}
+```
+
+🚀 **More details here [Qtest - Quick](https://github.com/jeffotoni/quick/tree/main/quickTest)**
+
 ---
 
 ## 📚| More Examples

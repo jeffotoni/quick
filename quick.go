@@ -147,75 +147,106 @@ func (q *Quick) Use(mw any, nf ...string) {
 	q.mws2 = append(q.mws2, mw)
 }
 
+// registerRoute is a helper function to centralize route registration logic.
+func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
+	path, params, patternExist := extractParamsPattern(pattern)
+	formattedPath := concat.String(strings.ToLower(method)+"#", pattern)
+	route := Route{
+		Pattern: patternExist,
+		Path:    path,
+		Params:  params,
+		handler: extractHandler(q, method, path, params, handlerFunc),
+		Method:  method,
+	}
+
+	q.appendRoute(&route)
+	q.mux.HandleFunc(formattedPath, route.handler)
+}
+
 // Get function is an HTTP route with the GET method on the Quick server
 // The result will Get(pattern string, handlerFunc HandleFunc)
 func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
-	path, params, partternExist := extractParamsPattern(pattern)
-
-	route := Route{
-		Pattern: partternExist,
-		Path:    path,
-		Params:  params,
-		handler: extractParamsGet(q, path, params, handlerFunc),
-		Method:  MethodGet,
-	}
-	q.appendRoute(&route)
-	q.mux.HandleFunc(path, route.handler)
+	q.registerRoute(MethodGet, pattern, handlerFunc)
 }
 
 // Post function registers an HTTP route with the POST method on the Quick server
 // The result will Post(pattern string, handlerFunc HandleFunc)
 func (q *Quick) Post(pattern string, handlerFunc HandleFunc) {
-	_, params, partternExist := extractParamsPattern(pattern)
-	pathPost := concat.String("post#", pattern)
-
-	route := Route{
-		Pattern: partternExist,
-		Params:  params,
-		Path:    pattern,
-		handler: extractParamsPost(q, handlerFunc),
-		Method:  MethodPost,
-	}
-
-	q.appendRoute(&route)
-	q.mux.HandleFunc(pathPost, route.handler)
+	q.registerRoute(MethodPost, pattern, handlerFunc)
 }
 
 // Put function registers an HTTP route with the PUT method on the Quick server.
 // The result will Put(pattern string, handlerFunc HandleFunc)
 func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
-	_, params, partternExist := extractParamsPattern(pattern)
-
-	pathPut := concat.String("put#", pattern)
-
-	route := Route{
-		Pattern: partternExist,
-		Path:    pattern,
-		handler: extractParamsPut(q, handlerFunc),
-		Method:  MethodPut,
-		Params:  params,
-	}
-
-	q.appendRoute(&route)
-	q.mux.HandleFunc(pathPut, route.handler)
+	q.registerRoute(MethodPut, pattern, handlerFunc)
 }
 
 // Delete function registers an HTTP route with the DELETE method on the Quick server.
 // The result will Delete(pattern string, handlerFunc HandleFunc)
 func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) {
-	_, params, partternExist := extractParamsPattern(pattern)
-	pathDelete := concat.String("delete#", pattern)
+	q.registerRoute(MethodDelete, pattern, handlerFunc)
+}
 
-	route := Route{
-		Pattern: partternExist,
-		Path:    pattern,
-		Params:  params,
-		handler: extractParamsDelete(q, handlerFunc),
-		Method:  MethodDelete,
+// Path function registers an HTTP route with the PATH method on the Quick server.
+// The result will Path(pattern string, handlerFunc HandleFunc)
+func (q *Quick) Patch(pattern string, handlerFunc HandleFunc) {
+	q.registerRoute(MethodPatch, pattern, handlerFunc)
+}
+
+// Options function registers an HTTP route with the Options method on the Quick server.
+// The result will Options(pattern string, handlerFunc HandleFunc)
+func (q *Quick) Options(pattern string, handlerFunc HandleFunc) {
+	q.registerRoute(MethodOptions, pattern, handlerFunc)
+}
+
+// Generic handler extractor to minimize repeated logic across HTTP methods
+// The result will extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc
+func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc {
+	switch method {
+	case MethodGet:
+		return extractParamsGet(q, path, params, handlerFunc)
+	case MethodPost:
+		return extractParamsPost(q, handlerFunc)
+	case MethodPut:
+		return extractParamsPut(q, handlerFunc)
+	case MethodDelete:
+		return extractParamsDelete(q, handlerFunc)
+	case MethodPatch:
+		return extractParamsPatch(q, handlerFunc) // same as PUT
+	case MethodOptions:
+		return extractParamsOptions(q, method, path, handlerFunc)
 	}
+	return nil
+}
 
-	q.appendRoute(&route)
-	q.mux.HandleFunc(pathDelete, route.handler)
+func extractParamsPatch(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
+	return extractParamsPut(q, handlerFunc)
+}
+
+// extractParamsOptions processes an HTTP request for a dynamic route, extracting query parameters, headers, and handling the request using the provided handler function
+// The result will extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc
+func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Define allowed HTTP methods
+		allowMethods := []string{MethodGet, MethodPost, MethodPut, MethodDelete, MethodPatch, MethodOptions}
+		w.Header().Set("Allow", strings.Join(allowMethods, ", "))
+
+		// Add CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", strings.Join(allowMethods, ", "))
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// If a handlerFunc exists, execute it
+		if handlerFunc != nil {
+			err := handlerFunc(&Ctx{Response: w, Request: r})
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			w.WriteHeader(http.StatusNoContent) // Use 204 if no body is needed
+		}
+	}
 }
 
 // extractHeaders extracts all headers from an HTTP request and returns them

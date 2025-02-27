@@ -11,6 +11,28 @@ import (
 	"github.com/jeffotoni/quick/internal/concat"
 )
 
+func TestRoutePOST(t *testing.T) {
+	q := New()
+
+	q.Post("/v1/user", func(c *Ctx) error {
+		return c.String("Data submitted!")
+	})
+
+	data, err := q.QuickTest("POST", "/v1/user", nil, []byte(`{"name": "Jeff"}`))
+	if err != nil {
+		t.Errorf("Error during QuickTest: %v", err)
+		return
+	}
+
+	if data.StatusCode() != 200 {
+		t.Errorf("Expected status 200, got %d", data.StatusCode())
+	}
+
+	if data.BodyStr() != "Data submitted!" {
+		t.Errorf("Expected body 'Data submitted!', got '%s'", data.BodyStr())
+	}
+}
+
 // cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_Post$
 // coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Post$; go tool cover -html=coverage.out
 func TestQuick_Post(t *testing.T) {
