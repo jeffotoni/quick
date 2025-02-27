@@ -1,31 +1,74 @@
-# Put
+# 📌 PUT - Quick Framework ![Quick Logo](/quick.png)
 
-O método Put() no Framework Quick é usado para definir uma rota HTTP que responde a solicitações PUT. O método Put() é um método HTTP que permite que os clientes enviem dados para um servidor para atualização de recursos. Em termos simples, ele permite que um cliente envie uma atualização para um recurso existente em um servidor.
+The `Put()` **method** in the **Quick Framework** is used to define an HTTP route that handles **PUT requests**. The PUT method allows clients to send data to a server for **updating existing resources.**
 
-Para definir uma rota PUT usando o Quick, basta chamar o método Put() em uma instância de aplicativo Quick. O método Put() aceita dois argumentos: o primeiro é o caminho da rota, e o segundo é o manipulador de rota, que é uma função que é chamada sempre que a rota é correspondida.
+In simple terms, it lets a client **modify** an existing resource on a server.
 
+To define a PUT route using Quick, simply call the `Put()` method on a Quick instance.
+It accepts two arguments:
+
+1. The route path (`/users/:id` or `/tipos/:id`)
+2. A handler function that executes when the route is matched.
+
+---
+### 📜 Code Implementation
 ```go
 package main
 
-import (
-	"github.com/jeffotoni/quick"
-)
+import "github.com/jeffotoni/quick"
 
 func main() {
-	q := quick.New()
+	q := quick.New() // Initialize Quick framework
 
+	// PUT route to update a user by ID
 	q.Put("/users/:id", func(c *quick.Ctx) error {
-		userID := c.Param("id")
-		// Lógica de atualização do usuário
-		return c.Status(200).SendString("Usuário " + userID + " atualizado com sucesso!")
+		userID := c.Param("id") // Retrieve the user ID from the URL parameter
+		// Logic to update user data would go here
+		return c.Status(200).SendString("User " + userID + " updated successfully!")
 	})
 
+	// PUT route to update a specific type by ID
+	q.Put("/tipos/:id", func(c *quick.Ctx) error {
+		tiposID := c.Param("id") // Retrieve the type ID from the URL parameter
+		// Logic to update the type would go here
+		return c.Status(200).SendString("User " + tiposID + " type updated successfully!")
+	})
+
+	// Start the server and listen on port 8080
 	q.Listen(":8080")
 }
-```
-```go
-$ curl --location --request PUT 'http://localhost:8080/users/:id' \
---header 'Content-Type: application/json/' \
---data 'Usuário  atualizado com sucesso!'
+
 ```
 
+#### 📌 Testing with cURL
+
+##### 🔹 Updates the details of a user based on the provided id:
+
+```bash
+$ curl --location --request PUT "http://localhost:8080/users/123" \
+--header "Content-Type: application/json" \
+--data '{"name":"UpdatedUser","year":2024}'
+```
+
+##### 🔹 Update a Type:
+
+```bash
+$ curl --location --request PUT "http://localhost:8080/tipos/456" \
+--header "Content-Type: application/json" \
+--data '{"type":"admin"}'
+```
+
+
+---
+
+#### 📌 What I included in this README
+- ✅ Overview of the PUT method in Quick Framework
+- ✅ Go implementation of dynamic parameter handling (:id)
+- ✅ PUT routes for updating users and types
+- ✅ Handling of success (200 OK) responses
+- ✅ cURL examples for different PUT endpoints
+
+
+Now you can **complete with your specific examples** where I left the spaces
+
+##### 🚀 **If you need adjustments or improvements, just let me know!** 😃🔥
