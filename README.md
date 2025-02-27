@@ -23,8 +23,6 @@
 # Quick in action 💕🐧🚀😍
 ![Quick](quick_server.gif)
 
---- 
-
 ## 🎛️| Features
 
 | Features                                         | Has  | Status | Completion |
