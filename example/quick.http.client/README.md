@@ -4,7 +4,17 @@ The **Quick HTTP Client** provides an intuitive and flexible way to make HTTP re
 
 ---
 
-##### ✅ Key Features
+#### 🚀 Running the Example
+Before using the Quick HTTP Client, make sure to start the Quick server by running:
+
+```bash
+$ go run server.go
+```
+This will start the API server on http://localhost:3000, making it ready to receive HTTP requests.
+
+
+
+#### ✅ Key Features
 
 | Feature                  | Benefit |
 |--------------------------|---------|
@@ -13,6 +23,25 @@ The **Quick HTTP Client** provides an intuitive and flexible way to make HTTP re
 | 🔧 **Custom Headers**    | Allows setting custom request headers. |
 | ⏳ **Timeout Support**   | Configurable request timeouts for reliability. |
 | 🔄 **TLS Configuration** | Enables custom TLS settings for security. |
+
+
+### ✅ Method Reference
+
+| Method Signature                                                                          | Description                                           |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `func Get(url string) (*ClientResponse, error)`                                           | Global GET request using the default client           |
+| `func Post(url string, body any) (*ClientResponse, error)`                                | Global POST request with flexible body input          |
+| `func Put(url string, body any) (*ClientResponse, error)`                                 | Global PUT request with flexible body input           |
+| `func Delete(url string) (*ClientResponse, error)`                                        | Global DELETE request using the default client        |
+| `func (c *Client) Get(url string) (*ClientResponse, error)`                               | GET request using a custom client instance            |
+| `func (c *Client) Post(url string, body any) (*ClientResponse, error)`                      | POST request using a custom client instance           |
+| `func (c *Client) Put(url string, body any) (*ClientResponse, error)`                       | PUT request using a custom client instance            |
+| `func (c *Client) Delete(url string) (*ClientResponse, error)`                              | DELETE request using a custom client instance         |
+| `func NewClient(opts ...Option) *Client`                                                  | Creates a new Client with optional custom configurations|
+| `func WithContext(ctx context.Context) Option`                                            | Option to set a custom context for the client         |
+| `func WithHeaders(headers map[string]string) Option`                                      | Option to set custom headers                          |
+| `func WithHTTPClientConfig(cfg *HTTPClientConfig) Option`                                 | Option to set a custom HTTP transport configuration   |
+
 
 ---
 
