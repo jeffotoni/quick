@@ -46,7 +46,7 @@
 | Develop Routes GET method by accepting Query String | 100%   |
 | Develop Routes GET method accepting Parameters | 100%   |
 | Develop Routes GET method accepting Query String and Parameters | 100% |
-| Develop Routes GET method accepting regular expression | 100. % |
+| Develop Routes GET method accepting regular expression | 100% |
 | Develop Routes Method POST   | 100%   |
 | Develop Routes POST method accepting JSON   | 100%   |
 | Develop for METHOD POST the parse JSON   | 100%   |
@@ -65,11 +65,11 @@
 | Develop support for maxbody middlewares   | 100%   |
 | Develop middleware support msgid   | 100%   |
 | Develop middleware support msguuid   | 100%   |
-| Develop support Cors   | 100. %   |
-| Develop Cient Get   | 100. %   |
-| Develop Cient Post support   | 100. %   |
-| Develop Cient Put support   | 100. %   |
-| Develop Cient support Delete   | 100. %   |
+| Develop support Cors   | 100%   |
+| Develop Cient Get   | 100%   |
+| Develop Cient Post support   | 100%   |
+| Develop Cient Put support   | 100%   |
+| Develop Cient support Delete   | 100%   |
 
 
 ## 🚧| Rodmap in progress
@@ -89,7 +89,7 @@
 
 | Task   | Progress |
 |---------------------------------------------------|-----------|
-| Documentation Tests Examples PKG Go | 45.% |
+| Documentation Tests Examples PKG Go | 45% |
 | Test Coverage go test -cover | 74.6% |
 | Regex feature coverage, but possibilities | 0.% |
 | Develop for OPTIONS METHOD | 100% |
@@ -99,7 +99,7 @@
 | WebSocket Support | 0.% |
 | Rate Limiter Support                              | 0.%       |
 | Template Engines                                  | 0.%       |
-| Documentation Tests Examples PKG Go   | 45. %   |
+| Documentation Tests Examples PKG Go   | 45%   |
 | Test coverage go test -cover   | 75.5%   |
 | Coverage of Regex resources, but possibilities   | 0.%   |
 | Develop for METHOD OPTIONS   | 100%   |
@@ -558,7 +558,7 @@ func TestQuickExample(t *testing.T) {
 
     t.Logf("\nOutputBodyString -> %v", data.BodyStr())
     t.Logf("\nStatusCode -> %d", data.StatusCode())
-    t.Logf("\nOutputBody -> %v", string(data.Body())) // I have converted in this example to string but comes []byte as default
+    t.Logf("\nOutputBody -> %v", string(data.Body())) 
     t.Logf("\nResponse -> %v", data.Response())
 }
 
@@ -925,13 +925,12 @@ import (
 
 func main() {
 	// Use the default client
-	resp, err := client.Get("https://example.com")
+	resp, err := client.Get("https://reqres.in/api/users")
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("GET response:", string(resp.Body))
 }
-
 ```
 
 #### POST Request Example (Using a Struct)
@@ -949,12 +948,13 @@ import (
 func main() {
 	// Define a struct to send as JSON
 	data := struct {
-		Message string `json:"message"`
+		user string `json:"user"`
 	}{
-		Message: "Hello, POST!",
+		user: "Emma",
 	}
 
-	resp, err := client.Post("https://example.com", data)
+	// POST request to ReqRes API
+	resp, err := client.Post("https://reqres.in/api/users", data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -964,9 +964,8 @@ func main() {
 	if err := json.Unmarshal(resp.Body, &result); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("POST response:", result["message"])
+	fmt.Println("POST response:", result)
 }
-
 ```
 
 #### PUT Request Example (Using a String)
@@ -981,14 +980,29 @@ import (
 )
 
 func main() {
-	// Use a simple string as the PUT body
-	resp, err := client.Put("https://example.com", "Hello, PUT!")
-	if err != nil {
-		log.Fatal(err)
+	// Define a struct with user data
+	data := struct {
+		user string `json:"name"`
+	}{
+		user: "Jeff",
 	}
-	fmt.Println("PUT response:", string(resp.Body))
-}
 
+	// Convert struct to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Fatal("Error encoding JSON:", err)
+	}
+
+	// PUT request to ReqRes API
+	resp, err := client.Put("https://reqres.in/api/users/2", string(jsonData))
+	if err != nil {
+		log.Fatal("Error making request:", err)
+	}
+
+	// Print the HTTP status and response body
+	fmt.Println("HTTP Status Code:", resp.StatusCode)
+	fmt.Println("Raw Response Body:", string(resp.Body))
+}
 ```
 
 #### DELETE Request Example
@@ -1004,17 +1018,27 @@ import (
 )
 
 func main() {
-	resp, err := client.Delete("https://example.com")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("DELETE response:", string(resp.Body))
-}
 
+	// DELETE request to ReqRes API
+	resp, err := client.Delete("https://reqres.in/api/users/2")
+	if err != nil {
+		log.Fatal("Error making request:", err)
+	}
+
+	// Print the HTTP status to confirm deletion
+	fmt.Println("HTTP Status Code:", resp.StatusCode)
+
+	// Since DELETE usually returns no content, we check if it's empty
+	if len(resp.Body) > 0 {
+		fmt.Println("Raw Response Body:", string(resp.Body))
+	} else {
+		fmt.Println("Response Body is empty (expected for 204 No Content)")
+	}
+}
 ```
 ---
 
-# Qtest - HTTP Testing Utility for Quick Framework
+# Qtest - HTTP Testing Utility for Quick
 
 Qtest is an **advanced HTTP testing function** designed to simplify route validation within the **Quick** framework. It enables seamless testing of simulated HTTP requests using `httptest`, supporting:
 
@@ -1027,7 +1051,7 @@ Qtest is an **advanced HTTP testing function** designed to simplify route valida
 
 ## 📌 Overview
 The `Qtest` function takes a `QuickTestOptions` struct containing request parameters, executes the request, and returns a `QtestReturn` object, which provides methods for analyzing and validating the result.
-
+ 
 
 ```go
 func TestQTest_Options_POST(t *testing.T) {
