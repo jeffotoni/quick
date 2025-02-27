@@ -4,14 +4,14 @@ The `Put()` **method** in the **Quick Framework** is used to define an HTTP rout
 
 In simple terms, it lets a client **modify** an existing resource on a server.
 
-To define a PUT route using Quick, simply call the `Put()` method on a Quick instance.
-It accepts two arguments:
+The example defines a PUT route using Quick. To create a PUT route, simply call the Put() method in a Quick instance.
 
-1. The route path (`/users/:id` or `/tipos/:id`)
+1. The route path (`/users/:id` or `/types/:id`)
 2. A handler function that executes when the route is matched.
 
 ---
 ### 📜 Code Implementation
+
 ```go
 package main
 
@@ -28,10 +28,10 @@ func main() {
 	})
 
 	// PUT route to update a specific type by ID
-	q.Put("/tipos/:id", func(c *quick.Ctx) error {
-		tiposID := c.Param("id") // Retrieve the type ID from the URL parameter
+	q.Put("/types/:id", func(c *quick.Ctx) error {
+		typeID := c.Param("id") // Retrieve the type ID from the URL parameter
 		// Logic to update the type would go here
-		return c.Status(200).SendString("User " + tiposID + " type updated successfully!")
+		return c.Status(200).SendString("Types " + typeID + " type updated successfully!")
 	})
 
 	// Start the server and listen on port 8080
@@ -53,7 +53,7 @@ $ curl --location --request PUT "http://localhost:8080/users/123" \
 ##### 🔹 Update a Type:
 
 ```bash
-$ curl --location --request PUT "http://localhost:8080/tipos/456" \
+$ curl --location --request PUT "http://localhost:8080/types/456" \
 --header "Content-Type: application/json" \
 --data '{"type":"admin"}'
 ```
