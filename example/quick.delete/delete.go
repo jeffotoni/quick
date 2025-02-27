@@ -7,45 +7,36 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-// curl -i -H "Block:true" -XGET localhost:8080/v1/blocked
-func main() {
+// User struct defines a user with Name and Year of birth
+type User struct {
+	Name string `json:"name"` // User's name
+	Year int    `json:"year"` // User's birth year
+}
 
+func main() {
 	q := quick.New()
 
-	q.Use(func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			//Este middleware, irá bloquear sua requisicao se não passar header Block:true
-			if r.Header.Get("Block") == "" || r.Header.Get("Block") == "false" {
-				w.WriteHeader(400)
-				w.Write([]byte(`{"Message": "Envia block em seu header, por favor! :("}`))
-				return
-			}
+	// Simulating a "database" with pre-registered users
+	users := map[string]User{
+		"1": {Name: "Maria", Year: 2000}, // Fixed user with ID 1
+	}
 
-			if r.Header.Get("Block") == "true" {
-				w.WriteHeader(200)
-				w.Write([]byte(""))
-				return
-			}
-			h.ServeHTTP(w, r)
-		})
-	})
+	// DELETE route to remove a user by ID
+	q.Delete("/v1/user/:id", func(c *quick.Ctx) error {
+		userID := c.Params["id"] // Retrieve user ID from URL parameter
 
-	q.Get("/v1/blocked", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-
-		type my struct {
-			Msg   string `json:"msg"`
-			Block string `json:"block_message"`
+		// Check if the user exists in the "database"
+		if _, exists := users[userID]; !exists {
+			return c.Status(http.StatusNotFound).JSON(map[string]string{"error": "User not found"})
 		}
 
-		log.Println(c.Headers["Messageid"])
+		// Delete the user from the "database"
+		delete(users, userID)
 
-		return c.Status(200).JSON(&my{
-			Msg:   "Quick ❤️",
-			Block: c.Headers["Block"][0],
-		})
+		// Return a success response
+		return c.Status(http.StatusOK).JSON(map[string]string{"msg": "User deleted successfully!"})
 	})
 
+	// Start the server on port 8080
 	log.Fatal(q.Listen("0.0.0.0:8080"))
-
 }
