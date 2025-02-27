@@ -49,7 +49,7 @@ func TestQTest_Options_POST(t *testing.T) {
 	})
 
 	opts := QuickTestOptions{
-		Method: "POST", // Método correto
+		Method: "POST", // Correct method
 		URI:    "/v1/user/api",
 		QueryParams: map[string]string{
 			"param1": "value1",
@@ -62,26 +62,26 @@ func TestQTest_Options_POST(t *testing.T) {
 		Cookies: []*http.Cookie{
 			{Name: "session", Value: "abc123"},
 		},
-		LogDetails: true, // Ativa o log para debug
+		LogDetails: true, // Enable the log for debug
 	}
 
-	// Executa o teste
+	// Runs the test
 	result, err := q.Qtest(opts)
 	if err != nil {
 		t.Fatalf("Error in Qtest: %v", err)
 	}
 
-	// Verificar se o status está correto
+	// Check if the status is correct
 	if err := result.AssertStatus(StatusOK); err != nil {
 		t.Errorf("Status assertion failed: %v", err)
 	}
 
-	// Verificar se o Header esperado está presente
+	// Check if o Expected header is present
 	if err := result.AssertHeader("Content-Type", "application/json"); err != nil {
 		t.Errorf("Header assertion failed: %v", err)
 	}
 
-	// Verificar se a resposta contém "Success"
+	// Check if the answer contains "Success"
 	if err := result.AssertBodyContains("Success"); err != nil {
 		t.Errorf("Body assertion failed: %v", err)
 	}
