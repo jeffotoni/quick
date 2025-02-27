@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 )
 
+const logDelimiter = "====================="
+
 type QuickTestReturn interface {
 	Body() []byte
 	BodyStr() string
@@ -32,98 +34,66 @@ type (
 	}
 )
 
-// QuickTest: This Method is a helper function to make tests with quick more quickly
-// Required Params: Method (GET, POST, PUT, DELETE...), URI (only the path. Example: /test/:myParam)
-// Optional Param: Body (If you don't want to define one, just ignore)
+// QuickTest: Helper function to make HTTP tests quickly.
+// Required Params: method (e.g., GET, POST), URI (path only, e.g., /test/:param)
+// Optional Param: body (optional; use only when necessary)
 func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...[]byte) (QuickTestReturn, error) {
-	var buffBody []byte
-
+	requestBody := []byte{}
 	if len(body) > 0 {
-		buffBody = body[0]
+		requestBody = body[0]
 	}
 
-	println("")
-	println("")
-	println("method:", method, " URI:", URI, " Body:", len(buffBody))
-	println("")
-	println("")
+	logRequestDetails(method, URI, len(requestBody))
 
-	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(buffBody)))
+	req, err := createHTTPRequest(method, URI, headers, requestBody)
 	if err != nil {
 		return nil, err
-	}
-
-	for k, v := range headers {
-		req.Header.Set(k, v)
 	}
 
 	rec := httptest.NewRecorder()
 	q.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-
-	var b []byte
-	if resp.Body != nil {
-		b, err = io.ReadAll(resp.Body)
-		println("sssssb>", string(b))
-		if err != nil {
-			return nil, err
-		}
-
+	responseBody, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, err
 	}
 
 	return &qTest{
-		body:       b,
-		bodyStr:    string(b),
+		body:       responseBody,
+		bodyStr:    string(responseBody),
 		statusCode: resp.StatusCode,
 		response:   resp,
 	}, nil
 }
 
-// commented just for now
+// createHTTPRequest: Encapsulates the creation of an HTTP request.
+func createHTTPRequest(method, URI string, headers map[string]string, body []byte) (*http.Request, error) {
+	req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(body)))
+	if err != nil {
+		return nil, err
+	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	return req, nil
+}
 
-// func (q Quick) QuickTestListen(qs QuickMockTestServer) (QuickTestReturn, error) {
-// 	port := strconv.Itoa(qs.Port)
-// 	port = concat.String(":", port)
-// 	URI := concat.String("http://0.0.0.0", port, qs.URI)
+// readResponseBody safely reads and returns the response body as a byte slice.
+func readResponseBody(body io.ReadCloser) ([]byte, error) {
+	if body == nil {
+		return nil, nil
+	}
+	defer body.Close()
+	return io.ReadAll(body)
+}
 
-// 	req, err := http.NewRequest(qs.Method, URI, io.NopCloser(bytes.NewBuffer(qs.Body)))
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	for k, v := range qs.Headers {
-// 		req.Header.Set(k, v)
-// 	}
-
-// 	go q.Listen(port)
-
-// 	// This is a wait time to start the server in go routine
-// 	time.Sleep(time.Millisecond * 100)
-
-// 	if qs.Client == nil {
-// 		qs.Client = http.DefaultClient
-// 	}
-
-// 	resp, err := qs.Client.Do(req)
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	defer resp.Body.Close()
-// 	b, err := io.ReadAll(resp.Body)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &qTest{
-// 		body:       b,
-// 		bodyStr:    string(b),
-// 		statusCode: resp.StatusCode,
-// 		response:   resp,
-// 	}, nil
-// }
+// logRequestDetails logs the details of the HTTP request.
+func logRequestDetails(method, URI string, bodyLen int) {
+	println(logDelimiter)
+	println("Method:", method, "| URI:", URI, "| Body Length:", bodyLen)
+	println(logDelimiter)
+}
 
 func (qt *qTest) Body() []byte {
 	return qt.body

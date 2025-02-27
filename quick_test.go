@@ -20,6 +20,84 @@ import (
 	"github.com/jeffotoni/quick/middleware/cors"
 )
 
+// TestExamplePath verifies that a PATCH route returns the expected response
+// The test simulates a partial update functionality.
+// The will test TestExamplePath(t *testing.T)
+//
+// Run:
+//
+//	$ go test -v -run ^TestExamplePath
+func TestExamplePath(t *testing.T) {
+	q := New()
+
+	// Define uma rota PATCH para atualizar parcialmente um recurso
+	q.Patch("/update-partial", func(c *Ctx) error {
+		c.Set("Content-Type", "text/plain")
+		return c.Status(200).String("Feature partially updated!")
+	})
+
+	// Simulates a PATCH request
+	data, err := q.QuickTest("PATCH", "/update-partial", nil)
+	if err != nil {
+		t.Errorf("Error running QuickTest: %v", err)
+		return
+	}
+
+	// Verifica se o código de status HTTP retornado está correto
+	if data.StatusCode() != 200 {
+		t.Errorf("Expected status 200 but got %d", data.StatusCode())
+	}
+
+	// Verifica se o corpo da resposta contém a mensagem esperada
+	expectedBody := "Feature partially updated!"
+	if data.BodyStr() != expectedBody {
+		t.Errorf("Expected body '%s' but got '%s'", expectedBody, data.BodyStr())
+	}
+}
+
+// TestExampleOptions verifies that the OPTIONS route properly returns the allowed methods.
+// The test simulates a partial update functionality.
+// The will test TestExampleOptions(t *testing.T)
+//
+// Run:
+//
+//	$ go test -v -run ^TestExampleOptions
+func TestExampleOptions(t *testing.T) {
+	q := New()
+
+	// Define a GET route
+	q.Get("/example", func(c *Ctx) error {
+		return c.Status(200).String("GET is working!")
+	})
+
+	// Register OPTIONS for the /example route
+	q.Options("/example", func(c *Ctx) error {
+		// Define the methods allowed for this resource in the Allow header
+		allowedMethods := "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+		c.Set("Allow", allowedMethods)
+		return c.Status(200).String("OPTIONS request handled")
+	})
+
+	// Simulate an OPTIONS request
+	data, err := q.QuickTest("OPTIONS", "/example", nil)
+	if err != nil {
+		t.Errorf("Error executing QuickTest: %v", err)
+		return
+	}
+
+	// Verify that the HTTP status code is 200
+	if data.StatusCode() != 200 {
+		t.Errorf("Expected status 200, but got %d", data.StatusCode())
+	}
+
+	// Get the "Allow" header from the HTTP response
+	allowHeader := data.Response().Header.Get("Allow")
+	expectedAllow := "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+	if allowHeader != expectedAllow {
+		t.Errorf("Expected Allow header '%s', but got '%s'", expectedAllow, allowHeader)
+	}
+}
+
 // TestExampleGetDefaultConfig verifies if GetDefaultConfig() returns the expected default configuration values.
 // The will test TestExampleGetDefaultConfig(t *testing.T)
 //

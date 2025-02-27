@@ -1,6 +1,7 @@
 package quick
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -202,6 +203,31 @@ func TestCtx_BodyString(t *testing.T) {
 				t.Errorf("Ctx.BodyString() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestCtx_Methods_JSON(t *testing.T) {
+
+	q := New()
+
+	q.Post("/json", func(c *Ctx) error {
+		data := map[string]string{"message": "Hello, JSON!"}
+		return c.JSON(data)
+	})
+
+	data, err := q.QuickTest("POST", "/json", nil)
+	if err != nil {
+		t.Errorf("Error during QuickTest: %v", err)
+		return
+	}
+
+	if data.StatusCode() != http.StatusOK {
+		t.Errorf("Expected status %d, got %d", http.StatusOK, data.StatusCode())
+	}
+
+	expected := `{"message":"Hello, JSON!"}`
+	if !bytes.Equal(bytes.TrimSpace(data.Body()), []byte(expected)) {
+		t.Errorf("Expected JSON body '%s', got '%s'", expected, data.BodyStr())
 	}
 }
 
