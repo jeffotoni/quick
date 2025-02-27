@@ -10,7 +10,6 @@
 
 
 # Quick - a lightweight router for go ![Quick Logo](/quick.png)
----
 
 🚀 Quick is a **flexible and extensible** route manager for the Go language. Its goal is to be **fast and high-performance**, as well as being **100% compatible with net/http**. Quick is a **project in constant development** and is open for **collaboration**, everyone is welcome to contribute. 😍
 
@@ -20,9 +19,8 @@
 
 🔍 The repository of examples of the Framework Quick Run [Examples](https://github.com/jeffotoni/quick/tree/main/example).
 
----
 
-### Quick in action 💕🐧🚀😍
+# Quick in action 💕🐧🚀😍
 ![Quick](quick_server.gif)
 
 --- 
