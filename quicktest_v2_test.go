@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// TestQTest_Options_GET checks if the response body contains a specific substring.
+// The result will TestQTest_Options_GET(expected any) error
 func TestQTest_Options_GET(t *testing.T) {
 
 	q := New()
@@ -38,6 +40,9 @@ func TestQTest_Options_GET(t *testing.T) {
 		t.Errorf("Body assertion failed: %v", err)
 	}
 }
+
+// TestQTest_Options_POST checks if the response body contains a specific substring.
+// The result will TestQTest_Options_POST(expected any) error
 func TestQTest_Options_POST(t *testing.T) {
 
 	q := New()
