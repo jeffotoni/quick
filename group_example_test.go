@@ -7,7 +7,10 @@
 // These examples showcase different HTTP methods (GET, POST, PUT, DELETE) within a route group.
 package quick
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 // This function is named ExampleQuick_Group()
 // it with the Examples type.
@@ -112,4 +115,89 @@ func ExampleGroup_Delete() {
 	fmt.Println(res.BodyStr())
 
 	// Out put: User deleted
+}
+
+// This function is named ExampleGroup_Delete()
+// it with the Examples type.
+func ExampleGroup_Use() {
+	// Create a new Quick instance
+	q := New()
+
+	// Create a new group with a common prefix
+	api := q.Group("/api")
+
+	// Define a simple middleware that logs requests
+	logMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Println("Middleware activated for:", r.URL.Path)
+			next.ServeHTTP(w, r)
+		})
+	}
+
+	// Apply middleware to the group
+	api.Use(logMiddleware)
+
+	// Define a GET route inside the group
+	api.Get("/hello", func(c *Ctx) error {
+		return c.Status(200).String("Hello from API group Quick")
+	})
+
+	// Simulate a request to test middleware activation
+	res, _ := q.QuickTest("GET", "/api/hello", nil)
+
+	// Print the response body
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// Middleware activated for: /api/hello
+	// Hello from API group Quick
+}
+
+// This function is named ExampleGroup_Patch()
+// it with the Examples type.
+func ExampleGroup_Patch() {
+	// Create a new Quick instance
+	q := New()
+
+	// Create a new group with a common prefix
+	api := q.Group("/api")
+
+	// Register a PATCH route dynamically
+	api.Patch("/update", func(c *Ctx) error {
+		return c.Status(200).String("PATCH request received")
+	})
+
+	// Simulate a PATCH request
+	res, _ := q.QuickTest("PATCH", "/api/update", nil)
+
+	// Print the response body
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// PATCH request received
+}
+
+// This function is named ExampleGroup_Options()
+// it with the Examples type.
+func ExampleGroup_Options() {
+	// Create a new Quick instance
+	q := New()
+
+	// Create a new group with a common prefix
+	api := q.Group("/api")
+
+	// Register an OPTIONS route dynamically
+	api.Options("/resource", func(c *Ctx) error {
+		c.Set("Allow", "GET, POST, OPTIONS")
+		return c.Status(204).Send(nil) // No Content response
+	})
+
+	// Simulate an OPTIONS request
+	res, _ := q.QuickTest("OPTIONS", "/api/resource", nil)
+
+	// Print the response status
+	fmt.Println("Status:", res.StatusCode())
+
+	// Out put:
+	// Status: 204
 }
