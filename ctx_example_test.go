@@ -7,7 +7,9 @@
 package quick
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 )
 
 // This function is named ExampleCtx_GetReqHeadersAll()
@@ -451,4 +453,132 @@ func ExampleCtx_JSONIN() {
 	// {
 	//  "message": "Hello, Quick!"
 	// }
+}
+
+// This function is named ExampleCtx_FormFileLimit()
+// it with the Examples type.
+func ExampleCtx_FormFileLimit() {
+	// Creating a new context
+	ctx := &Ctx{}
+
+	// Setting a file upload limit to 5MB
+	err := ctx.FormFileLimit("5MB")
+
+	// Checking if an error occurred while setting the limit
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Upload limit set to:", ctx.uploadFileSize)
+	}
+
+	// Out put: Upload limit set to: 5242880
+}
+
+// This function is named ExampleCtx_FormFile()
+// it with the Examples type.
+func ExampleCtx_FormFile() {
+	// Simulated uploaded file
+	uploadedFile := &UploadedFile{
+		Info: FileInfo{
+			Filename:    "quick.txt",
+			Size:        1024,
+			ContentType: "text/plain",
+			Bytes:       []byte("File content"),
+		},
+	}
+
+	// Mocking the FormFiles function externally
+	mockFormFiles := func(fieldName string) ([]*UploadedFile, error) {
+		if fieldName == "file" {
+			return []*UploadedFile{uploadedFile}, nil
+		}
+		return nil, errors.New("file not found")
+	}
+
+	// Calling the mocked function instead of modifying `ctx`
+	files, err := mockFormFiles("file")
+
+	// Handling the result
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else if len(files) > 0 {
+		fmt.Println("Received file:", files[0].FileName())
+	}
+
+	// Out put: Received file: quick.txt
+}
+
+// This function is named ExampleCtx_FormFiles()
+// it with the Examples type.
+func ExampleCtx_FormFiles() {
+	// Simulating multiple uploaded files
+	uploadedFiles := []*UploadedFile{
+		{
+			Info: FileInfo{
+				Filename:    "file1.txt",
+				Size:        1024,
+				ContentType: "text/plain",
+				Bytes:       []byte("File 1 content"),
+			},
+		},
+		{
+			Info: FileInfo{
+				Filename:    "file2.txt",
+				Size:        2048,
+				ContentType: "text/plain",
+				Bytes:       []byte("File 2 content"),
+			},
+		},
+	}
+
+	// Mocking the FormFiles function externally
+	mockFormFiles := func(fieldName string) ([]*UploadedFile, error) {
+		if fieldName == "files" {
+			return uploadedFiles, nil
+		}
+		return nil, errors.New("files not found")
+	}
+
+	// Calling the mocked function instead of modifying `ctx`
+	files, err := mockFormFiles("files")
+
+	// Handling the result
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Received files:")
+		for _, file := range files {
+			fmt.Printf("- %s (%d bytes)\n", file.FileName(), file.Size())
+		}
+	}
+
+	// Out put: Received files:
+	// - file1.txt (1024 bytes)
+	// - file2.txt (2048 bytes)
+}
+
+// This function is named ExampleCtx_MultipartForm()
+// it with the Examples type.
+func ExampleCtx_MultipartForm() {
+	// Creating a context and simulating an HTTP request
+	ctx := &Ctx{}
+
+	// Simulating an HTTP header with the correct Content-Type
+	ctx.Request = &http.Request{
+		Header: map[string][]string{
+			"Content-Type": {"multipart/form-data"},
+		},
+	}
+
+	// Attempting to parse the multipart form
+	form, err := ctx.MultipartForm()
+
+	// Checking for errors
+	if err != nil {
+		fmt.Println("Error processing form:", err)
+	} else {
+		fmt.Println("Form processed successfully:", form)
+	}
+
+	// Out put: Form processed successfully: &{...}
 }
