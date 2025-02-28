@@ -12,12 +12,14 @@ pocs/*
 pocs.example/*
 *.pprof
 *.workspace
+.pocs/
 
 # Dependencies
 /vendor/
 vendor/
 vendor
 /Godeps/
+
 
 # Test binary, built with `go test -c`
 *.test
