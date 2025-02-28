@@ -406,3 +406,49 @@ func ExampleCtx_Status() {
 
 	// Out put: 404
 }
+
+// This function is named ExampleCtx_File()
+// it with the Examples type.
+func ExampleCtx_File() {
+	// Creating a Quick instance
+	q := New()
+
+	// Defining a route that serves a specific file
+	q.Get("/file", func(c *Ctx) error {
+		return c.File("quick.txt") // Serves an existing file
+	})
+
+	// Simulating a request to test the route
+	res, _ := q.QuickTest("GET", "/file", nil)
+
+	// Printing the expected response
+	fmt.Println("Status:", res.StatusCode())
+
+	// Out put: Status: 200
+}
+
+// This function is named ExampleCtx_JSONIN()
+// it with the Examples type.
+func ExampleCtx_JSONIN() {
+	// Creating a Quick instance
+	q := New()
+
+	// Defining a route that returns a structured JSON
+	q.Get("/json", func(c *Ctx) error {
+		data := map[string]string{"message": "Hello, Quick!"}
+		return c.JSONIN(data)
+	})
+
+	// Simulating a request to test the JSON response
+	res, _ := q.QuickTest("GET", "/json", nil)
+
+	// Printing the expected response
+	fmt.Println("Status:", res.StatusCode())
+	fmt.Println("Body:", res.BodyStr())
+
+	// Out put: Status: 200
+	// Body:
+	// {
+	//  "message": "Hello, Quick!"
+	// }
+}
