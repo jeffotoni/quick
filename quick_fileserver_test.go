@@ -142,23 +142,23 @@ func TestQuickStaticDriven(t *testing.T) {
 // Run:
 //
 //	$ go run main.go
-func ExampleQuick_Static() {
-	//Quick Start
-	q := New()
+// func ExampleQuick_Static() {
+// 	//Quick Start
+// 	q := New()
 
-	/**
-	//go:embed static/*
-	var staticFiles embed.FS
-	*/
+// 	/**
+// 	//go:embed static/*
+// 	var staticFiles embed.FS
+// 	*/
 
-	// start FileServer
-	// or
-	// q.Static("/static", staticFiles)
-	q.Static("/static", "./static")
+// 	// start FileServer
+// 	// or
+// 	// q.Static("/static", staticFiles)
+// 	q.Static("/static", "./static")
 
-	// send ServeFile
-	q.Get("/", func(c *Ctx) error {
-		c.File("./static/index.html")
-		return nil
-	})
-}
+// 	// send ServeFile
+// 	q.Get("/", func(c *Ctx) error {
+// 		c.File("./static/index.html")
+// 		return nil
+// 	})
+// }
