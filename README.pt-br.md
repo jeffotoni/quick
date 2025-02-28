@@ -7,15 +7,14 @@
 
 <!-- [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) -->
 
-<h4 align="center">
+<h2 align="center">
     <p>
          <a href="README.md">English</a> |
           <a href="README.pt-br.md">Рortuguês</a>
-    </p>
- 
-</h4>
+    </p> 
+</h2>
 
-# Quick - um roteador leve para go! ![Quick](/quick.png)
+# Quick - um roteador leve para Go! ![Quick](/quick.png)
 
 🚀 Quick é um gerenciador de rotas **flexível e extensível** para a linguagem Go. Seu objetivo é ser **rápido e de alto desempenho**, além de ser **100% compatível com net/http**. Quick é um **projeto em constante desenvolvimento** e está aberto para **colaboração**, todos são bem-vindos a contribuir. 😍
 
@@ -35,13 +34,13 @@
 |--------------------------------------------------|------|--------|------------|
 | 🛣️ Route Manager   | sim  | 🟢   | 100%   |
 | 📁 Arquivos de servidor estático   | sim  | 🟢   | 100%   |
-| 🔗 Http Client   | yes  | 🟢   | 100%   |
-| 📤 Upload de arquivos (multipart/form-data)   | yes  | 🟢   | 100%   |
-| 🚪 Grupo de rotas   | sim  | 🟢   | 100%   |
-| 🛡️ Middlewares   | sim  | 🟡   | 50%   |
+| 🔗 Http Client   | sim  | 🟢   | 100%   |
+| 📤 Upload de arquivos (multipart/form-data)   | sim  | 🟢   | 100%   |
+| 🚪 Agrupamento de rotas  | sim  | 🟢   | 100%   |
+| 🛡️ Middleware   | sim  | 🟡   | 50%   |
 | ⚡ Suporte HTTP/2   | sim  | 🟢   | 100%   |
-| 🔄 Vinculação de dados para JSON, XML e carga útil do formulário   | sim  | 🟢   | 100%   |
-| 🔍 Regex suporte   | sim  | 🟡   | 80%   |
+| 🔄 Suporte para vinculação de dados em JSON, XML e formulários   | sim  | 🟢   | 100%   |
+| 🔍 Suporte a Regex  | sim  | 🟡   | 80%   |
 | 🌎 Site   | sim  | 🟡   | 90%   |
 | 📚 Docs   | sim  | 🟡   | 40%   |
 
@@ -52,40 +51,38 @@
 |-------------------------------------------------|-----------|
 | Desenvolver MaxBodySize método Post   | 100%   |
 | Desenvolver MaxBodySize método Put   | 100%   |
-| Develop Config in New(Config{}) not required | 100%   |
+| Desenvolver configuração em  New(Config{}) não é obrigatório | 100%   |
 | Criar função de impressão para não usar fmt demais | 100% |
 | Criação de função própria para Concat String   | 100%   |
 | Criação de benchmarking entre o. Stdout e fmt.Println | 100%   |
-| Develop Routes GET method   | 100%   |
-| Develop Routes GET method   | 100%   |
-| Develop Routes GET método aceitando Query String | 100%   |
-| Develop Routes GET method aceitando Parametros | 100%   |
-| Develop Routes GET método que aceita Query String e parâmetros | 100% |
-| Develop Routes GET método que aceita expressão regular | 100% |
-| Develop Routes Method POST   | 100%   |
-| Develop Routes POST method aceitando JSON   | 100%   |
+| Desenvolver suporte para o método GET   | 100%   |
+| Desenvolver suporte para o método GET aceitando Query String | 100%   |
+| Desenvolver suporte para o método GET aceitando Parametros | 100%   |
+| Desenvolver suporte para o método GET que aceita Query String e parâmetros | 100% |
+| Desenvolver suporte para o método GET que aceita expressão regular | 100% |
+| Desenvolver suporte para o método POST   | 100%   |
+| Desenvolver rotas método POST aceitando JSON   | 100%   |
 | Desenvolver para MÉTODO POST o parse JSON   | 100%   |
-| Desenvolver para as funções POST METHOD para acessar byte ou string de Parse | 100% |
-| Desenvolver para PUT METHOD   | 100%   |
+| Desenvolver para as funções MÉTODO POST para acessar byte ou string de Parse | 100% |
+| Desenvolver para MÉTODO PUT  | 100%   |
 | Desenvolver para o MÉTODO PUT a parse JSON   | 100%   |
 | Desenvolver para o MÉTODO PUT a parse JSON   | 100%   |
-| Desenvolver para METHOD PUT funções para acessar byte ou string a partir do Parse | 100% |
-| Desenvolver para DELETE MÉTODO   | 100%   |
+| Desenvolver para MÉTODO PUT funções para acessar byte ou string a partir do Parse | 100% |
+| Desenvolver para MÉTODO DELETE   | 100%   |
 | Desenvolver método para ListenAndServe   | 100%   |
-| Develop ServeHTTP support   | 100%   |
-
-| Develop suporte middleware    | 100%   |
-| Develop suporte para middleware compress   | 100%   |
-| Develop suporte para middleware cors   | 100%   |
-| Develop logger middleware support   | 100%   |
-| Develop suporte para maxbody middlewares   | 100%   |
-| Develop middleware suporte msgid   | 100%   |
-| Develop middleware suporte msguuid   | 100%   |
-| Develop suporte Cors   | 100%   |
-| Develop Client Get suporte  | 100%   |
-| Develop Client Post suporte   | 100%   |
-| Develop Client Put suporte   | 100%   |
-| Develop Client suporte Delete   | 100%   |
+| Desenvolver ServeHTTP suporte   | 100%   |
+| Desenvolver suporte middleware    | 100%   |
+| Desenvolver suporte para middleware compress   | 100%   |
+| Desenvolver suporte para middleware cors   | 100%   |
+| Desenvolver logger middleware suporte   | 100%   |
+| Desenvolver suporte para maxbody middlewares   | 100%   |
+| Desenvolver middleware suporte msgid   | 100%   |
+| Desenvolver middleware suporte msguuid   | 100%   |
+| Desenvolver suporte Cors   | 100%   |
+| Desenvolver Client Get suporte  | 100%   |
+| Desenvolver Client Post suporte   | 100%   |
+| Desenvolver Client Put suporte   | 100%   |
+| Desenvolver Client suporte Delete   | 100%   |
 
 ---
 
@@ -98,7 +95,7 @@
 | Desenvolve suporte para JWT | 10% |
 | Desenvolver método para facilitar a manipulação de ResponseWriter | 80% |
 | Desenvolver método para facilitar o tratamento do pedido | 80%  |
-| Develop Standard of Unit Testing   | 90%   |
+| Desenvolver padrão de teste unitário  | 90%   |
 
 
 
@@ -111,7 +108,7 @@
 | Cobertura do teste go-cover | 74,6% |
 | Cobertura de recurso regex, mas possibilidades | 0.% |
 | Desenvolver para OPÇÕES MÉTODO | 100% |
-| Develop for CONNECT METHOD [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.% |
+| Desenvolver suporte para o método CONNECT [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.% |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.% |
 | Desenvolver suporte de arquivos estáticos | 100% |
 | Suporte ao WebSocket | 0.% |
@@ -120,8 +117,8 @@
 | Documentação Testes Exemplos PKG Go   | 45%   |
 | Cobertura do teste go -cover   | 75,5%   |
 | Cobertura de recursos Regex, mas possibilidades   | 0.%   |
-| Develop for METHOD OPTIONS   | 100%   |
-| Develop for CONNECT METHOD [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)   | 0.%   |
+| Desenvolver MÉTODO para OPTION   | 100%   |
+| Desenvolver MÉTODO DE CONEXÃO [Veja mais](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)   | 0.%   |
 | Desenvolver método para ListenAndServeTLS (http2) | 0.%   |
 | Criar uma CLI (Interface de Linha de Comando) Quick.   | 0.%   |
 
