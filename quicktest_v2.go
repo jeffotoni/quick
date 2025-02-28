@@ -36,7 +36,7 @@ type QtestReturn interface {
 	AssertBodyContains(expected any) error
 }
 
-type qTestPlus struct {
+type QTestPlus struct {
 	body       []byte
 	bodyStr    string
 	statusCode int
@@ -98,7 +98,7 @@ func (q Quick) Qtest(opts QuickTestOptions) (QtestReturn, error) {
 		logRequestResponseDetails(opts, resp, respBody)
 	}
 
-	return &qTestPlus{
+	return &QTestPlus{
 		body:       respBody,
 		bodyStr:    string(respBody),
 		statusCode: resp.StatusCode,
@@ -157,28 +157,28 @@ func readResponseBodyV2(resp *http.Response) ([]byte, error) {
 ///
 
 // The result will Body() []byte
-func (qt *qTestPlus) Body() []byte {
+func (qt *QTestPlus) Body() []byte {
 	return qt.body
 }
 
 // The result will BodyStr() string
-func (qt *qTestPlus) BodyStr() string {
+func (qt *QTestPlus) BodyStr() string {
 	return qt.bodyStr
 }
 
 // The result will StatusCode() int
-func (qt *qTestPlus) StatusCode() int {
+func (qt *QTestPlus) StatusCode() int {
 	return qt.statusCode
 }
 
 // The result will Response() *http.Response
-func (qt *qTestPlus) Response() *http.Response {
+func (qt *QTestPlus) Response() *http.Response {
 	return qt.response
 }
 
 // AssertStatus checks if the response status matches the expected.
 // The result will AssertStatus(expected int) error
-func (qt *qTestPlus) AssertStatus(expected int) error {
+func (qt *QTestPlus) AssertStatus(expected int) error {
 	if qt.statusCode != expected {
 		return fmt.Errorf("expected status %d but got %d", expected, qt.statusCode)
 	}
@@ -187,7 +187,7 @@ func (qt *qTestPlus) AssertStatus(expected int) error {
 
 // AssertHeader checks if a header has the expected value.
 // The result will AssertHeader(key, expectedValue string) error
-func (qt *qTestPlus) AssertHeader(key, expectedValue string) error {
+func (qt *QTestPlus) AssertHeader(key, expectedValue string) error {
 	value := qt.response.Header.Get(key)
 	if value != expectedValue {
 		return fmt.Errorf("expected header '%s' to be '%s' but got '%s'", key, expectedValue, value)
@@ -197,7 +197,7 @@ func (qt *qTestPlus) AssertHeader(key, expectedValue string) error {
 
 // AssertBodyContains checks if the response body contains a specific substring.
 // The result will AssertBodyContains(expected any) error
-func (qt *qTestPlus) AssertBodyContains(expected any) error {
+func (qt *QTestPlus) AssertBodyContains(expected any) error {
 	var expectedStr string
 
 	// Convert expected to string (if it's not already a string)
