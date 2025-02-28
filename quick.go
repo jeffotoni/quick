@@ -219,6 +219,8 @@ func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFun
 	return nil
 }
 
+// PATCH is generally used for partial updates, while PUT replaces the entire resource.
+// However, both methods often handle request parameters and body parsing in the same way.
 func extractParamsPatch(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return extractParamsPut(q, handlerFunc)
 }
