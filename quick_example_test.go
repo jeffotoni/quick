@@ -226,3 +226,78 @@ func ExampleQuick_Listen() {
 	// Out put:
 	// (This function starts a server and does not return an output directly)
 }
+
+// This function is named ExampleQuick_Patch()
+//
+//	it with the Examples type.
+func ExampleQuick_Patch() {
+	// Start Quick instance
+	q := New()
+
+	// Define a PATCH route
+	q.Patch("/update", func(c *Ctx) error {
+		return c.Status(200).String("PATCH request received")
+	})
+
+	// Simulate a PATCH request to "/update"
+	res, _ := q.QuickTest("PATCH", "/update", nil)
+
+	// Print the response status and body
+	fmt.Println("Status:", res.StatusCode())
+
+	// Out put: Status: 200
+}
+
+// This function is named ExampleQuick_Options()
+//	it with the Examples type.
+
+func ExampleQuick_Options() {
+	// Start Quick instance
+	q := New()
+
+	// Define an OPTIONS route
+	q.Options("/resource", func(c *Ctx) error {
+		c.Set("Allow", "GET, POST, OPTIONS")
+		return c.Status(204).Send(nil) // No Content response
+	})
+
+	// Simulate an OPTIONS request to "/resource"
+	res, _ := q.QuickTest("OPTIONS", "/resource", nil)
+
+	// Print the response status
+	fmt.Println("Status:", res.StatusCode())
+
+	// Out put: Status: 204
+}
+
+// This function is named ExampleQuick_Static()
+//
+//	it with the Examples type.
+func ExampleQuick_Static() {
+	// Quick Start
+	q := New()
+
+	// Uncomment this block if using embedded static files
+	/*
+		//go:embed static/*
+		var staticFiles embed.FS
+		q.Static("/static", staticFiles)
+	*/
+
+	// Serve static files from the "static" directory
+	q.Static("/static", "./static")
+
+	// Serve a specific file on the root path
+	q.Get("/", func(c *Ctx) error {
+		c.File("./static/index.html")
+		return nil
+	})
+
+	// Simulate a request to a static file (e.g., "/static/index.html")
+	res, _ := q.QuickTest("GET", "/static/index.html", nil)
+
+	// Print the response status
+	fmt.Println("Status:", res.StatusCode())
+
+	// Out put: Status: 200
+}
