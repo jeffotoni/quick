@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -102,5 +103,44 @@ func TestRetryTransport_RoundTrip(t *testing.T) {
 	}
 	if resp.StatusCode != http.StatusServiceUnavailable {
 		t.Errorf("Expected status %d, got %d", http.StatusServiceUnavailable, resp.StatusCode)
+	}
+}
+
+// TestWithRetryRoundTripper validates that retry logic works with RoundTripper.
+func TestWithRetryRoundTripper_WithHeaders(t *testing.T) {
+	// Creating a test server that fails 2 times and then returns success
+	ts := httptest.NewServer(testRetryHandler(2, http.StatusInternalServerError, http.StatusOK, `{"message": "Success!"}`))
+	defer ts.Close()
+
+	// Criando o cliente com retry configurado
+	cClient := New(
+		WithTimeout(8*time.Second), // ⬅️ Aumentado para garantir que todas as tentativas sejam feitas
+		WithHeaders(map[string]string{"Content-Type": "application/json"}),
+
+		// Habilitando retry com RoundTripper
+		WithRetryRoundTripper(
+			3,             // Número máximo de tentativas
+			"2s",          // Tempo entre tentativas
+			true,          // Habilita backoff exponencial
+			"500,502,503", // Status para retry
+			true,
+		),
+	)
+
+	// Executando a requisição
+	resp, err := cClient.Post(ts.URL, map[string]string{"name": "jeffotoni"})
+	if err != nil {
+		t.Fatalf("POST request failed: %v", err)
+	}
+
+	// Verificando o status da resposta
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	// Verificando o body da resposta
+	expectedBody := `{"message": "Success!"}`
+	if strings.TrimSpace(string(resp.Body)) != expectedBody {
+		t.Errorf("Expected body '%s', got '%s'", expectedBody, string(resp.Body))
 	}
 }

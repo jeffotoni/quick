@@ -73,7 +73,13 @@ func TestClient_PostForm_Retry(t *testing.T) {
 	defer ts.Close()
 
 	client := New(
-		WithRetry(3, "500ms-bex", "500,502,503,504"),
+		WithRetry(
+			3,                 // Maximum number of retries
+			"500ms",           // Delay between attempts
+			true,              // Use exponential backoff
+			"500,502,503,504", // HTTP status for retry
+			true,              // show Logger
+		),
 	)
 
 	formData := url.Values{}
