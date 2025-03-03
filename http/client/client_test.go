@@ -41,7 +41,7 @@ func TestClient_Get(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(testHandler))
 	defer ts.Close()
 
-	client := NewClient() // Use default client configuration
+	client := New() // Use default client configuration
 	resp, err := client.Get(ts.URL)
 	if err != nil {
 		t.Fatalf("GET request failed: %v", err)
@@ -60,7 +60,7 @@ func TestClient_Post(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(testHandler))
 	defer ts.Close()
 
-	client := NewClient()
+	client := New()
 
 	// Test with a string body
 	bodyStr := "Test POST"
@@ -115,7 +115,7 @@ func TestClient_Put(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(testHandler))
 	defer ts.Close()
 
-	client := NewClient()
+	client := New()
 
 	// Test with a string body
 	bodyStr := "Test PUT"
@@ -157,7 +157,7 @@ func TestClient_Delete(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(testHandler))
 	defer ts.Close()
 
-	client := NewClient()
+	client := New()
 	resp, err := client.Delete(ts.URL)
 	if err != nil {
 		t.Fatalf("DELETE request failed: %v", err)
@@ -241,7 +241,7 @@ func TestClient_WithCustomConfig(t *testing.T) {
 	}
 
 	// Create a client with the custom configuration.
-	customClient := NewClient(
+	customClient := New(
 		WithContext(context.TODO()),
 		WithHeaders(map[string]string{"Content-Type": "application/xml"}),
 		WithHTTPClientConfig(cfg),

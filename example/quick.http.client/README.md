@@ -37,7 +37,7 @@ This will start the API server on http://localhost:3000, making it ready to rece
 | `func (c *Client) Post(url string, body any) (*ClientResponse, error)`                      | POST request using a custom client instance           |
 | `func (c *Client) Put(url string, body any) (*ClientResponse, error)`                       | PUT request using a custom client instance            |
 | `func (c *Client) Delete(url string) (*ClientResponse, error)`                              | DELETE request using a custom client instance         |
-| `func NewClient(opts ...Option) *Client`                                                  | Creates a new Client with optional custom configurations|
+| `func New(opts ...Option) *Client`                                                  | Creates a new Client with optional custom configurations|
 | `func WithContext(ctx context.Context) Option`                                            | Option to set a custom context for the client         |
 | `func WithHeaders(headers map[string]string) Option`                                      | Option to set custom headers                          |
 | `func WithHTTPClientConfig(cfg *HTTPClientConfig) Option`                                 | Option to set a custom HTTP transport configuration   |
@@ -186,7 +186,7 @@ func main() {
 	}
 
 	// Create a new custom client
-	cClient := client.NewClient(
+	cClient := client.New(
 		client.WithContext(context.TODO()),
 		client.WithHeaders(map[string]string{"Content-Type": "application/xml"}),
 		client.WithHTTPClientConfig(cfg),
@@ -213,6 +213,28 @@ func main() {
 }
 
 ```
+
+##### 🔹 **HTTP Request with Retry Support**
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+cClient := client.New(
+    client.WithRetry(3, "2s-bex", "500,502,503,504"),
+)
+
+resp, err := cClient.Get("http://localhost:3000/v1/user/1234")
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println("GET response:", string(resp.Body))
+```
+
 ---
 
 ### 📌 Testing with cURL
