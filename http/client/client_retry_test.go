@@ -32,7 +32,13 @@ func TestClientRetry_Get(t *testing.T) {
 	defer ts.Close()
 
 	client := New(
-		WithRetry(3, "500ms-bex", "500,502"),
+		WithRetry(
+			3,         // Maximum number of retries
+			"500ms",   // Delay between attempts
+			true,      // Use exponential backoff
+			"500,502", // HTTP status for retry
+			true,      // show Logger
+		),
 	)
 
 	resp, err := client.Get(ts.URL)
@@ -53,7 +59,13 @@ func TestClientRetry_Post(t *testing.T) {
 	defer ts.Close()
 
 	client := New(
-		WithRetry(3, "500ms-bex", "503,504"),
+		WithRetry(
+			3,         // Maximum number of retries
+			"500ms",   // Delay between attempts
+			true,      // Use exponential backoff
+			"503,504", // HTTP status for retry
+			true,      // show Logger
+		),
 	)
 
 	data := map[string]string{"name": "Jefferson"}
@@ -75,7 +87,13 @@ func TestClientRetry_Put(t *testing.T) {
 	defer ts.Close()
 
 	client := New(
-		WithRetry(2, "1s-bex", "502"),
+		WithRetry(
+			2,     // Maximum number of retries
+			"1s",  // Delay between attempts
+			true,  // Use exponential backoff
+			"502", // HTTP status for retry
+			true,  // show Logger
+		),
 	)
 
 	data := map[string]string{"update": "yes"}
@@ -97,7 +115,13 @@ func TestClientRetry_Delete(t *testing.T) {
 	defer ts.Close()
 
 	client := New(
-		WithRetry(4, "2s", "504"),
+		WithRetry(
+			4,     // Maximum number of retries
+			"2s",  // Delay between attempts
+			true,  // Use exponential backoff
+			"504", // HTTP status for retry
+			true,  // show Logger
+		),
 	)
 
 	resp, err := client.Delete(ts.URL)

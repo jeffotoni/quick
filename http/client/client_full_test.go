@@ -52,7 +52,13 @@ func TestClient_Configurations(t *testing.T) {
 		WithMaxConnsPerHost(30),
 		WithMaxIdleConnsPerHost(10),
 		WithTLSConfig(&tls.Config{InsecureSkipVerify: true, MinVersion: tls.VersionTLS12}),
-		WithRetry(3, "1s-bex", "500,502,503,504"),
+		WithRetry(
+			3,                 // Maximum number of retries
+			"1s",              // Delay between attempts
+			true,              // Use exponential backoff
+			"500,502,503,504", // HTTP status for retry
+			true,              // show Logger
+		),
 	)
 
 	// Verify that the HTTP client has been set correctly
