@@ -22,7 +22,7 @@ This package offers:
 | `func (c *Client) Post(url string, body any) (*ClientResponse, error)`                      | POST request using a custom client instance           |
 | `func (c *Client) Put(url string, body any) (*ClientResponse, error)`                       | PUT request using a custom client instance            |
 | `func (c *Client) Delete(url string) (*ClientResponse, error)`                              | DELETE request using a custom client instance         |
-| `func NewClient(opts ...Option) *Client`                                                  | Creates a new Client with optional custom configurations|
+| `func New(opts ...Option) *Client`                                                  | Creates a new Client with optional custom configurations|
 | `func WithContext(ctx context.Context) Option`                                            | Option to set a custom context for the client         |
 | `func WithHeaders(headers map[string]string) Option`                                      | Option to set custom headers                          |
 | `func WithHTTPClientConfig(cfg *HTTPClientConfig) Option`                                 | Option to set a custom HTTP transport configuration   |

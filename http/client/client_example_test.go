@@ -20,7 +20,7 @@ func ExampleClient_Get() {
 	defer ts.Close()
 
 	// Create a default client
-	c := NewClient()
+	c := New()
 
 	// Send a GET request.
 	resp, err := c.Get(ts.URL)
@@ -46,7 +46,7 @@ func ExampleClient_Post() {
 	defer ts.Close()
 
 	// Create a default client.
-	c := NewClient()
+	c := New()
 
 	// Example 1: Using a string as the POST body.
 	resp, err := c.Post(ts.URL, "Hello, POST!")
@@ -102,7 +102,7 @@ func ExampleClient_Put() {
 	defer ts.Close()
 
 	// Create a default client.
-	c := NewClient()
+	c := New()
 
 	// Example 1: Using a string as the PUT body.
 	resp, err := c.Put(ts.URL, "Hello, PUT!")
@@ -144,7 +144,7 @@ func ExampleClient_Delete() {
 	defer ts.Close()
 
 	// Create a default client.
-	c := NewClient()
+	c := New()
 
 	// Send a DELETE request.
 	resp, err := c.Delete(ts.URL)
