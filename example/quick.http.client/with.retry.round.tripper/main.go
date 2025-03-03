@@ -15,10 +15,11 @@ func main() {
 
 		// Enabling retry with RoundTripper
 		client.WithRetryRoundTripper(
-			3,                    // Maximum number of retries
-			2*time.Second,        // Delay between retries
-			true,                 // Use exponential backoff
-			[]int{500, 502, 503}, // Retry these HTTP codes
+			3,               // Maximum number of retries
+			"2s",            // Delay between retries
+			true,            // Use exponential backoff
+			"500, 502, 503", // Retry these HTTP codes
+			false,
 		),
 	)
 

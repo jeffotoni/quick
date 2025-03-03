@@ -23,12 +23,13 @@ type httpGoClient interface {
 
 // RetryTransport implements http.RoundTripper with retry logic.
 type RetryTransport struct {
-	Base        http.RoundTripper // Base transport (e.g. http.DefaultTransport)
-	MaxRetries  int               // Maximum number of retries
-	RetryDelay  time.Duration     // Time between attempts
-	UseBackoff  bool              // Enables exponential backoff
-	RetryStatus []int             // HTTP status for retry
-	Logger      *slog.Logger      // New Logger field
+	Base         http.RoundTripper // Base transport (e.g. http.DefaultTransport)
+	MaxRetries   int               // Maximum number of retries
+	RetryDelay   time.Duration     // Time between attempts
+	UseBackoff   bool              // Enables exponential backoff
+	RetryStatus  []int             // HTTP status for retry
+	Logger       *slog.Logger      // New Logger field
+	EnableLogger bool
 }
 
 // HTTPClientConfig allows configuring the HTTP client's parameters.
@@ -75,14 +76,15 @@ func NewHTTPClientFromConfig(cfg *HTTPClientConfig) httpGoClient {
 
 // Client represents the custom HTTP client.
 type Client struct {
-	Ctx         context.Context
-	ClientHTTP  httpGoClient
-	Headers     map[string]string
-	Logger      *slog.Logger  // New Logger field
-	MaxRetries  int           // Number of retry attempts
-	RetryDelay  time.Duration // Delay between retries
-	UseBackoff  bool          // Enable exponential backoff
-	RetryStatus []int         // HTTP status codes that trigger a retry
+	Ctx          context.Context
+	ClientHTTP   httpGoClient
+	Headers      map[string]string
+	EnableLogger bool
+	Logger       *slog.Logger  // New Logger field
+	MaxRetries   int           // Number of retry attempts
+	RetryDelay   time.Duration // Delay between retries
+	UseBackoff   bool          // Enable exponential backoff
+	RetryStatus  []int         // HTTP status codes that trigger a retry
 
 }
 
@@ -143,7 +145,8 @@ func WithLogger(logger *slog.Logger) Option {
 // Default logger (if not provided)
 func defaultLogger() *slog.Logger {
 	// slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	return slog.New(slog.NewTextHandler(os.Stderr, nil))
+	// return slog.New(slog.NewTextHandler(os.Stderr, nil))
+	return slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
 // Global functions using the defaultClient.
@@ -502,22 +505,26 @@ func WithRetryTransport(
 }
 
 // WithRetryRoundTripper applies a custom RoundTripper for retries.
-func WithRetryRoundTripper(maxRetries int, retryDelay time.Duration, useBackoff bool, retryStatus []int, logger ...*slog.Logger) Option {
+func WithRetryRoundTripper(maxRetries int, retryDelayStr string, useBackoff bool, retryStatusStr string, enableLogger bool) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
-			var logInstance *slog.Logger
-			if len(logger) > 0 && logger[0] != nil {
-				logInstance = logger[0]
-			} else {
-				logInstance = defaultLogger()
+			retryDelay, _ := parseRetryDelay(retryDelayStr)
+
+			c.EnableLogger = enableLogger
+			logger := defaultLogger() // Logger default
+
+			// If the user has disabled logs, we do not initialize the logger.
+			if !enableLogger {
+				logger = nil
 			}
+
 			httpClient.Transport = &RetryTransport{
 				Base:        http.DefaultTransport, // Uses the default transport as a base
 				MaxRetries:  maxRetries,
 				RetryDelay:  retryDelay,
 				UseBackoff:  useBackoff,
-				RetryStatus: retryStatus,
-				Logger:      logInstance,
+				RetryStatus: parseRetryStatus(retryStatusStr),
+				Logger:      logger,
 			}
 		}
 	}
@@ -539,7 +546,7 @@ func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			return resp, nil
 		}
 
-		if rt.Logger != nil {
+		if rt.Logger != nil && rt.EnableLogger {
 			// Log the retry attempt
 			rt.Logger.Warn("Retrying RoundTrip request",
 				slog.String("url", req.URL.String()),

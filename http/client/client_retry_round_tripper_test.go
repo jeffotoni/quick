@@ -2,10 +2,8 @@ package client
 
 import (
 	"crypto/tls"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 )
@@ -50,11 +48,9 @@ func TestWithRetryTransport(t *testing.T) {
 
 // TestWithRetryRoundTripper verifies that the RetryTransport is applied correctly.
 func TestWithRetryRoundTripper(t *testing.T) {
-
-	slogerdefult := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
 	cClient := New(
-		WithRetryRoundTripper(3, 2*time.Second, true, []int{500, 502, 503}, slogerdefult),
+		//WithTransport(&http.Transport{DisableKeepAlives: true}),
+		WithRetryRoundTripper(3, "2s", true, "500,502,503", true),
 	)
 
 	httpClient, ok := cClient.ClientHTTP.(*http.Client)
@@ -88,15 +84,12 @@ func TestRetryTransport_RoundTrip(t *testing.T) {
 	}))
 	defer server.Close()
 
-	slogerdefult := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
 	retryTransport := &RetryTransport{
 		Base:        http.DefaultTransport,
 		MaxRetries:  2,
 		RetryDelay:  100 * time.Millisecond,
 		UseBackoff:  true,
 		RetryStatus: []int{503},
-		Logger:      slogerdefult, // New Logger field
 	}
 
 	client := &http.Client{Transport: retryTransport}
