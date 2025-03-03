@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/jeffotoni/quick"
 )
 
 // testPostFormHandler simulates a server that accepts form-encoded data.
@@ -159,5 +162,173 @@ func TestClient_PostFormFileUpload(t *testing.T) {
 	}
 	if string(resp.Body) != "File uploaded successfully" {
 		t.Errorf("Expected body 'File uploaded successfully', got '%s'", string(resp.Body))
+	}
+}
+
+// TestFormValue ensures that FormValue() correctly retrieves single values.
+func TestFormValue(t *testing.T) {
+	q := quick.New()
+
+	q.Post("/formvalue", func(c *quick.Ctx) error {
+		name := c.FormValue("name")
+		return c.Status(200).SendString(name)
+	})
+
+	ts := httptest.NewServer(q)
+	defer ts.Close()
+
+	// Send form-urlencoded data
+	form := url.Values{}
+	form.Set("name", "Jefferson")
+
+	resp, err := http.Post(ts.URL+"/formvalue", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatalf("Request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response: %v", err)
+	}
+
+	if string(body) != "Jefferson" {
+		t.Errorf("Expected 'Jefferson', got '%s'", string(body))
+	}
+}
+
+// TestFormValues ensures that FormValues() correctly retrieves multiple values.
+func TestFormValues(t *testing.T) {
+	q := quick.New()
+
+	q.Post("/formvalues", func(c *quick.Ctx) error {
+		values := c.FormValues()
+		jsonData, _ := json.Marshal(values)
+		return c.Status(200).Send(jsonData)
+	})
+
+	ts := httptest.NewServer(q)
+	defer ts.Close()
+
+	form := url.Values{}
+	form.Set("name", "Jefferson")
+	form.Set("email", "jeff@example.com")
+
+	resp, err := http.Post(ts.URL+"/formvalues", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatalf("Request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var result map[string][]string
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
+
+	if len(result["name"]) == 0 || result["name"][0] != "Jefferson" {
+		t.Errorf("Expected name 'Jefferson', got '%v'", result["name"])
+	}
+	if len(result["email"]) == 0 || result["email"][0] != "jeff@example.com" {
+		t.Errorf("Expected email 'jeff@example.com', got '%v'", result["email"])
+	}
+}
+
+// TestFormValuesJSON ensures that FormValues() works correctly with JSON requests.
+func TestFormValuesJSON(t *testing.T) {
+	q := quick.New()
+
+	q.Post("/formvaluesjson", func(c *quick.Ctx) error {
+		values := c.FormValues()
+		jsonData, _ := json.Marshal(values)
+		return c.Status(200).Send(jsonData)
+	})
+
+	ts := httptest.NewServer(q)
+	defer ts.Close()
+
+	form := url.Values{}
+	form.Set("name", "Jefferson")
+	form.Set("email", "jeff@example.com")
+
+	resp, err := http.Post(ts.URL+"/formvaluesjson", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatalf("Request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var result map[string][]string
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
+
+	if len(result["name"]) == 0 || result["name"][0] != "Jefferson" {
+		t.Errorf("Expected name 'Jefferson', got '%v'", result["name"])
+	}
+	if len(result["email"]) == 0 || result["email"][0] != "jeff@example.com" {
+		t.Errorf("Expected email 'jeff@example.com', got '%v'", result["email"])
+	}
+}
+
+// TestFormValue_Empty ensures that FormValue() returns an empty string when the key is missing.
+func TestFormValue_Empty(t *testing.T) {
+	q := quick.New()
+
+	q.Post("/formvalue_empty", func(c *quick.Ctx) error {
+		value := c.FormValue("missing_key")
+		return c.Status(200).SendString(value)
+	})
+
+	ts := httptest.NewServer(q)
+	defer ts.Close()
+
+	form := url.Values{}
+
+	resp, err := http.Post(ts.URL+"/formvalue_empty", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatalf("Request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response: %v", err)
+	}
+
+	if len(string(body)) != 0 {
+		t.Errorf("Expected empty string, got '%s'", string(body))
+	}
+}
+
+// TestFormValues_Empty ensures that FormValues() returns an empty map when no data is sent.
+func TestFormValues_Empty(t *testing.T) {
+	q := quick.New()
+
+	q.Post("/formvalues_empty", func(c *quick.Ctx) error {
+		values := c.FormValues()
+		jsonData, _ := json.Marshal(values)
+		return c.Status(200).Send(jsonData)
+	})
+
+	ts := httptest.NewServer(q)
+	defer ts.Close()
+
+	form := url.Values{}
+
+	resp, err := http.Post(ts.URL+"/formvalues_empty", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatalf("Request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var result map[string]any
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
+
+	if len(result) != 0 {
+		t.Errorf("Expected empty map, got %v", result)
 	}
 }
