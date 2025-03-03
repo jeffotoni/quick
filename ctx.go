@@ -324,3 +324,23 @@ func (c *Ctx) MultipartForm() (*multipart.Form, error) {
 	}
 	return c.Request.MultipartForm, nil
 }
+
+// FormValue retrieves a form value by key.
+// It automatically calls ParseForm() before accessing the value.
+func (c *Ctx) FormValue(key string) string {
+	// Ensure form data is parsed before accessing it
+	if c.Request.Form == nil {
+		_ = c.Request.ParseForm() // Ignore error silently
+	}
+	return c.Request.FormValue(key)
+}
+
+// FormValues returns all form values as a map.
+// It automatically calls ParseForm() before accessing the values.
+func (c *Ctx) FormValues() map[string][]string {
+	// Ensure form data is parsed before accessing it
+	if c.Request.Form == nil {
+		_ = c.Request.ParseForm() // Ignore error silently
+	}
+	return c.Request.Form
+}

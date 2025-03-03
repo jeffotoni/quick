@@ -1,23 +1,30 @@
 version: 2.1
 
+executors:
+  go-executor:
+    docker:
+      - image: cimg/go:1.24
+
 jobs:
   build:
-    docker:
-      - image: cimg/go:1.20.1
+    executor: go-executor
 
     steps:
       - checkout
 
       - run:
-          name: "Install dependencies"
-          command: |
-            go get -t -v ./...
-            go get github.com/mattn/goveralls
+          name: "Verify Go version"
+          command: go version
 
       - run:
-          name: "Test"
+          name: "Install dependencies"
+          command: go mod tidy
+
+      - run:
+          name: "Run Tests with Coverage"
           command: |
             go test -v -covermode=count -coverprofile=coverage.out -tags exclude_test ./...
+
       - store_artifacts:
           path: coverage.out
 
@@ -25,10 +32,14 @@ jobs:
           path: tests
 
       - run:
-          name: "Upload coverage to Coveralls"
+          name: "Upload Coverage to Coveralls"
           command: |
             go install github.com/mattn/goveralls@latest
-            goveralls -coverprofile=coverage.out -service=circleci -repotoken $COVERALLS_TOKEN
+            if [ -z "$COVERALLS_TOKEN" ]; then 
+              echo "COVERALLS_TOKEN is missing! Skipping upload.";
+            else
+              goveralls -coverprofile=coverage.out -service=circleci -repotoken $COVERALLS_TOKEN
+            fi
 
 workflows:
   version: 2.1
