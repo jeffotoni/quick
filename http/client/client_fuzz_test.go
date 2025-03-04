@@ -9,34 +9,34 @@ import (
 	"testing"
 )
 
-// This test generates random inputs for parseBody()
-// and verifies that it always returns valid values:
+// FuzzParseBody generates random inputs for parseBody()
+// and verifies that it always returns valid values.
 func FuzzParseBody(f *testing.F) {
-	// Seeds iniciais para começar o fuzzing
+	// Initial seeds to start fuzzing.
 	f.Add("")                          // Empty string
 	f.Add(`{"message": "hello"}`)      // Valid JSON
 	f.Add(`{"broken_json": `)          // Invalid JSON
-	f.Add(strings.Repeat("A", 100000)) // String too long
+	f.Add(strings.Repeat("A", 100000)) // Very long string
 
 	f.Fuzz(func(t *testing.T, input string) {
 		reader, err := parseBody(input)
 
-		// The error can only occur if the input is not valid JSON
+		// The error can only occur if the input is not valid JSON.
 		if err != nil && !json.Valid([]byte(input)) {
-			return // Invalid JSON is expected
+			return // Invalid JSON is expected.
 		}
 
-		// If there was no error, the reader cannot be nil
+		// If there was no error, the reader should not be nil.
 		if reader == nil {
 			t.Errorf("Expected reader to be non-nil for input: %s", input)
 		}
 	})
 }
 
-// This test sends random input to PostForm() and verifies that it
-// correctly handles different types of values:
+// FuzzPostForm sends random input to PostForm() and verifies that it
+// correctly handles different types of values.
 func FuzzPostForm(f *testing.F) {
-	// Creating a test server before fuzzing
+	// Create a test server before fuzzing.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
@@ -46,13 +46,13 @@ func FuzzPostForm(f *testing.F) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Form received"))
 	}))
-	defer ts.Close() // Guarantees that the server will be closed
+	defer ts.Close() // Ensures that the server will be closed.
 
-	// Adding initial test cases
+	// Add initial test cases.
 	f.Add("username", "test_user")
 	f.Add("password", "123456")
 	f.Add("emoji", "🔥🔥🔥")
-	f.Add("long_text", strings.Repeat("A", 100000)) // String too long
+	f.Add("long_text", strings.Repeat("A", 100000)) // Very long string.
 
 	f.Fuzz(func(t *testing.T, key, value string) {
 		client := New()
@@ -70,16 +70,16 @@ func FuzzPostForm(f *testing.F) {
 	})
 }
 
-// Here we test an extreme number of redirects to see if the code remains sane:
+// FuzzCheckRedirect tests an extreme number of redirects to see if the code remains sane.
 func FuzzCheckRedirect(f *testing.F) {
 	f.Add(1)
-	f.Add(3)  // Expected limit
-	f.Add(10) // Over limit
-	f.Add(0)  // No redirection
-	f.Add(-5) // Invalid value to test protection
+	f.Add(3)  // Expected limit.
+	f.Add(10) // Over limit.
+	f.Add(0)  // No redirection.
+	f.Add(-5) // Invalid value to test protection.
 
 	f.Fuzz(func(t *testing.T, numRedirects int) {
-		if numRedirects < 0 { // Evita valores inválidos
+		if numRedirects < 0 { // Avoid invalid values.
 			t.Skip("Skipping negative numRedirects")
 		}
 
@@ -94,8 +94,8 @@ func FuzzCheckRedirect(f *testing.F) {
 
 		req, _ := http.NewRequest("GET", "https://httpbin.org/get", nil)
 
-		// Proteção extra: garantir que numRedirects não seja excessivo
-		numValidRedirects := numRedirects % 100 // Evita valores gigantes
+		// Extra protection: ensure that numRedirects is not excessive.
+		numValidRedirects := numRedirects % 100 // Avoid extremely large values.
 		err := client.CheckRedirect(req, make([]*http.Request, numValidRedirects))
 
 		if numValidRedirects >= 3 && err != http.ErrUseLastResponse {
