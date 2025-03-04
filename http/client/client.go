@@ -206,21 +206,17 @@ func (c *Client) PostForm(url string, formData url.Values) (*ClientResponse, err
 }
 
 // createRequest builds and executes the HTTP request.
-func (c *Client) createRequest(url, method string, requestBody any) (*ClientResponse, error) {
+// The result will createRequest(endpoint, httpMethod string, requestBody any) (*ClientResponse, error)
+func (c *Client) createRequest(endpoint, httpMethod string, requestBody any) (*ClientResponse, error) {
 	reader, err := parseBody(requestBody)
 	if err != nil {
 		return nil, err
 	}
 
 	// call NewRequestWithContext
-	req, err := http.NewRequestWithContext(c.Ctx, method, url, reader)
+	req, err := c.newHTTPRequest(endpoint, httpMethod, reader)
 	if err != nil {
 		return nil, err
-	}
-
-	// Set headers
-	for k, v := range c.Headers {
-		req.Header.Set(k, v)
 	}
 
 	// Execute request with retry logic
@@ -231,15 +227,32 @@ func (c *Client) createRequest(url, method string, requestBody any) (*ClientResp
 	defer resp.Body.Close()
 
 	// Read response body
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
+	// return body and status code
 	return &ClientResponse{
 		Body:       body,
 		StatusCode: resp.StatusCode,
 	}, nil
+}
+
+func (c *Client) newHTTPRequest(endpoint, httpMethod string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(c.Ctx, httpMethod, endpoint, body)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range c.Headers {
+		req.Header.Set(k, v)
+	}
+	return req, nil
+}
+
+// Extraída: Leitura do corpo da resposta
+func readResponseBody(body io.ReadCloser) ([]byte, error) {
+	return io.ReadAll(body)
 }
 
 // executeWithRetry attempts to send the provided HTTP request multiple times,
