@@ -11,28 +11,49 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
 
-// httpGoClient defines the minimal interface used (compatible with *http.Client).
+// httpGoClient defines the minimal interface (compatible with *http.Client).
 type httpGoClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// RetryTransport implements http.RoundTripper with retry logic.
-type RetryTransport struct {
-	Base         http.RoundTripper // Base transport (e.g. http.DefaultTransport)
-	MaxRetries   int               // Maximum number of retries
-	RetryDelay   time.Duration     // Time between attempts
-	UseBackoff   bool              // Enables exponential backoff
-	RetryStatus  []int             // HTTP status for retry
-	Logger       *slog.Logger      // New Logger field
-	EnableLogger bool
+// RetryConfig encapsulates the retry parameters, providing a clearer API.
+type RetryConfig struct {
+	MaxRetries int
+	Delay      time.Duration
+	UseBackoff bool
+	Statuses   []int
+	EnableLog  bool
 }
 
-// HTTPClientConfig allows configuring the HTTP client's parameters.
+// Client represents the custom HTTP client.
+type Client struct {
+	Ctx          context.Context
+	ClientHTTP   httpGoClient
+	Headers      map[string]string
+	EnableLogger bool
+	Logger       *slog.Logger // Logger instance
+	MaxRetries   int          // Number of retry attempts
+	RetryDelay   time.Duration
+	UseBackoff   bool
+	RetryStatus  []int
+}
+
+// RetryTransport implements the RoundTripper with retry logic.
+type RetryTransport struct {
+	Base         http.RoundTripper // Base transport (e.g., http.DefaultTransport)
+	MaxRetries   int               // Maximum number of retries
+	RetryDelay   time.Duration     // Delay between attempts
+	UseBackoff   bool              // Enable exponential backoff
+	RetryStatus  []int             // HTTP status codes that trigger a retry
+	Logger       *slog.Logger      // Logger
+	EnableLogger bool              // Flag to enable logging
+}
+
+// HTTPClientConfig allows configuring parameters for the HTTP client.
 type HTTPClientConfig struct {
 	Timeout             time.Duration
 	DisableKeepAlives   bool
@@ -40,9 +61,9 @@ type HTTPClientConfig struct {
 	MaxConnsPerHost     int
 	MaxIdleConnsPerHost int
 	TLSClientConfig     *tls.Config
-	MaxRetries          int           // Número máximo de tentativas
-	RetryDelay          time.Duration // Tempo entre as tentativas
-	RetryStatus         []int         // Lista de códigos de status HTTP que devem ser re-tentados
+	MaxRetries          int           // Maximum number of retries (internal use)
+	RetryDelay          time.Duration // Delay between retries (internal use)
+	RetryStatus         []int         // HTTP status codes for retry (internal use)
 }
 
 // NewHTTPClientFromConfig creates an HTTP client using the provided configuration.
@@ -72,20 +93,6 @@ func NewHTTPClientFromConfig(cfg *HTTPClientConfig) httpGoClient {
 			TLSClientConfig:     cfg.TLSClientConfig,
 		},
 	}
-}
-
-// Client represents the custom HTTP client.
-type Client struct {
-	Ctx          context.Context
-	ClientHTTP   httpGoClient
-	Headers      map[string]string
-	EnableLogger bool
-	Logger       *slog.Logger  // New Logger field
-	MaxRetries   int           // Number of retry attempts
-	RetryDelay   time.Duration // Delay between retries
-	UseBackoff   bool          // Enable exponential backoff
-	RetryStatus  []int         // HTTP status codes that trigger a retry
-
 }
 
 // ClientResponse represents the response obtained.
@@ -118,7 +125,7 @@ func WithHTTPClientConfig(cfg *HTTPClientConfig) Option {
 	}
 }
 
-// defaultClient is the default client instance using standard values.
+// defaultClient is the default instance of Client.
 var defaultClient = New()
 
 // New creates a new Client applying the provided options.
@@ -127,7 +134,7 @@ func New(opts ...Option) *Client {
 		Ctx:          context.Background(),
 		Headers:      map[string]string{"Content-Type": "application/json"},
 		ClientHTTP:   NewHTTPClientFromConfig(nil),
-		Logger:       defaultLogger(), // Set default logger
+		Logger:       defaultLogger(),
 		EnableLogger: false,
 	}
 	for _, opt := range opts {
@@ -136,17 +143,15 @@ func New(opts ...Option) *Client {
 	return c
 }
 
-// WithLogger allows setting a custom logger.
+// WithLogger enables or disables the custom logger.
 func WithLogger(enableLogger bool) Option {
 	return func(c *Client) {
 		c.EnableLogger = enableLogger
 	}
 }
 
-// Default logger (if not provided)
+// defaultLogger returns the default logger.
 func defaultLogger() *slog.Logger {
-	// slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	// return slog.New(slog.NewTextHandler(os.Stderr, nil))
 	return slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
@@ -155,22 +160,18 @@ func Get(url string) (*ClientResponse, error) {
 	return defaultClient.Get(url)
 }
 
-// Post sends an HTTP POST request with content-type data using the default client.
 func Post(url string, body any) (*ClientResponse, error) {
 	return defaultClient.Post(url, body)
 }
 
-// Put sends an HTTP POST request with content-type data using the default client.
 func Put(url string, body any) (*ClientResponse, error) {
 	return defaultClient.Put(url, body)
 }
 
-// Delete HTTP DELETE request with content-type data using the default client.
 func Delete(url string) (*ClientResponse, error) {
 	return defaultClient.Delete(url)
 }
 
-// PostForm sends an HTTP POST request with form-encoded data using the default client.
 func PostForm(url string, formData url.Values) (*ClientResponse, error) {
 	return defaultClient.PostForm(url, formData)
 }
@@ -180,12 +181,12 @@ func (c *Client) Get(url string) (*ClientResponse, error) {
 	return c.createRequest(url, http.MethodGet, nil)
 }
 
-// Post sends an HTTP POST request with a flexible body.
+// Post sends an HTTP POST request.
 func (c *Client) Post(url string, body any) (*ClientResponse, error) {
 	return c.createRequest(url, http.MethodPost, body)
 }
 
-// Put sends an HTTP PUT request with a flexible body.
+// Put sends an HTTP PUT request.
 func (c *Client) Put(url string, body any) (*ClientResponse, error) {
 	return c.createRequest(url, http.MethodPut, body)
 }
@@ -195,44 +196,36 @@ func (c *Client) Delete(url string) (*ClientResponse, error) {
 	return c.createRequest(url, http.MethodDelete, nil)
 }
 
-// It automatically sets "Content-Type: application/x-www-form-urlencoded".
 // PostForm sends an HTTP POST request with form-encoded data.
+// It automatically sets "Content-Type: application/x-www-form-urlencoded".
 func (c *Client) PostForm(url string, formData url.Values) (*ClientResponse, error) {
-	// Ensure the correct Content-Type header is set
 	c.Headers["Content-Type"] = "application/x-www-form-urlencoded"
-
-	// Encode the form data and call createRequest
 	return c.createRequest(url, http.MethodPost, formData.Encode())
 }
 
 // createRequest builds and executes the HTTP request.
-// The result will createRequest(endpoint, httpMethod string, requestBody any) (*ClientResponse, error)
 func (c *Client) createRequest(endpoint, httpMethod string, requestBody any) (*ClientResponse, error) {
 	reader, err := parseBody(requestBody)
 	if err != nil {
 		return nil, err
 	}
 
-	// call NewRequestWithContext
 	req, err := c.newHTTPRequest(endpoint, httpMethod, reader)
 	if err != nil {
 		return nil, err
 	}
 
-	// Execute request with retry logic
 	resp, err := c.executeWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	// Read response body
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	// return body and status code
 	return &ClientResponse{
 		Body:       body,
 		StatusCode: resp.StatusCode,
@@ -250,44 +243,26 @@ func (c *Client) newHTTPRequest(endpoint, httpMethod string, body io.Reader) (*h
 	return req, nil
 }
 
-// Extraída: Leitura do corpo da resposta
+// readResponseBody reads the response body.
 func readResponseBody(body io.ReadCloser) ([]byte, error) {
 	return io.ReadAll(body)
 }
 
-// executeWithRetry attempts to send the provided HTTP request multiple times,
-// recreating its Body on each attempt to ensure a valid payload. If the response
-// returns a non-retryable status or no error occurs, it returns immediately.
-// Otherwise, it waits (optionally with exponential backoff) before retrying until
-// the maximum number of retries is reached.
+// executeWithRetry attempts to send the HTTP request with retry logic.
+// If ClientHTTP uses RetryTransport, the request is executed directly.
 func (c *Client) executeWithRetry(req *http.Request) (*http.Response, error) {
-	// Check if the ClientHTTP is an *http.Client and if it is using RetryTransport
 	if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
 		if _, ok := httpClient.Transport.(*RetryTransport); ok {
-			// Log the retry attempt
-			// if c.Logger != nil {
-			// 	c.Logger.Warn("RetryTransport check RoundTrip",
-			// 		slog.String("url", req.URL.String()),
-			// 		slog.String("method", req.Method),
-			// 		//slog.Int("attempt", attempt+1),
-			// 		// slog.Any("error", err),
-			// 	)
-			// }
-
-			// If RoundTripper is active, just execute the request without manual retry
 			return httpClient.Do(req)
 		}
 	}
 
 	var resp *http.Response
 	var err error
-
-	// If there is a Body in the request, we need to read it all and store it,
-	// since Go consumes the Body on the first read.
 	var bodyData []byte
 	if req.Body != nil {
 		bodyData, _ = io.ReadAll(req.Body)
-		req.Body.Close() // Prevents resource leaks
+		req.Body.Close()
 		req.Body = io.NopCloser(bytes.NewReader(bodyData))
 	}
 
@@ -298,27 +273,21 @@ func (c *Client) executeWithRetry(req *http.Request) (*http.Response, error) {
 		}
 
 		if c.Logger != nil && c.EnableLogger {
-			// Log the retry attempt
-			c.Logger.Warn("Retrying Quick request",
+			c.Logger.Warn("Retrying request",
 				slog.String("url", req.URL.String()),
 				slog.String("method", req.Method),
 				slog.Int("attempt", attempt+1),
-				//slog.Any("error", err),
 			)
 		}
 
-		// Close the response body to prevent leaking
 		if resp != nil {
 			resp.Body.Close()
 		}
 
-		// If there is a next attempt, we reset the Body of the request
-		// to allow a new reading in the next loop.
 		if len(bodyData) > 0 {
 			req.Body = io.NopCloser(bytes.NewReader(bodyData))
 		}
 
-		// Wait before retrying (exponential if configured)
 		waitTime := c.RetryDelay
 		if c.UseBackoff {
 			waitTime = time.Duration(math.Pow(2, float64(attempt))) * c.RetryDelay
@@ -328,84 +297,6 @@ func (c *Client) executeWithRetry(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-// parseBody converts the given value to an io.Reader.
-// If the body is nil, returns nil.
-// If body is an io.Reader, it is returned as-is.
-// If body is a string, it creates a reader from the string.
-// Otherwise, it marshals the body to JSON.
-func parseBody(body any) (io.Reader, error) {
-	if body == nil {
-		return nil, nil
-	}
-
-	// If body is already an io.Reader, use it directly
-	if r, ok := body.(io.Reader); ok {
-		return r, nil
-	}
-
-	// If body is a string, convert it to a reader
-	if s, ok := body.(string); ok {
-		return strings.NewReader(s), nil
-	}
-
-	// Marshal struct or map to JSON
-	data, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes.NewReader(data), nil
-}
-
-// The result will WithRetry(maxRetries int, retryDelayStr string, useBackoff bool, retryStatusStr string, enableLogger bool) Option
-func WithRetry(maxRetries int, retryDelayStr string, useBackoff bool, retryStatusStr string, enableLogger bool) Option {
-	return func(c *Client) {
-		c.MaxRetries = maxRetries
-		c.UseBackoff = useBackoff
-		c.EnableLogger = enableLogger
-		c.RetryDelay, _ = parseRetryDelay(retryDelayStr)
-		c.RetryStatus = parseRetryStatus(retryStatusStr)
-	}
-}
-
-// Convert "2s", "2s-bex", "2mil-bex" to time.Duration and detect backoff
-// Parses the retry delay string into a time.Duration and detects if backoff is enabled
-// The result will parseRetryDelay(retryDelayStr string) (time.Duration, bool)
-func parseRetryDelay(retryDelayStr string) (time.Duration, bool) {
-	useBackoff := strings.Contains(retryDelayStr, "-bex")
-	retryDelayStr = strings.Replace(retryDelayStr, "-bex", "", 1)
-
-	var duration time.Duration
-	switch {
-	case strings.HasSuffix(retryDelayStr, "mil"):
-		val, _ := strconv.Atoi(strings.TrimSuffix(retryDelayStr, "mil"))
-		duration = time.Duration(val) * time.Millisecond
-	case strings.HasSuffix(retryDelayStr, "s"):
-		val, _ := strconv.Atoi(strings.TrimSuffix(retryDelayStr, "s"))
-		duration = time.Duration(val) * time.Second
-	case strings.HasSuffix(retryDelayStr, "min"):
-		val, _ := strconv.Atoi(strings.TrimSuffix(retryDelayStr, "min"))
-		duration = time.Duration(val) * time.Minute
-	default:
-		duration = 2 * time.Second // Default value
-	}
-
-	return duration, useBackoff
-}
-
-// Converts "500,502,503,504" to []int
-// The result willparseRetryStatus(retryStatusStr string) []int
-func parseRetryStatus(retryStatusStr string) []int {
-	var statusList []int
-	for _, s := range strings.Split(retryStatusStr, ",") {
-		if code, err := strconv.Atoi(strings.TrimSpace(s)); err == nil {
-			statusList = append(statusList, code)
-		}
-	}
-	return statusList
-}
-
-// shouldRetry(resp *http.Response, retryStatus []int) bool
 func shouldRetry(resp *http.Response, retryStatus []int) bool {
 	for _, status := range retryStatus {
 		if resp.StatusCode == status {
@@ -415,7 +306,61 @@ func shouldRetry(resp *http.Response, retryStatus []int) bool {
 	return false
 }
 
-// WithTimeout sets the timeout for the HTTP client.
+// parseBody converts the given value into an io.Reader.
+// If body is nil, returns nil.
+// If body is an io.Reader, it returns it directly.
+// If body is a string, it creates a reader from the string.
+// Otherwise, it marshals the body into JSON.
+func parseBody(body any) (io.Reader, error) {
+	if body == nil {
+		return nil, nil
+	}
+	if r, ok := body.(io.Reader); ok {
+		return r, nil
+	}
+	if s, ok := body.(string); ok {
+		return strings.NewReader(s), nil
+	}
+	data, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	return bytes.NewReader(data), nil
+}
+
+// WithRetry configures the retry behavior using RetryConfig.
+func WithRetry(cfg RetryConfig) Option {
+	return func(c *Client) {
+		c.MaxRetries = cfg.MaxRetries
+		c.RetryDelay = cfg.Delay
+		c.UseBackoff = cfg.UseBackoff
+		c.RetryStatus = cfg.Statuses
+		c.EnableLogger = cfg.EnableLog
+	}
+}
+
+// WithRetryRoundTripper configures the transport with retry using RetryConfig.
+func WithRetryRoundTripper(cfg RetryConfig) Option {
+	return func(c *Client) {
+		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
+			logger := defaultLogger()
+			if !cfg.EnableLog {
+				logger = nil
+			}
+			httpClient.Transport = &RetryTransport{
+				Base:         http.DefaultTransport,
+				MaxRetries:   cfg.MaxRetries,
+				RetryDelay:   cfg.Delay,
+				UseBackoff:   cfg.UseBackoff,
+				RetryStatus:  cfg.Statuses,
+				Logger:       logger,
+				EnableLogger: cfg.EnableLog,
+			}
+		}
+	}
+}
+
+// WithTimeout sets the HTTP client's timeout and enables logging if desired.
 func WithTimeout(d time.Duration) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -479,7 +424,23 @@ func WithTLSConfig(tlsConfig *tls.Config) Option {
 	}
 }
 
-// WithTransport allows setting a custom HTTP transport for advanced configurations.
+// WithInsecureTLS allows insecure connections by setting InsecureSkipVerify.
+func WithInsecureTLS(insecure bool) Option {
+	return func(c *Client) {
+		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
+			if transport, ok := httpClient.Transport.(*http.Transport); ok {
+				if transport.TLSClientConfig == nil {
+					transport.TLSClientConfig = &tls.Config{
+						MinVersion: tls.VersionTLS12,
+					}
+				}
+				transport.TLSClientConfig.InsecureSkipVerify = insecure
+			}
+		}
+	}
+}
+
+// WithTransport allows setting a custom HTTP transport.
 func WithTransport(transport http.RoundTripper) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -495,75 +456,25 @@ func WithCustomHTTPClient(client *http.Client) Option {
 	}
 }
 
-// WithRetryTransport enables Go's native retry mechanism in http.Transport.
-func WithRetryTransport(
-	maxIdleConns int,
-	maxIdleConnsPerHost int,
-	maxConnsPerHost int,
-	disableKeepAlives bool,
-	forceHTTP2 bool,
-	proxy func(*http.Request) (*url.URL, error),
-	tlsConfig *tls.Config,
-) Option {
+// WithTransportConfig sets the HTTP transport for the client using a pre-configured *http.Transport.
+func WithTransportConfig(tr *http.Transport) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
-			httpClient.Transport = &http.Transport{
-				Proxy:               proxy,               // Configure the proxy (can be nil)
-				TLSClientConfig:     tlsConfig,           // TLS configuration (can be nil)
-				ForceAttemptHTTP2:   forceHTTP2,          // Force HTTP/2 when available
-				MaxIdleConns:        maxIdleConns,        // Idle connections in the pool
-				MaxIdleConnsPerHost: maxIdleConnsPerHost, // Idle connections per host
-				MaxConnsPerHost:     maxConnsPerHost,     // Maximum connections per host
-				DisableKeepAlives:   disableKeepAlives,   // Disable Keep-Alive
-			}
+			httpClient.Transport = tr
 		}
 	}
 }
 
-// WithRetryRoundTripper applies a custom RoundTripper for retries.
-// The result will WithRetryRoundTripper(maxRetries int, retryDelayStr string, useBackoff bool, retryStatusStr string, enableLogger bool) Option
-func WithRetryRoundTripper(maxRetries int, retryDelayStr string, useBackoff bool, retryStatusStr string, enableLogger bool) Option {
-	return func(c *Client) {
-		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
-			retryDelay, _ := parseRetryDelay(retryDelayStr)
-
-			c.EnableLogger = enableLogger
-			logger := defaultLogger() // Logger default
-
-			// If the user has disabled logs, we do not initialize the logger.
-			if !enableLogger {
-				logger = nil
-			}
-
-			httpClient.Transport = &RetryTransport{
-				Base:         http.DefaultTransport, // Uses the default transport as a base
-				MaxRetries:   maxRetries,
-				RetryDelay:   retryDelay,
-				UseBackoff:   useBackoff,
-				RetryStatus:  parseRetryStatus(retryStatusStr),
-				Logger:       logger,
-				EnableLogger: enableLogger,
-			}
-		}
-	}
-}
-
-//retry RoundTrip
-///
-
-// RoundTrip executes an HTTP request with retry logic.
+// RoundTrip executes the HTTP request with retry logic in RetryTransport.
 func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	var err error
-
-	// If the request has a Body, read it and save it
 	var bodyBytes []byte
 	if req.Body != nil {
 		bodyBytes, err = io.ReadAll(req.Body)
 		if err != nil {
 			return resp, err
 		}
-		// Close the original body
 		req.Body.Close()
 	}
 
@@ -572,34 +483,27 @@ func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 		}
 
-		resp, err = rt.Base.RoundTrip(req) // Send the request
-
-		// If there is no error and the status is not in the retry list, we return the response
+		resp, err = rt.Base.RoundTrip(req)
 		if err == nil && !contains(rt.RetryStatus, resp.StatusCode) {
 			return resp, nil
 		}
 
 		if rt.Logger != nil && rt.EnableLogger {
-			// Log the retry attempt
 			rt.Logger.Warn("Retrying RoundTrip request",
 				slog.String("url", req.URL.String()),
 				slog.String("method", req.Method),
 				slog.Int("attempt", attempt+1),
-				//slog.Any("error", err),
 			)
 		}
 
-		// Close the response body to avoid connection leaks
 		if resp != nil {
 			resp.Body.Close()
 		}
 
-		// If this is the last attempt, return the error
 		if attempt == rt.MaxRetries {
 			break
 		}
 
-		// Apply exponential backoff if enabled
 		waitTime := rt.RetryDelay
 		if rt.UseBackoff {
 			waitTime = time.Duration(math.Pow(2, float64(attempt))) * rt.RetryDelay
@@ -609,7 +513,6 @@ func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-// contains checks if an HTTP status is in the retry list.
 func contains(list []int, status int) bool {
 	for _, s := range list {
 		if s == status {

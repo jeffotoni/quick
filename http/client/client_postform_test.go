@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/jeffotoni/quick"
 )
@@ -21,14 +22,14 @@ func testPostFormHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Read form data
+	// Read form data.
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// Respond with the received form values
+	// Respond with the received form values.
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(r.Form.Encode()))
 }
@@ -38,13 +39,13 @@ func TestClient_PostForm(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(testPostFormHandler))
 	defer ts.Close()
 
-	client := New()
+	cClient := New()
 
 	formData := url.Values{}
 	formData.Set("username", "quick_user")
 	formData.Set("password", "supersecret")
 
-	resp, err := client.PostForm(ts.URL, formData)
+	resp, err := cClient.PostForm(ts.URL, formData)
 	if err != nil {
 		t.Fatalf("PostForm request failed: %v", err)
 	}
@@ -76,13 +77,13 @@ func TestClient_PostForm_Retry(t *testing.T) {
 	defer ts.Close()
 
 	client := New(
-		WithRetry(
-			3,                 // Maximum number of retries
-			"500ms",           // Delay between attempts
-			true,              // Use exponential backoff
-			"500,502,503,504", // HTTP status for retry
-			true,              // show Logger
-		),
+		WithRetry(RetryConfig{
+			MaxRetries: 3,
+			Delay:      500 * time.Millisecond,
+			UseBackoff: true,
+			Statuses:   []int{500, 502, 503, 504},
+			EnableLog:  true,
+		}),
 	)
 
 	formData := url.Values{}
@@ -103,13 +104,13 @@ func TestClient_PostForm_Retry(t *testing.T) {
 
 // testPostFormFileUploadHandler simulates a server receiving a file upload.
 func testPostFormFileUploadHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseMultipartForm(10 << 20) // 10MB limit
+	err := r.ParseMultipartForm(10 << 20) // 10MB limit.
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// Retrieve file
+	// Retrieve file.
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -117,7 +118,7 @@ func testPostFormFileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Read file content
+	// Read file content.
 	content, _ := io.ReadAll(file)
 	if string(content) != "Fake file content, for us to test upload" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -135,24 +136,24 @@ func TestClient_PostFormFileUpload(t *testing.T) {
 
 	client := New()
 
-	// Create a buffer to store multipart form data
+	// Create a buffer to store multipart form data.
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 
-	// Add a text field
+	// Add a text field.
 	_ = writer.WriteField("description", "Test File Upload")
 
-	// Add a file field
+	// Add a file field.
 	fileWriter, _ := writer.CreateFormFile("file", "test.txt")
 	_, _ = fileWriter.Write([]byte("Fake file content, for us to test upload"))
 
-	// Close the writer to finalize the multipart form
+	// Close the writer to finalize the multipart form.
 	writer.Close()
 
-	// Ensure the correct Content-Type header is set
+	// Set the correct Content-Type header.
 	client.Headers["Content-Type"] = writer.FormDataContentType()
 
-	// Execute the request using createRequest
+	// Execute the request using createRequest.
 	resp, err := client.createRequest(ts.URL, http.MethodPost, &requestBody)
 	if err != nil {
 		t.Fatalf("PostForm file upload request failed: %v", err)
