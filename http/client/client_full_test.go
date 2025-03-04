@@ -11,10 +11,10 @@ import (
 
 // TestClient_Configurations verifies that all configurations are applied correctly.
 func TestClient_Configurations(t *testing.T) {
-	// Creating a CookieJar to manage cookies automatically
+	// Create a CookieJar to manage cookies automatically.
 	jar, _ := cookiejar.New(nil)
 
-	// Create a custom HTTP transport
+	// Create a custom HTTP transport.
 	customTransport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		TLSClientConfig: &tls.Config{
@@ -27,10 +27,10 @@ func TestClient_Configurations(t *testing.T) {
 		DisableKeepAlives:   false,
 	}
 
-	// Create a custom HTTP client
+	// Create a custom HTTP client.
 	customHTTPClient := &http.Client{
 		Timeout: 10 * time.Second,
-		Jar:     jar, // Stores cookies automatically
+		Jar:     jar, // Automatically manages cookies.
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 3 {
 				return http.ErrUseLastResponse
@@ -40,33 +40,56 @@ func TestClient_Configurations(t *testing.T) {
 		Transport: customTransport,
 	}
 
-	// Create a quick client with multiple configurations
+	// Create a client with multiple configurations.
 	cClient := New(
-		WithCustomHTTPClient(customHTTPClient),
-		WithContext(context.TODO()),
-		WithHeaders(map[string]string{"Content-Type": "application/json", "Authorization": "Bearer TEST_TOKEN"}),
-		WithTransport(customTransport),
-		WithTimeout(10*time.Second),
+		WithTimeout(5*time.Second),
 		WithDisableKeepAlives(false),
-		WithMaxIdleConns(50),
-		WithMaxConnsPerHost(30),
-		WithMaxIdleConnsPerHost(10),
-		WithTLSConfig(&tls.Config{InsecureSkipVerify: true, MinVersion: tls.VersionTLS12}),
-		WithRetry(
-			3,                 // Maximum number of retries
-			"1s",              // Delay between attempts
-			true,              // Use exponential backoff
-			"500,502,503,504", // HTTP status for retry
-			true,              // show Logger
-		),
+		WithMaxIdleConns(20),
+		WithMaxConnsPerHost(20),
+		WithMaxIdleConnsPerHost(20),
+		WithContext(context.Background()),
+		WithCustomHTTPClient(customHTTPClient),
+		WithHeaders(map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": "Bearer TEST_TOKEN",
+		}),
+
+		// Set transport options via WithTransportConfig.
+		// WithTransportConfig(&http.Transport{
+		// 	Proxy:               http.ProxyFromEnvironment,
+		// 	TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+		// 	ForceAttemptHTTP2:   true,
+		// 	MaxIdleConns:        20,
+		// 	MaxIdleConnsPerHost: 10,
+		// 	MaxConnsPerHost:     20,
+		// 	DisableKeepAlives:   false,
+		// }),
+
+		// Override transport with retry RoundTripper.
+		// WithRetryRoundTripper(RetryConfig{
+		// 	MaxRetries: 2,
+		// 	Delay:      1 * time.Second,
+		// 	UseBackoff: true,
+		// 	Statuses:   []int{500},
+		// 	EnableLog:  false,
+		// }),
+
+		// Also configure client retry settings (for manual retry logic).
+		WithRetry(RetryConfig{
+			MaxRetries: 2,
+			Delay:      1 * time.Second,
+			UseBackoff: true,
+			Statuses:   []int{500},
+			EnableLog:  false,
+		}),
 	)
 
-	// Verify that the HTTP client has been set correctly
+	// Verify that the HTTP client has been set correctly.
 	if cClient.ClientHTTP != customHTTPClient {
 		t.Errorf("Expected custom HTTP client, but it was not set correctly")
 	}
 
-	// Verify the timeout setting
+	// Verify the timeout setting.
 	httpClient, ok := cClient.ClientHTTP.(*http.Client)
 	if !ok {
 		t.Fatalf("ClientHTTP is not of type *http.Client")
@@ -75,24 +98,24 @@ func TestClient_Configurations(t *testing.T) {
 		t.Errorf("Expected timeout 10s, got %v", httpClient.Timeout)
 	}
 
-	// Verify CookieJar is assigned
+	// Verify that the CookieJar is assigned.
 	if httpClient.Jar != jar {
 		t.Errorf("Expected CookieJar to be set, but it was not assigned correctly")
 	}
 
-	// Verify CheckRedirect function behavior
+	// Verify the CheckRedirect function behavior.
 	if httpClient.CheckRedirect == nil {
 		t.Fatalf("Expected CheckRedirect function to be set, but it is nil")
 	}
 
-	// Simulate redirect limit test
+	// Simulate a redirect limit test.
 	req, _ := http.NewRequest("GET", "http://example.com", nil)
-	err := httpClient.CheckRedirect(req, make([]*http.Request, 3)) // Exceeds limit
+	err := httpClient.CheckRedirect(req, make([]*http.Request, 3)) // Exceeds limit.
 	if err != http.ErrUseLastResponse {
 		t.Errorf("Expected CheckRedirect to return http.ErrUseLastResponse, got %v", err)
 	}
 
-	// Verify Transport settings
+	// Verify transport settings.
 	transport, ok := httpClient.Transport.(*http.Transport)
 	if !ok {
 		t.Fatalf("Transport is not of type *http.Transport")
@@ -110,7 +133,7 @@ func TestClient_Configurations(t *testing.T) {
 		t.Errorf("Expected DisableKeepAlives false, got %v", transport.DisableKeepAlives)
 	}
 
-	// Verify headers
+	// Verify headers.
 	if cClient.Headers["Content-Type"] != "application/json" {
 		t.Errorf("Expected Content-Type header to be 'application/json', got '%s'", cClient.Headers["Content-Type"])
 	}
@@ -118,7 +141,7 @@ func TestClient_Configurations(t *testing.T) {
 		t.Errorf("Expected Authorization header to be 'Bearer TEST_TOKEN', got '%s'", cClient.Headers["Authorization"])
 	}
 
-	// Verify TLS settings
+	// Verify TLS settings.
 	if transport.TLSClientConfig.InsecureSkipVerify != true {
 		t.Errorf("Expected InsecureSkipVerify true, got %v", transport.TLSClientConfig.InsecureSkipVerify)
 	}
