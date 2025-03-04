@@ -1,34 +1,33 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"time"
-
-	"github.com/jeffotoni/quick"
 )
 
-// ExampleClient_Get demonstrates using the Client's Get method.
+// ExampleClient_Get demonstrates how to use the Client's Get method.
 func ExampleClient_Get() {
-	// Create a test server that returns "GET OK" for GET requests.
+	// Create a test HTTP server that responds with "GET OK" to GET requests.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("GET OK"))
 	}))
 	defer ts.Close()
 
-	// Create a default client.
-	c := New()
+	// Initialize a new client.
+	client := New()
 
-	// Send a GET request.
-	resp, err := c.Get(ts.URL)
+	// Perform a GET request to the test server.
+	resp, err := client.Get(ts.URL)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -39,9 +38,9 @@ func ExampleClient_Get() {
 	// GET OK
 }
 
-// ExampleClient_Post demonstrates using the Client's Post method with a flexible body.
+// ExampleClient_Post demonstrates how to use the Client's Post method with different types of request bodies.
 func ExampleClient_Post() {
-	// Create a test server that echoes the request body.
+	// Create a test HTTP server that echoes the request body.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
 		w.WriteHeader(http.StatusCreated)
@@ -49,24 +48,24 @@ func ExampleClient_Post() {
 	}))
 	defer ts.Close()
 
-	// Create a default client.
-	c := New()
+	// Initialize a new client.
+	client := New()
 
-	// Example 1: Using a string as the POST body.
-	resp, err := c.Post(ts.URL, "Hello, POST!")
+	// Example 1: Sending a string as the POST body.
+	resp, err := client.Post(ts.URL, "Hello, POST!")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 	fmt.Println("String body:", string(resp.Body))
 
-	// Example 2: Using a struct as the POST body (marshaled to JSON).
+	// Example 2: Sending a struct as the POST body (automatically marshaled to JSON).
 	data := struct {
 		Message string `json:"message"`
 	}{
 		Message: "Hello, JSON POST!",
 	}
-	resp, err = c.Post(ts.URL, data)
+	resp, err = client.Post(ts.URL, data)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -78,9 +77,9 @@ func ExampleClient_Post() {
 	}
 	fmt.Println("Struct body:", result["message"])
 
-	// Example 3: Using an io.Reader as the POST body.
+	// Example 3: Sending an io.Reader as the POST body.
 	reader := strings.NewReader("Reader POST")
-	resp, err = c.Post(ts.URL, reader)
+	resp, err = client.Post(ts.URL, reader)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -93,9 +92,9 @@ func ExampleClient_Post() {
 	// io.Reader body: Reader POST
 }
 
-// ExampleClient_Put demonstrates using the Client's Put method with a flexible body.
+// ExampleClient_Put demonstrates how to use the Client's Put method with different types of request bodies.
 func ExampleClient_Put() {
-	// Create a test server that echoes the request body.
+	// Create a test HTTP server that echoes the request body.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
 		w.WriteHeader(http.StatusOK)
@@ -103,22 +102,23 @@ func ExampleClient_Put() {
 	}))
 	defer ts.Close()
 
-	// Create a default client.
-	c := New()
+	// Initialize a new client.
+	client := New()
 
-	// Example 1: Using a string as the PUT body.
-	resp, err := c.Put(ts.URL, "Hello, PUT!")
+	// Example 1: Sending a string as the PUT body.
+	resp, err := client.Put(ts.URL, "Hello, PUT!")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 	fmt.Println("String body:", string(resp.Body))
 
-	// Example 2: Using a struct as the PUT body (marshaled to JSON).
+	// Example 2: Sending a struct as the PUT body (automatically marshaled to JSON).
 	data := struct {
 		Value int `json:"value"`
 	}{Value: 42}
-	resp, err = c.Put(ts.URL, data)
+
+	resp, err = client.Put(ts.URL, data)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -135,20 +135,20 @@ func ExampleClient_Put() {
 	// Struct body: 42
 }
 
-// ExampleClient_Delete demonstrates using the Client's Delete method.
+// ExampleClient_Delete demonstrates how to use the Client's Delete method.
 func ExampleClient_Delete() {
-	// Create a test server that returns "DELETE OK" for DELETE requests.
+	// Create a test HTTP server that responds with "DELETE OK" to DELETE requests.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("DELETE OK"))
 	}))
 	defer ts.Close()
 
-	// Create a default client.
-	c := New()
+	// Initialize a new client.
+	client := New()
 
-	// Send a DELETE request.
-	resp, err := c.Delete(ts.URL)
+	// Perform a DELETE request to the test server.
+	resp, err := client.Delete(ts.URL)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -159,9 +159,171 @@ func ExampleClient_Delete() {
 	// DELETE OK
 }
 
-// ExampleWithRetry demonstrates using the Client with retry logic.
+// ExampleWithInsecureTLS demonstrates how to use the Client with insecure TLS enabled.
+func ExampleWithInsecureTLS() {
+	// Create a test TLS server that returns a response for HTTPS requests.
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Insecure TLS OK"))
+	}))
+	defer ts.Close()
+
+	// Initialize a client with insecure TLS verification enabled.
+	client := New(WithInsecureTLS(true))
+
+	// Perform a GET request to the TLS test server.
+	resp, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(string(resp.Body))
+
+	// Out put:
+	// Insecure TLS OK
+}
+
+// ExampleWithCustomHTTPClient demonstrates how to use the Client with a fully custom *http.Client.
+func ExampleWithCustomHTTPClient() {
+	// Create a test HTTP server that responds with "Custom Client OK".
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Custom Client OK"))
+	}))
+	defer ts.Close()
+
+	// Create a custom HTTP client with specific settings.
+	customHTTPClient := &http.Client{
+		Timeout: 5 * time.Second, // Set a custom timeout.
+		Transport: &http.Transport{
+			MaxIdleConns:        50, // Limit the maximum idle connections.
+			MaxConnsPerHost:     20, // Limit concurrent connections per host.
+			MaxIdleConnsPerHost: 10, // Limit idle connections per host.
+		},
+	}
+
+	// Initialize a Client with the custom HTTP client.
+	client := New(WithCustomHTTPClient(customHTTPClient))
+
+	// Perform a GET request using the custom client.
+	resp, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(string(resp.Body))
+
+	// Output:
+	// Custom Client OK
+}
+
+// ExampleWithTimeout demonstrates how to use the Client with a custom timeout.
+func ExampleWithTimeout() {
+	// Create a test HTTP server that delays its response.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(100 * time.Millisecond)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Delayed response"))
+	}))
+	defer ts.Close()
+
+	// Initialize a client with a 50ms timeout.
+	client := New(WithTimeout(50 * time.Millisecond))
+
+	// Perform a GET request (expected to timeout).
+	_, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Request timed out")
+	} else {
+		fmt.Println("Request succeeded")
+	}
+
+	// Out put:
+	// Request timed out
+}
+
+// ExampleWithContext demonstrates how to use the Client with a custom context.
+func ExampleWithContext() {
+	// Create a test HTTP server that delays its response.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(200 * time.Millisecond)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Delayed response"))
+	}))
+	defer ts.Close()
+
+	// Create a context with a 100ms deadline.
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	// Initialize a client with the custom context.
+	client := New(WithContext(ctx))
+
+	// Perform a GET request (expected to timeout).
+	_, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Request canceled due to timeout")
+	} else {
+		fmt.Println("Request succeeded")
+	}
+
+	// Out put:
+	// Request canceled due to timeout
+}
+
+// ExampleWithHeaders demonstrates how to use the Client with custom headers.
+func ExampleWithHeaders() {
+	// Create a test HTTP server that checks for a custom header.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Custom-Header") == "GoLang" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Header received"))
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer ts.Close()
+
+	// Initialize a client with a custom header.
+	client := New(WithHeaders(map[string]string{"X-Custom-Header": "GoLang"}))
+
+	// Perform a GET request.
+	resp, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(string(resp.Body))
+
+	// Out put:
+	// Header received
+}
+
+// ExampleWithLogger demonstrates how to use the Client with logging enabled.
+func ExampleWithLogger() {
+	// Create a log buffer to capture logs.
+	var logBuffer bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logBuffer, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+
+	// Initialize a client with logging enabled.
+	client := New(WithLogger(true))
+	client.Logger = logger
+
+	// Perform a log entry.
+	client.log("Testing logging")
+
+	// Print captured log.
+	fmt.Println(logBuffer.String())
+
+	// Out put:
+	// time=<timestamp> level=INFO msg="Testing logging"
+}
+
+// ExampleWithRetry demonstrates how to use the Client with retry logic.
 func ExampleWithRetry() {
-	// Create a test server that fails twice before succeeding.
+	// Create a test HTTP server that fails twice before succeeding.
 	attempts := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		attempts++
@@ -174,16 +336,17 @@ func ExampleWithRetry() {
 	}))
 	defer ts.Close()
 
-	// Create a client with retry enabled.
-	c := New(WithRetry(RetryConfig{
+	// Initialize a client with retry logic enabled.
+	client := New(WithRetry(RetryConfig{
 		MaxRetries: 3,
 		Delay:      500 * time.Millisecond,
 		UseBackoff: true,
-		Statuses:   []int{500},
+		Statuses:   []int{http.StatusInternalServerError},
 		EnableLog:  false,
 	}))
 
-	resp, err := c.Get(ts.URL)
+	// Perform a GET request to the test server.
+	resp, err := client.Get(ts.URL)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -194,18 +357,33 @@ func ExampleWithRetry() {
 	// Retry succeeded
 }
 
-// ExampleWithInsecureTLS demonstrates using the Client with insecure TLS enabled.
-func ExampleWithInsecureTLS() {
-	// Create a test TLS server.
-	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// ExampleNew_withRetry demonstrates how to use the Client with retry logic.
+func ExampleNew_withRetry() {
+	// Create a test HTTP server that fails twice before succeeding.
+	attempts := 0
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if attempts < 3 {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Insecure TLS OK"))
+		w.Write([]byte("Retry succeeded"))
 	}))
 	defer ts.Close()
 
-	// Create a client with insecure TLS enabled.
-	c := New(WithInsecureTLS(true))
-	resp, err := c.Get(ts.URL)
+	// Initialize a client with retry logic enabled.
+	client := New(WithRetry(RetryConfig{
+		MaxRetries:   3,                                                                   // Allow up to 3 retry attempts.
+		Delay:        500 * time.Millisecond,                                              // Base delay before retrying.
+		UseBackoff:   true,                                                                // Use exponential backoff for retries.
+		Statuses:     []int{http.StatusInternalServerError},                               // Retry on HTTP 500 errors.
+		FailoverURLs: []string{"https://reqres.in/api/users", "https://httpbin.org/post"}, // Failover URLs.
+		EnableLog:    false,                                                               // Disable logging for this example.
+	}))
+
+	// Perform a GET request to the test server.
+	resp, err := client.Get(ts.URL)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -213,165 +391,86 @@ func ExampleWithInsecureTLS() {
 	fmt.Println(string(resp.Body))
 
 	// Out put:
-	// Insecure TLS OK
+	// Retry succeeded
 }
 
-// ExampleClient_full demonstrates full usage of the Client package with a server built using the quick framework,
-// using extended client configuration options such as WithTimeout, WithDisableKeepAlives, WithMaxIdleConns,
-// WithMaxConnsPerHost, WithMaxIdleConnsPerHost, WithContext, WithHeaders, WithCustomHTTPClient, WithTransportConfig,
-// WithRetryRoundTripper, and WithRetry.
-// Note: WithRetryRoundTripper overrides previous transport settings.
-func ExampleClient_full() {
-	// Initialize the quick framework.
-	q := quick.New()
-
-	// Define routes using quick.
-	q.Get("/get", func(c *quick.Ctx) error {
-		return c.Status(200).SendString("GET OK")
-	})
-	q.Post("/post", func(c *quick.Ctx) error {
-		body, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			return c.Status(400).SendString(err.Error())
-		}
-		return c.Status(201).SendString("POST: " + string(body))
-	})
-	q.Put("/put", func(c *quick.Ctx) error {
-		body, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			return c.Status(400).SendString(err.Error())
-		}
-		return c.Status(200).SendString("PUT: " + string(body))
-	})
-	q.Delete("/delete", func(c *quick.Ctx) error {
-		return c.Status(200).SendString("DELETE OK")
-	})
-	q.Post("/postform", func(c *quick.Ctx) error {
-		// Assume FormValues returns map[string][]string.
-		form := c.FormValues()
-		vals := url.Values(form)
-		return c.Status(200).SendString("POSTFORM: " + vals.Encode())
-	})
-
-	// Create a test server using the quick handler.
-	ts := httptest.NewServer(q)
+// ExampleWithTLSConfig demonstrates how to use the Client with a custom TLS configuration.
+func ExampleWithTLSConfig() {
+	// Create a test TLS server.
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Secure TLS OK"))
+	}))
 	defer ts.Close()
 
-	// Creating a custom HTTP transport with advanced settings.
-	customTransport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment, // Uses system proxy settings if available.
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,             // Allows insecure TLS connections (not recommended for production).
-			MinVersion:         tls.VersionTLS12, // Enforces a minimum TLS version for security.
-		},
-		MaxIdleConns:        50,    // Maximum number of idle connections across all hosts.
-		MaxConnsPerHost:     30,    // Maximum simultaneous connections per host.
-		MaxIdleConnsPerHost: 10,    // Maximum number of idle connections per host.
-		DisableKeepAlives:   false, // Enables persistent connections (Keep-Alive).
-	}
+	// Custom TLS configuration that allows insecure certificates (for testing purposes).
+	tlsConfig := &tls.Config{InsecureSkipVerify: true}
 
-	// Creating a fully custom *http.Client with the transport and timeout settings.
-	customHTTPClient := &http.Client{
-		Timeout:   15 * time.Second, // Global timeout for all requests.
-		Transport: customTransport,  // Uses the custom transport.
-	}
+	// Initialize a client with the custom TLS configuration.
+	client := New(WithTLSConfig(tlsConfig))
 
-	// Create a client with extended options.
-	client := New(
-		WithTimeout(5*time.Second),
-		WithDisableKeepAlives(false),
-		WithMaxIdleConns(20),
-		WithMaxConnsPerHost(20),
-		WithMaxIdleConnsPerHost(20),
-		WithContext(context.Background()),
-		WithCustomHTTPClient(customHTTPClient),
-		WithHeaders(map[string]string{
-			"Content-Type":  "application/json",
-			"Authorization": "Bearer EXAMPLE_TOKEN",
-		}),
-		// Set transport options via WithTransportConfig.
-		WithTransportConfig(&http.Transport{
-			Proxy:               http.ProxyFromEnvironment,
-			TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
-			ForceAttemptHTTP2:   true,
-			MaxIdleConns:        20,
-			MaxIdleConnsPerHost: 10,
-			MaxConnsPerHost:     20,
-			DisableKeepAlives:   false,
-		}),
-		// Override transport with retry RoundTripper.
-		WithRetryRoundTripper(RetryConfig{
-			MaxRetries: 2,
-			Delay:      1 * time.Second,
-			UseBackoff: true,
-			Statuses:   []int{500},
-			EnableLog:  false,
-		}),
-		// Also configure client retry settings (for manual retry logic).
-		WithRetry(RetryConfig{
-			MaxRetries: 2,
-			Delay:      1 * time.Second,
-			UseBackoff: true,
-			Statuses:   []int{500},
-			EnableLog:  false,
-		}),
-	)
-
-	// GET request.
-	resp, err := client.Get(ts.URL + "/get")
+	// Perform a GET request to the TLS test server.
+	resp, err := client.Get(ts.URL)
 	if err != nil {
-		fmt.Println("GET Error:", err)
+		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println("GET:", string(resp.Body))
-
-	// POST request with a string body.
-	resp, err = client.Post(ts.URL+"/post", "Hello, extended POST!")
-	if err != nil {
-		fmt.Println("POST Error:", err)
-		return
-	}
-	fmt.Println("POST:", string(resp.Body))
-
-	// PUT request with a struct body (marshaled to JSON).
-	data := struct {
-		Data string `json:"data"`
-	}{
-		Data: "Hello, extended PUT!",
-	}
-	resp, err = client.Put(ts.URL+"/put", data)
-	if err != nil {
-		fmt.Println("PUT Error:", err)
-		return
-	}
-	// To display the JSON response as a string, unmarshal and marshal it back.
-	var putResult map[string]string
-	_ = json.Unmarshal(resp.Body, &putResult)
-	putJSON, _ := json.Marshal(putResult)
-	fmt.Println("PUT:", string(putJSON))
-
-	// DELETE request.
-	resp, err = client.Delete(ts.URL + "/delete")
-	if err != nil {
-		fmt.Println("DELETE Error:", err)
-		return
-	}
-	fmt.Println("DELETE:", string(resp.Body))
-
-	// POSTFORM request.
-	formData := url.Values{}
-	formData.Set("key", "value")
-	resp, err = client.PostForm(ts.URL+"/postform", formData)
-	if err != nil {
-		fmt.Println("POSTFORM Error:", err)
-		return
-	}
-	fmt.Println("POSTFORM:", string(resp.Body))
+	fmt.Println(string(resp.Body))
 
 	// Out put:
-	// GET: GET OK
-	// POST: POST: Hello, extended POST!
-	// PUT: PUT: {"data":"Hello, extended PUT!"}
-	// DELETE: DELETE OK
-	// POSTFORM: POSTFORM: key=value
+	// Secure TLS OK
+}
+
+// ExampleWithTransport demonstrates how to use the Client with a custom transport.
+func ExampleWithTransport() {
+	// Create a test HTTP server.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Custom Transport OK"))
+	}))
+	defer ts.Close()
+
+	// Create a custom transport.
+	customTransport := &http.Transport{MaxIdleConns: 100}
+
+	// Initialize a client with the custom transport.
+	client := New(WithTransport(customTransport))
+
+	// Perform a GET request.
+	resp, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(string(resp.Body))
+
+	// Out put:
+	// Custom Transport OK
+}
+
+// ExampleWithTransportConfig demonstrates how to use the Client with a custom transport configuration.
+func ExampleWithTransportConfig() {
+	// Create a test HTTP server.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Configured Transport OK"))
+	}))
+	defer ts.Close()
+
+	// Pre-configured transport.
+	preConfiguredTransport := &http.Transport{MaxConnsPerHost: 50}
+
+	// Initialize a client with the pre-configured transport.
+	client := New(WithTransportConfig(preConfiguredTransport))
+
+	// Perform a GET request.
+	resp, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(string(resp.Body))
+
+	// Out put:
+	// Configured Transport OK
 }

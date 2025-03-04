@@ -29,8 +29,8 @@ func main() {
 			DisableKeepAlives:   false,
 		}),
 
-		// Automatic retry via RoundTripper
-		client.WithRetryRoundTripper(
+		// WithRetry
+		client.WithRetry(
 			client.RetryConfig{
 				MaxRetries: 2,
 				Delay:      1 * time.Second,
