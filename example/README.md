@@ -1,42 +1,69 @@
-![Quick Logo](quick.png)
+# ![Logo do Quick](/quick_logo.png)
 
-# 🚀 Quick Examples
+# Quick examples! ![Quick Logo](./quick.png)
+  
+### Welcome to the Quick example repository! 🚀
 
-Explore practical and well-structured examples of **Quick** for various use cases.
+ **Quick** was born to be a simple route manager, but with time we saw that it could expand into something bigger.
+We started abstracting everything that was repetitive and became too verbose and we were leaving everything minimalistic as possible.
 
-📌 **Official Examples Repository:**
-👉 [Quick Examples](https://github.com/goquickrun/examples)
+Quick is now a lightweight and performative framework for route management in Go, built on the native net/http library. It offers flexibility, extensibility and an intuitive design to facilitate the development of high-performance APIs.
 
-## 🔥 What will you find? 
+📌 The official **Quick** repository can be found here. [Quick](https://github.com/jeffotoni/quick)
 
-✅ **HTTP Requests** (GET, POST, PUT, DELETE)
-✅ **Using Middleware**
-✅ **Form Manipulation (`FormValue`, `FormValues`)**
-✅ **File Uploads**
-✅ **Authentication and Headers**
-✅ **Retry and Advanced HTTP Client Configuration**
-✅ **Automated Tests, including Fuzzing!**
+### About this repository
 
-## 📖 How to use the examples?
+This repository contains practical examples that demonstrate how to use **Quick** to create and manage routes efficiently. Here you’ll find everything from basic examples to advanced implementations, helping accelerate learning and adopting best practices in web development with Go.
 
-Clone the repository and run the examples directly:
+### 📌 What will you find here?
 
-```sh
-$ git clone https://github.com/goquickrun/examples.git
-$ cd examples
-```
+- ✔ Basic and advanced routing examples
+- ✔ Middleware for authentication and logs
+- ✔ Integration with JSON and other response formats
+- ✔ Upload and manipulation of files
+- ✔ Automated tests to ensure quality and robustness
 
-## 🔗 Follow the updates and contribute!
-We are always improving and adding new examples to make Quick easier to use.
+### ⚒️ About the Quick
 
-📢 Questions or suggestions? Open an issue in the repository! 😃
+Developed by [Jeffotoni] (https://jeffotoni.com/),  **Quick** was created to offer a lean and powerful alternative to traditional frameworks, providing high performance without giving up simplicity. If you are looking for an efficient framework to create **APIs in Go**, the **Quick** is the right choice!
+
+### 📌 What will you find here?
+
+Here are some examples that demonstrate how to use **Quick** for managing routes, middlewares and handling HTTP requests:
+
+### 🌍 Examples of HTTP Routes and Manipulation
+
+| 📂 Directory   | 📌 Description   |
+|---------------------------|---------------------------------------------------------|
+| [`Static`](/static/) | Serving static files using Quick.   |
+| [`Group`](/group/) | Example of route grouping for organization and security. |
+| [`quick.http.client/`](quick.http.client/) | HTTP client for GET, POST, PUT and DELETE requests. |
+| [`quick.delete/`](quick.delete/) | Example of a DELETE request using Quick.   |
+| [`quick.get/`](quick.get/) | JSON Request and Response Example.   |
+| [`quick.post/`](quick.post/) | Example of sending data via POST.   |
+| [`quick.put/`](quick.put/) | Example of updating data via PUT.   |
+| [`quick.regex/`](quick.regex/) | Use of Regular Expressions for dynamic routes.   |
+| [`quick.start/`](quick.start/) | Quick Start Guide.   |
 
 ---
 
-🎯 **Features of this version**:
-✅ **Cleaner and more professional design**
-✅ **Highlight for the features with icons**
-✅ **Direct instructions to run the examples**
-✅ **Call for contributions and engagement**
+### ⚡ Examples of Middleware
 
-If you need anything else, just let me know! 🚀😃
+| 📂 Directory   | 📌 Description   |
+|------------------------------|------------------------------------------------------------|
+| [`middleware/`](middleware)  | Useful middlewares like CORS, Logger, Compression and more.   |
+| [`middleware.dynamic/`](middleware.dynamic/) | Dynamic middlewares for custom processing. |
+| [`multipart.formdata/`](multipart.formdata/) | Example of file upload manipulation ‘multipart/form-data‘. |
+
+---
+### 🤝 Contribute!
+
+This project is **open source** and contributions are always welcome! Feel free to explore the code, suggest improvements, send pull requests or share your own examples.
+
+🚀 Try **Quick** and speed up your APIs development in Go!
+
+The Quick Project aims to develop and provide quality software for the developer community. 💻 To continue improving our tools, we rely on the support of our sponsors in Patreon. 🤝
+
+We thank all our supporters! 🙌 If you also believe in our work and want to contribute to the advancement of the development community, consider supporting Project Quick at our Patreon [here](https://www.patreon.com/jeffotoni_quick)
+
+Together we can continue to build amazing tools! 🚀
