@@ -13,8 +13,8 @@ func main() {
 		client.WithTimeout(10*time.Second),
 		client.WithHeaders(map[string]string{"Content-Type": "application/json"}),
 
-		// Enabling retry with RoundTripper
-		client.WithRetryRoundTripper(
+		// Enabling retry
+		client.WithRetry(
 			client.RetryConfig{
 				MaxRetries: 2,
 				Delay:      1 * time.Second,

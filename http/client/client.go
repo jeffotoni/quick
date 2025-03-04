@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"math"
@@ -12,62 +13,81 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
-// httpGoClient defines the minimal interface (compatible with *http.Client).
+// httpGoClient defines the minimal interface for HTTP clients
 type httpGoClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// RetryConfig encapsulates the retry parameters, providing a clearer API.
+// RetryConfig defines configuration parameters for retry logic
 type RetryConfig struct {
-	MaxRetries int
-	Delay      time.Duration
-	UseBackoff bool
-	Statuses   []int
-	EnableLog  bool
+	MaxRetries   int           // Maximum number of retry attempts
+	Delay        time.Duration // Base delay between retries
+	UseBackoff   bool          // Enable exponential backoff
+	Statuses     []int         // HTTP status codes that trigger retry
+	FailoverURLs []string      // Alternative URLs for failover
+	EnableLog    bool          // Enable logging for retry attempts
 }
 
-// Client represents the custom HTTP client.
+// Client represents a configurable HTTP client with advanced features
 type Client struct {
-	Ctx          context.Context
-	ClientHTTP   httpGoClient
-	Headers      map[string]string
-	EnableLogger bool
-	Logger       *slog.Logger // Logger instance
-	MaxRetries   int          // Number of retry attempts
-	RetryDelay   time.Duration
-	UseBackoff   bool
-	RetryStatus  []int
+	Ctx          context.Context   // Context for request cancellation
+	ClientHTTP   httpGoClient      // Underlying HTTP client implementation
+	Headers      map[string]string // Default headers for requests
+	EnableLogger bool              // Flag to enable/disable logging
+	Logger       *slog.Logger      // Logger instance
+	headersLock  sync.RWMutex      // Mutex for thread-safe header access
 }
 
-// RetryTransport implements the RoundTripper with retry logic.
+// RetryTransport implements http.RoundTripper with retry and failover logic
 type RetryTransport struct {
-	Base         http.RoundTripper // Base transport (e.g., http.DefaultTransport)
-	MaxRetries   int               // Maximum number of retries
-	RetryDelay   time.Duration     // Delay between attempts
-	UseBackoff   bool              // Enable exponential backoff
-	RetryStatus  []int             // HTTP status codes that trigger a retry
-	Logger       *slog.Logger      // Logger
-	EnableLogger bool              // Flag to enable logging
+	Base          http.RoundTripper // Base transport implementation
+	MaxRetries    int               // Maximum retry attempts
+	RetryDelay    time.Duration     // Delay between retries
+	UseBackoff    bool              // Use exponential backoff
+	RetryStatuses []int             // Status codes triggering retry
+	Logger        *slog.Logger      // Logger instance
+	EnableLogger  bool              // Enable logging
+	FailoverURLs  []string          // Alternative URLs for failover
 }
 
-// HTTPClientConfig allows configuring parameters for the HTTP client.
+// HTTPClientConfig defines configuration for the underlying HTTP client
 type HTTPClientConfig struct {
-	Timeout             time.Duration
-	DisableKeepAlives   bool
-	MaxIdleConns        int
-	MaxConnsPerHost     int
-	MaxIdleConnsPerHost int
-	TLSClientConfig     *tls.Config
-	MaxRetries          int           // Maximum number of retries (internal use)
-	RetryDelay          time.Duration // Delay between retries (internal use)
-	RetryStatus         []int         // HTTP status codes for retry (internal use)
+	Timeout             time.Duration // Request timeout
+	DisableKeepAlives   bool          // Disable HTTP keep-alive
+	MaxIdleConns        int           // Maximum idle connections
+	MaxConnsPerHost     int           // Maximum connections per host
+	MaxIdleConnsPerHost int           // Maximum idle connections per host
+	TLSClientConfig     *tls.Config   // TLS configuration
 }
 
-// NewHTTPClientFromConfig creates an HTTP client using the provided configuration.
-// If cfg is nil, default values are used.
+// ClientResponse represents the response from an HTTP request
+type ClientResponse struct {
+	Body       []byte // Response body
+	StatusCode int    // HTTP status code
+}
+
+// Option defines a functional option for configuring the Client
+type Option func(*Client)
+
+var (
+	defaultClient *Client
+	once          sync.Once
+)
+
+// GetDefaultClient returns a thread-safe singleton instance of Client
+func GetDefaultClient() *Client {
+	once.Do(func() {
+		defaultClient = New()
+	})
+	return defaultClient
+}
+
+// NewHTTPClientFromConfig creates a configured HTTP client
+// If cfg is nil, sensible defaults are used
 func NewHTTPClientFromConfig(cfg *HTTPClientConfig) httpGoClient {
 	if cfg == nil {
 		cfg = &HTTPClientConfig{
@@ -79,6 +99,10 @@ func NewHTTPClientFromConfig(cfg *HTTPClientConfig) httpGoClient {
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: false,
 				MinVersion:         tls.VersionTLS12,
+				CipherSuites: []uint16{
+					tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				},
 			},
 		}
 	}
@@ -95,272 +119,196 @@ func NewHTTPClientFromConfig(cfg *HTTPClientConfig) httpGoClient {
 	}
 }
 
-// ClientResponse represents the response obtained.
-type ClientResponse struct {
-	Body       []byte
-	StatusCode int
-}
-
-// Option defines a function that modifies the Client.
-type Option func(*Client)
-
-// WithContext sets a custom context.
-func WithContext(ctx context.Context) Option {
-	return func(c *Client) {
-		c.Ctx = ctx
-	}
-}
-
-// WithHeaders sets custom headers.
-func WithHeaders(headers map[string]string) Option {
-	return func(c *Client) {
-		c.Headers = headers
-	}
-}
-
-// WithHTTPClientConfig sets a custom configuration for the HTTP client.
+// WithHTTPClientConfig sets a custom configuration for the HTTP client
 func WithHTTPClientConfig(cfg *HTTPClientConfig) Option {
 	return func(c *Client) {
 		c.ClientHTTP = NewHTTPClientFromConfig(cfg)
 	}
 }
 
-// defaultClient is the default instance of Client.
-var defaultClient = New()
-
-// New creates a new Client applying the provided options.
+// New creates a new Client with optional configurations
 func New(opts ...Option) *Client {
 	c := &Client{
-		Ctx:          context.Background(),
-		Headers:      map[string]string{"Content-Type": "application/json"},
-		ClientHTTP:   NewHTTPClientFromConfig(nil),
-		Logger:       defaultLogger(),
-		EnableLogger: false,
+		Ctx:        context.Background(),
+		Headers:    make(map[string]string),
+		ClientHTTP: NewHTTPClientFromConfig(nil),
+		Logger:     defaultLogger(),
 	}
+
 	for _, opt := range opts {
 		opt(c)
 	}
 	return c
 }
 
-// WithLogger enables or disables the custom logger.
-func WithLogger(enableLogger bool) Option {
-	return func(c *Client) {
-		c.EnableLogger = enableLogger
+// cloneHeaders creates a thread-safe copy of the headers
+func (c *Client) cloneHeaders() map[string]string {
+	c.headersLock.RLock()
+	defer c.headersLock.RUnlock()
+
+	headers := make(map[string]string, len(c.Headers))
+	for k, v := range c.Headers {
+		headers[k] = v
+	}
+	return headers
+}
+
+// log writes a log message if logging is enabled and a logger is set.
+func (c *Client) log(msg string, args ...interface{}) {
+	if c.EnableLogger && c.Logger != nil {
+		// Format and log the message at the INFO level.
+		c.Logger.Info(msg, args...)
 	}
 }
 
-// defaultLogger returns the default logger.
-func defaultLogger() *slog.Logger {
-	return slog.New(slog.NewTextHandler(os.Stdout, nil))
+// WithLogger enables or disables logging
+func WithLogger(enable bool) Option {
+	return func(c *Client) {
+		c.EnableLogger = enable
+	}
 }
 
-// Global functions using the defaultClient.
+// defaultLogger creates a default JSON logger
+func defaultLogger() *slog.Logger {
+	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+}
+
+// Get performs a GET request using the default client
 func Get(url string) (*ClientResponse, error) {
 	return defaultClient.Get(url)
 }
 
+// Post performs a POST request using the default client
 func Post(url string, body any) (*ClientResponse, error) {
 	return defaultClient.Post(url, body)
 }
 
+// Put performs a PUT request using the default client
 func Put(url string, body any) (*ClientResponse, error) {
 	return defaultClient.Put(url, body)
 }
 
+// Delete performs a DELETE request using the default client
 func Delete(url string) (*ClientResponse, error) {
 	return defaultClient.Delete(url)
 }
 
+// PostForm performs a form POST request using the default client
 func PostForm(url string, formData url.Values) (*ClientResponse, error) {
 	return defaultClient.PostForm(url, formData)
 }
 
-// Get sends an HTTP GET request.
+// Get performs a GET request
 func (c *Client) Get(url string) (*ClientResponse, error) {
-	return c.createRequest(url, http.MethodGet, nil)
+	return c.doRequest(url, http.MethodGet, nil)
 }
 
-// Post sends an HTTP POST request.
+// Post performs a POST request
 func (c *Client) Post(url string, body any) (*ClientResponse, error) {
-	return c.createRequest(url, http.MethodPost, body)
+	return c.doRequest(url, http.MethodPost, body)
 }
 
-// Put sends an HTTP PUT request.
+// Put sends an HTTP PUT request with a request body.
 func (c *Client) Put(url string, body any) (*ClientResponse, error) {
-	return c.createRequest(url, http.MethodPut, body)
+	return c.doRequest(url, http.MethodPut, body)
 }
 
 // Delete sends an HTTP DELETE request.
 func (c *Client) Delete(url string) (*ClientResponse, error) {
-	return c.createRequest(url, http.MethodDelete, nil)
+	return c.doRequest(url, http.MethodDelete, nil)
 }
 
-// PostForm sends an HTTP POST request with form-encoded data.
-// It automatically sets "Content-Type: application/x-www-form-urlencoded".
+// PostForm performs a form POST request with URL-encoded data
 func (c *Client) PostForm(url string, formData url.Values) (*ClientResponse, error) {
-	c.Headers["Content-Type"] = "application/x-www-form-urlencoded"
-	return c.createRequest(url, http.MethodPost, formData.Encode())
+	headers := c.cloneHeaders()
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	return c.doRequestWithHeaders(url, http.MethodPost, formData.Encode(), headers)
 }
 
-// createRequest builds and executes the HTTP request.
-func (c *Client) createRequest(endpoint, httpMethod string, requestBody any) (*ClientResponse, error) {
-	reader, err := parseBody(requestBody)
+// doRequest executes an HTTP request with default headers
+func (c *Client) doRequest(url, method string, body any) (*ClientResponse, error) {
+	return c.doRequestWithHeaders(url, method, body, c.cloneHeaders())
+}
+
+// doRequestWithHeaders executes an HTTP request with custom headers
+func (c *Client) doRequestWithHeaders(endpoint, method string, body any, headers map[string]string) (*ClientResponse, error) {
+	reader, err := parseBody(body)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := c.newHTTPRequest(endpoint, httpMethod, reader)
+	req, err := http.NewRequestWithContext(c.Ctx, method, endpoint, reader)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := c.executeWithRetry(req)
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := c.ClientHTTP.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	body, err := readResponseBody(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ClientResponse{
-		Body:       body,
+		Body:       responseBody,
 		StatusCode: resp.StatusCode,
 	}, nil
 }
 
-func (c *Client) newHTTPRequest(endpoint, httpMethod string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(c.Ctx, httpMethod, endpoint, body)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range c.Headers {
-		req.Header.Set(k, v)
-	}
-	return req, nil
-}
-
-// readResponseBody reads the response body.
-func readResponseBody(body io.ReadCloser) ([]byte, error) {
-	return io.ReadAll(body)
-}
-
-// executeWithRetry attempts to send the HTTP request with retry logic.
-// If ClientHTTP uses RetryTransport, the request is executed directly.
-func (c *Client) executeWithRetry(req *http.Request) (*http.Response, error) {
-	if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
-		if _, ok := httpClient.Transport.(*RetryTransport); ok {
-			return httpClient.Do(req)
-		}
-	}
-
-	var resp *http.Response
-	var err error
-	var bodyData []byte
-	if req.Body != nil {
-		bodyData, _ = io.ReadAll(req.Body)
-		req.Body.Close()
-		req.Body = io.NopCloser(bytes.NewReader(bodyData))
-	}
-
-	for attempt := 0; attempt <= c.MaxRetries; attempt++ {
-		resp, err = c.ClientHTTP.Do(req)
-		if err == nil && !shouldRetry(resp, c.RetryStatus) {
-			return resp, nil
-		}
-
-		if c.Logger != nil && c.EnableLogger {
-			c.Logger.Warn("Retrying request",
-				slog.String("url", req.URL.String()),
-				slog.String("method", req.Method),
-				slog.Int("attempt", attempt+1),
-			)
-		}
-
-		if resp != nil {
-			resp.Body.Close()
-		}
-
-		if len(bodyData) > 0 {
-			req.Body = io.NopCloser(bytes.NewReader(bodyData))
-		}
-
-		waitTime := c.RetryDelay
-		if c.UseBackoff {
-			waitTime = time.Duration(math.Pow(2, float64(attempt))) * c.RetryDelay
-		}
-		time.Sleep(waitTime)
-	}
-	return resp, err
-}
-
-func shouldRetry(resp *http.Response, retryStatus []int) bool {
-	for _, status := range retryStatus {
-		if resp.StatusCode == status {
-			return true
-		}
-	}
-	return false
-}
-
-// parseBody converts the given value into an io.Reader.
-// If body is nil, returns nil.
-// If body is an io.Reader, it returns it directly.
-// If body is a string, it creates a reader from the string.
-// Otherwise, it marshals the body into JSON.
+// parseBody converts various types into an io.Reader
 func parseBody(body any) (io.Reader, error) {
 	if body == nil {
 		return nil, nil
 	}
-	if r, ok := body.(io.Reader); ok {
-		return r, nil
+
+	switch v := body.(type) {
+	case io.Reader:
+		return v, nil
+	case string:
+		return strings.NewReader(v), nil
+	default:
+		data, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		return bytes.NewReader(data), nil
 	}
-	if s, ok := body.(string); ok {
-		return strings.NewReader(s), nil
-	}
-	data, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	return bytes.NewReader(data), nil
 }
 
-// WithRetry configures the retry behavior using RetryConfig.
+// WithRetry configures retry behavior using RetryConfig
 func WithRetry(cfg RetryConfig) Option {
 	return func(c *Client) {
-		c.MaxRetries = cfg.MaxRetries
-		c.RetryDelay = cfg.Delay
-		c.UseBackoff = cfg.UseBackoff
-		c.RetryStatus = cfg.Statuses
-		c.EnableLogger = cfg.EnableLog
-	}
-}
-
-// WithRetryRoundTripper configures the transport with retry using RetryConfig.
-func WithRetryRoundTripper(cfg RetryConfig) Option {
-	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
-			logger := defaultLogger()
-			if !cfg.EnableLog {
-				logger = nil
+			var logger *slog.Logger
+			if c.Logger != nil && cfg.EnableLog {
+				logger = c.Logger
 			}
+
 			httpClient.Transport = &RetryTransport{
-				Base:         http.DefaultTransport,
-				MaxRetries:   cfg.MaxRetries,
-				RetryDelay:   cfg.Delay,
-				UseBackoff:   cfg.UseBackoff,
-				RetryStatus:  cfg.Statuses,
-				Logger:       logger,
-				EnableLogger: cfg.EnableLog,
+				Base:          httpClient.Transport,
+				MaxRetries:    cfg.MaxRetries,
+				RetryDelay:    cfg.Delay,
+				UseBackoff:    cfg.UseBackoff,
+				RetryStatuses: cfg.Statuses,
+				Logger:        logger,
+				EnableLogger:  cfg.EnableLog,
+				FailoverURLs:  cfg.FailoverURLs,
 			}
 		}
 	}
 }
 
-// WithTimeout sets the HTTP client's timeout and enables logging if desired.
+// WithTimeout sets the HTTP client's timeout
 func WithTimeout(d time.Duration) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -369,7 +317,7 @@ func WithTimeout(d time.Duration) Option {
 	}
 }
 
-// WithDisableKeepAlives enables or disables HTTP keep-alives.
+// WithDisableKeepAlives enables or disables HTTP keep-alive connections.
 func WithDisableKeepAlives(disable bool) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -380,7 +328,7 @@ func WithDisableKeepAlives(disable bool) Option {
 	}
 }
 
-// WithMaxIdleConns sets the maximum number of idle connections.
+// WithMaxIdleConns sets the maximum number of idle connections for the HTTP client.
 func WithMaxIdleConns(max int) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -391,7 +339,7 @@ func WithMaxIdleConns(max int) Option {
 	}
 }
 
-// WithMaxConnsPerHost sets the maximum number of connections per host.
+// WithMaxConnsPerHost sets the maximum number of concurrent connections per host.
 func WithMaxConnsPerHost(max int) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -413,7 +361,7 @@ func WithMaxIdleConnsPerHost(max int) Option {
 	}
 }
 
-// WithTLSConfig sets the TLS configuration for the HTTP client.
+// WithTLSConfig sets the TLS configuration for the HTTP client
 func WithTLSConfig(tlsConfig *tls.Config) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -424,11 +372,12 @@ func WithTLSConfig(tlsConfig *tls.Config) Option {
 	}
 }
 
-// WithInsecureTLS allows insecure connections by setting InsecureSkipVerify.
+// WithInsecureTLS enables or disables certificate verification (not recommended for production).
 func WithInsecureTLS(insecure bool) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
 			if transport, ok := httpClient.Transport.(*http.Transport); ok {
+				// Ensure TLSClientConfig exists before modifying it
 				if transport.TLSClientConfig == nil {
 					transport.TLSClientConfig = &tls.Config{
 						MinVersion: tls.VersionTLS12,
@@ -440,7 +389,7 @@ func WithInsecureTLS(insecure bool) Option {
 	}
 }
 
-// WithTransport allows setting a custom HTTP transport.
+// WithTransport sets a custom HTTP transport.
 func WithTransport(transport http.RoundTripper) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -449,14 +398,14 @@ func WithTransport(transport http.RoundTripper) Option {
 	}
 }
 
-// WithCustomHTTPClient allows setting a fully custom *http.Client.
+// WithCustomHTTPClient replaces the default HTTP client with a fully custom one.
 func WithCustomHTTPClient(client *http.Client) Option {
 	return func(c *Client) {
 		c.ClientHTTP = client
 	}
 }
 
-// WithTransportConfig sets the HTTP transport for the client using a pre-configured *http.Transport.
+// WithTransportConfig applies a pre-configured HTTP transport.
 func WithTransportConfig(tr *http.Transport) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -465,59 +414,95 @@ func WithTransportConfig(tr *http.Transport) Option {
 	}
 }
 
-// RoundTrip executes the HTTP request with retry logic in RetryTransport.
+// WithContext sets a custom context for the client
+func WithContext(ctx context.Context) Option {
+	return func(c *Client) {
+		c.Ctx = ctx
+	}
+}
+
+// WithHeaders sets custom headers for the client
+func WithHeaders(headers map[string]string) Option {
+	return func(c *Client) {
+		c.headersLock.Lock()
+		defer c.headersLock.Unlock()
+
+		for k, v := range headers {
+			c.Headers[k] = v
+		}
+	}
+}
+
+// The strategy used is Fallback Dinâmico
+// RoundTrip executes the HTTP request with retry and failover logic
 func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	var err error
-	var bodyBytes []byte
+	var body []byte
+	urls := append([]string{req.URL.String()}, rt.FailoverURLs...)
+
 	if req.Body != nil {
-		bodyBytes, err = io.ReadAll(req.Body)
+		body, err = io.ReadAll(req.Body)
 		if err != nil {
-			return resp, err
+			return nil, fmt.Errorf("error reading request body: %w", err)
 		}
 		req.Body.Close()
 	}
 
 	for attempt := 0; attempt <= rt.MaxRetries; attempt++ {
-		if bodyBytes != nil {
-			req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-		}
+		for i, u := range urls {
+			parsedURL, err := url.Parse(u)
+			if err != nil {
+				continue
+			}
 
-		resp, err = rt.Base.RoundTrip(req)
-		if err == nil && !contains(rt.RetryStatus, resp.StatusCode) {
-			return resp, nil
-		}
+			req.URL = parsedURL
+			if body != nil {
+				req.Body = io.NopCloser(bytes.NewReader(body))
+			}
 
-		if rt.Logger != nil && rt.EnableLogger {
-			rt.Logger.Warn("Retrying RoundTrip request",
-				slog.String("url", req.URL.String()),
-				slog.String("method", req.Method),
-				slog.Int("attempt", attempt+1),
-			)
-		}
+			resp, err = rt.Base.RoundTrip(req)
+			if rt.shouldRetry(resp, err) {
+				if rt.EnableLogger && rt.Logger != nil {
+					rt.Logger.Warn("Retrying RoundTrip request",
+						slog.String("url", u),
+						slog.String("method", req.Method),
+						slog.Int("attempt", attempt+1),
+						slog.Int("failover", i+1),
+					)
+				}
 
-		if resp != nil {
-			resp.Body.Close()
+				if resp != nil {
+					resp.Body.Close()
+				}
+				rt.sleep(attempt)
+				continue
+			}
+			return resp, err
 		}
-
-		if attempt == rt.MaxRetries {
-			break
-		}
-
-		waitTime := rt.RetryDelay
-		if rt.UseBackoff {
-			waitTime = time.Duration(math.Pow(2, float64(attempt))) * rt.RetryDelay
-		}
-		time.Sleep(waitTime)
 	}
-	return resp, err
+	return resp, fmt.Errorf("max retries exceeded: %w", err)
 }
 
-func contains(list []int, status int) bool {
-	for _, s := range list {
-		if s == status {
+// shouldRetry determines if a request should be retried based on response and error
+func (rt *RetryTransport) shouldRetry(resp *http.Response, err error) bool {
+	if err != nil {
+		return true
+	}
+
+	for _, status := range rt.RetryStatuses {
+		if resp.StatusCode == status {
 			return true
 		}
 	}
 	return false
+}
+
+// sleep implements the backoff strategy for retries
+func (rt *RetryTransport) sleep(attempt int) {
+	delay := rt.RetryDelay
+	if rt.UseBackoff {
+		delay = time.Duration(math.Pow(2, float64(attempt))) * rt.RetryDelay
+	}
+	time.Sleep(delay)
 }
