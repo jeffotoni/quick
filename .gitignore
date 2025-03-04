@@ -1,6 +1,7 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-
+http/client/mock.go
+http/client/testdata/*
 # IDE files
 .vscode
 .DS_Store
