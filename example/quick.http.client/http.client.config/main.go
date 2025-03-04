@@ -47,7 +47,7 @@ func main() {
 		client.WithContext(context.TODO()),
 		client.WithHeaders(map[string]string{"Content-Type": "application/xml"}),
 		client.WithHTTPClientConfig(cfg),
-		client.WithRetryRoundTripper(
+		client.WithRetry(
 			client.RetryConfig{
 				MaxRetries: 2,
 				Delay:      1 * time.Second,
