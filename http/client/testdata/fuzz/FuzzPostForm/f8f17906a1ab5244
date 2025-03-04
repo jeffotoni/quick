@@ -1,3 +1,0 @@
-go test fuzz v1
-string("o]assword")
-string("3456")
