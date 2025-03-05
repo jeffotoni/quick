@@ -1116,6 +1116,103 @@ func TestQTest_Options_POST(t *testing.T) {
     }
 }
 ```
+---
+# 🔄 Retry & Failover Mechanisms in Quick HTTP Client
+
+The **Quick HTTP Client** now includes **built-in retry and failover support**, allowing for more resilient and reliable HTTP requests. These features are essential for handling **transient failures**, **network instability**, and **service downtime** efficiently.
+
+## 🚀 Key Features
+- **Automatic Retries**: Retries failed requests based on configurable rules.
+- **Exponential Backoff**: Gradually increases the delay between retry attempts.
+- **Status-Based Retries**: Retries only on specified HTTP status codes (e.g., `500`, `502`, `503`).
+- **Failover Mechanism**: Switches to predefined backup URLs if the primary request fails.
+- **Logging Support**: Enables detailed logs for debugging retry behavior.
+
+---
+
+## 🔹 How Retry & Failover Work
+The retry mechanism works by **automatically resending the request** if it fails, with options to **limit retries**, **introduce backoff delays**, and **retry only for specific response statuses**. The failover system ensures **high availability** by redirecting failed requests to alternate URLs.
+
+### ✅ Configuration Options:
+| Option                | Description |
+|-----------------------|-------------|
+| **MaxRetries**       | Defines the number of retry attempts. |
+| **Delay**            | Specifies the delay before each retry. |
+| **UseBackoff**       | Enables exponential backoff to increase delay dynamically. |
+| **Statuses**         | List of HTTP status codes that trigger a retry. |
+| **FailoverURLs**     | List of backup URLs for failover in case of repeated failures. |
+| **EnableLog**        | Enables logging for debugging retry attempts. |
+
+---
+
+### **Retry with Exponential Backoff**
+This example demonstrates **retrying a request** with an increasing delay (`backoff`) when encountering errors.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	cClient := client.New(
+		client.WithRetry(
+			client.RetryConfig{
+				MaxRetries: 3,       // Maximum number of retries
+				Delay:      1 * time.Second,  // Initial retry delay
+				UseBackoff: true,    // Enables exponential backoff
+				Statuses:   []int{500, 502, 503}, // Retries only on these HTTP status codes
+				EnableLog:  true,    // Enables logging for retries
+			}),
+	)
+
+	resp, err := cClient.Get("http://localhost:3000/v1/resource")
+	if err != nil {
+		log.Fatal("GET request failed:", err)
+	}
+	fmt.Println("GET Response:", string(resp.Body))
+}
+
+```
+### **Failover to Backup URLs**
+This example switches to a backup URL when the primary request fails.
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	cClient := client.New(
+		client.WithRetry(client.RetryConfig{
+			MaxRetries:   2,  // Try the request twice before switching
+			Delay:        2 * time.Second,  // Wait 2 seconds before retrying
+			Statuses:     []int{500, 502, 503}, // Trigger failover on these errors
+			FailoverURLs: []string{"http://backup1.com/resource", "https://reqres.in/api/users", "https://httpbin.org/post"},
+			EnableLog: true, // Enable retry logs
+		}),
+	)
+
+	resp, err := cClient.Get("http://localhost:3000/v1/resource")
+	if err != nil {
+		log.Fatal("Request failed:", err)
+	}
+	fmt.Println("Response:", string(resp.Body))
+}
+
+```
+
+---
 
 🚀 **More details here [Qtest - Quick](https://github.com/jeffotoni/quick/tree/main/quickTest)**
 
