@@ -59,7 +59,7 @@ func main() {
 	)
 
 	// Performing a GET request.
-	resp, err := cClient.Get("https://httpbin_1.org/get")
+	resp, err := cClient.Get("https://httpbin.org/get")
 	if err != nil {
 		log.Fatalf("GET request failed: %v", err)
 	}

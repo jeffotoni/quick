@@ -36,7 +36,7 @@ func main() {
 		client.WithContext(context.TODO()),
 		client.WithHeaders(
 			map[string]string{
-				"Content-Type":  "application/xml",
+				"Content-Type":  "application/json",
 				"Authorization": "Bearer Token"},
 		),
 		client.WithTLSConfig(&tls.Config{
@@ -69,5 +69,5 @@ func main() {
 	if err := json.Unmarshal(resp.Body, &result); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("POST response:", result["message"])
+	fmt.Println("POST response:", result)
 }
