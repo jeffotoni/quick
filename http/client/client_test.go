@@ -528,3 +528,70 @@ func TestHTTPTransportOptionsAdvanced(t *testing.T) {
 		t.Error("Expected pre-configured transport to be set")
 	}
 }
+
+// FuzzRetryFailover tests the WithRetry option with failover URLs and WithTimeout.
+// The primary server returns a fuzzed status code, and if it is 500 (a retriable status),
+// the client should use the failover URL.
+func FuzzClientRetry(f *testing.F) {
+	// Seed inputs: 500
+	// (failure that should trigger failover)
+	// and 200 (successful primary response)
+	f.Add(500)
+	f.Add(200)
+
+	f.Fuzz(func(t *testing.T, status int) {
+		// Only test for status 500 or 200.
+		if status != 500 && status != 200 {
+			t.Skip("Skipping status other than 500 or 200")
+		}
+
+		// Create the primary server that responds with
+		// the fuzzed status code.
+		primary := httptest.NewServer(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(status)
+				w.Write([]byte("primary response"))
+			}))
+		defer primary.Close()
+
+		// Create the failover server that always returns 200 OK.
+		failover := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("failover success"))
+		}))
+		defer failover.Close()
+
+		// Create a client configured with a timeout, logger, and retry logic with failover URLs.
+		client := New(
+			WithTimeout(2*time.Second),
+			WithLogger(true),
+			WithRetry(RetryConfig{
+				MaxRetries:   1,
+				Delay:        100 * time.Millisecond,
+				UseBackoff:   false,
+				FailoverURLs: []string{failover.URL}, // Set the failover URL.
+				Statuses:     []int{500},             // Only 500 triggers retry/failover.
+				EnableLog:    false,
+			}),
+		)
+
+		// Execute a GET request to the primary server.
+		resp, err := client.Get(primary.URL)
+		if err != nil {
+			t.Errorf("Client.Get error: %v", err)
+			return
+		}
+
+		body := string(resp.Body)
+		// If the primary server returned 500, expect the failover response.
+		if status == 500 {
+			if body != "failover success" {
+				t.Errorf("Expected failover response, got %q", body)
+			}
+		} else {
+			if body != "primary response" {
+				t.Errorf("Expected primary response, got %q", body)
+			}
+		}
+	})
+}
