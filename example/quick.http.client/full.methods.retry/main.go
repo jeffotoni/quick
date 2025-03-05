@@ -26,6 +26,7 @@ func main() {
 	// - WithTLSConfig: Configures TLS settings, including InsecureSkipVerify and TLS version.
 	// - WithRetry: Enables automatic retries for specific HTTP status codes (500, 502, 503, 504)
 	//   with exponential backoff (2s-bex) and a maximum of 3 attempts.
+
 	cClient := client.New(
 		client.WithTimeout(5*time.Second),
 		client.WithDisableKeepAlives(false),
@@ -33,22 +34,32 @@ func main() {
 		client.WithMaxConnsPerHost(20),
 		client.WithMaxIdleConnsPerHost(20),
 		client.WithContext(context.TODO()),
-		client.WithHeaders(map[string]string{"Content-Type": "application/xml"}),
+		client.WithHeaders(
+			map[string]string{
+				"Content-Type":  "application/xml",
+				"Authorization": "Bearer Token"},
+		),
 		client.WithTLSConfig(&tls.Config{
 			InsecureSkipVerify: true,
 			MinVersion:         tls.VersionTLS12,
 		}),
+
 		client.WithRetry(
 			client.RetryConfig{
 				MaxRetries: 2,
 				Delay:      1 * time.Second,
 				UseBackoff: true,
-				Statuses:   []int{500},
-				EnableLog:  true,
+				Statuses:   []int{502, 503, 504, 403},
+				FailoverURLs: []string{
+					"http://backup1",
+					"https://reqres.in/api/users",
+					"https://httpbin.org/post"},
+				EnableLog: true,
 			}),
 	)
 
-	resp, err := cClient.Post("http://localhost:3000/v1/user", map[string]string{"message": "Hello, POST in Quick!"})
+	resp, err := cClient.Post("http://api.quick/v1/user",
+		map[string]string{"message": "Hello, POST in Quick!"})
 	if err != nil {
 		log.Fatal(err)
 	}
