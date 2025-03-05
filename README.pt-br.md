@@ -1115,6 +1115,105 @@ func TestQTest_Options_POST(t *testing.T) {
 🚀 **Mais detalhes aqui [Qtest - Quick](https://github.com/jeffotoni/quick/tree/main/quickTest)**
 
 ---
+# 🔄 Mecanismos de retentativa e failover no cliente HTTP rápido
+
+O **Quick HTTP Client** agora inclui **built-in retry e suporte de failover**, permitindo solicitações HTTP mais resilientes e confiáveis. Esses recursos são essenciais para lidar com **falhas transientes***, **instabilidade de rede** e **tempo de inatividade do serviço** de forma eficiente.
+
+## 🚀 Principais características
+- **Tentativas automáticas**: Repetições de solicitações com falha baseadas em regras configuráveis.
+- **Exponential Backoff**: aumenta gradualmente o atraso entre tentativas de repetição.
+- **Retries Status-Based**: Retries somente em códigos de status HTTP especificados (por exemplo, '500', '502', '503').
+- **Mecanismo de failover**: alterna para URLs de backup predefinidos se a solicitação primária falhar.
+- **Logging Support**: Permite logs detalhados para o comportamento de repetição da depuração.
+
+---
+
+## 🔹 Como funciona o Retry & Failover
+O mecanismo de repetição funciona **automaticamente reenviando a solicitação** se ela falhar, com opções para **limitar repetições**, **introduzir atrasos de backoff**, e **repetir somente para status específicos de resposta**. O sistema de failover garante **alta disponibilidade** redirecionando solicitações com falha para URLs alternativos.
+
+### ✅ Opções de configuração:
+| Opção   | Descrição |
+|-----------------------|-------------|
+| **MaxRetries**   | Define o número de tentativas de repetição. |
+| **Delay**   | Especifica o atraso antes de cada nova tentativa. |
+| **UseBackoff**   | Permite que o backoff exponencial aumente o atraso dinamicamente. |
+| **Status**   | Lista de códigos de status HTTP que acionam uma nova tentativa. |
+| **FailoverURLs**   | Lista de URLs de backup para failover em caso de falhas repetidas. |
+| **EnableLog**   | Ativa o registro para tentativas de repetição de depuração. |
+
+---
+
+### **Retry com atraso exponencial**
+Este exemplo demonstra **repetir uma solicitação** com um atraso crescente (backoff) quando encontrar erros.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	cClient := client.New(
+		cliente.WithRetry(
+			client.RetryConfig{
+				MaxRetries: 3,   // Número máximo de tentativas
+				Atraso:   1 * tempo. Segundo,  // Atraso inicial da repetição
+				UseBackoff: true,   // Permite backoff exponencial
+				Estados:   []int{500, 502, 503}, // Retries apenas nestes códigos de status HTTP
+				EnableLog:  true,   // Ativa o registro para novas tentativas
+		}),
+	)
+
+	resp, err := cClient.Get("http://localhost:3000/v1/resource")
+	if err != nil {
+		log.Fatal("GET request failed:", err)
+	}
+	fmt.Println("GET Response:", string(resp.Body))
+}
+
+```
+
+### **Failover para URLs de backup**
+Este exemplo muda para um URL de backup quando a solicitação primária falha.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	cClient := cliente. Novo(
+		client.WithRetry(client.RetryConfig{
+			MaxRetries:   2,  // Tente a solicitação duas vezes antes de alternar
+			Atraso:   2 * tempo. Segundo,  // Aguarde 2 segundos antes de tentar novamente
+			Status:   []int{500, 502, 503}, // Acionar failover nesses erros
+			FailoverURLs: []string{"http://backup1.com/resource", "https://reqres.in/api/users", "https://httpbin.org/post"}
+			EnableLog: true, // Habilitar registros de repetição
+		}),
+	)
+
+
+	resp, err := cClient.Get("http://localhost:3000/v1/resource")
+	if err != nil {
+		log.Fatal("Request failed:", err)
+	}
+	fmt.Println("Response:", string(resp.Body))
+}
+
+```
+
+---
 
 ## 📚| Mais exemplos
 
