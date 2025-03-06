@@ -642,7 +642,7 @@ func main() {
 				Statuses:   []int{502, 503, 504, 403},
 				FailoverURLs: []string{
 					"http://backup1",
-					"https://reqres.in/api/users",
+					"https://httpbin_error.org/post",
 					"https://httpbin.org/post"},
 				EnableLog: true,
 			}),
@@ -928,7 +928,7 @@ func main() {
 			Delay:        1 * time.Second,
 			UseBackoff:   false,
 			Statuses:     []int{502, 503, 504, 403},
-			FailoverURLs: []string{"http://backup1", "https://reqres.in/api/users", "https://httpbin.org/post"},
+			FailoverURLs: []string{"http://backup1", "https://httpbin_error.org/post", "http://hosterror"},
 			EnableLog:    true,
 		}),
 		client.WithHeaders(map[string]string{
@@ -1160,7 +1160,7 @@ func main() {
 				Delay:        1 * time.Second,
 				UseBackoff:   true,
 				Statuses:     []int{500},
-				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin_error.org/post"},
 				EnableLog:    true,
 			}),
 	)
@@ -1243,12 +1243,12 @@ func main() {
 				Delay:        1 * time.Second,
 				UseBackoff:   true,
 				Statuses:     []int{500},
-				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin_error.org/post"},
 				EnableLog:    true,
 			}),
 	)
 
-	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{"name": "jeffotoni"})
+	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{"name": "jeffotoni"})
 	if err != nil {
 		log.Fatalf("POST request failed: %v", err)
 	}
@@ -1302,7 +1302,7 @@ func main() {
 				// Alternate URLs to try if the main request fails.
 				FailoverURLs: []string{ 
 					"http://hosterror",
-					"https://httpbin.org/post",
+					"https://httpbin_error.org/post",
 				},
 				// Enable logging for retry operations.
 				EnableLog: true, 
@@ -1311,7 +1311,7 @@ func main() {
 
 	// Perform a POST request using the configured HTTP client.
 	// Includes a JSON payload with a "name" key.
-	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{
+	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{
 		"name": "jeffotoni in action with Quick!!!",
 	})
 
