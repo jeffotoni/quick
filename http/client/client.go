@@ -294,6 +294,9 @@ func WithRetry(cfg RetryConfig) Option {
 			if c.Logger != nil && cfg.EnableLog {
 				logger = c.Logger
 			}
+			if httpClient.Transport == nil {
+				httpClient.Transport = http.DefaultTransport
+			}
 
 			httpClient.Transport = &RetryTransport{
 				Base:          httpClient.Transport,

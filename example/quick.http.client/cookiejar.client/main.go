@@ -29,16 +29,17 @@ func main() {
 			"User-Agent": "QuickClient/1.0",
 		}),
 		client.WithRetry(client.RetryConfig{
-			MaxRetries: 3,                         // Maximum number of retries.
-			Delay:      2 * time.Second,           // Delay between attempts.
-			UseBackoff: true,                      // Use exponential backoff.
-			Statuses:   []int{500, 502, 503, 504}, // HTTP statuses for retry.
-			EnableLog:  true,                      // Enable logging.
+			MaxRetries:   3,                         // Maximum number of retries.
+			Delay:        2 * time.Second,           // Delay between attempts.
+			UseBackoff:   true,                      // Use exponential backoff.
+			Statuses:     []int{500, 502, 503, 504}, // HTTP statuses for retry.
+			FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+			EnableLog:    true, // Enable logging.
 		}),
 	)
 
 	// Making a POST request.
-	resp, err := cClient.Post("http://localhost:3000/v1/user", map[string]string{"name": "jeffotoni"})
+	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{"name": "jeffotoni"})
 	if err != nil {
 		log.Fatalf("POST request failed: %v", err)
 	}
