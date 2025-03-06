@@ -12,7 +12,6 @@ import (
 
 // Example HTTP request using Quick and an external API (reqres.in).
 // This server listens on port 3000 and forwards POST requests to an external API.
-//
 // - WithTimeout: Sets the HTTP client timeout to 5 seconds.
 // - WithDisableKeepAlives: Enables or disables HTTP keep-alives (false = keep-alives enabled).
 // - WithHeaders: Adds custom headers (e.g., Content-Type: application/json).
