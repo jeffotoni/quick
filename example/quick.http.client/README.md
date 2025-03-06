@@ -332,19 +332,14 @@ func main() {
 	fmt.Println("POST Response:", string(resp.Body))
 }
 ```
-##### 🔹 **Full HTTP Client with Custom Transport & Retries**
+---
+##### 🔹 HTTP Client Configuration for GET Requests
 ```go
 package main
 
 import (
 	"context"
-	"crypto/tls"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
+	"log"
 	"time"
 
 	"github.com/jeffotoni/quick"
@@ -352,137 +347,258 @@ import (
 )
 
 func main() {
-	// Initialize the quick framework.
 	q := quick.New()
 
-	// Define routes using quick.
-	q.Get("/get", func(c *quick.Ctx) error {
-		return c.Status(200).SendString("GET OK")
-	})
-	q.Post("/post", func(c *quick.Ctx) error {
-		body, err := io.ReadAll(c.Request.Body)
+	// Define a GET endpoint that forwards requests to an external API.
+	q.Get("/api/users", func(c *quick.Ctx) error {
+		// Create an HTTP client with specific configurations.
+		cClient := client.New(
+			// Set the timeout for the HTTP client to 10 seconds.
+			client.WithTimeout(10*time.Second),
+			client.WithMaxConnsPerHost(20),
+			client.WithDisableKeepAlives(false),
+			// Add custom headers, including content
+			//  type and authorization token.
+			client.WithHeaders(map[string]string{
+				"Content-Type":  "application/json",
+				"Authorization": "Bearer EXAMPLE_TOKEN",
+			}),
+			// Use a background context for the HTTP client.
+			//  This context cannot be cancelled
+			// and does not carry any deadline. It is 
+			// suitable for operations that run
+			// indefinitely or until the application is shut down.
+			client.WithContext(context.Background()),
+		)
+
+		// Perform a GET request to the external API.
+		resp, err := cClient.Get("https://reqres.in/api/users/2")
 		if err != nil {
-			return c.Status(400).SendString(err.Error())
+			// Log the error and return a server error response if the GET request fails.
+			log.Println("GET Error:", err)
+			return c.Status(500).SendString("Failed to connect to external API")
 		}
-		return c.Status(201).SendString("POST: " + string(body))
-	})
-	q.Put("/put", func(c *quick.Ctx) error {
-		body, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			return c.Status(400).SendString(err.Error())
-		}
-		return c.Status(200).SendString("PUT: " + string(body))
-	})
-	q.Delete("/delete", func(c *quick.Ctx) error {
-		return c.Status(200).SendString("DELETE OK")
-	})
-	q.Post("/postform", func(c *quick.Ctx) error {
-		// Assume FormValues returns map[string][]string.
-		form := c.FormValues()
-		vals := url.Values(form)
-		return c.Status(200).SendString("POSTFORM: " + vals.Encode())
+
+		// Log and return the response body from the external API.
+		log.Println("GET Response:", string(resp.Body))
+		return c.Status(resp.StatusCode).Send(resp.Body)
 	})
 
-	// Create a test server using the quick handler.
-	ts := httptest.NewServer(q)
-	defer ts.Close()
-
-	// Creating a custom HTTP transport with advanced settings.
-	customTransport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment, // Uses system proxy settings if available.
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,             // Allows insecure TLS connections (not recommended for production).
-			MinVersion:         tls.VersionTLS12, // Enforces a minimum TLS version for security.
-		},
-		MaxIdleConns:        50,    // Maximum number of idle connections across all hosts.
-		MaxConnsPerHost:     30,    // Maximum simultaneous connections per host.
-		MaxIdleConnsPerHost: 10,    // Maximum number of idle connections per host.
-		DisableKeepAlives:   false, // Enables persistent connections (Keep-Alive).
-	}
-
-	// Creating a fully custom *http.Client with the transport and timeout settings.
-	customHTTPClient := &http.Client{
-		Timeout:   15 * time.Second, // Global timeout for all requests.
-		Transport: customTransport,  // Uses the custom transport.
-	}
-
-	// Create a client with extended options.
-	cClient := client.New(
-		client.WithTimeout(5*time.Second),
-		client.WithDisableKeepAlives(false),
-		client.WithMaxIdleConns(20),
-		client.WithMaxConnsPerHost(20),
-		client.WithMaxIdleConnsPerHost(20),
-		client.WithContext(context.Background()),
-		client.WithCustomHTTPClient(customHTTPClient),
-		client.WithHeaders(map[string]string{
-			"Content-Type":  "application/json",
-			"Authorization": "Bearer EXAMPLE_TOKEN",
-		}),
-	
-	// Also configure client retry settings (for manual retry logic).
-		client.WithRetry(client.RetryConfig{
-			MaxRetries: 2,
-			Delay:      1 * time.Second,
-			UseBackoff: true,
-			Statuses:   []int{500},
-			EnableLog:  false,
-		}),
-	)
-
-	// GET request.
-	resp, err := cClient.Get(ts.URL + "/get")
-	if err != nil {
-		fmt.Println("GET Error:", err)
-		return
-	}
-	fmt.Println("GET:", string(resp.Body))
-
-	// POST request with a string body.
-	resp, err = cClient.Post(ts.URL+"/post", "Hello, extended POST!")
-	if err != nil {
-		fmt.Println("POST Error:", err)
-		return
-	}
-	fmt.Println("POST:", string(resp.Body))
-
-	// PUT request with a struct body (marshaled to JSON).
-	data := struct {
-		Data string `json:"data"`
-	}{
-		Data: "Hello, extended PUT!",
-	}
-	resp, err = cClient.Put(ts.URL+"/put", data)
-	if err != nil {
-		fmt.Println("PUT Error:", err)
-		return
-	}
-	// To display the JSON response as a string, unmarshal and marshal it back.
-	var putResult map[string]string
-	_ = json.Unmarshal(resp.Body, &putResult)
-	putJSON, _ := json.Marshal(putResult)
-	fmt.Println("PUT:", string(putJSON))
-
-	// DELETE request.
-	resp, err = cClient.Delete(ts.URL + "/delete")
-	if err != nil {
-		fmt.Println("DELETE Error:", err)
-		return
-	}
-	fmt.Println("DELETE:", string(resp.Body))
-
-	// POSTFORM request.
-	formData := url.Values{}
-	formData.Set("key", "value")
-	resp, err = cClient.PostForm(ts.URL+"/postform", formData)
-	if err != nil {
-		fmt.Println("POSTFORM Error:", err)
-		return
-	}
-	fmt.Println("POSTFORM:", string(resp.Body))	
+	// Start listening on port 3000 for incoming HTTP requests.
+	q.Listen(":3000")
 }
 
 ```
+---
+##### 🔹 HTTP Client Configuration for POST Requests
+```go
+package main
+
+import (
+	"encoding/json"
+	"io"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Initialize the Quick framework.
+	q := quick.New()
+
+	// Define a POST endpoint to process incoming requests.
+	q.Post("/api/users", func(c *quick.Ctx) error {
+		// Read the request body
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			return c.Status(400).SendString("Error reading request body: " + err.Error())
+		}
+
+		// Check if the request body is empty
+		if len(body) == 0 {
+			return c.Status(400).SendString("Error: Request body is empty")
+		}
+
+		// Validate that the request body is valid JSON
+		var jsonData map[string]interface{}
+		if err := json.Unmarshal(body, &jsonData); err != nil {
+			return c.Status(400).SendString("Error: Invalid JSON")
+		}
+
+		// Create a modular HTTP client with customizable options.
+		cClient := client.New(
+			// Sets the HTTP timeout to 5 seconds.
+			client.WithTimeout(5*time.Second),
+
+			// Enables or disables HTTP Keep-Alive 
+			// connections (false = keep-alives enabled).
+			client.WithDisableKeepAlives(false),
+
+			// Adds custom headers to the request, including 
+			// Content-Type and Authorization.
+			client.WithHeaders(map[string]string{
+				"Content-Type":  "application/json",
+				"Authorization": "Bearer EXAMPLE_TOKEN",
+			}),
+		)
+
+		// Forward the request to the external API
+		resp, err := cClient.Post("https://reqres.in/api/users", json.RawMessage(body))
+		if err != nil {
+			log.Println("Error making request to external API:", err)
+			return c.Status(500).SendString("Error connecting to external API")
+		}
+
+		// Log response from external API for debugging
+		log.Println("External API response:", string(resp.Body))
+
+		// Return the response from the external API to the client
+		return c.Status(resp.StatusCode).Send(resp.Body)
+	})
+
+	// Start the server on port 3000
+	q.Listen(":3000")
+}
+
+```
+---
+##### 🔹 HTTP Client Configuration for PUT Requests
+```go
+package main
+
+import (
+	"context"
+	"io"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	q := quick.New()
+
+	// Define a PUT endpoint to update user data.
+	q.Put("/api/users/2", func(c *quick.Ctx) error {
+		// Read the request body from the client
+		requestBody, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Println("Read Error:", err)
+			return c.Status(500).SendString("Failed to read request body")
+		}
+
+		// Create an HTTP client with specific configurations.
+		cClient := client.New(
+			// Set the timeout for the HTTP client to 10 seconds.
+			client.WithTimeout(10*time.Second),
+			// Add custom headers, including content type and authorization token.
+			client.WithHeaders(map[string]string{
+				"Content-Type":  "application/json",
+				"Authorization": "Bearer EXAMPLE_TOKEN",
+			}),
+			// Use a background context for the HTTP client. 
+			// This context cannot be cancelled
+			// and does not carry any deadline. It is suitable 
+			// for operations that run
+			// indefinitely or until the application is shut down.
+			client.WithContext(context.Background()),
+		)
+
+		// Perform a PUT request to the external API with the data received from the client.
+		resp, err := cClient.Put("https://reqres.in/api/users/2", requestBody)
+		if err != nil {
+			log.Println("PUT Error:", err)
+			return c.Status(500).SendString("Failed to connect to external API")
+		}
+
+		// Log and return the response body from the external API.
+		log.Println("PUT Response:", string(resp.Body))
+		return c.Status(resp.StatusCode).Send(resp.Body)
+	})
+
+	// Start listening on port 3000 for incoming HTTP requests.
+	q.Listen(":3000")
+}
+
+```
+---
+##### 🔹 HTTP Client Configuration for DELETE Requests
+```go
+package main
+
+import (
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	q := quick.New()
+
+	// Define a DELETE endpoint to delete user data.
+	q.Delete("/api/users/2", func(c *quick.Ctx) error {
+		// Create an HTTP client with specific configurations.
+		cClient := client.New(
+			client.WithTimeout(2*time.Second),
+			client.WithHeaders(map[string]string{
+				"Content-Type":  "application/json",
+				"Authorization": "Bearer EXAMPLE_TOKEN",
+			}),
+		)
+
+		// Perform a DELETE request to the external API.
+		resp, err := cClient.Delete("https://reqres.in/api/users/2")
+		if err != nil {
+			log.Println("DELETE Error:", err)
+			return c.Status(500).SendString("Failed to connect to external API")
+		}
+
+		// Log and return the response body from the external API.
+		log.Println("DELETE Response:", string(resp.Body))
+		return c.Status(resp.StatusCode).Send(resp.Body)
+	})
+
+	// Start listening on port 3000 for incoming HTTP requests.
+	q.Listen(":3000")
+}
+```
+
+
+### 📌 Testing HTTP Client Settings with Curl
+
+#### 🔹 GET Request
+```bash
+$ curl --location 'http://localhost:3000/api/users' \
+--header 'Authorization: Bearer EXAMPLE_TOKEN'
+```
+
+#### 🔹 POST Request
+```bash
+$ curl -X POST http://localhost:3000/api/users \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer EXAMPLE_TOKEN" \
+    -d '{"name": "John Doe", "job": "Software Engineer"}'
+```
+
+#### 🔹 PUT Request
+```bash
+$ curl -X PUT https://reqres.in/api/users/2 \
+    -H "Content-Type: application/json" \
+    -d '{"name": "Morpheus", "job": "zion resident"}'
+```
+
+#### 🔹 DELETE Request
+```bash
+$ curl -X DELETE https://reqres.in/api/users/2 \
+    -H "Authorization: Bearer EXAMPLE_TOKEN"
+```
+
+
 ---
 
 ##### 🔹 **Full HTTP Client with Retries, Failover & Secure Requests**
