@@ -31,7 +31,7 @@ func main() {
 				Statuses:   []int{500, 502, 503}, // HTTP status codes that trigger a retry.
 				FailoverURLs: []string{ // Alternate URLs to try if the main request fails.
 					"http://hosterror",
-					"https://httpbin.org/post",
+					"https://httpbin_error.org/post",
 				},
 				EnableLog: true, // Enable logging for retry operations.
 			}),
@@ -39,7 +39,7 @@ func main() {
 
 	// Perform a POST request using the configured HTTP client.
 	// Includes a JSON payload with a "name" key.
-	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{
+	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{
 		"name": "jeffotoni in action with Quick!!!",
 	})
 
