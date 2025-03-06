@@ -22,11 +22,10 @@ This will start the API server on http://localhost:3000, making it ready to rece
 | ⚡ **Easy JSON Handling** | Automatically marshals and unmarshals JSON data. |
 | 📝 **Form Data Support**  | Easily send application/x-www-form-urlencoded requests with PostForm. |
 | 🔧 **Custom Headers**    | Allows setting custom request headers. |
-| ⏳ **Timeout Support**   | Configurable request timeouts for reliability. |
+| ⏳ **Configurable Timeouts**  | Ensures timely responses, enhancing reliability. |
 | 🔄 **TLS Configuration** | Enables custom TLS settings for security. |
 | 🔀 **Failover Mechanism** | Automatically switch to backup URLs if the primary server fails. |
 | 🔐 **Secure TLS Support** | Customizable TLS settings for enhanced security. |
-| ⏳ **Timeout Support**   | Prevents hanging requests by setting timeouts. |
 | 🏎 **High Performance**  | Optimized HTTP client with keep-alive and connection pooling. |
 
 
@@ -1068,8 +1067,6 @@ func main() {
 }
 
 ```
-
-
 ---
 ### 📌 Testing with cURL
 
@@ -1096,6 +1093,310 @@ $ curl -X PUT http://localhost:3000/v1/user/1234 \
 ```bash
 $ curl -X DELETE http://localhost:3000/v1/user/1234
 ```
+---
+#### 🔹 Advanced HTTP client configuration with failover mechanism
+
+This code example showcases the setup of an HTTP client capable of handling network interruptions and server failures gracefully. It features custom transport configurations, including enhanced security settings, connection management, and a robust failover mechanism. Such a setup ensures that the application remains resilient and responsive under various network conditions. 
+
+```go
+package main
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	
+	customTransport := &http.Transport{
+		// Uses system proxy settings if available.
+		Proxy: http.ProxyFromEnvironment, 
+		TLSClientConfig: &tls.Config{
+			// Allows insecure TLS connections (not recommended for production).
+			InsecureSkipVerify: true,    
+			// Enforces a minimum TLS version for security.         
+			MinVersion:         tls.VersionTLS12, 
+		},
+		 // Maximum number of idle connections across all hosts.
+		MaxIdleConns:        50,  
+		// Maximum simultaneous connections per host. 
+		MaxConnsPerHost:     30, 
+		// Maximum number of idle connections per host.   
+		MaxIdleConnsPerHost: 10, 
+		// Enables persistent connections (Keep-Alive).   
+		DisableKeepAlives:   false, 
+	}
+
+	// Creating a fully custom *http.Client with the transport and timeout settings.
+	customHTTPClient := &http.Client{
+		// Sets a global timeout for all requests.
+		Timeout: 5 * time.Second,
+	}
+
+	// Creating a client using both the custom transport and other configurations.
+	cClient := client.New(
+		// Applying the custom HTTP client.
+		client.WithCustomHTTPClient(customHTTPClient), 
+		// Custom context for request cancellation and deadlines.
+		client.WithContext(context.Background()),      
+		client.WithHeaders(map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": "Bearer YOUR_ACCESS_TOKEN",
+		}),
+		// Applying the custom transport.
+		client.WithTransport(customTransport), 
+		// Setting a timeout for requests.
+		client.WithTimeout(5*time.Second),     
+		// Retry on specific status codes.
+		client.WithRetry(
+			client.RetryConfig{
+				MaxRetries:   2,
+				Delay:        1 * time.Second,
+				UseBackoff:   true,
+				Statuses:     []int{500},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				EnableLog:    true,
+			}),
+	)
+
+	// call client to POST
+	resp, err := cClient.Post("http://localhost:3000/v1/user", map[string]string{"message": "Hello Post!!"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// show resp
+	fmt.Println("POST response:\n", string(resp.Body))
+}
+
+```
+---
+#### 🔹 HTTP Client with Advanced Transport and Failover Capabilities
+
+Explore how to set up an HTTP client that not only adheres to security best practices with TLS configurations but also ensures your application remains operational through network issues. This example includes detailed setups for handling HTTP client retries and switching to failover URLs when typical requests fail. Ideal for systems requiring high reliability and fault tolerance. 
+
+```go
+package main
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+
+	// Creating a custom HTTP transport with advanced settings.
+	customTransport := &http.Transport{
+		// Uses system proxy settings if available.
+		Proxy: http.ProxyFromEnvironment, 
+		TLSClientConfig: &tls.Config{
+			 // Allows insecure TLS connections (not recommended for production).
+			InsecureSkipVerify: true,      
+			// Enforces a minimum TLS version for security.      
+			MinVersion:         tls.VersionTLS12, 
+		},
+		// Maximum number of idle connections across all hosts.
+		MaxIdleConns:        50, 
+		// Maximum simultaneous connections per host.   
+		MaxConnsPerHost:     30,   
+		 // Maximum number of idle connections per host. 
+		MaxIdleConnsPerHost: 10,  
+		// Enables persistent connections (Keep-Alive). 
+		DisableKeepAlives:   false, 
+	}
+
+	// Creating a fully custom *http.Client with the transport and timeout settings.
+	customHTTPClient := &http.Client{
+		 // Sets a global timeout for all requests.
+		Timeout:   5 * time.Second,
+		// Uses the custom transport.
+		Transport: customTransport, 
+	}
+
+	// Creating a client using both the custom transport and other configurations.
+	cClient := client.New(
+		// Applying the custom HTTP client.
+		client.WithCustomHTTPClient(customHTTPClient), 
+		 // Custom context for request cancellation and deadlines.
+		client.WithContext(context.Background()),     
+		client.WithHeaders(map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": "Bearer YOUR_ACCESS_TOKEN",
+		}),
+		client.WithTimeout(5*time.Second), // Setting a timeout for requests.
+		// Retry on specific status codes.
+		client.WithRetry(
+			client.RetryConfig{
+				MaxRetries:   2,
+				Delay:        1 * time.Second,
+				UseBackoff:   true,
+				Statuses:     []int{500},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				EnableLog:    true,
+			}),
+	)
+
+	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{"name": "jeffotoni"})
+	if err != nil {
+		log.Fatalf("POST request failed: %v", err)
+	}
+
+	// show resp
+	fmt.Println("POST response:", string(resp.Body))
+}
+```
+---
+### 🔹Configuring HTTP Client with Retry and Failover Mechanisms
+
+Discover how to build an HTTP client capable of dealing with network instabilities and server failures. This setup includes detailed retry configurations and introduces failover URLs to ensure that your application can maintain communication under adverse conditions. The example demonstrates using exponential backoff for retries and provides multiple endpoints to guarantee the availability of services. 
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Create a new HTTP client with specific configurations.
+	cClient := client.New(
+		// Set a timeout for all requests made by this client to 10 seconds.
+		// This helps prevent the client from hanging indefinitely on requests.
+		client.WithTimeout(10*time.Second),
+
+		// Set default headers for all requests made by this client.
+		// Here, 'Content-Type' is set to 'application/json'
+		//  which is typical for API calls.
+		client.WithHeaders(map[string]string{
+			"Content-Type": "application/json",
+		}),
+
+		// Enable automatic retry mechanism with specific configurations.
+		// This is useful for handling intermittent errors and ensuring robustness.
+		client.WithRetry(
+			client.RetryConfig{
+				 // Retry failed requests up to two times.
+				MaxRetries: 2,      
+				// Wait for 1 second before retrying.             
+				Delay:      1 * time.Second, 
+				 // Use exponential backoff strategy for retries.     
+				UseBackoff: true,         
+				// HTTP status codes that trigger a retry.       
+				Statuses:   []int{500, 502, 503}, 
+				// Alternate URLs to try if the main request fails.
+				FailoverURLs: []string{ 
+					"http://hosterror",
+					"https://httpbin.org/post",
+				},
+				// Enable logging for retry operations.
+				EnableLog: true, 
+			}),
+	)
+
+	// Perform a POST request using the configured HTTP client.
+	// Includes a JSON payload with a "name" key.
+	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{
+		"name": "jeffotoni in action with Quick!!!",
+	})
+
+	// Check if there was an error with the POST request.
+	if err != nil {
+		// If an error occurs, log the error and terminate the program.
+		log.Fatalf("POST request failed: %v", err)
+	}
+
+	// Print the response from the server to the console.
+	fmt.Println("POST Form Response:", string(resp.Body))
+}
+
+```
+---
+### 🔹Advanced HTTP Client Configuration with Transport and Retry Settings
+
+Explore the configuration of an HTTP client designed for high reliability and security in network communications. This example includes sophisticated transport settings, featuring TLS configurations for enhanced security, and a robust retry mechanism to handle request failures gracefully. These settings are essential for applications requiring reliable data exchange with external APIs, especially in environments where network stability might be a concern. 
+
+```go
+package main
+
+import (
+	"crypto/tls"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Create an HTTP client with custom configurations using the Quick framework.
+	cClient := client.New(
+		// Set a global timeout for all requests made by this client to 10 seconds.
+		// This helps prevent the client from hanging indefinitely on requests.
+		client.WithTimeout(10*time.Second),
+
+		// Set default headers for all requests made by this client.
+		// Here, we specify that we expect to send and receive JSON data.
+		client.WithHeaders(map[string]string{"Content-Type": "application/json"}),
+
+		// Configure the underlying transport for the HTTP client.
+		client.WithTransportConfig(&http.Transport{
+			// Use the system environment settings for proxy configuration.
+			Proxy: http.ProxyFromEnvironment,
+
+			// Configure TLS settings to skip verification of the server's 
+			// certificate chain and hostname.
+			// Warning: Setting InsecureSkipVerify to true is not recommended for
+			//  production as it is insecure.
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+
+			// Enable HTTP/2 for supported servers.
+			ForceAttemptHTTP2: true,
+
+			// Set the maximum number of idle connections in the connection pool for all hosts.
+			MaxIdleConns: 20,
+
+			// Set the maximum number of idle connections in the connection pool per host.
+			MaxIdleConnsPerHost: 10,
+
+			// Set the maximum number of simultaneous connections per host.
+			MaxConnsPerHost: 20,
+
+			// Keep connections alive between requests. This can help improve performance.
+			DisableKeepAlives: false,
+		}),
+	)
+
+	// Perform a POST request with a JSON payload.
+	// The payload includes a single field "name" with a value.
+	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{"name": "jeffotoni"})
+	if err != nil {
+		// Log the error and stop the program if the POST request fails.
+		log.Fatalf("POST request failed: %v", err)
+	}
+
+	// Output the response from the POST request.
+	fmt.Println("POST Form Response:", string(resp.Body))
+}
+
+```
+
 ---
 
 ### 🎯 Why Use Quick HTTP Client?
