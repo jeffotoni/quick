@@ -1309,7 +1309,331 @@ func main() {
 }
 
 ```
+---
+### 🌐 Configuração de transporte 
 
+A configuração de transporte no Quick HTTP Client é essencial para gerenciar a camada de rede das comunicações HTTP. Permite a personalização detalhada de como as solicitações e respostas HTTP são tratadas, otimizando o desempenho, segurança e confiabilidade.
+
+### ✅ Principais características da configuração de transporte
+
+| Configuração   | Descrição |
+|--------------------------|-------------|
+| ***Proxy Settings**   | Gerencia como solicitações HTTP lidam com servidores proxy, usando as configurações do ambiente de sistema para configuração automática. |
+| ***TLS Configuration**   | Controla aspectos de segurança, como versão do TLS e verificação de certificados. `InsecureSkipVerify está disponível para desenvolvimento para ignorar a verificação de certificados SSL. |
+| ***Connection Management**| Inclui configurações como `MaxIdleConns’, 'MaxConnsPerHost’, e `MaxIdleConnsPerHost’, gerenciando o número e o estado das conexões para otimizar o uso de recursos e melhorar a escalabilidade. |
+| ***DisableKeepAlives**   | Determina se deve usar conexões persistentes, melhorando o desempenho reduzindo os tempos de configuração da conexão. |
+| ***Suporte HTTP/2**   | Habilita HTTP/2 para servidores suportados, melhorando a eficiência e o desempenho da comunicação. |
+
+Esta configuração garante um ótimo desempenho e personalização de segurança, tornando-o adequado para ambientes de desenvolvimento e produção.
+
+
+#### 🔹 Configuração avançada de cliente HTTP com mecanismo de failover
+
+Este exemplo de código mostra a configuração de um cliente HTTP capaz de lidar com interrupções de rede e falhas do servidor com facilidade. Possui configurações de transporte personalizadas, incluindo configurações de segurança aprimoradas, gerenciamento de conexão e um mecanismo robusto de failover. Tal configuração garante que o aplicativo permanece resiliente e responsivo sob várias condições de rede. 
+
+```go
+package main
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	
+	customTransport := &http.Transport{
+		// Utiliza as configurações de proxy do sistema, se disponíveis.
+		Proxy: http.ProxyFromEnvironment, 
+		TLSClientConfig: &tls.Config{
+			// Permite conexões TLS inseguras (não recomendado para produção).
+			InsecureSkipVerify: true,    
+			// Impõe uma versão mínima de TLS para segurança.         
+			MinVersion:         tls.VersionTLS12, 
+		},
+		// Número máximo de conexões ociosas em todos os hosts.
+		MaxIdleConns:        50,  
+		// Número máximo de conexões simultâneas por host. 
+		MaxConnsPerHost:     30, 
+		// Número máximo de conexões ociosas por host.   
+		MaxIdleConnsPerHost: 10, 
+		// Habilita conexões persistentes (Keep-Alive).   
+		DisableKeepAlives:   false, 
+	}
+
+	// Criando um *http.Client totalmente personalizado 
+	// com as configurações de transporte e timeout.
+	customHTTPClient := &http.Client{
+		// Define um timeout global para todas as solicitações.
+		Timeout: 5 * time.Second,
+	}
+
+	// Criando um cliente usando tanto o transporte personalizado quanto outras configurações.
+	cClient := client.New(
+		// Aplicando o cliente HTTP personalizado.
+		client.WithCustomHTTPClient(customHTTPClient), 
+		// Contexto personalizado para cancelamento de solicitações e prazos.
+		client.WithContext(context.Background()),      
+		client.WithHeaders(map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": "Bearer YOUR_ACCESS_TOKEN",
+		}),
+		// Aplicando o transporte personalizado.
+		client.WithTransport(customTransport), 
+		// Definindo um timeout para as solicitações.
+		client.WithTimeout(5*time.Second),     
+		// Retentativa em códigos de status específicos.
+		client.WithRetry(
+			client.RetryConfig{
+				MaxRetries:   2,
+				Delay:        1 * time.Second,
+				UseBackoff:   true,
+				Statuses:     []int{500},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				EnableLog:    true,
+			}),
+	)
+
+	// Chamada ao cliente para fazer um POST
+	resp, err := cClient.Post("http://localhost:3000/v1/user", map[string]string{"message": "Hello Post!!"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Mostra a resposta
+	fmt.Println("Resposta POST:\n", string(resp.Body))
+}
+
+
+```
+---
+##### 🔹 Cliente HTTP com recursos avançados de transporte e failover
+
+Explore como configurar um cliente HTTP que não apenas adere às melhores práticas de segurança com configurações de TLS, mas também garante que seu aplicativo permaneça operacional através de problemas de rede. Este exemplo inclui configurações detalhadas para lidar com tentativas de cliente HTTP e mudar para URLs de failover quando solicitações típicas falharem. Ideal para sistemas que exigem alta confiabilidade e tolerância a falhas. 
+
+```go
+package main
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+
+	// Criando um transporte HTTP personalizado com configurações avançadas.
+	customTransport := &http.Transport{
+		// Utiliza as configurações de proxy do sistema, se disponíveis.
+		Proxy: http.ProxyFromEnvironment, 
+		TLSClientConfig: &tls.Config{
+			// Permite conexões TLS inseguras (não recomendado para produção).
+			InsecureSkipVerify: true,      
+			// Impõe uma versão mínima de TLS para segurança.      
+			MinVersion: tls.VersionTLS12, 
+		},
+		// Número máximo de conexões ociosas em todos os hosts.
+		MaxIdleConns: 50, 
+		// Número máximo de conexões simultâneas por host.   
+		MaxConnsPerHost: 30,   
+		// Número máximo de conexões ociosas por host.
+		MaxIdleConnsPerHost: 10,  
+		// Habilita conexões persistentes (Keep-Alive).
+		DisableKeepAlives: false, 
+	}
+
+	// Criando um *http.Client totalmente personalizado com as configurações de transporte e timeout.
+	customHTTPClient := &http.Client{
+		// Define um timeout global para todas as requisições.
+		Timeout: 5 * time.Second,
+		// Utiliza o transporte personalizado.
+		Transport: customTransport, 
+	}
+
+	// Criando um cliente usando tanto o transporte personalizado quanto outras configurações.
+	cClient := client.New(
+		// Aplicando o cliente HTTP personalizado.
+		client.WithCustomHTTPClient(customHTTPClient), 
+		// Contexto personalizado para cancelamento de requisições e deadlines.
+		client.WithContext(context.Background()),     
+		client.WithHeaders(map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": "Bearer YOUR_ACCESS_TOKEN",
+		}),
+		// Definindo um timeout para as requisições.
+		client.WithTimeout(5*time.Second), 
+		// Retentativa em códigos de status específicos.
+		client.WithRetry(
+			client.RetryConfig{
+				MaxRetries: 2,
+				Delay: 1 * time.Second,
+				UseBackoff: true,
+				Statuses: []int{500},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				EnableLog: true,
+			}),
+	)
+
+	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{"name": "jeffotoni"})
+	if err != nil {
+		log.Fatalf("Falha na requisição POST: %v", err)
+	}
+
+	// Mostra a resposta
+	fmt.Println("Resposta POST:", string(resp.Body))
+}
+
+```
+---
+#### 🔹Configurando o cliente HTTP com mecanismos de repetição e failover
+
+Descubra como criar um cliente HTTP capaz de lidar com instabilidades de rede e falhas do servidor. Esta configuração inclui configurações detalhadas de repetição e introduz URLs de failover para garantir que seu aplicativo possa manter a comunicação sob condições adversas. O exemplo demonstra o uso de backoff exponencial para retentativas e fornece vários endpoints para garantir a disponibilidade dos serviços.  
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Cria um novo cliente HTTP com configurações específicas.
+	cClient := client.New(
+		// Define um timeout de 10 segundos para todas as requisições feitas por este cliente.
+		// Isso ajuda a prevenir que o cliente fique pendurado indefinidamente nas requisições.
+		client.WithTimeout(10*time.Second),
+
+		// Define cabeçalhos padrão para todas as requisições feitas por este cliente.
+		// Aqui, 'Content-Type' é configurado para 'application/json',
+		// o que é típico para chamadas de API.
+		client.WithHeaders(map[string]string{
+			"Content-Type": "application/json",
+		}),
+
+		// Habilita um mecanismo automático de tentativas com configurações específicas.
+		// Isso é útil para lidar com erros intermitentes e garantir robustez.
+		client.WithRetry(
+			client.RetryConfig{
+				// Tenta novamente as requisições falhas até duas vezes.
+				MaxRetries: 2,
+				// Espera 1 segundo antes de tentar novamente.
+				Delay:      1 * time.Second,
+				// Utiliza estratégia de backoff exponencial para as tentativas.
+				UseBackoff: true,
+				// Códigos de status HTTP que disparam uma nova tentativa.
+				Statuses:   []int{500, 502, 503},
+				// URLs alternativas para tentar se a requisição principal falhar.
+				FailoverURLs: []string{
+					"http://hosterror",
+					"https://httpbin.org/post",
+				},
+				// Habilita o registro de logs para operações de tentativa.
+				EnableLog: true,
+			}),
+	)
+
+	// Realiza uma requisição POST usando o cliente HTTP configurado.
+	// Inclui um payload JSON com uma chave "name".
+	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{
+		"name": "jeffotoni in action with Quick!!!",
+	})
+
+	// Verifica se houve algum erro na requisição POST.
+	if err != nil {
+		// Se ocorrer um erro, registra o erro e termina o programa.
+		log.Fatalf("Falha na requisição POST: %v", err)
+	}
+
+	// Imprime a resposta do servidor no console.
+	fmt.Println("Resposta do Formulário POST:", string(resp.Body))
+}
+
+
+```
+---
+### 🔹Configuração avançada do cliente HTTP com configurações de transporte e repetição
+
+Explore a configuração de um cliente HTTP projetado para alta confiabilidade e segurança em comunicações de rede. Este exemplo inclui configurações de transporte sofisticadas, com configurações TLS para segurança aprimorada e um mecanismo robusto de retentativa para lidar com falhas de solicitação de forma ágil. Essas configurações são essenciais para aplicativos que exigem troca de dados confiável com APIs externas, especialmente em ambientes onde a estabilidade da rede pode ser uma preocupação. 
+
+```go
+package main
+
+import (
+	"crypto/tls"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Crie um cliente HTTP com configurações personalizadas usando o framework Quick.
+	cClient := client.New(
+		// Define um timeout global para todas as requisições feitas por este cliente para 10 segundos.
+		// Isso ajuda a prevenir que o cliente fique pendurado indefinidamente em requisições.
+		client.WithTimeout(10*time.Second),
+
+		// Define cabeçalhos padrão para todas as requisições feitas por este cliente.
+		// Aqui, especificamos que esperamos enviar e receber dados em JSON.
+		client.WithHeaders(map[string]string{"Content-Type": "application/json"}),
+
+		// Configura o transporte subjacente para o cliente HTTP.
+		client.WithTransportConfig(&http.Transport{
+			// Usa as configurações de proxy do ambiente do sistema.
+			Proxy: http.ProxyFromEnvironment,
+
+			// Configura as definições de TLS para ignorar a verificação da cadeia de certificados
+			// e do hostname do servidor.
+			// Aviso: Configurar InsecureSkipVerify como true não é recomendado para
+			// produção, pois é inseguro.
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+
+			// Habilita HTTP/2 para servidores que suportam.
+			ForceAttemptHTTP2: true,
+
+			// Define o número máximo de conexões inativas no pool de conexões para todos os hosts.
+			MaxIdleConns: 20,
+
+			// Define o número máximo de conexões inativas no pool de conexões por host.
+			MaxIdleConnsPerHost: 10,
+
+			// Define o número máximo de conexões simultâneas por host.
+			MaxConnsPerHost: 20,
+
+			// Mantém as conexões vivas entre as requisições. Isso pode ajudar a melhorar o desempenho.
+			DisableKeepAlives: false,
+		}),
+	)
+
+	// Realiza uma requisição POST com um payload JSON.
+	// O payload inclui um único campo "name" com um valor.
+	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{"name": "jeffotoni"})
+	if err != nil {
+		// Registra o erro e para o programa se a requisição POST falhar.
+		log.Fatalf("Falha na requisição POST: %v", err)
+	}
+
+	// Exibe a resposta da requisição POST.
+	fmt.Println("Resposta do Formulário POST:", string(resp.Body))
+}
+
+```
 
 ---
 
