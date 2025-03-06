@@ -54,7 +54,11 @@ func main() {
 			Delay:      1 * time.Second,           // Delay between attempts.
 			UseBackoff: true,                      // Use exponential backoff.
 			Statuses:   []int{500, 502, 503, 504}, // HTTP statuses for retry.
-			EnableLog:  true,                      // Enable logger.
+			FailoverURLs: []string{
+				"http://backup1",
+				"https://httpbin_error.org/post",
+				"http://hosterror"},
+			EnableLog: true, // Enable logger.
 		}),
 	)
 

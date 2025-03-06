@@ -36,7 +36,11 @@ func main() {
 				Delay:      1 * time.Second,
 				UseBackoff: true,
 				Statuses:   []int{500},
-				EnableLog:  true,
+				FailoverURLs: []string{
+					"http://backup1",
+					"https://httpbin_error.org/post",
+					"http://hosterror"},
+				EnableLog: true,
 			}),
 
 		// Retry quick
