@@ -14,6 +14,10 @@ import (
 
 func main() {
 
+	// This example makes a POST request to a server at http://localhost:3000/v1/user.
+	// For the code to work completely, a server needs to be running on this URL.
+	// If the server is not running, you can still see the retry logs in the terminal.
+
 	// Creating a custom HTTP transport with advanced settings.
 	customTransport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment, // Uses system proxy settings if available.
