@@ -248,8 +248,11 @@ func TestLogging(t *testing.T) {
 	logOutput := logBuffer.String()
 	fmt.Println("Captured log:", logOutput) // Depuração
 
-	if !strings.Contains(logOutput, "Retrying RoundTrip request") {
-		t.Errorf("Expected retry log not found. Log output: %s", logOutput)
+	if !strings.Contains(logOutput, "Retrying request") ||
+		!strings.Contains(logOutput, "url=") ||
+		!strings.Contains(logOutput, "method=") ||
+		!strings.Contains(logOutput, "attempt=") {
+		t.Errorf("Expected retry log not found or incomplete. Log output: %s", logOutput)
 	}
 }
 
@@ -594,4 +597,77 @@ func FuzzClientRetry(f *testing.F) {
 			}
 		}
 	})
+}
+func TestCustomHTTPClientWithRetry(t *testing.T) {
+	var requestCount int
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		w.WriteHeader(http.StatusInternalServerError) // Simulating error 500
+	}))
+	defer ts.Close()
+
+	// Creating a custom HTTP client with short timeout for quick testing
+	customClient := &http.Client{
+		Timeout: 1 * time.Second,
+	}
+
+	client := New(
+		WithCustomHTTPClient(customClient), // Use a custom client
+		WithRetry(RetryConfig{
+			MaxRetries: 3,
+			Delay:      50 * time.Millisecond,
+			Statuses:   []int{http.StatusInternalServerError}, // Retry at 500
+			EnableLog:  true,
+		}),
+	)
+
+	_, err := client.Get(ts.URL)
+
+	if err == nil {
+		t.Errorf("Expected error but got nil")
+	}
+
+	// Check if you tried at least 4 times (1 original + 3 retries)
+	if requestCount != 4 {
+		t.Errorf("Expected 4 requests, got %d", requestCount)
+	}
+}
+func TestFailoverURLs(t *testing.T) {
+	failCount := 0
+	failoverTS := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK) // status code 200
+		_, _ = w.Write([]byte(`{"success": true}`))
+	}))
+	defer failoverTS.Close()
+
+	mainTS := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		failCount++
+		if failCount <= 2 { // Simulates failure in the first 2 attempts
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mainTS.Close()
+
+	client := New(
+		WithRetry(RetryConfig{
+			MaxRetries:   3,
+			Delay:        50 * time.Millisecond,
+			Statuses:     []int{http.StatusServiceUnavailable},
+			FailoverURLs: []string{failoverTS.URL}, // alternate URL
+			EnableLog:    true,
+		}),
+	)
+
+	resp, err := client.Get(mainTS.URL)
+
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	// status code 200
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", resp.StatusCode)
+	}
 }
