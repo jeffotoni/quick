@@ -26,7 +26,6 @@ func main() {
 	// - WithTLSConfig: Configures TLS settings, including InsecureSkipVerify and TLS version.
 	// - WithRetry: Enables automatic retries for specific HTTP status codes (500, 502, 503, 504)
 	//   with exponential backoff (2s-bex) and a maximum of 3 attempts.
-
 	cClient := client.New(
 		client.WithTimeout(5*time.Second),
 		client.WithDisableKeepAlives(false),
