@@ -20,11 +20,11 @@ This will start the API server on http://localhost:3000, making it ready to rece
 |--------------------------|---------|
 | 🌍 **RESTful Requests**  | Supports GET, POST, PUT, DELETE, and more. |
 | ⚡ **Easy JSON Handling** | Automatically marshals and unmarshals JSON data. |
+| 📝 **Form Data Support**  | Easily send application/x-www-form-urlencoded requests with PostForm. |
 | 🔧 **Custom Headers**    | Allows setting custom request headers. |
 | ⏳ **Timeout Support**   | Configurable request timeouts for reliability. |
 | 🔄 **TLS Configuration** | Enables custom TLS settings for security. |
 | 🔀 **Failover Mechanism** | Automatically switch to backup URLs if the primary server fails. |
-| 🔧 **Custom Headers**    | Allows setting custom request headers. |
 | 🔐 **Secure TLS Support** | Customizable TLS settings for enhanced security. |
 | ⏳ **Timeout Support**   | Prevents hanging requests by setting timeouts. |
 | 🏎 **High Performance**  | Optimized HTTP client with keep-alive and connection pooling. |
@@ -36,12 +36,14 @@ This will start the API server on http://localhost:3000, making it ready to rece
 | ----------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | `func Get(url string) (*ClientResponse, error)`                                           | Global GET request using the default client           |
 | `func Post(url string, body any) (*ClientResponse, error)`                                | Global POST request with flexible body input          |
+| `func PostForm(url string, formData url.Values) (*ClientResponse, error)`                 | Global POST request sending form-data (URL-encoded)  |
 | `func Put(url string, body any) (*ClientResponse, error)`                                 | Global PUT request with flexible body input           |
 | `func Delete(url string) (*ClientResponse, error)`                                        | Global DELETE request using the default client        |
 | `func (c *Client) Get(url string) (*ClientResponse, error)`                               | GET request using a custom client instance            |
-| `func (c *Client) Post(url string, body any) (*ClientResponse, error)`                      | POST request using a custom client instance           |
-| `func (c *Client) Put(url string, body any) (*ClientResponse, error)`                       | PUT request using a custom client instance            |
-| `func (c *Client) Delete(url string) (*ClientResponse, error)`                              | DELETE request using a custom client instance         |
+| `func (c *Client) Post(url string, body any) (*ClientResponse, error)`                    | POST request using a custom client instance           |
+| `func (c *Client) PostForm(url string, formData url.Values) (*ClientResponse, error)`     | POST request sending form-data (URL-encoded) with a custom client |
+| `func (c *Client) Put(url string, body any) (*ClientResponse, error)`                     | PUT request using a custom client instance            |
+| `func (c *Client) Delete(url string) (*ClientResponse, error)`                            | DELETE request using a custom client instance         |
 | `func New(opts ...Option) *Client`                                                  | Creates a new Client with optional custom configurations|
 | `func WithContext(ctx context.Context) Option`                                            | Option to set a custom context for the client         |
 | `func WithHeaders(headers map[string]string) Option`                                      | Option to set custom headers                          |
@@ -876,6 +878,82 @@ func main() {
 }
 
 ```
+---
+##### 🔹 **Quick Server with Form Submission**
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/url"
+	"time"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	q := quick.New()
+
+	// Define a route to process POST form-data
+	q.Post("/postform", func(c *quick.Ctx) error {
+		form := c.FormValues()
+		return c.JSON(map[string]any{
+			"message": "Received form data",
+			"data":    form,
+		})
+	})
+
+	// Start the server in a separate goroutine
+	go func() {
+		fmt.Println("Quick server running at http://localhost:3000")
+		if err := q.Listen(":3000"); err != nil {
+			log.Fatalf("Failed to start Quick server: %v", err)
+		}
+	}()
+
+	// Creating an HTTP client before calling PostForm
+	cClient := client.New(
+		client.WithTimeout(5*time.Second), // Define um timeout de 5s
+		client.WithHeaders(map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded", // Correct type for forms
+		}),
+	)
+
+	// Check if the HTTP client was initialized correctly
+	if cClient == nil {
+		log.Fatal("Erro: cliente HTTP não foi inicializado corretamente")
+	}
+
+	// Declare Values
+	formData := url.Values{}
+	formData.Set("username", "quick_user")
+	formData.Set("password", "supersecret")
+
+	// Send a POST request
+	resp, err := cClient.PostForm("http://localhost:3000/postform", formData)
+	if err != nil {
+		log.Fatalf("PostForm request with retry failed: %v", err)
+	}
+
+	// Check if the response is valid
+	if resp == nil || resp.Body == nil {
+		log.Fatal("Erro: resposta vazia ou inválida")
+	}
+
+	// Unmarshal the JSON response (if applicable)
+	var result map[string]any
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("POST response:", result)
+}
+
+```
+
+
 ---
 ### 📌 Testing with cURL
 

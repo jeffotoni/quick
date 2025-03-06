@@ -1212,6 +1212,104 @@ func main() {
 }
 
 ```
+---
+## 📝 Envio de formulário com PostForm no cliente HTTP Quick
+
+O Quick HTTP Client agora inclui suporte embutido para `PostForm`, permitindo o manuseio perfeito de envios de formulários codificados por aplicação/formulário `x-www-urlencoded`. Esse recurso simplifica a interação com serviços da web e APIs que exigem dados codificados por formulário, tornando-o ideal para solicitações de autenticação, envio de dados e integrações de sistemas legados.
+
+
+## 🔹Por que usar `PostForm`? 
+
+| Característica   | Benefício |
+|------------------------|---------|
+| **Otimizado para formulários** | Simplifica o envio de dados codificados por formulário ('application/x-www-form-urlencoded’). |
+| **Automatic Encoding**  | Converte `url. Values` em uma carga útil válida de envio de formulário. |
+| **Header Management**   | Define automaticamente o tipo de conteúdo para aplicação/x-www-form-urlencoded.
+| **Consistente API**   | Segue o mesmo design que `Post`, ‘Get’, ‘Put’, etc. |
+| **Melhor compatibilidade** | Funciona com APIs que não aceitam cargas JSON. |
+
+---
+## 🔹 Como funciona o PostForm
+
+O método PostForm codifica parâmetros de formulário, adiciona cabeçalhos necessários e envia uma solicitação HTTP POST para a URL especificada. Ele é projetado especificamente para APIs e serviços web que não aceitam cargas de JSON, mas exigem dados codificados por formulário.
+
+
+### 🔹 **Servidor rápido com envio de formulário**
+O exemplo a seguir demonstra como enviar dados codificados por formulário usando Quick PostForm:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/url"
+	"time"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	q := quick.New()
+
+	// Definir uma rota para processar POST form-data
+	q.Post("/postform", func(c *quick.Ctx) error {
+		form := c.FormValues()
+		return c.JSON(map[string]any{
+			"message": "Received form data",
+			"data":    form,
+		})
+	})
+
+	// Inicie o servidor em uma goroutine separada
+	go func() {
+		fmt.Println("Quick server running at http://localhost:3000")
+		if err := q.Listen(":3000"); err != nil {
+			log.Fatalf("Failed to start Quick server: %v", err)
+		}
+	}()
+
+	// Criando um cliente HTTP antes de chamar o PostForm
+	cClient := client.New(
+		client.WithTimeout(5*time.Second), // Define um timeout de 5s
+		client.WithHeaders(map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded", // Tipo correto para forms
+		}),
+	)
+
+	// Verificar se o cliente HTTP foi inicializado corretamente
+	if cClient == nil {
+		log.Fatal("Erro: cliente HTTP não foi inicializado corretamente")
+	}
+
+	// Declare valores
+	formData := url.Values{}
+	formData.Set("username", "quick_user")
+	formData.Set("password", "supersecret")
+
+	// Enviar uma requisição POST
+	resp, err := cClient.PostForm("http://localhost:3000/postform", formData)
+	if err != nil {
+		log.Fatalf("PostForm request with retry failed: %v", err)
+	}
+
+	// Verifique se a resposta é válida
+	if resp == nil || resp.Body == nil {
+		log.Fatal("Erro: resposta vazia ou inválida")
+	}
+
+	// Unmarshal a resposta JSON (se aplicável)
+	var result map[string]any
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("POST response:", result)
+}
+
+```
+
 
 ---
 

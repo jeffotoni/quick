@@ -915,7 +915,7 @@ func main() {
 
 ```
 ---
-### 🌍 HTTP Client 
+## 🌍 HTTP Client 
 The HTTP Client package in Quick provides a simple and flexible way to make HTTP requests, supporting GET, POST, PUT, and DELETE operations. It is designed to handle different types of request bodies and parse responses easily.
 
 This client abstracts low-level HTTP handling and offers:
@@ -1116,8 +1116,10 @@ func TestQTest_Options_POST(t *testing.T) {
     }
 }
 ```
+🚀 **More details here [Qtest - Quick](https://github.com/jeffotoni/quick/tree/main/quickTest)**
+
 ---
-# 🔄 Retry & Failover Mechanisms in Quick HTTP Client
+## 🔄 Retry & Failover Mechanisms in Quick HTTP Client
 
 The **Quick HTTP Client** now includes **built-in retry and failover support**, allowing for more resilient and reliable HTTP requests. These features are essential for handling **transient failures**, **network instability**, and **service downtime** efficiently.
 
@@ -1211,10 +1213,103 @@ func main() {
 }
 
 ```
+---
+## 📝 Form Submission with PostForm in Quick HTTP Client
+
+The Quick HTTP Client now includes built-in support for `PostForm`, enabling seamless handling of application/`x-www-form-urlencoded` form submissions. This feature simplifies interaction with web services and APIs that require form-encoded data, making it ideal for authentication requests, data submissions, and legacy system integrations.
+
+
+## 🔹 Why Use `PostForm`?
+
+| Feature                | Benefit |
+|------------------------|---------|
+| **Optimized for Forms** | Simplifies sending form-encoded data (`application/x-www-form-urlencoded`). |
+| **Automatic Encoding**  | Converts `url.Values` into a valid form submission payload. |
+| **Header Management**   | Automatically sets `Content-Type` to `application/x-www-form-urlencoded`. |
+| **Consistent API**      | Follows the same design as `Post`, `Get`, `Put`, etc. |
+| **Better Compatibility** | Works with APIs that do not accept JSON payloads. |
 
 ---
+## 🔹 How PostForm Works
 
-🚀 **More details here [Qtest - Quick](https://github.com/jeffotoni/quick/tree/main/quickTest)**
+The PostForm method encodes form parameters, adds necessary headers, and sends an HTTP POST request to the specified URL. It is specifically designed for APIs and web services that do not accept JSON payloads but require form-encoded data.
+
+
+### 🔹 **Quick Server with Form Submission**
+The following example demonstrates how to send form-encoded data using Quick PostForm:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/url"
+	"time"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	q := quick.New()
+
+	// Define a route to process POST form-data
+	q.Post("/postform", func(c *quick.Ctx) error {
+		form := c.FormValues()
+		return c.JSON(map[string]any{
+			"message": "Received form data",
+			"data":    form,
+		})
+	})
+
+	// Start the server in a separate goroutine
+	go func() {
+		fmt.Println("Quick server running at http://localhost:3000")
+		if err := q.Listen(":3000"); err != nil {
+			log.Fatalf("Failed to start Quick server: %v", err)
+		}
+	}()
+
+	// Creating an HTTP client before calling PostForm
+	cClient := client.New(
+		client.WithTimeout(5*time.Second), // Define um timeout de 5s
+		client.WithHeaders(map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded", // Correct type for forms
+		}),
+	)
+
+	// Check if the HTTP client was initialized correctly
+	if cClient == nil {
+		log.Fatal("Erro: cliente HTTP não foi inicializado corretamente")
+	}
+
+	// Declare Values
+	formData := url.Values{}
+	formData.Set("username", "quick_user")
+	formData.Set("password", "supersecret")
+
+	// Send a POST request
+	resp, err := cClient.PostForm("http://localhost:3000/postform", formData)
+	if err != nil {
+		log.Fatalf("PostForm request with retry failed: %v", err)
+	}
+
+	// Check if the response is valid
+	if resp == nil || resp.Body == nil {
+		log.Fatal("Erro: resposta vazia ou inválida")
+	}
+
+	// Unmarshal the JSON response (if applicable)
+	var result map[string]any
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("POST response:", result)
+}
+
+```
 
 ---
 
