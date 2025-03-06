@@ -279,6 +279,7 @@ func parseBody(body any) (io.Reader, error) {
 	default:
 		data, err := json.Marshal(v)
 		if err != nil {
+			fmt.Println("estou aqui.... ")
 			return nil, err
 		}
 		return bytes.NewReader(data), nil

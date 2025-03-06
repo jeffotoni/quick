@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -45,23 +44,20 @@ func main() {
 		// Retry on specific status codes.
 		client.WithRetry(
 			client.RetryConfig{
-				MaxRetries: 2,
-				Delay:      1 * time.Second,
-				UseBackoff: true,
-				Statuses:   []int{500},
-				EnableLog:  true,
+				MaxRetries:   2,
+				Delay:        1 * time.Second,
+				UseBackoff:   true,
+				Statuses:     []int{500},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				EnableLog:    true,
 			}),
 	)
 
-	resp, err := cClient.Post("http://localhost:3000/v1/user", map[string]string{"name": "jeffotoni"})
+	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{"name": "jeffotoni"})
 	if err != nil {
 		log.Fatalf("POST request failed: %v", err)
 	}
 
-	// Unmarshal the JSON response (if applicable)
-	var result map[string]string
-	if err := json.Unmarshal(resp.Body, &result); err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("POST response:", result["message"])
+	// show resp
+	fmt.Println("POST response:", string(resp.Body))
 }

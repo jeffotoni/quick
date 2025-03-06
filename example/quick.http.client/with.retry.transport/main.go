@@ -25,7 +25,7 @@ func main() {
 		}),
 	)
 
-	resp, err := cClient.Post("http://localhost:3000/v1/user", map[string]string{"name": "jeffotoni"})
+	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{"name": "jeffotoni"})
 	if err != nil {
 		log.Fatalf("POST request failed: %v", err)
 	}
