@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,8 +16,8 @@ func main() {
 	// This example makes a POST request to a server at http://localhost:3000/v1/user.
 	// For the code to work completely, a server needs to be running on this URL.
 	// If the server is not running, you can still see the retry logs in the terminal.
-
 	// Creating a custom HTTP transport with advanced settings.
+	// FailoverURLs being used
 	customTransport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment, // Uses system proxy settings if available.
 		TLSClientConfig: &tls.Config{
@@ -49,30 +48,21 @@ func main() {
 		// Retry on specific status codes.
 		client.WithRetry(
 			client.RetryConfig{
-				MaxRetries: 2,
-				Delay:      1 * time.Second,
-				UseBackoff: true,
-				Statuses:   []int{500},
-				EnableLog:  true,
+				MaxRetries:   2,
+				Delay:        1 * time.Second,
+				UseBackoff:   true,
+				Statuses:     []int{500},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				EnableLog:    true,
 			}),
 	)
 
-	// Define a struct to send as JSON
-	data := struct {
-		Message string `json:"message"`
-	}{
-		Message: "Hello, POST!",
-	}
-
-	resp, err := cClient.Post("http://localhost:3000/v1/user", data)
+	// call client to POST
+	resp, err := cClient.Post("http://localhost:3000/v1/user", map[string]string{"message": "Hello Post!!"})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Unmarshal the JSON response (if applicable)
-	var result map[string]string
-	if err := json.Unmarshal(resp.Body, &result); err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("POST response:", result["message"])
+	// show resp
+	fmt.Println("POST response:\n", string(resp.Body))
 }
