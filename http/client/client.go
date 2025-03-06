@@ -290,10 +290,12 @@ func parseBody(body any) (io.Reader, error) {
 func WithRetry(cfg RetryConfig) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
+
 			var logger *slog.Logger
 			if c.Logger != nil && cfg.EnableLog {
 				logger = c.Logger
 			}
+
 			if httpClient.Transport == nil {
 				httpClient.Transport = http.DefaultTransport
 			}
@@ -405,6 +407,9 @@ func WithTransport(transport http.RoundTripper) Option {
 // WithCustomHTTPClient replaces the default HTTP client with a fully custom one.
 func WithCustomHTTPClient(client *http.Client) Option {
 	return func(c *Client) {
+		if client.Transport == nil {
+			client.Transport = http.DefaultTransport
+		}
 		c.ClientHTTP = client
 	}
 }
@@ -443,7 +448,8 @@ func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	var err error
 	var body []byte
-	urls := append([]string{req.URL.String()}, rt.FailoverURLs...)
+
+	urls := append([]string{req.URL.String()}, rt.FailoverURLs...) // Include original URL
 
 	if req.Body != nil {
 		body, err = io.ReadAll(req.Body)
@@ -454,36 +460,36 @@ func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	for attempt := 0; attempt <= rt.MaxRetries; attempt++ {
-		for i, u := range urls {
-			parsedURL, err := url.Parse(u)
-			if err != nil {
-				continue
-			}
+		index := attempt % len(urls) // Alterna entre URLs conforme o número da tentativa
+		u := urls[index]
 
-			req.URL = parsedURL
-			if body != nil {
-				req.Body = io.NopCloser(bytes.NewReader(body))
-			}
-
-			resp, err = rt.Base.RoundTrip(req)
-			if rt.shouldRetry(resp, err) {
-				if rt.EnableLogger && rt.Logger != nil {
-					rt.Logger.Warn("Retrying RoundTrip request",
-						slog.String("url", u),
-						slog.String("method", req.Method),
-						slog.Int("attempt", attempt+1),
-						slog.Int("failover", i+1),
-					)
-				}
-
-				if resp != nil {
-					resp.Body.Close()
-				}
-				rt.sleep(attempt)
-				continue
-			}
-			return resp, err
+		parsedURL, err := url.Parse(u)
+		if err != nil {
+			continue
 		}
+
+		req.URL = parsedURL
+		if body != nil {
+			req.Body = io.NopCloser(bytes.NewReader(body))
+		}
+
+		resp, err = rt.Base.RoundTrip(req)
+		if rt.shouldRetry(resp, err) {
+			if rt.EnableLogger && rt.Logger != nil {
+				rt.Logger.Warn("Retrying request",
+					slog.String("url", u),
+					slog.String("method", req.Method),
+					slog.Int("attempt", attempt+1),
+					slog.Int("failover", index+1),
+				)
+			}
+			if resp != nil {
+				resp.Body.Close()
+			}
+			rt.sleep(attempt)
+			continue
+		}
+		return resp, err
 	}
 	return resp, fmt.Errorf("max retries exceeded: %w", err)
 }
