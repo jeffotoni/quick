@@ -373,14 +373,15 @@ func ExampleNew_withRetry() {
 	defer ts.Close()
 
 	// Initialize a client with retry logic enabled.
-	client := New(WithRetry(RetryConfig{
-		MaxRetries:   3,                                                                   // Allow up to 3 retry attempts.
-		Delay:        500 * time.Millisecond,                                              // Base delay before retrying.
-		UseBackoff:   true,                                                                // Use exponential backoff for retries.
-		Statuses:     []int{http.StatusInternalServerError},                               // Retry on HTTP 500 errors.
-		FailoverURLs: []string{"https://reqres.in/api/users", "https://httpbin.org/post"}, // Failover URLs.
-		EnableLog:    false,                                                               // Disable logging for this example.
-	}))
+	client := New(
+		WithRetry(RetryConfig{
+			MaxRetries:   3,                                                                   // Allow up to 3 retry attempts.
+			Delay:        500 * time.Millisecond,                                              // Base delay before retrying.
+			UseBackoff:   true,                                                                // Use exponential backoff for retries.
+			Statuses:     []int{http.StatusInternalServerError},                               // Retry on HTTP 500 errors.
+			FailoverURLs: []string{"https://reqres.in/api/users", "https://httpbin.org/post"}, // Failover URLs.
+			EnableLog:    false,                                                               // Disable logging for this example.
+		}))
 
 	// Perform a GET request to the test server.
 	resp, err := client.Get(ts.URL)
