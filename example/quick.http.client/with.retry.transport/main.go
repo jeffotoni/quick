@@ -11,24 +11,50 @@ import (
 )
 
 func main() {
+	// Create an HTTP client with custom configurations using the Quick framework.
 	cClient := client.New(
+		// Set a global timeout for all requests made by this client to 10 seconds.
+		// This helps prevent the client from hanging indefinitely on requests.
 		client.WithTimeout(10*time.Second),
+
+		// Set default headers for all requests made by this client.
+		// Here, we specify that we expect to send and receive JSON data.
 		client.WithHeaders(map[string]string{"Content-Type": "application/json"}),
+
+		// Configure the underlying transport for the HTTP client.
 		client.WithTransportConfig(&http.Transport{
-			Proxy:               http.ProxyFromEnvironment,
-			TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
-			ForceAttemptHTTP2:   true,
-			MaxIdleConns:        20,
+			// Use the system environment settings for proxy configuration.
+			Proxy: http.ProxyFromEnvironment,
+
+			// Configure TLS settings to skip verification of the server's certificate chain and hostname.
+			// Warning: Setting InsecureSkipVerify to true is not recommended for production as it is insecure.
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+
+			// Enable HTTP/2 for supported servers.
+			ForceAttemptHTTP2: true,
+
+			// Set the maximum number of idle connections in the connection pool for all hosts.
+			MaxIdleConns: 20,
+
+			// Set the maximum number of idle connections in the connection pool per host.
 			MaxIdleConnsPerHost: 10,
-			MaxConnsPerHost:     20,
-			DisableKeepAlives:   false,
+
+			// Set the maximum number of simultaneous connections per host.
+			MaxConnsPerHost: 20,
+
+			// Keep connections alive between requests. This can help improve performance.
+			DisableKeepAlives: false,
 		}),
 	)
 
+	// Perform a POST request with a JSON payload.
+	// The payload includes a single field "name" with a value.
 	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{"name": "jeffotoni"})
 	if err != nil {
+		// Log the error and stop the program if the POST request fails.
 		log.Fatalf("POST request failed: %v", err)
 	}
 
+	// Output the response from the POST request.
 	fmt.Println("POST Form Response:", string(resp.Body))
 }
