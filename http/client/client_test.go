@@ -598,6 +598,9 @@ func FuzzClientRetry(f *testing.F) {
 		}
 	})
 }
+
+// checks whether a custom client can use retry correctly.
+// The result will TestCustomHTTPClientWithRetry(t *testing.T)
 func TestCustomHTTPClientWithRetry(t *testing.T) {
 	var requestCount int
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -632,6 +635,9 @@ func TestCustomHTTPClientWithRetry(t *testing.T) {
 		t.Errorf("Expected 4 requests, got %d", requestCount)
 	}
 }
+
+// We ensure that if one host fails, the client uses the next available one.
+// The result will TestFailoverURLs(t *testing.T)
 func TestFailoverURLs(t *testing.T) {
 	failCount := 0
 	failoverTS := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
