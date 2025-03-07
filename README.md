@@ -577,28 +577,86 @@ func TestQuickExample(t *testing.T) {
 }
 
 ```
+---
+## 🔎📝 Regex
 
-### quick.regex
+### quick.regex - Accepts only numbers in id
 ```go
-
 package main
 
 import (
-    "github.com/jeffotoni/quick"
-    "github.com/jeffotoni/quick/middleware/msgid"
+	"github.com/jeffotoni/quick"
 )
 
 func main() {
-    q := quick.New()
+	q := quick.New()
 
-    q.Use(msgid.New())
+	// Route that accepts only numeric IDs (using regex [0-9]+)
+	q.Get("/users/{id:[0-9]+}", func(c *quick.Ctx) error {
+		id := c.Param("id")
+		return c.JSON(map[string]string{
+			"message": "User found",
+			"user_id": id,
+		})
+	})
 
-    q.Get("/v1/user/{id:[0-9]+}", func(c *quick.Ctx) error {
-        c.Set("Content-Type", "application/json")
-        return c.Status(200).String("Quick ação total!!!")
-    })
+	// Start the server on port 8080
+	q.Listen(":8080")
+}
+```
 
-    q.Listen("0.0.0.0:8080")
+### quick.regex - Accepts only lowercase letters in the slug 
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// Route that accepts only lowercase slugs (words with lowercase letters)
+		q.Get("/profile/{slug:[a-z]+}", func(c *quick.Ctx) error {
+		slug := c.Param("slug")
+		return c.JSON(map[string]string{
+			"message": "Profile found",
+			"profile": slug,
+		})
+	})
+
+	// Start the server on port 8080
+	q.Listen(":8080")
+}
+
+```
+
+### quick.regex - Supports API version and numeric Id
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// Route that accepts an API version (v1, v2, etc.) and a numeric user ID
+	q.Get("/api/{version:v[0-9]+}/users/{id:[0-9]+}", func(c *quick.Ctx) error {
+		version := c.Param("version")
+		id := c.Param("id")
+		return c.JSON(map[string]string{
+			"message": "API Versioned User",
+			"version": version,
+			"user_id": id,
+		})
+	})
+
+	// Start the server on port 8080
+	q.Listen(":8080")
 }
 
 ```
@@ -1631,8 +1689,6 @@ func main() {
 }
 
 ```
-
-
 ---
 
 ## 📚| More Examples
