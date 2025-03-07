@@ -1,19 +1,13 @@
-// Package quick provides a robust and efficient HTTP framework with built-in support
-// for file uploads, multipart form data parsing, and request handling.
-//
-// This file contains implementations for handling file uploads.
-
 package quick
 
 import (
 	"errors"
+	"github.com/jeffotoni/quick/internal/concat"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/jeffotoni/quick/internal/concat"
 )
 
 // form multipart/formdata

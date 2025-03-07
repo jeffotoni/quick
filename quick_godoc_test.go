@@ -12,12 +12,11 @@
 package quick
 
 import (
+	"github.com/jeffotoni/quick/middleware/cors"
 	"net/http"
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/jeffotoni/quick/middleware/cors"
 )
 
 // TestExamplePath verifies that a PATCH route returns the expected response
@@ -424,6 +423,8 @@ func TestGetRoute(t *testing.T) {
 //
 //	$ go test -v -run ^TestQuick_ExampleListen
 func TestQuick_ExampleListen(t *testing.T) {
+
+	// start Quick
 	q := New()
 
 	// Define a simple GET route
@@ -431,27 +432,25 @@ func TestQuick_ExampleListen(t *testing.T) {
 		return c.Status(200).String("Hello, Quick!")
 	})
 
-	// Start the server in a separate goroutine
-	go func() {
-		err := q.Listen(":8089")
-		if err != nil {
-			t.Errorf("Server failed to start: %v", err)
-		}
-	}()
+	// Start the server using ListenWithShutdown on a dynamic port
+	server, shutdown, err := q.ListenWithShutdown(":0")
+	if err != nil {
+		t.Fatalf("Failed to start server: %v", err)
+	}
+	defer shutdown()
 
-	// Allow the server time to start
+	// Wait for the server to start correctly
 	time.Sleep(500 * time.Millisecond)
 
-	// Make a request to check if the server is running
-	resp, err := http.Get("http://localhost:8089/")
+	// Make an HTTP request using the returned dynamic port
+	resp, err := http.Get("http://" + server.Addr + "/")
 	if err != nil {
 		t.Fatalf("Failed to connect to server: %v", err)
 	}
-
 	defer resp.Body.Close()
 
-	// Check if the status code is correct
-	if resp.StatusCode != 200 {
+	// Checks if the returned status is correct
+	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200, but got %d", resp.StatusCode)
 	}
 }

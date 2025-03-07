@@ -11,6 +11,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -398,4 +400,463 @@ func TestQuick_UploadFileReset(t *testing.T) {
 	if rec.Body.String() != "Upload successful" {
 		t.Errorf("Error: Unexpected response from server, received: %s", rec.Body.String())
 	}
+}
+
+// TestFormFileLimit verifies that the FormFileLimit function correctly  processes file sizes.
+func TestFormFileLimit(t *testing.T) {
+
+	// We create a dummy context for the test
+	c := &Ctx{}
+
+	t.Run("Valid limit - 10MB", func(t *testing.T) {
+		err := c.FormFileLimit("10MB")
+		if err != nil {
+			t.Errorf("Unexpected error for 10MB: %v", err)
+		}
+		if c.uploadFileSize != 10*1024*1024 {
+			t.Errorf("Expected 10MB (%d bytes), but got %d bytes", 10*1024*1024, c.uploadFileSize)
+		}
+	})
+
+	t.Run("Valid limit - 2GB", func(t *testing.T) {
+		err := c.FormFileLimit("2GB")
+		if err != nil {
+			t.Errorf("Unexpected error for 2GB: %v", err)
+		}
+		if c.uploadFileSize != 2*1024*1024*1024 {
+			t.Errorf("Expected 2GB (%d bytes), but got %d bytes", 2*1024*1024*1024, c.uploadFileSize)
+		}
+	})
+
+	t.Run("Invalid format - Text without numbers", func(t *testing.T) {
+		err := c.FormFileLimit("abc")
+		if err == nil {
+			t.Errorf("Expected error for invalid input, but no error occurred")
+		}
+	})
+
+	t.Run("Invalid format - Unknown drive", func(t *testing.T) {
+		err := c.FormFileLimit("10XY")
+		if err == nil {
+			t.Errorf("Expected error for unknown drive, but no error occurred")
+		}
+	})
+
+	t.Run("Invalid format - Negative number", func(t *testing.T) {
+		err := c.FormFileLimit("-5MB")
+		if err == nil {
+			t.Errorf("Expected error for negative number, but no error occurred")
+		}
+	})
+}
+
+func TestFormFile_Cover(t *testing.T) {
+	t.Run("Error calling FormFiles", func(t *testing.T) {
+		// Create a fake context that simulates an error in FormFiles
+		c := &Ctx{
+			Request: nil, // Simulates an internal error
+		}
+
+		_, err := c.FormFile("file")
+		if err == nil {
+			t.Errorf("Expected error calling FormFiles, but no error occurred")
+		}
+	})
+	t.Run("No file uploaded", func(t *testing.T) {
+		// We create a valid request without files
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		writer.Close() // Closes the writer without adding files
+
+		req := httptest.NewRequest(http.MethodPost, "/upload", body)
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+
+		c := &Ctx{Request: req}
+
+		_, err := c.FormFile("file")
+		if err == nil || err.Error() != "no files found in the request" { // Updating the expected message
+			t.Errorf("Expected error 'no files found in the request', but got: %v", err)
+		}
+	})
+
+	t.Run("File uploaded successfully", func(t *testing.T) {
+		// We create a valid request with a simulated file
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+
+		part, err := writer.CreateFormFile("file", "testfile.txt")
+		if err != nil {
+			t.Fatalf("Error creating form file: %v", err)
+		}
+		part.Write([]byte("Hello, Quick!"))
+		writer.Close()
+
+		req := httptest.NewRequest(http.MethodPost, "/upload", body)
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+
+		c := &Ctx{Request: req}
+
+		file, err := c.FormFile("file")
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		if file.Multipart.Filename != "testfile.txt" {
+			t.Errorf("Expected 'testfile.txt', but got '%s'", file.Multipart.Filename)
+		}
+	})
+
+	t.Run("Valid multipart form", func(t *testing.T) {
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+
+		// Add a form field
+		_ = writer.WriteField("name", "Quick")
+
+		// Add a file to the form
+		part, err := writer.CreateFormFile("file", "test.txt")
+		if err != nil {
+			t.Fatalf("Error creating file in form: %v", err)
+		}
+		part.Write([]byte("Hello, Quick!"))
+		writer.Close()
+
+		req := httptest.NewRequest(http.MethodPost, "/upload", body)
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+
+		c := &Ctx{Request: req, uploadFileSize: 10 * 1024 * 1024}
+
+		form, err := c.MultipartForm()
+		if err != nil {
+			t.Fatalf("Unexpected error getting MultipartForm: %v", err)
+		}
+
+		if form == nil {
+			t.Fatal("Expected MultipartForm, but got nil")
+		}
+
+		if form.Value["name"][0] != "Quick" {
+			t.Errorf("Expected 'Quick', but got '%s'", form.Value["name"][0])
+		}
+
+		if len(form.File["file"]) == 0 {
+			t.Errorf("Expected a file in the form, but none was found")
+		}
+	})
+
+	t.Run("Error processing MultipartForm", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/upload", nil) // No body
+
+		c := &Ctx{Request: req, uploadFileSize: 10 * 1024 * 1024}
+
+		_, err := c.MultipartForm()
+		if err == nil {
+			t.Fatal("Expected an error processing MultipartForm, but none occurred")
+		}
+	})
+
+	t.Run("Retrieve value from a form field", func(t *testing.T) {
+		data := "username=jeffotoni"
+		req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBufferString(data))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		c := &Ctx{Request: req}
+
+		value := c.FormValue("username")
+		if value != "jeffotoni" {
+			t.Errorf("Expected 'jeffotoni', but got '%s'", value)
+		}
+	})
+
+	t.Run("Returns empty string if field does not exist", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/login", nil)
+		c := &Ctx{Request: req}
+
+		value := c.FormValue("password")
+		if value != "" {
+			t.Errorf("Expected empty value, but got '%s'", value)
+		}
+	})
+
+	t.Run("Retrieves all form values", func(t *testing.T) {
+		data := "field1=value1&field2=value2"
+		req := httptest.NewRequest(http.MethodPost, "/form", bytes.NewBufferString(data))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		c := &Ctx{Request: req}
+
+		values := c.FormValues()
+		if len(values) != 2 {
+			t.Errorf("Expected 2 values, but got %d", len(values))
+		}
+
+		if values["field1"][0] != "value1" {
+			t.Errorf("Expected 'value1', but got '%s'", values["field1"][0])
+		}
+
+		if values["field2"][0] != "value2" {
+			t.Errorf("Expected 'value2', but got '%s'", values["field2"][0])
+		}
+	})
+
+	t.Run("Returns empty map if there is no data in the form", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/form", nil)
+		c := &Ctx{Request: req}
+
+		values := c.FormValues()
+		if len(values) != 0 {
+			t.Errorf("Expected empty map, but got %d values", len(values))
+		}
+	})
+}
+
+func TestUploadedFileMethods(t *testing.T) {
+	mockFile := &UploadedFile{
+		Info: FileInfo{
+			Filename:    "testfile.txt",
+			Size:        1024,
+			ContentType: "text/plain",
+			Bytes:       []byte("Hello, Quick!"),
+		},
+	}
+
+	t.Run("FileName returns the correct name", func(t *testing.T) {
+		if mockFile.FileName() != "testfile.txt" {
+			t.Errorf("Expected 'testfile.txt', but got '%s'", mockFile.FileName())
+		}
+	})
+
+	t.Run("Size returns the correct size", func(t *testing.T) {
+		if mockFile.Size() != 1024 {
+			t.Errorf("Expected 1024 bytes, but got %d", mockFile.Size())
+		}
+	})
+
+	t.Run("ContentType returns the correct MIME type", func(t *testing.T) {
+		if mockFile.ContentType() != "text/plain" {
+			t.Errorf("Expected 'text/plain' but got '%s'", mockFile.ContentType())
+		}
+	})
+
+	t.Run("Bytes returns the correct bytes", func(t *testing.T) {
+		expectedBytes := []byte("Hello, Quick!")
+		if !bytes.Equal(mockFile.Bytes(), expectedBytes) {
+			t.Errorf("The bytes returned do not match what is expected")
+		}
+	})
+}
+
+func TestUploadedFileSave(t *testing.T) {
+	t.Run("Save saves the file correctly", func(t *testing.T) {
+		mockFile := &UploadedFile{
+			Info: FileInfo{
+				Filename: "testfile.txt",
+				Bytes:    []byte("Hello, Quick!"),
+			},
+		}
+
+		destination := t.TempDir() // Creating a temporary directory to save the file
+		err := mockFile.Save(destination)
+		if err != nil {
+			t.Fatalf("Unexpected error saving file: %v", err)
+		}
+
+		// Check if the file was saved correctly
+		savedFilePath := filepath.Join(destination, "testfile.txt")
+		savedData, err := os.ReadFile(savedFilePath)
+		if err != nil {
+			t.Fatalf("Error reading saved file: %v", err)
+		}
+
+		if !bytes.Equal(savedData, mockFile.Bytes()) {
+			t.Errorf("The saved file data does not match what is expected")
+		}
+	})
+
+	t.Run("Save failed to save an empty file", func(t *testing.T) {
+		mockFile := &UploadedFile{
+			Info: FileInfo{
+				Filename: "emptyfile.txt",
+				Bytes:    []byte{}, // Empty file
+			},
+		}
+
+		destination := t.TempDir()
+		err := mockFile.Save(destination)
+		if err == nil || err.Error() != "no file available to save" {
+			t.Errorf("Expected error 'no file available to save', but got: %v", err)
+		}
+	})
+
+	t.Run("Save failed when creating invalid target directory", func(t *testing.T) {
+		mockFile := &UploadedFile{
+			Info: FileInfo{
+				Filename: "testfile.txt",
+				Bytes:    []byte("Hello, Quick!"),
+			},
+		}
+
+		invalidDestination := "/invalid/path"
+		err := mockFile.Save(invalidDestination)
+		if err == nil || err.Error() != "failed to create destination directory" {
+			t.Errorf("Expected error 'failed to create destination directory', but got: %v", err)
+		}
+	})
+}
+
+func TestSaveAll(t *testing.T) {
+	t.Run("SaveAll saves multiple files correctly", func(t *testing.T) {
+		mockFiles := []*UploadedFile{
+			{
+				Info: FileInfo{
+					Filename: "file1.txt",
+					Bytes:    []byte("File 1 content"),
+				},
+			},
+			{
+				Info: FileInfo{
+					Filename: "file2.txt",
+					Bytes:    []byte("File 2 content"),
+				},
+			},
+		}
+
+		destination := t.TempDir()
+		err := SaveAll(mockFiles, destination)
+		if err != nil {
+			t.Fatalf("Unexpected error saving multiple files: %v", err)
+		}
+
+		// Check if the files were saved correctly
+		for _, file := range mockFiles {
+			savedFilePath := filepath.Join(destination, file.FileName())
+			savedData, err := os.ReadFile(savedFilePath)
+			if err != nil {
+				t.Fatalf("Error reading saved file: %v", err)
+			}
+
+			if !bytes.Equal(savedData, file.Bytes()) {
+				t.Errorf("The data in the saved file '%s' does not match what is expected", file.FileName())
+			}
+		}
+	})
+
+	t.Run("SaveAll fails if one of the files cannot be saved", func(t *testing.T) {
+		mockFiles := []*UploadedFile{
+			{
+				Info: FileInfo{
+					Filename: "file1.txt",
+					Bytes:    []byte("File 1 content"),
+				},
+			},
+			{
+				Info: FileInfo{
+					Filename: "emptyfile.txt",
+					Bytes:    []byte{}, // Empty file that will cause an error
+				},
+			},
+		}
+
+		destination := t.TempDir()
+		err := SaveAll(mockFiles, destination)
+		if err == nil || err.Error() != "no file available to save" {
+			t.Errorf("Expected error 'no file available to save', but got: %v", err)
+		}
+	})
+}
+
+func TestUploadedFileSaveAdditionalCoverage(t *testing.T) {
+	t.Run("Save with custom filename", func(t *testing.T) {
+		mockFile := &UploadedFile{
+			Info: FileInfo{
+				Filename: "default.txt",
+				Bytes:    []byte("Hello, Quick!"),
+			},
+		}
+
+		destination := t.TempDir()
+		customFileName := "custom_name.txt"
+		err := mockFile.Save(destination, customFileName)
+		if err != nil {
+			t.Fatalf("Unexpected error saving file with custom name: %v", err)
+		}
+
+		// Check if file was saved with custom name
+		savedFilePath := filepath.Join(destination, customFileName)
+		if _, err := os.Stat(savedFilePath); os.IsNotExist(err) {
+			t.Errorf("Expected file '%s' to be created, but it does not exist", savedFilePath)
+		}
+	})
+
+	t.Run("Save fails when os.Create fails", func(t *testing.T) {
+		mockFile := &UploadedFile{
+			Info: FileInfo{
+				Filename: "testfile.txt",
+				Bytes:    []byte("Hello, Quick!"),
+			},
+		}
+
+		invalidDestination := "/invalid/path"
+		err := mockFile.Save(invalidDestination)
+
+		if err == nil {
+			t.Fatalf("Expected an error, but got none")
+		}
+
+		expectedErrors := []string{
+			"failed to create file on disk",
+			"failed to create destination directory",
+		}
+
+		isValidError := false
+		for _, expected := range expectedErrors {
+			if err.Error() == expected {
+				isValidError = true
+				break
+			}
+		}
+
+		if !isValidError {
+			t.Errorf("Expected error to be one of %v, but got: %v", expectedErrors, err)
+		}
+	})
+
+	t.Run("Save fails when writing file content fails", func(t *testing.T) {
+		mockFile := &UploadedFile{
+			Info: FileInfo{
+				Filename: "testfile.txt",
+				Bytes:    []byte("Hello, Quick!"),
+			},
+		}
+
+		// Simulate an invalid file path by making a directory with the same name
+		destination := t.TempDir()
+		invalidFilePath := filepath.Join(destination, "testfile.txt")
+		err := os.Mkdir(invalidFilePath, os.ModePerm) // Create a directory with file name
+		if err != nil {
+			t.Fatalf("Failed to create directory for test: %v", err)
+		}
+
+		err = mockFile.Save(destination)
+		if err == nil || err.Error() != "failed to create file on disk" {
+			t.Errorf("Expected error 'failed to create file on disk', but got: %v", err)
+		}
+	})
+}
+func TestFormFileLimitErrors(t *testing.T) {
+	c := &Ctx{}
+
+	t.Run("Invalid size number", func(t *testing.T) {
+		err := c.FormFileLimit("MB") // Missing number before unit
+		if err == nil || err.Error() != "invalid size format" {
+			t.Errorf("Expected 'invalid size format' error, but got: %v", err)
+		}
+	})
+
+	t.Run("Unknown size unit", func(t *testing.T) {
+		err := c.FormFileLimit("10XY") // Unknown unit
+		if err == nil || err.Error() != "invalid size format" {
+			t.Errorf("Expected 'invalid size format' error, but got: %v", err)
+		}
+	})
 }
