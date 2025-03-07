@@ -346,9 +346,11 @@ func (c *Ctx) MultipartForm() (*multipart.Form, error) {
 // FormValue retrieves a form value by key.
 // It automatically calls ParseForm() before accessing the value.
 func (c *Ctx) FormValue(key string) string {
-	// Ensure form data is parsed before accessing it
-	if c.Request.Form == nil {
-		_ = c.Request.ParseForm() // Ignore error silently
+	// Checks if the Content-Type is multipart
+	if c.Request.Header.Get("Content-Type") == "multipart/form-data" {
+		_ = c.Request.ParseMultipartForm(c.uploadFileSize) // Force correct processing
+	} else {
+		_ = c.Request.ParseForm() // For application/x-www-form-urlencoded
 	}
 	return c.Request.FormValue(key)
 }
@@ -356,9 +358,11 @@ func (c *Ctx) FormValue(key string) string {
 // FormValues returns all form values as a map.
 // It automatically calls ParseForm() before accessing the values.
 func (c *Ctx) FormValues() map[string][]string {
-	// Ensure form data is parsed before accessing it
-	if c.Request.Form == nil {
-		_ = c.Request.ParseForm() // Ignore error silently
+	// Checks if the Content-Type is multipart
+	if c.Request.Header.Get("Content-Type") == "multipart/form-data" {
+		_ = c.Request.ParseMultipartForm(c.uploadFileSize) // Required to process multipart
+	} else {
+		_ = c.Request.ParseForm() // Processes application/x-www-form-urlencoded
 	}
 	return c.Request.Form
 }
