@@ -2,6 +2,7 @@ package quick
 
 import (
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"io"
 	"net"
@@ -572,4 +573,45 @@ func TestRegisterRoute_WithRegexParamPanic(t *testing.T) {
 	if w.Body.String() != "Hello Quick!" {
 		t.Errorf("Expected response body 'hello Quick!', got '%s'", w.Body.String())
 	}
+}
+
+// I used the command below to generate the keys
+// openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
+func TestListenTLS(t *testing.T) {
+	q := New()
+
+	// Define a simple handler for the root "/"
+	q.Get("/", func(c *Ctx) error {
+		return c.Status(200).String("OK")
+	})
+
+	go func() {
+		err := q.ListenTLS(":8443", "cert.pem", "key.pem")
+		if err != nil {
+			t.Errorf("error starting TLS server: %v", err)
+		}
+	}()
+
+	// Short timeout to make sure the server is up
+	time.Sleep(500 * time.Millisecond)
+
+	// Create an HTTP client to test the TLS connection
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // Skip SSL verification
+		},
+	}
+
+	resp, err := client.Get("https://localhost:8443/")
+	if err != nil {
+		t.Fatalf("failed to connect to TLS server: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode)
+	}
+
+	// Shut down the server at the end of the test
+	_ = q.Shutdown()
 }

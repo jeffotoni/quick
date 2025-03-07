@@ -100,6 +100,7 @@ type Quick struct {
 	CorsSet       func(http.Handler) http.Handler
 	CorsOptions   map[string]string
 	embedFS       embed.FS
+	server        *http.Server
 }
 
 // GetDefaultConfig Function is responsible for returning a default configuration that is pre-defined for the system
@@ -678,4 +679,48 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 
 	// Bloqueia indefinidamente
 	select {}
+}
+
+// ListenTLS starts an HTTPS server with TLS support
+func (q *Quick) ListenTLS(addr, certFile, keyFile string, handler ...http.Handler) error {
+	if q.config.MoreRequests > 0 {
+		debug.SetGCPercent(q.config.MoreRequests)
+	}
+
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	q.server = q.httpServer(listener.Addr().String(), handler...) // 🔧 Stores the server in the struct Quick
+
+	shutdownFunc := func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if q.server != nil {
+			q.server.Shutdown(ctx)
+		}
+		listener.Close()
+	}
+
+	// Start the server TLS in a goroutine
+	go func() {
+		if err := q.server.ServeTLS(listener, certFile, keyFile); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	// Block indefinitely until shutdown
+	defer shutdownFunc()
+	select {}
+}
+
+func (q *Quick) Shutdown() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if q.server != nil {
+		return q.server.Shutdown(ctx)
+	}
+	return nil
 }
