@@ -1634,6 +1634,87 @@ func main() {
 }
 
 ```
+---
+## 🔎📝 Regex
+
+### quick.regex -  Aceita apenas números em id
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// Rota que aceita apenas IDs numéricos (usando regex [0-9]+)
+	q.Get("/users/{id:[0-9]+}", func(c *quick.Ctx) error {
+		id := c.Param("id")
+		return c.JSON(map[string]string{
+			"message": "User found",
+			"user_id": id,
+		})
+	})
+
+	// Iniciar o servidor na porta 8080
+	q.Listen(":8080")
+}
+```
+
+### quick.regex - Aceita apenas letras minúsculas
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// Rota que aceita apenas letras minúsculas (palavras com letras minúsculas)
+		q.Get("/profile/{slug:[a-z]+}", func(c *quick.Ctx) error {
+		slug := c.Param("slug")
+		return c.JSON(map[string]string{
+			"message": "Profile found",
+			"profile": slug,
+		})
+	})
+
+	// Iniciar o servidor na porta 8080
+	q.Listen(":8080")
+}
+
+```
+
+### quick.regex - Suporta versão API e ID numérico
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// Rota que aceita uma versão da API (v1, v2, etc.) e um ID de usuário numérico
+	q.Get("/api/{version:v[0-9]+}/users/{id:[0-9]+}", func(c *quick.Ctx) error {
+		version := c.Param("version")
+		id := c.Param("id")
+		return c.JSON(map[string]string{
+			"message": "API Versioned User",
+			"version": version,
+			"user_id": id,
+		})
+	})
+
+	// Iniciar o servidor na porta 8080
+	q.Listen(":8080")
+}
 
 ---
 
