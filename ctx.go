@@ -242,6 +242,19 @@ func (c *Ctx) FormFile(fieldName string) (*UploadedFile, error) {
 	return files[0], nil // Return the first file if multiple are uploaded
 }
 
+// fileWrapper, which wraps a bytes.Reader and adds the Close() method,
+// allowing it to be treated as an io.ReadCloser.
+// We ensure that the file can be read multiple times without losing data.
+// fileWrapper supports multipart.File.
+type fileWrapper struct {
+	*bytes.Reader
+}
+
+// There is nothing to close as we are reading from memory
+func (fw *fileWrapper) Close() error {
+	return nil
+}
+
 // FormFiles processes an uploaded file and returns its details.
 // The result will FormFiles(fieldName string) (*UploadedFile, error)
 func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
@@ -297,12 +310,17 @@ func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
 			return nil, errors.New("failed to read file into buffer")
 		}
 
+		// reset  multipart.File
+		// Create a reusable copy of the file
+		// that implements multipart.File correctly
+		fileCopy := &fileWrapper{bytes.NewReader(buf.Bytes())}
+
 		// Detect content type
 		contentType := http.DetectContentType(buf.Bytes())
 
 		// Append file details
 		uploadedFiles = append(uploadedFiles, &UploadedFile{
-			File:      file,
+			File:      fileCopy,
 			Multipart: handler,
 			Info: FileInfo{
 				Filename:    handler.Filename,
