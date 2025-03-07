@@ -1318,11 +1318,11 @@ A configuração de transporte no Quick HTTP Client é essencial para gerenciar 
 
 | Configuração   | Descrição |
 |--------------------------|-------------|
-| ***Proxy Settings**   | Gerencia como solicitações HTTP lidam com servidores proxy, usando as configurações do ambiente de sistema para configuração automática. |
-| ***TLS Configuration**   | Controla aspectos de segurança, como versão do TLS e verificação de certificados. `InsecureSkipVerify está disponível para desenvolvimento para ignorar a verificação de certificados SSL. |
-| ***Connection Management**| Inclui configurações como `MaxIdleConns’, 'MaxConnsPerHost’, e `MaxIdleConnsPerHost’, gerenciando o número e o estado das conexões para otimizar o uso de recursos e melhorar a escalabilidade. |
-| ***DisableKeepAlives**   | Determina se deve usar conexões persistentes, melhorando o desempenho reduzindo os tempos de configuração da conexão. |
-| ***Suporte HTTP/2**   | Habilita HTTP/2 para servidores suportados, melhorando a eficiência e o desempenho da comunicação. |
+| **Proxy Settings**   | Gerencia como solicitações HTTP lidam com servidores proxy, usando as configurações do ambiente de sistema para configuração automática. |
+| **TLS Configuration**   | Controla aspectos de segurança, como versão do TLS e verificação de certificados. `InsecureSkipVerify está disponível para desenvolvimento para ignorar a verificação de certificados SSL. |
+| **Connection Management**| Inclui configurações como `MaxIdleConns’, 'MaxConnsPerHost’, e `MaxIdleConnsPerHost’, gerenciando o número e o estado das conexões para otimizar o uso de recursos e melhorar a escalabilidade. |
+| **DisableKeepAlives**   | Determina se deve usar conexões persistentes, melhorando o desempenho reduzindo os tempos de configuração da conexão. |
+| **Suporte HTTP/2**   | Habilita HTTP/2 para servidores suportados, melhorando a eficiência e o desempenho da comunicação. |
 
 Esta configuração garante um ótimo desempenho e personalização de segurança, tornando-o adequado para ambientes de desenvolvimento e produção.
 
@@ -1715,6 +1715,63 @@ func main() {
 	// Iniciar o servidor na porta 8080
 	q.Listen(":8080")
 }
+```
+---
+## 📌 TLS
+
+`TLS (Transport Layer Security) `é um protocolo criptográfico que fornece **comunicação segura** através de uma rede. É amplamente utilizado para criptografar dados transmitidos entre clientes e servidores, garantindo **confidencialidade, integridade e autenticação**. TLS é o sucessor do SSL (Secure Sockets Layer) e é usado em HTTPS, segurança de e-mail e muitas outras aplicações.
+
+### 🔹 Recursos de TLS
+
+| Característica   | Descrição |
+|------------------|-------------|
+| 🔐 **Encriptação** | Protege os dados de serem interceptados durante a transmissão. |
+| 🔑 **Autenticação** | Garante que o servidor (e opcionalmente o cliente) é legítimo. |
+| 🔄 **Integridade dos dados** | Impede que os dados sejam modificados ou adulterados em trânsito. |
+| 🚀 **Performance** | As versões modernas de TLS (1.2, 1.3) fornecem uma segurança forte com sobrecarga mínima. |
+
+### 🔹 Executando um servidor HTTPS seguro com Quick e TLS
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	// Inicializa instancia Quick
+	q := quick.New()
+
+	// Imprimi uma mensagem indicando que o servidor está começando na porta 8443
+	fmt.Println("Run Server port:8443")
+
+	// Inicie o servidor HTTPS com criptografia TLS
+	// - O servidor escutará na porta 8443 (porta não privilegiada)
+	// - cert.pem: arquivo de certificado SSL/TLS
+	// - key.pem: arquivo de chave privada para criptografia SSL/TLS
+	err := q.ListenTLS(":8443", "cert.pem", "key.pem")
+	if err != nil {
+		// Registrar uma mensagem de erro se o servidor falhar ao iniciar
+		fmt.Printf("Error when trying to connect with TLS: %v\n", err)
+	}
+}
+```
+### ⚠️ **Nota sobre portas e permissões**
+Este exemplo **usa a porta 8443** para que seja executada em
+**qualquer sistema operacional sem exigir permissões adicionais**.
+
+No entanto, na produção, você pode querer usar o **standard HTTPS port 443**.
+
+- **Porta 443** (padrão para HTTPS) é uma porta **privilegiada** (abaixo de 1024).
+- Em **Linux**, a execução de um serviço na porta 443 requer **privilégios de superusuário**.
+
+Para executar em **porta 443** no Linux, use:
+
+```bash
+$ sudo go run main.go
+```
 
 ---
 

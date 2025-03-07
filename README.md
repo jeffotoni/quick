@@ -668,7 +668,6 @@ Basic Authentication (Basic Auth) is a simple authentication mechanism defined i
   1.	The client encodes the username and password in Base64 (username:password → dXNlcm5hbWU6cGFzc3dvcmQ=).
   2.	The encoded credentials are sent in the Authorization header:
 ```bash
-
 Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
 ```
   3.	The server decodes the credentials and verifies them before granting access.
@@ -1688,6 +1687,63 @@ func main() {
 	fmt.Println("POST Form Response:", string(resp.Body))
 }
 
+```
+---
+## 📌 TLS
+
+`TLS (Transport Layer Security)` is a cryptographic protocol that provides **secure communication** over a network. It is widely used to encrypt data transmitted between clients and servers, ensuring **confidentiality, integrity, and authentication**. TLS is the successor to SSL (Secure Sockets Layer) and is used in HTTPS, email security, and many other applications.
+
+### 🔹 TLS Features
+
+| Feature           | Description |
+|------------------|-------------|
+| 🔐 **Encryption** | Protects data from being intercepted during transmission. |
+| 🔑 **Authentication** | Ensures the server (and optionally the client) is legitimate. |
+| 🔄 **Data Integrity** | Prevents data from being modified or tampered with in transit. |
+| 🚀 **Performance** | Modern TLS versions (1.2, 1.3) provide strong security with minimal overhead. |
+---
+
+### 🔹 Running a Secure HTTPS Server with Quick and TLS
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	// Initialize Quick instance
+	q := quick.New()
+
+	// Print a message indicating that the server is starting on port 8443
+	fmt.Println("Run Server port:8443")
+
+	// Start the HTTPS server with TLS encryption
+	// - The server will listen on port 8443 (non-privileged port)
+	// - cert.pem: SSL/TLS certificate file
+	// - key.pem: Private key file for SSL/TLS encryption
+	err := q.ListenTLS(":8443", "cert.pem", "key.pem")
+	if err != nil {
+		// Log an error message if the server fails to start
+		fmt.Printf("Error when trying to connect with TLS: %v\n", err)
+	}
+}
+```
+
+### ⚠️ **Note on Ports and Permissions**
+This example **uses port 8443** so that it runs on **any operating system without requiring extra permissions**.
+
+However, in production, you may want to use the **standard HTTPS port 443**.
+
+- **Port 443** (default for HTTPS) is a **privileged port** (below 1024).
+- On **Linux**, running a service on port 443 requires **superuser privileges**.
+
+To run on **port 443** on Linux, use:
+
+```bash
+$ sudo go run main.go
 ```
 ---
 

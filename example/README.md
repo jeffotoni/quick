@@ -44,6 +44,7 @@ Here are some examples that demonstrate how to use **Quick** for managing routes
 | [`quick.put/`](quick.put/) | Example of updating data via PUT.   |
 | [`quick.regex/`](quick.regex/) | Use of Regular Expressions for dynamic routes.   |
 | [`quick.start/`](quick.start/) | Quick Start Guide.   |
+| [`quick.listen.tls/`](quick.listen.tls/) | Quick TLS.   |
 
 ---
 
