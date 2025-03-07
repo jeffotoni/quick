@@ -147,10 +147,25 @@ func (q *Quick) Use(mw any, nf ...string) {
 	q.mws2 = append(q.mws2, mw)
 }
 
+func clearRegex(route string) string {
+	// Here you transform "/v1/user/{id:[0-9]+}"
+	// into something simple, like "/v1/user/_id_"
+	// You can get more sophisticated if you want
+	var re = regexp.MustCompile(`\{[^/]+\}`)
+	return re.ReplaceAllStringFunc(route, func(s string) string {
+		// s is "{id:[0-9]+}"
+		// Let's just replace it with "_id_"
+		// or any string that doesn't contain ":" or "{ }"
+		return "_" + strings.Trim(s, "{}") + "_"
+		//return "_" + strings.ReplaceAll(strings.ReplaceAll(strings.Trim(s, "{}"), ":", "_"), "[", "_") + "_"
+	})
+}
+
 // registerRoute is a helper function to centralize route registration logic.
 func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 	path, params, patternExist := extractParamsPattern(pattern)
-	formattedPath := concat.String(strings.ToLower(method)+"#", pattern)
+	// formattedPath := concat.String(strings.ToLower(method)+"#", pattern)
+	formattedPath := strings.ToLower(method) + "#" + clearRegex(pattern)
 	route := Route{
 		Pattern: patternExist,
 		Path:    path,
@@ -546,7 +561,7 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 			builder.WriteString(seg)
 		}
 	}
-	
+
 	//if "/"+reqURI != builder.String() {
 	//	return nil, false
 	//}
