@@ -11,6 +11,13 @@ import (
 	"github.com/jeffotoni/quick/http/client"
 )
 
+// Example of creating an HTTP client using a fluent and modular approach.
+// This allows fine-grained control over HTTP settings without requiring a full config struct.
+//
+// - WithContext: Injects a context for the client (context.TODO() used as placeholder).
+// - WithHeaders: Adds custom headers (e.g., User-Agent: QuickClient/1.0).
+// - WithRetry: Enables automatic retries for specific HTTP status codes (500, 502, 503, 504)
+// - WithCustomHTTPClient: Uses a pre-configured http.Client with custom settings.
 func main() {
 	// Creating a CookieJar to manage cookies automatically.
 	jar, _ := cookiejar.New(nil)
