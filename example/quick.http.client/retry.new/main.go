@@ -11,15 +11,12 @@ import (
 func main() {
 	cC := client.New(
 		client.WithRetry(client.RetryConfig{
-			MaxRetries: 3,
-			Delay:      1 * time.Second,
-			UseBackoff: false,
-			Statuses:   []int{502, 503, 504, 403},
-			FailoverURLs: []string{
-				"http://backup1",
-				"https://httpbin_error.org/post",
-				"http://hosterror"},
-			EnableLog: true,
+			MaxRetries:   3,
+			Delay:        1 * time.Second,
+			UseBackoff:   false,
+			Statuses:     []int{502, 503, 504, 403},
+			FailoverURLs: []string{"http://backup1", "https://reqres.in/api/users", "https://httpbin_error.org/post"},
+			EnableLog:    true,
 		}),
 		client.WithHeaders(map[string]string{
 			"Authorization": "Bearer token",

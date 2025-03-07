@@ -1160,7 +1160,7 @@ func main() {
 				Delay:        1 * time.Second,
 				UseBackoff:   true,
 				Statuses:     []int{500},
-				FailoverURLs: []string{"http://hosterror", "https://httpbin_error.org/post"},
+				FailoverURLs: []string{"https://httpbin_error.org/post", "https://httpbin.org/post"},
 				EnableLog:    true,
 			}),
 	)

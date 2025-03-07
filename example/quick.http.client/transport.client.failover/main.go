@@ -48,15 +48,12 @@ func main() {
 		// Retry on specific status codes.
 		client.WithRetry(
 			client.RetryConfig{
-				MaxRetries: 2,
-				Delay:      1 * time.Second,
-				UseBackoff: true,
-				Statuses:   []int{500},
-				FailoverURLs: []string{
-					"http://backup1",
-					"https://httpbin_error.org/post",
-					"http://hosterror"},
-				EnableLog: true,
+				MaxRetries:   2,
+				Delay:        1 * time.Second,
+				UseBackoff:   true,
+				Statuses:     []int{500},
+				FailoverURLs: []string{"https://httpbin_error.org/post", "https://httpbin.org/post"},
+				EnableLog:    true,
 			}),
 	)
 

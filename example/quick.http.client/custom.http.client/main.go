@@ -50,15 +50,12 @@ func main() {
 		}),
 		// Enables retry for specific HTTP status codes using the new RetryConfig.
 		client.WithRetry(client.RetryConfig{
-			MaxRetries: 3,                         // Maximum number of retries.
-			Delay:      1 * time.Second,           // Delay between attempts.
-			UseBackoff: true,                      // Use exponential backoff.
-			Statuses:   []int{500, 502, 503, 504}, // HTTP statuses for retry.
-			FailoverURLs: []string{
-				"http://backup1",
-				"https://httpbin_error.org/post",
-				"http://hosterror"},
-			EnableLog: true, // Enable logger.
+			MaxRetries:   3,                         // Maximum number of retries.
+			Delay:        1 * time.Second,           // Delay between attempts.
+			UseBackoff:   true,                      // Use exponential backoff.
+			Statuses:     []int{500, 502, 503, 504}, // HTTP statuses for retry.
+			FailoverURLs: []string{"https://httpbin_error.org/post", "https://httpbin.org/post"},
+			EnableLog:    true, // Enable logger.
 		}),
 	)
 
