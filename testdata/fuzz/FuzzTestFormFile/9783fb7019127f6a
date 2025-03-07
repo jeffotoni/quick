@@ -1,3 +1,0 @@
-go test fuzz v1
-string("\x02")
-string("2")
