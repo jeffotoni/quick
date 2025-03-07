@@ -11,6 +11,14 @@ import (
 	"github.com/jeffotoni/quick/http/client"
 )
 
+// Example of creating an HTTP client using a fluent and modular approach.
+// This allows fine-grained control over HTTP settings without requiring a full config struct.
+//
+//   - WithTimeout: Sets the HTTP client timeout to 30 seconds.
+//   - WithContext: Injects a context for the client (context.TODO() used as placeholder).
+//   - WithHeaders: Adds custom headers (e.g., Content-Type: application/json).
+//   - WithRetry: Enables automatic retries for specific HTTP status codes (500, 502, 503, 504)
+//   - WithCustomHTTPClient: Uses a pre-configured http.Client with custom settings.
 func main() {
 
 	// Creating a custom HTTP transport with advanced settings.
@@ -53,7 +61,7 @@ func main() {
 			}),
 	)
 
-	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{"name": "jeffotoni"})
+	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{"name": "jeffotoni"})
 	if err != nil {
 		log.Fatalf("POST request failed: %v", err)
 	}

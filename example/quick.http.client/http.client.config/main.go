@@ -11,21 +11,14 @@ import (
 	"github.com/jeffotoni/quick/http/client"
 )
 
+// Example of creating an HTTP client using a fluent and modular approach.
+// This allows fine-grained control over HTTP settings without requiring a full config struct.
+//
+// - WithContext: Injects a context for the client (context.TODO() used as placeholder).
+// - WithHeaders: Adds custom headers (e.g., Content-Type: application/xml).
+// - WithRetry: Enables automatic retries for specific HTTP status codes (500, 502, 503, 504)
+// - WithHTTPClientConfig: Defines advanced transport settings like connection pooling.
 func main() {
-
-	// Configuring the HTTP client using a structured approach.
-	//
-	// The following settings are applied to the HTTP client:
-	// - Timeout: Sets the maximum duration for requests (20 seconds).
-	// - DisableKeepAlives: Controls whether keep-alive connections are disabled (false = keep-alives enabled).
-	// - MaxIdleConns: Defines the maximum number of idle connections across all hosts (20).
-	// - MaxConnsPerHost: Sets the maximum number of simultaneous connections to a single host (20).
-	// - MaxIdleConnsPerHost: Defines the maximum number of idle connections per host (20).
-	// - TLSClientConfig: Configures TLS settings, including:
-	//     * InsecureSkipVerify: false (enables strict TLS verification).
-	//     * MinVersion: TLS 1.2 (ensures a minimum TLS version for security).
-	//
-	// Using WithHTTPClientConfig(cfg), all the configurations are applied at once.
 	cfg := &client.HTTPClientConfig{
 		Timeout:             20 * time.Second,
 		DisableKeepAlives:   false,
@@ -56,7 +49,7 @@ func main() {
 				FailoverURLs: []string{
 					"http://backup1",
 					"https://httpbin_error.org/post",
-					"https://httpbin.org/post "},
+					"https://httpbin.org/post"},
 				EnableLog: true,
 			}),
 	)
@@ -68,7 +61,7 @@ func main() {
 		Message: "Hello, POST!",
 	}
 
-	resp, err := cClient.Post("http://localhost:3000/v1/user", data)
+	resp, err := cClient.Post("https://httpbin_error.org/post ", data)
 	if err != nil {
 		log.Fatal(err)
 	}

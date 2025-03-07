@@ -11,25 +11,32 @@ import (
 	"github.com/jeffotoni/quick/http/client"
 )
 
+// curl -X POST http://localhost:3000/postform \
+//      -H "Content-Type: application/x-www-form-urlencoded" \
+//      -d "username=quick_user&password=supersecret"
+
 func main() {
 	q := quick.New()
 
 	// Define a route to process POST form-data
 	q.Post("/postform", func(c *quick.Ctx) error {
+		// Get form values
 		form := c.FormValues()
+
+		// Log received form data for debugging
+		log.Println("Received form data:", form)
+
 		return c.JSON(map[string]any{
 			"message": "Received form data",
 			"data":    form,
 		})
 	})
 
-	// Start the server in a separate goroutine
-	go func() {
-		fmt.Println("Quick server running at http://localhost:3000")
-		if err := q.Listen(":3000"); err != nil {
-			log.Fatalf("Failed to start Quick server: %v", err)
-		}
-	}()
+	// Start the server BEFORE making the request
+	fmt.Println("Quick server running at http://localhost:3000")
+	if err := q.Listen(":3000"); err != nil {
+		log.Fatalf("Failed to start Quick server: %v", err)
+	}
 
 	// Criando um cliente HTTP antes de chamar PostForm
 	cClient := client.New(
@@ -39,31 +46,33 @@ func main() {
 		}),
 	)
 
-	// Check if the HTTP client was initialized correctly
+	// Verifica se o cliente foi inicializado corretamente
 	if cClient == nil {
 		log.Fatal("Erro: cliente HTTP não foi inicializado corretamente")
 	}
 
-	// Declare Values
+	// Declara os valores do formulário
 	formData := url.Values{}
 	formData.Set("username", "quick_user")
 	formData.Set("password", "supersecret")
 
-	// Send a POST request
+	// Envia uma requisição POST com form-data
 	resp, err := cClient.PostForm("http://localhost:3000/postform", formData)
 	if err != nil {
 		log.Fatalf("PostForm request with retry failed: %v", err)
 	}
 
-	// Check if the response is valid
+	// Verifica se a resposta é válida
 	if resp == nil || resp.Body == nil {
 		log.Fatal("Erro: resposta vazia ou inválida")
 	}
 
-	// Unmarshal the JSON response (if applicable)
+	// Decodifica a resposta JSON
 	var result map[string]any
 	if err := json.Unmarshal(resp.Body, &result); err != nil {
 		log.Fatal(err)
 	}
+
+	// Exibe a resposta no terminal
 	fmt.Println("POST response:", result)
 }
