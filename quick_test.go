@@ -547,3 +547,29 @@ func TestCreateParamsAndValid_PathMismatch(t *testing.T) {
 		}
 	})
 }
+
+func TestRegisterRoute_WithRegexParamPanic(t *testing.T) {
+	q := New()
+
+	// This record should trigger the panic
+	q.Get("/v1/user/{id:[0-9]+}", func(c *Ctx) error {
+		return c.Status(200).String("Hello Quick!")
+	})
+
+	// Simulates the call from /v1/user/123
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/v1/user/123", nil)
+
+	// Execute the route
+	q.ServeHTTP(w, req)
+
+	// Checks if the status is 200
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	// Checks if the body is "hello Quick!"
+	if w.Body.String() != "Hello Quick!" {
+		t.Errorf("Expected response body 'hello Quick!', got '%s'", w.Body.String())
+	}
+}

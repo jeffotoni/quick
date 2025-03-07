@@ -147,6 +147,9 @@ func (q *Quick) Use(mw any, nf ...string) {
 	q.mws2 = append(q.mws2, mw)
 }
 
+// Responsible for clearing the path to be accepted in
+// Servemux receives something like get#/v1/user/_id:[0-9]+_, without {}
+// The result will clearRegex(route string) string
 func clearRegex(route string) string {
 	// Here you transform "/v1/user/{id:[0-9]+}"
 	// into something simple, like "/v1/user/_id_"
@@ -162,9 +165,9 @@ func clearRegex(route string) string {
 }
 
 // registerRoute is a helper function to centralize route registration logic.
+// The result will registerRoute(method, pattern string, handlerFunc HandleFunc)
 func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 	path, params, patternExist := extractParamsPattern(pattern)
-	// formattedPath := concat.String(strings.ToLower(method)+"#", pattern)
 	formattedPath := strings.ToLower(method) + "#" + clearRegex(pattern)
 	route := Route{
 		Pattern: patternExist,
