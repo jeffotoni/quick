@@ -13,7 +13,7 @@ import (
 // This server listens on port 3000 and forwards GET requests to an external API.
 // - WithTimeout: Sets the HTTP client timeout to 10 seconds.
 // - WithContext: Attaches a background context to the client which is not cancellable.
-// - WithHeaders: Adds custom headers for content type and authorization.
+// - WithHeaders: Adds custom headers (e.g., Content-Type: application/json).
 // - WithMaxConnsPerHost: Sets the maximum connections allowed per host (20).
 // - WithDisableKeepAlives: Enables or disables HTTP keep-alives (false = keep-alives enabled).
 
