@@ -29,6 +29,7 @@ type UploadedFileJSON struct {
 // The result will TestFormFile(t *testing.T)
 func TestFormFile(t *testing.T) {
 
+	// start Quick
 	q := New()
 
 	q.Post("/upload", func(c *Ctx) error {
@@ -324,4 +325,77 @@ func sendMultipartRequest(t *testing.T, tsURL, fileName, fileContent string) ([]
 	}
 
 	return respBytes, nil
+}
+
+// test ensures that we can read the file multiple times without losing the original data.
+// The result will TestQuick_UploadFileReset(t *testing.T)
+func TestQuick_UploadFileReset(t *testing.T) {
+	q := New()
+
+	// Create an upload endpoint
+	q.Post("/upload", func(c *Ctx) error {
+		// Get the file from the request
+		uploadedFile, err := c.FormFile("file")
+		if err != nil {
+			t.Fatalf("Error getting file: %v", err)
+		}
+
+		// Check if the file data is correct
+		if uploadedFile.Info.Size == 0 {
+			t.Errorf("Error: file size is zero")
+		}
+		if len(uploadedFile.Info.Bytes) == 0 {
+			t.Errorf("Error: file was not stored correctly")
+		}
+
+		// Now let's test if the reset works
+		file, err := uploadedFile.Multipart.Open()
+		if err != nil {
+			t.Fatalf("Error opening file again: %v", err)
+		}
+
+		// Create a buffer to read the data again
+		var buf bytes.Buffer
+		if _, err := io.Copy(&buf, file); err != nil {
+			t.Fatalf("Error copying file data after reset: %v", err)
+		}
+
+		// Check if the data read again matches the original
+		if !bytes.Equal(buf.Bytes(), uploadedFile.Info.Bytes) {
+			t.Errorf("Error: reset failed, data read is not equal to original")
+		}
+
+		return c.String("Upload successful")
+	})
+
+	// Simulate a file for upload
+	fileContent := []byte("This is an upload test to check reset.")
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("file", "test.txt")
+	if err != nil {
+		t.Fatalf("Error creating form file: %v", err)
+	}
+	part.Write(fileContent)
+	writer.Close()
+
+	// Create the upload request
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// Create a ResponseRecorder to capture the response
+	rec := httptest.NewRecorder()
+
+	// Run the request through Quick
+	q.ServeHTTP(rec, req)
+
+	// Check the response
+	if rec.Code != http.StatusOK {
+		t.Errorf("Error: unexpected response, code %d", rec.Code)
+	}
+
+	if rec.Body.String() != "Upload successful" {
+		t.Errorf("Error: Unexpected response from server, received: %s", rec.Body.String())
+	}
 }
