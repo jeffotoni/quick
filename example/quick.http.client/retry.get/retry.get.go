@@ -8,6 +8,10 @@ import (
 	"github.com/jeffotoni/quick/http/client"
 )
 
+// Example of creating an HTTP client using a fluent and modular approach.
+// This allows fine-grained control over HTTP settings without requiring a full config struct.
+//
+// - WithRetry: Enables automatic retries for specific HTTP status codes (500, 502, 503, 504)
 func main() {
 
 	// Retry Delay Format Support
@@ -44,12 +48,12 @@ func main() {
 				FailoverURLs: []string{
 					"http://backup1",
 					"https://reqres.in/api/users",
-					"https://httpbin_error.org/post"},
+					"https://httpbin.org/get"},
 				EnableLog: true,
 			}),
 	)
 
-	resp, err := cClient.Get("http://localhost:3000/v1/user/1234")
+	resp, err := cClient.Get("https://httpbin_error.org/get")
 	if err != nil {
 		log.Fatal(err)
 	}
