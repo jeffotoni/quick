@@ -44,18 +44,16 @@ func main() {
 		// Retry on specific status codes.
 		client.WithRetry(
 			client.RetryConfig{
-				MaxRetries: 2,
-				Delay:      1 * time.Second,
-				UseBackoff: true,
-				Statuses:   []int{500},
-				FailoverURLs: []string{
-					"https://httpbin_error.org/post",
-					"http://hosterror"},
-				EnableLog: true,
+				MaxRetries:   2,
+				Delay:        1 * time.Second,
+				UseBackoff:   true,
+				Statuses:     []int{500},
+				FailoverURLs: []string{"https://httpbin_error.org/post", "https://httpbin.org/post"},
+				EnableLog:    true,
 			}),
 	)
 
-	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{"name": "jeffotoni"})
+	resp, err := cClient.Post("https://httpbin.org/post", map[string]string{"name": "jeffotoni"})
 	if err != nil {
 		log.Fatalf("POST request failed: %v", err)
 	}

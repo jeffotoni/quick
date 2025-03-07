@@ -52,8 +52,8 @@ func main() {
 				Statuses:   []int{502, 503, 504, 403},
 				FailoverURLs: []string{
 					"http://backup1",
-					"https://httpbin_error.org/post",
-					"http://hosterror"},
+					"https://reqres.in/api/users",
+					"https://httpbin_error.org/post"},
 				EnableLog: true,
 			}),
 	)

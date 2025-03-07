@@ -56,7 +56,7 @@ func main() {
 				FailoverURLs: []string{
 					"http://backup1",
 					"https://httpbin_error.org/post",
-					"http://hosterror"},
+					"https://httpbin.org/post "},
 				EnableLog: true,
 			}),
 	)
