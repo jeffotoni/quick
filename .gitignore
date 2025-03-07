@@ -2,8 +2,6 @@
 *.out
 testdata/
 **/testdata/
-mock.go
-**/mock.go
 
 # IDE files
 .vscode
