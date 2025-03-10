@@ -32,7 +32,6 @@ draft/*
 tags
 
 # coverage htmls
-*.html
 ./middleware/*.html
 ./middleware/compress/*.html
 ./middleware/cors/*.html
