@@ -17,8 +17,6 @@ import (
 // TestQuickStatic Tests if the static/* server functionality redirects correctly to index.html
 // The will test TestQuickStatic(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestQuickStatic
 func TestQuickStatic(t *testing.T) {
 	q := New()
@@ -69,8 +67,6 @@ var staticFiles embed.FS
 
 // TestQuickStaticDriven Tests if the static/* server functionality redirects correctly to index.html
 // The will test TestQuickStaticDriven(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestQuickStaticDriven
 func TestQuickStaticDriven(t *testing.T) {

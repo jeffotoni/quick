@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+// TestQuick_Listen this example tests whether the server can be started
+// correctly and prevents multiple instances on the same port.
+// The will test TestQuick_Listen(t *testing.T)
+//
+//	$ go test -v -run ^TestQuick_Listen
 func TestQuick_Listen(t *testing.T) {
 
 	// Other tests omitted for brevity...
@@ -31,6 +36,10 @@ func TestQuick_Listen(t *testing.T) {
 	})
 }
 
+// TestQuick_ServeHTTP  Ensure that a recorded route responds correctly.
+// The will test TestQuick_ServeHTTP(t *testing.T)
+//
+//	$ go test -v -run ^TestQuick_ServeHTTP
 func TestQuick_ServeHTTP(t *testing.T) {
 	q := New()
 
@@ -73,6 +82,11 @@ func TestQuick_ServeHTTP(t *testing.T) {
 	})
 }
 
+// TestDefaultConfig verify that the default configuration of
+// Quick is being initialized correctly with the expected values.
+// The will test TestDefaultConfig(t *testing.T)
+//
+//	$ go test -v -run ^TestDefaultConfig
 func TestDefaultConfig(t *testing.T) {
 	expectedConfig := Config{
 		BodyLimit:         2 * 1024 * 1024,
@@ -91,6 +105,10 @@ func TestDefaultConfig(t *testing.T) {
 	}
 }
 
+// TestQuickInitializationWithCustomConfig  Ensure that Quick can be booted with custom settings.
+// The will test TestQuickInitializationWithCustomConfig(t *testing.T)
+//
+//	$ go test -v -run ^TestQuickInitializationWithCustomConfig
 func TestQuickInitializationWithCustomConfig(t *testing.T) {
 	customConfig := Config{
 		BodyLimit:         4 * 1024 * 1024,
@@ -111,6 +129,11 @@ func TestQuickInitializationWithCustomConfig(t *testing.T) {
 	}
 }
 
+// TestQuickInitializationWithCustomConfig ensure that default values are applied
+// correctly when creating an instance without explicit configuration.
+// The will test func TestQuickInitializationDefaults(t *testing.T)
+//
+//	$ go test -v -run ^func TestQuickInitializationDefaults(t *testing.T)
 func TestQuickInitializationDefaults(t *testing.T) {
 	q := New()
 
@@ -125,6 +148,11 @@ func TestQuickInitializationDefaults(t *testing.T) {
 	}
 }
 
+// TestQuickInitializationWithCustomConfig ensure that default values are applied
+// correctly when creating an instance without explicit configuration.
+// The will test func TestQuickInitializationDefaults(t *testing.T)
+//
+//	$ go test -v -run ^func TestQuickInitializationDefaults(t *testing.T)
 func TestQuickInitializationWithZeroValues(t *testing.T) {
 	zeroConfig := Config{}
 	q := New(zeroConfig)
@@ -134,6 +162,11 @@ func TestQuickInitializationWithZeroValues(t *testing.T) {
 	}
 }
 
+// TestQuick_GetRoute ensure that routes are correctly recorded and retrieved
+// correctly when creating an instance without explicit configuration.
+// The will test func TestQuick_GetRoute(t *testing.T)
+//
+//	$ go test -v -run ^func TestQuick_GetRoute(t *testing.T)
 func TestQuick_GetRoute(t *testing.T) {
 	q := New()
 

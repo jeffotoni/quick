@@ -11,6 +11,8 @@ import (
 	"github.com/jeffotoni/quick/internal/concat"
 )
 
+// cover     -> go test -v -count=1 -cover -failfast -run ^TestRoutePOST$
+// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestRoutePOST$; go tool cover -html=coverage.out
 func TestRoutePOST(t *testing.T) {
 	q := New()
 
@@ -276,6 +278,8 @@ func TestQuick_Post(t *testing.T) {
 	}
 }
 
+// cover     -> go test -v -count=1 -cover -failfast -run ^Test_extractParamsPost$
+// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsPost$; go tool cover -html=coverage.out
 func Test_extractParamsPost(t *testing.T) {
 	type args struct {
 		quick       Quick
