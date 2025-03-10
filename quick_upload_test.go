@@ -29,6 +29,7 @@ type UploadedFileJSON struct {
 // TestFormFile simulates a file upload request and validates the response.
 // This function is named TestFormFile
 // The result will TestFormFile(t *testing.T)
+// go test -v -run ^TestFormFile
 func TestFormFile(t *testing.T) {
 
 	// start Quick
@@ -85,6 +86,7 @@ func TestFormFile(t *testing.T) {
 // TestFormFileTableDriven simulates a file upload request and validates the response.
 // This function is named TestFormFileTableDriven
 // The result will TestFormFileTableDriven(t *testing.T)
+// go test -v -run ^TestFormFileTableDriven
 func TestFormFileTableDriven(t *testing.T) {
 	// Start Quick server
 	q := New()
@@ -331,6 +333,7 @@ func sendMultipartRequest(t *testing.T, tsURL, fileName, fileContent string) ([]
 
 // test ensures that we can read the file multiple times without losing the original data.
 // The result will TestQuick_UploadFileReset(t *testing.T)
+// go test -v -run ^TestQuick_UploadFileReset
 func TestQuick_UploadFileReset(t *testing.T) {
 	q := New()
 
@@ -403,6 +406,7 @@ func TestQuick_UploadFileReset(t *testing.T) {
 }
 
 // TestFormFileLimit verifies that the FormFileLimit function correctly  processes file sizes.
+// go test -v -run ^TestFormFileLimit
 func TestFormFileLimit(t *testing.T) {
 
 	// We create a dummy context for the test
@@ -450,6 +454,7 @@ func TestFormFileLimit(t *testing.T) {
 	})
 }
 
+// go test -v -run ^TestFormFile_Cover
 func TestFormFile_Cover(t *testing.T) {
 	t.Run("Error calling FormFiles", func(t *testing.T) {
 		// Create a fake context that simulates an error in FormFiles
@@ -610,6 +615,7 @@ func TestFormFile_Cover(t *testing.T) {
 	})
 }
 
+// go test -v -run ^TestUploadedFileMethods
 func TestUploadedFileMethods(t *testing.T) {
 	mockFile := &UploadedFile{
 		Info: FileInfo{
@@ -646,6 +652,7 @@ func TestUploadedFileMethods(t *testing.T) {
 	})
 }
 
+// go test -v -run ^TestUploadedFileSave
 func TestUploadedFileSave(t *testing.T) {
 	t.Run("Save saves the file correctly", func(t *testing.T) {
 		mockFile := &UploadedFile{
@@ -704,6 +711,7 @@ func TestUploadedFileSave(t *testing.T) {
 	})
 }
 
+// go test -v -run ^TestSaveAll
 func TestSaveAll(t *testing.T) {
 	t.Run("SaveAll saves multiple files correctly", func(t *testing.T) {
 		mockFiles := []*UploadedFile{
@@ -765,6 +773,7 @@ func TestSaveAll(t *testing.T) {
 	})
 }
 
+// go test -v -run ^TestUploadedFileSaveAdditionalCoverage
 func TestUploadedFileSaveAdditionalCoverage(t *testing.T) {
 	t.Run("Save with custom filename", func(t *testing.T) {
 		mockFile := &UploadedFile{
@@ -843,6 +852,8 @@ func TestUploadedFileSaveAdditionalCoverage(t *testing.T) {
 		}
 	})
 }
+
+// go test -v -run ^TestFormFileLimitErrors
 func TestFormFileLimitErrors(t *testing.T) {
 	c := &Ctx{}
 

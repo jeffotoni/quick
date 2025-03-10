@@ -9,6 +9,9 @@ import (
 	"testing"
 )
 
+// TestCtx_Bind tests if the Bind function correctly binds request data to a struct
+// The will test func TestCtx_Bind(t *testing.T)
+// go test -v -run ^TestCtx_Bind$
 func TestCtx_Bind(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -50,6 +53,9 @@ func TestCtx_Bind(t *testing.T) {
 	}
 }
 
+// TestCtx_BodyParser tests whether BodyParser correctly parses the request body
+// The will test func TestCtx_BodyParser(t *testing.T)
+// go test -v -run ^TestCtx_BodyParser$
 func TestCtx_BodyParser(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -91,6 +97,9 @@ func TestCtx_BodyParser(t *testing.T) {
 	}
 }
 
+// TestCtx_Param checks if Param retrieves the correct value for a given parameter key
+// The will test func TestCtx_Param(t *testing.T)
+// go test -v -run ^TestCtx_Param$
 func TestCtx_Param(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -132,6 +141,9 @@ func TestCtx_Param(t *testing.T) {
 	}
 }
 
+// TestCtx_Body verifies that Body() returns the expected request body content
+// The will test func TestCtx_Body(t *testing.T)
+// go test -v -run ^TestCtx_Body$
 func TestCtx_Body(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -169,6 +181,9 @@ func TestCtx_Body(t *testing.T) {
 	}
 }
 
+// TestCtx_BodyString verifies that BodyString() correctly returns the body as a string
+// The will test func TestCtx_BodyString(t *testing.T)
+// go test -v -run ^TestCtx_BodyString$
 func TestCtx_BodyString(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -206,6 +221,9 @@ func TestCtx_BodyString(t *testing.T) {
 	}
 }
 
+// TestCtx_Methods_JSON verifies that JSON responses are properly returned
+// The will test func TestCtx_Methods_JSON(t *testing.T)
+// go test -v -run ^TestCtx_Methods_JSON$
 func TestCtx_Methods_JSON(t *testing.T) {
 
 	q := New()
@@ -231,6 +249,9 @@ func TestCtx_Methods_JSON(t *testing.T) {
 	}
 }
 
+// TestCtx_JSON verifies that the JSON function correctly encodes the response body
+// The will test func TestCtx_JSON(t *testing.T)
+// go test -v -run ^TestCtx_JSON$
 func TestCtx_JSON(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -272,6 +293,9 @@ func TestCtx_JSON(t *testing.T) {
 	}
 }
 
+// TestCtx_XML ensures that XML responses are properly returned
+// The will test func TestCtx_XML(t *testing.T)
+// go test -v -run ^TestCtx_XML$
 func TestCtx_XML(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -313,6 +337,9 @@ func TestCtx_XML(t *testing.T) {
 	}
 }
 
+// TestCtx_writeResponse tests the function that writes raw response bytes
+// The will test func TestCtx_writeResponse(t *testing.T)
+// go test -v -run ^TestCtx_writeResponse$
 func TestCtx_writeResponse(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -354,6 +381,8 @@ func TestCtx_writeResponse(t *testing.T) {
 	}
 }
 
+// TestCtx_Byte checks if byte responses are correctly sent
+// The will test func TestCtx_Byte(t *testing.T)
 // go test -v -failfast -count=1 -run ^TestCtx_Byte$
 func TestCtx_Byte(t *testing.T) {
 	type args struct {
@@ -400,6 +429,8 @@ func TestCtx_Byte(t *testing.T) {
 	}
 }
 
+// TestCtx_Send verifies the function that sends raw byte responses
+// The will test func TestCtx_Send(t *testing.T)
 // go test -v -failfast -count=1 -run ^TestCtx_Send$
 func TestCtx_Send(t *testing.T) {
 	type args struct {
@@ -446,6 +477,9 @@ func TestCtx_Send(t *testing.T) {
 	}
 }
 
+// TestCtx_SendString verifies that the SendString function correctly sends string responses
+// The will test func TestCtx_SendString(t *testing.T)
+// go test -v -run ^TestCtx_SendString$
 func TestCtx_SendString(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -487,6 +521,8 @@ func TestCtx_SendString(t *testing.T) {
 	}
 }
 
+// TestCtx_String ensures that the String function correctly formats string responses
+// The will test func TestCtx_String(t *testing.T)
 // go test -v -failfast -count=1 -run ^TestCtx_String$
 func TestCtx_String(t *testing.T) {
 	type args struct {
@@ -533,6 +569,9 @@ func TestCtx_String(t *testing.T) {
 	}
 }
 
+// TestCtx_SendFile verifies that files are properly sent using SendFile
+// The will test func TestCtx_SendFile(t *testing.T)
+// go test -v -run ^TestCtx_SendFile$
 func TestCtx_SendFile(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -574,7 +613,9 @@ func TestCtx_SendFile(t *testing.T) {
 	}
 }
 
-// go test -v -failfast -count=1 -run ^TestCtx_Set$
+// TestCtx_Set ensures that headers can be correctly set using Set
+// The will test func TestCtx_Set(t *testing.T)
+// go test -v -run ^TestCtx_Set$
 func TestCtx_Set(t *testing.T) {
 	type fields struct {
 		Response http.ResponseWriter
@@ -633,6 +674,9 @@ func TestCtx_Set(t *testing.T) {
 	}
 }
 
+// TestCtx_Append verifies that new header values can be appended correctly
+// The will test func TestCtx_Append(t *testing.T)
+// go test -v -run ^TestCtx_Append$
 func TestCtx_Append(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -698,6 +742,9 @@ func TestCtx_Append(t *testing.T) {
 	}
 }
 
+// TestCtx_Accepts checks whether content types are correctly validated
+// The will test func TestCtx_Accepts(t *testing.T)
+// go test -v -run ^TestCtx_Accepts$
 func TestCtx_Accepts(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -739,6 +786,9 @@ func TestCtx_Accepts(t *testing.T) {
 	}
 }
 
+// TestCtx_Status ensures that status codes are properly set
+// The will test func TestCtx_Status(t *testing.T)
+// go test -v -run ^TestCtx_Status$
 func TestCtx_Status(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter

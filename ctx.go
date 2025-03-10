@@ -345,6 +345,7 @@ func (c *Ctx) MultipartForm() (*multipart.Form, error) {
 
 // FormValue retrieves a form value by key.
 // It automatically calls ParseForm() before accessing the value.
+// The result will FormValue(key string) string
 func (c *Ctx) FormValue(key string) string {
 	// Checks if the Content-Type is multipart
 	if c.Request.Header.Get("Content-Type") == "multipart/form-data" {
@@ -357,6 +358,7 @@ func (c *Ctx) FormValue(key string) string {
 
 // FormValues returns all form values as a map.
 // It automatically calls ParseForm() before accessing the values.
+// The result will FormValues() map[string][]string
 func (c *Ctx) FormValues() map[string][]string {
 	// Checks if the Content-Type is multipart
 	if c.Request.Header.Get("Content-Type") == "multipart/form-data" {

@@ -16,6 +16,8 @@ import (
 #     coverageHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out ./...; go tool cover -html=coverage.out  #
 +==============================================================================================================================+
 */
+// cover     ->  go test -v -count=1 -cover -failfast -run ^TestRouteGET$
+// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestRouteGET$; go tool cover -html=coverage.out
 
 func TestRouteGET(t *testing.T) {
 	q := New()
@@ -181,6 +183,8 @@ func TestQuick_Get(t *testing.T) {
 	}
 }
 
+// cover     ->  go test -v -count=1 -cover -failfast -run ^Test_extractParamsGet$
+// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsGet$; go tool cover -html=coverage.out
 func Test_extractParamsGet(t *testing.T) {
 	type args struct {
 		quick       Quick

@@ -12,18 +12,17 @@
 package quick
 
 import (
-	"github.com/jeffotoni/quick/middleware/cors"
 	"net/http"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/jeffotoni/quick/middleware/cors"
 )
 
 // TestExamplePath verifies that a PATCH route returns the expected response
 // The test simulates a partial update functionality.
 // The will test TestExamplePath(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExamplePath
 func TestExamplePath(t *testing.T) {
@@ -57,8 +56,6 @@ func TestExamplePath(t *testing.T) {
 // TestExampleOptions verifies that the OPTIONS route properly returns the allowed methods.
 // The test simulates a partial update functionality.
 // The will test TestExampleOptions(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExampleOptions
 func TestExampleOptions(t *testing.T) {
@@ -100,8 +97,6 @@ func TestExampleOptions(t *testing.T) {
 // TestExampleGetDefaultConfig verifies if GetDefaultConfig() returns the expected default configuration values.
 // The will test TestExampleGetDefaultConfig(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestExampleGetDefaultConfig
 func TestExampleGetDefaultConfig(t *testing.T) {
 	// Expected default configuration values
@@ -124,8 +119,6 @@ func TestExampleGetDefaultConfig(t *testing.T) {
 
 // TestExampleNew verifies if a simple GET route returns the expected response.
 // The will test TestExampleNew(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExampleNew
 func TestExampleNew(t *testing.T) {
@@ -160,8 +153,6 @@ func TestExampleNew(t *testing.T) {
 
 // TestExampleUse verifies if a middleware (CORS) is correctly applied to the route.
 // The will test TestExampleUse(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExampleUse
 func TestExampleUse(t *testing.T) {
@@ -200,8 +191,6 @@ func TestExampleUse(t *testing.T) {
 // TestExampleGet verifies if a GET request returns the expected response.
 // The will test TestExampleGet(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestExampleGet
 func TestExampleGet(t *testing.T) {
 	q := New()
@@ -235,8 +224,6 @@ func TestExampleGet(t *testing.T) {
 
 // TestExamplePost verifies if a POST request returns the expected response.
 // The will test TestExamplePost(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExamplePost
 func TestExamplePost(t *testing.T) {
@@ -272,8 +259,6 @@ func TestExamplePost(t *testing.T) {
 // TestExamplePut verifies if a PUT request updates the resource and returns the expected response.
 // The will test TestExamplePut(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestExamplePut
 func TestExamplePut(t *testing.T) {
 	q := New()
@@ -304,8 +289,6 @@ func TestExamplePut(t *testing.T) {
 
 // TestExampleDelete verifies if a DELETE request correctly deletes a resource and returns the expected response.
 // The will test TestExampleDelete(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExampleDelete
 func TestExampleDelete(t *testing.T) {
@@ -338,8 +321,6 @@ func TestExampleDelete(t *testing.T) {
 // TestServeHTTP verifies if dynamic route parameters are correctly handled in a GET request.
 // The will test TestServeHTTP(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestServeHTTP
 func TestServeHTTP(t *testing.T) {
 	q := New()
@@ -370,8 +351,6 @@ func TestServeHTTP(t *testing.T) {
 
 // TestGetRoute verifies if the registered routes are correctly retrieved.
 // The will test TestGetRoute(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestGetRoute
 func TestGetRoute(t *testing.T) {
@@ -418,8 +397,6 @@ func TestGetRoute(t *testing.T) {
 
 // TestQuick_ExampleListen verifies if the Quick server starts correctly and serves responses.
 // The will test TestQuick_ExampleListen(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestQuick_ExampleListen
 func TestQuick_ExampleListen(t *testing.T) {

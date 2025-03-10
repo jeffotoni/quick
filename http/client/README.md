@@ -11,6 +11,20 @@ The **Client** package provides a flexible HTTP client that simplifies making HT
 - 🔄 **Flexible body parsing** for POST and PUT requests, accepting different input types.
 - 🔁 **Requests with Retry and Failover** for greater resilience.
 
+---
+
+## 📦 Go package documentation
+
+To access the documentation for each **Quick Framework** package, click on the links below:
+
+| Pacote | Descrição | Go.dev |
+|--------|----------|--------|
+| **quick/http/client** |  HTTP client optimized for requests and failover | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/http/client.svg)](https://pkg.go.dev/github.com/jeffotoni/quick/http/client) |
+
+---
+
+
+
 ### ✅ Method Reference
 
 | Method Signature                                                                          | Description                                           |
