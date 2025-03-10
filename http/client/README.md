@@ -183,13 +183,20 @@ func main() {
 	// Retry configuration: maximum 3 attempts, 
 	// with delay of 2s, exponential backoff
 	retryConfig := client.RetryConfig{
-		MaxRetries:   3,                         // Try again up to 3 times
-		Delay:        2 * time.Second,           // Base time between attempts
-		UseBackoff:   true,                      // Enable exponential backoff
-		Statuses:     []int{500, 502, 503, 504}, // Try again in case of server error
-		FailoverURLs: []string{"http://hosterror", "https://httpbin.org/get"},
-		EnableLog:    true, // Enable repeat records
-	}
+	// Sets the maximum number of retry attempts
+	MaxRetries: 3, 
+	// Sets the base time between attempts before trying again
+	Delay: 2 * time. Second,   
+	// Enables exponential backoff to increase the time between failed attempts
+	UseBackoff: true,        
+	// List of HTTP status codes that trigger an automatic retry
+	Status: []int{500, 502, 503, 504},   
+	// Alternative URLs for failover in case of failure on the original request
+	FailoverURLs: []string{"http://hosterror", "https://httpbin.org/get"}, 
+	// Enable logs to log retry attempts
+	EnableLog: true 
+}
+
 
 	// Create an HTTP client with retry configured
 	httpClient := client.New(
