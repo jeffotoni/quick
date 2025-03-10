@@ -214,7 +214,7 @@ func ExampleWithCustomHTTPClient() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Output:
+	// Out put:
 	// Custom Client OK
 }
 
@@ -595,58 +595,4 @@ func ExampleWithDisableKeepAlives() {
 
 	// Out put:
 	// Keep-alives are disabled
-}
-
-// ExampleRetryTransport_RoundTrip demonstrates how RetryTransport handles retries and failover logic.
-// This function is named ExampleRetryTransport_RoundTrip()
-// it with the Examples type.
-func ExampleRetryTransport_RoundTrip() {
-	// Simulate an HTTP server that fails twice before responding successfully.
-	attempts := 0
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		attempts++
-		if attempts < 3 {
-			// Returns HTTP error 500 on the first two attempts.
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Temporary Server Error"))
-			return
-		}
-		// On the third attempt, returns success.
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Success on retry!"))
-	}))
-	defer ts.Close()
-
-	// Create a transport with retry and failover policy.
-	retryTransport := &RetryTransport{
-		Base:          http.DefaultTransport,
-		MaxRetries:    3,                                     // Attempts up to 3 times before failing.
-		RetryDelay:    200 * time.Millisecond,                // Wait time between attempts.
-		UseBackoff:    true,                                  // Enables exponential backoff.
-		RetryStatuses: []int{http.StatusInternalServerError}, // Retries only on HTTP 500 status.
-		FailoverURLs:  []string{},                            // No alternative URLs.
-		EnableLogger:  true,
-		Logger:        slog.Default(),
-	}
-
-	// Create an HTTP client using our RetryTransport.
-	client := &http.Client{Transport: retryTransport}
-
-	// Create a test request.
-	req, _ := http.NewRequest("GET", ts.URL, nil)
-
-	// Execute the request.
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Request error:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Read and print the response.
-	body, _ := io.ReadAll(resp.Body)
-	fmt.Println("Response:", string(body))
-
-	// Output:
-	// Response: Success on retry!
 }

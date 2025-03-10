@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// go test -v -run ^TestClient_Get
 func TestClient_Get(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -37,6 +38,7 @@ func TestClient_Get(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestRetryLogic
 func TestRetryLogic(t *testing.T) {
 	var attempt int
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -69,6 +71,7 @@ func TestRetryLogic(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestFailover
 func TestFailover(t *testing.T) {
 	var primaryCalled, secondaryCalled bool
 
@@ -107,6 +110,7 @@ func TestFailover(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestHeaders
 func TestHeaders(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-Test") != "value" {
@@ -127,6 +131,7 @@ func TestHeaders(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestPostForm
 func TestPostForm(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
@@ -146,6 +151,7 @@ func TestPostForm(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestTimeout
 func TestTimeout(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(100 * time.Millisecond)
@@ -161,6 +167,7 @@ func TestTimeout(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestTLSConfig
 func TestTLSConfig(t *testing.T) {
 	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -177,6 +184,7 @@ func TestTLSConfig(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestErrorHandling
 func TestErrorHandling(t *testing.T) {
 	t.Run("Invalid URL", func(t *testing.T) {
 		client := New()
@@ -195,6 +203,7 @@ func TestErrorHandling(t *testing.T) {
 	})
 }
 
+// go test -v -run ^TestContextCancel
 func TestContextCancel(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(100 * time.Millisecond)
@@ -212,6 +221,7 @@ func TestContextCancel(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestLogging
 func TestLogging(t *testing.T) {
 	var logBuffer bytes.Buffer
 	logger := slog.New(slog.NewTextHandler(&logBuffer, &slog.HandlerOptions{
@@ -256,6 +266,7 @@ func TestLogging(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestGetDefaultClient
 func TestGetDefaultClient(t *testing.T) {
 	client1 := GetDefaultClient()
 	client2 := GetDefaultClient()
@@ -269,6 +280,7 @@ func TestGetDefaultClient(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestWithHTTPClientConfig
 func TestWithHTTPClientConfig(t *testing.T) {
 	// Create a custom HTTP client configuration
 	cfg := &HTTPClientConfig{
@@ -311,6 +323,7 @@ func TestWithHTTPClientConfig(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestClientLog
 func TestClientLog(t *testing.T) {
 	var logBuffer bytes.Buffer
 	logger := slog.New(slog.NewTextHandler(&logBuffer, &slog.HandlerOptions{
@@ -343,6 +356,7 @@ func TestClientLog(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestClientMethods
 func TestClientMethods(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -400,6 +414,7 @@ func TestClientMethods(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestClientPutAndDelete
 func TestClientPutAndDelete(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Validate method
@@ -438,6 +453,7 @@ func TestClientPutAndDelete(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestHTTPTransportOptions
 func TestHTTPTransportOptions(t *testing.T) {
 	client := New(
 		WithDisableKeepAlives(true),
@@ -479,6 +495,7 @@ func TestHTTPTransportOptions(t *testing.T) {
 	}
 }
 
+// go test -v -run ^TestHTTPTransportOptionsAdvanced
 func TestHTTPTransportOptionsAdvanced(t *testing.T) {
 	// Test WithInsecureTLS
 	client := New(WithInsecureTLS(true))
@@ -535,6 +552,7 @@ func TestHTTPTransportOptionsAdvanced(t *testing.T) {
 // FuzzRetryFailover tests the WithRetry option with failover URLs and WithTimeout.
 // The primary server returns a fuzzed status code, and if it is 500 (a retriable status),
 // the client should use the failover URL.
+// go test -v -run ^FuzzClientRetry
 func FuzzClientRetry(f *testing.F) {
 	// Seed inputs: 500
 	// (failure that should trigger failover)
@@ -600,7 +618,7 @@ func FuzzClientRetry(f *testing.F) {
 }
 
 // checks whether a custom client can use retry correctly.
-// The result will TestCustomHTTPClientWithRetry(t *testing.T)
+// go test -v -run ^TestCustomHTTPClientWithRetry
 func TestCustomHTTPClientWithRetry(t *testing.T) {
 	var requestCount int
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -637,7 +655,7 @@ func TestCustomHTTPClientWithRetry(t *testing.T) {
 }
 
 // We ensure that if one host fails, the client uses the next available one.
-// The result will TestFailoverURLs(t *testing.T)
+// go test -v -run ^TestFailoverURLs
 func TestFailoverURLs(t *testing.T) {
 	failCount := 0
 	failoverTS := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
