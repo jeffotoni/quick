@@ -5,10 +5,11 @@ The **Client** package provides a flexible HTTP client that simplifies making HT
 
 ## 📌 Overview
 
-This package offers:
-- **Global convenience functions** for quick HTTP requests using a default client.
-- **Custom client creation** using options to set context, headers, and HTTP transport configurations.
-- **Flexible body parsing** for POST and PUT requests that accepts various input types.
+🔹 **Main features**:
+- 🚀 **Global functions** for fast HTTP requests using a standard client.
+- ⚙️ **Custom client creation** with options for context, headers and HTTP transport configuration.
+- 🔄 **Flexible body parsing** for POST and PUT requests, accepting different input types.
+- 🔁 **Requests with Retry and Failover** for greater resilience.
 
 ### ✅ Method Reference
 
@@ -164,12 +165,56 @@ func main() {
 }
 
 ```
+### 🔹 Retry with Dynamic Failover
+This example configures the HTTP client to retry automatically in case of failure, using automatic retry, exponential backoff and dynamic failover for alternative URLs.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/jeffotoni/quick/http/client"
+)
+
+func main() {
+	// Retry configuration: maximum 3 attempts, 
+	// with delay of 2s, exponential backoff
+	retryConfig := client.RetryConfig{
+		MaxRetries:   3,                         // Try again up to 3 times
+		Delay:        2 * time.Second,           // Base time between attempts
+		UseBackoff:   true,                      // Enable exponential backoff
+		Statuses:     []int{500, 502, 503, 504}, // Try again in case of server error
+		FailoverURLs: []string{"http://hosterror", "https://httpbin.org/get"},
+		EnableLog:    true, // Enable repeat records
+	}
+
+	// Create an HTTP client with retry configured
+	httpClient := client.New(
+		client.WithRetry(retryConfig),
+	)
+
+	// Making a GET request
+	resp, err := httpClient.Get("https://httpbin_error.org/get")
+	if err != nil {
+		log.Fatal("Error in request:", err)
+	}
+
+	fmt.Println("HTTP code:", resp.StatusCode)
+	fmt.Println("Answer:", string(resp.Body))
+}
+
+```
+
 ---
 
 ## **📌 What I included in this README**
 - ✅ Overview: Explanation of the HTTP client in Quick.
 - ✅ Method Reference: Quick lookup for available functions.
 - ✅ GET, POST, PUT, DELETE Examples: How to use each method with ReqRes API.
+- ✅ Retry with Failover: Demonstration of automatic retries, exponential backoff, and dynamic failover URLs.
 - ✅ Testing with cURL: Alternative manual testing.
 - ✅ Response Handling Improvements: Ensuring valid JSON parsing and response verification.
 
