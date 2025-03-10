@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"sort"
 	"strings"
 	"time"
 )
@@ -482,43 +481,31 @@ func ExampleWithTransportConfig() {
 // This function is named ExampleClient_PostForm()
 // it with the Examples type.
 func ExampleClient_PostForm() {
-	// Create a test HTTP server that echoes the request body.
+	// Creating a test server that returns the form data.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm() // Parse the form data
-		// Create a consistent output by sorting the keys
-		keys := make([]string, 0, len(r.Form))
-		for key := range r.Form {
-			keys = append(keys, key)
-		}
-		sort.Strings(keys) // Sort keys alphabetically
-		var builder strings.Builder
-		for _, key := range keys {
-			if builder.Len() > 0 {
-				builder.WriteString("&")
-			}
-			builder.WriteString(key)
-			builder.WriteString("=")
-			builder.WriteString(r.Form.Get(key))
-		}
+		r.ParseForm() // Analyzes the form data
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(builder.String()))
+		w.Write([]byte(r.Form.Encode())) // Returns the form data already formatted
 	}))
 	defer ts.Close()
 
-	// Initialize a new client.
+	// Initializing the client.
 	client := New()
 
-	// Prepare form data.
-	formData := url.Values{}
-	formData.Set("key", "value")
-	formData.Set("hello", "world")
+	// Creating the form data.
+	formData := url.Values{
+		"key":   {"value"},
+		"hello": {"world"},
+	}
 
-	// Send a POST form request.
+	// Enviando a requisição POST com o formulário.
 	resp, err := client.PostForm(ts.URL, formData)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
+
+	// Displaying the answer.
 	fmt.Println("Form POST response:", string(resp.Body))
 
 	// Out put:
