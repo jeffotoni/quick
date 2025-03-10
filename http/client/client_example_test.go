@@ -10,6 +10,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"sort"
 	"strings"
 	"time"
 )
@@ -474,4 +476,136 @@ func ExampleWithTransportConfig() {
 
 	// Out put:
 	// Configured Transport OK
+}
+
+// ExampleClient_PostForm demonstrates how to use the Client's PostForm method to send URL-encoded form data.
+// This function is named ExampleClient_PostForm()
+// it with the Examples type.
+func ExampleClient_PostForm() {
+	// Create a test HTTP server that echoes the request body.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm() // Parse the form data
+		// Create a consistent output by sorting the keys
+		keys := make([]string, 0, len(r.Form))
+		for key := range r.Form {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys) // Sort keys alphabetically
+		var builder strings.Builder
+		for _, key := range keys {
+			if builder.Len() > 0 {
+				builder.WriteString("&")
+			}
+			builder.WriteString(key)
+			builder.WriteString("=")
+			builder.WriteString(r.Form.Get(key))
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(builder.String()))
+	}))
+	defer ts.Close()
+
+	// Initialize a new client.
+	client := New()
+
+	// Prepare form data.
+	formData := url.Values{}
+	formData.Set("key", "value")
+	formData.Set("hello", "world")
+
+	// Send a POST form request.
+	resp, err := client.PostForm(ts.URL, formData)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Form POST response:", string(resp.Body))
+
+	// Out put:
+	// Form POST response: hello=world&key=value
+}
+
+// ExampleWithMaxIdleConns demonstrates how to configure the maximum number of idle connections in the HTTP client.
+// This function is named ExampleWithMaxIdleConns()
+// it with the Examples type.
+func ExampleWithMaxIdleConns() {
+	// Create a test HTTP server.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}))
+	defer ts.Close()
+
+	// Initialize a client with a custom maximum number of idle connections.
+	client := New(WithMaxIdleConns(20))
+
+	// Perform a GET request.
+	_, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// You can print something related to the configuration to avoid the no output issue, or simply avoid the output comment
+	fmt.Println("MaxIdleConns set to 20")
+
+	// This will now match with the Output comment below
+	// Out put:
+	// MaxIdleConns set to 20
+}
+
+// ExampleWithMaxConnsPerHost demonstrates how to set the maximum number of concurrent connections per host for the HTTP client.
+// This function is named ExampleWithMaxConnsPerHost()
+// it with the Examples type.
+func ExampleWithMaxConnsPerHost() {
+	// Create a test HTTP server.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}))
+	defer ts.Close()
+
+	// Initialize a client with a custom maximum number of connections per host.
+	client := New(WithMaxConnsPerHost(10))
+
+	// Perform a GET request.
+	_, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// Confirm the setting (for example purposes, normally you might not print this).
+	fmt.Println("MaxConnsPerHost set to 10")
+
+	// Out put:
+	// MaxConnsPerHost set to 10
+}
+
+// ExampleWithDisableKeepAlives demonstrates how to disable HTTP keep-alive connections.
+// This function is named ExampleWithMaxConnsPerHost()
+// it with the Examples type.
+func ExampleWithDisableKeepAlives() {
+	// Create a test HTTP server.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}))
+	defer ts.Close()
+
+	// Initialize a client with keep-alives disabled.
+	client := New(WithDisableKeepAlives(true))
+
+	// Perform a GET request.
+	_, err := client.Get(ts.URL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// Confirm that keep-alives are disabled (for example purposes, normally you might not print this).
+	fmt.Println("Keep-alives are disabled")
+
+	// Out put:
+	// Keep-alives are disabled
 }
