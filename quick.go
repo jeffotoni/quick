@@ -132,6 +132,7 @@ func New(c ...Config) *Quick {
 }
 
 // Use function adds middleware to the Quick server, with special treatment for CORS
+// Method Used Internally
 // The result will Use(mw any, nf ...string)
 func (q *Quick) Use(mw any, nf ...string) {
 	if len(nf) > 0 {
@@ -150,6 +151,7 @@ func (q *Quick) Use(mw any, nf ...string) {
 
 // Responsible for clearing the path to be accepted in
 // Servemux receives something like get#/v1/user/_id:[0-9]+_, without {}
+// Method Used Internally
 // The result will clearRegex(route string) string
 func clearRegex(route string) string {
 	// Here you transform "/v1/user/{id:[0-9]+}"
@@ -166,6 +168,7 @@ func clearRegex(route string) string {
 }
 
 // registerRoute is a helper function to centralize route registration logic.
+// Method Used Internally
 // The result will registerRoute(method, pattern string, handlerFunc HandleFunc)
 func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 	path, params, patternExist := extractParamsPattern(pattern)
@@ -219,6 +222,7 @@ func (q *Quick) Options(pattern string, handlerFunc HandleFunc) {
 }
 
 // Generic handler extractor to minimize repeated logic across HTTP methods
+// Method Used Internally
 // The result will extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc
 func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc {
 	switch method {
@@ -239,12 +243,14 @@ func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFun
 }
 
 // PATCH is generally used for partial updates, while PUT replaces the entire resource.
+// Method Used Internally
 // However, both methods often handle request parameters and body parsing in the same way.
 func extractParamsPatch(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return extractParamsPut(q, handlerFunc)
 }
 
 // extractParamsOptions processes an HTTP request for a dynamic route, extracting query parameters, headers, and handling the request using the provided handler function
+// Method Used Internally
 // The result will extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -271,6 +277,7 @@ func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc)
 }
 
 // extractHeaders extracts all headers from an HTTP request and returns them
+// Method Used Internally
 // The result will extractHeaders(req http.Request) map[string][]string
 func extractHeaders(req http.Request) map[string][]string {
 	headersMap := make(map[string][]string)
@@ -281,6 +288,7 @@ func extractHeaders(req http.Request) map[string][]string {
 }
 
 // extractBind decodes the request body into the provided interface based on the Content-Type header
+// Method Used Internally
 // The result will extractBind(c *Ctx, v interface{}) (err error)
 func extractBind(c *Ctx, v interface{}) (err error) {
 	var req http.Request = *c.Request
@@ -296,6 +304,7 @@ func extractBind(c *Ctx, v interface{}) (err error) {
 }
 
 // extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern
+// Method Used Internally
 // The result will extractParamsPattern(pattern string) (path, params, partternExist string)
 func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	path = pattern
@@ -315,6 +324,7 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 }
 
 // extractParamsGet processes an HTTP request for a dynamic GET route, extracting query parameters, headers, and handling the request using the provided handler function
+// Method Used Internally
 // The result will extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -345,6 +355,7 @@ func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFu
 }
 
 // extractParamsPost processes an HTTP POST request, extracting the request body and headers and handling the request using the provided handler function
+// Method Used Internally
 // The result will extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -378,6 +389,7 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 }
 
 // extractParamsPut processes an HTTP PUT request, extracting request parameters, headers and request body before executing the provided handler function
+// Method Used Internally
 // The result will extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -412,6 +424,7 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 }
 
 // extractParamsDelete processes an HTTP DELETE request, extracting request parameters and headers before executing the provided handler function
+// Method Used Internally
 // The result will extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
 func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -436,6 +449,7 @@ func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 }
 
 // execHandleFunc executes the provided handler function and handles errors if they occur
+// Method Used Internally
 // The result will execHandleFunc(c *Ctx, handleFunc HandleFunc)
 func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	err := handleFunc(c)
@@ -447,6 +461,7 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 }
 
 // extractBodyBytes reads the request body and returns it as a byte slice
+// Method Used Internally
 // The result will extractBodyBytes(r io.ReadCloser) []byte
 func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
 	b, err := io.ReadAll(r)
@@ -457,6 +472,7 @@ func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
 }
 
 // mwWrapper applies all registered middlewares to an HTTP handler
+// Method Used Internally
 // The result will mwWrapper(handler http.Handler) http.Handler
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	for i := len(q.mws2) - 1; i >= 0; i-- {
@@ -474,6 +490,7 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 }
 
 // appendRoute registers a new route in the Quick router and applies middlewares
+// Method Used Internally
 // The result will appendRoute(route *Route)
 func (q *Quick) appendRoute(route *Route) {
 	route.handler = q.mwWrapper(route.handler).ServeHTTP
@@ -511,6 +528,7 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 // createParamsAndValid create params map and check if the request URI and pattern URI are valid
+// Method Used Internally
 // The result will createParamsAndValid(reqURI, patternURI string) (map[string]string, bool)
 func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	params := make(map[string]string)
@@ -606,6 +624,7 @@ func (q *Quick) Static(route string, dirOrFS any) {
 }
 
 // execHandler wraps an HTTP handler with additional processing
+// Method Used Internally
 // The result will execHandler(next http.Handler) http.Handler
 func (q *Quick) execHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -614,12 +633,14 @@ func (q *Quick) execHandler(next http.Handler) http.Handler {
 }
 
 // corsHandler returns an HTTP handler that applies CORS settings
+// Method Used Internally
 // The result will corsHandler() http.Handler
 func (q *Quick) corsHandler() http.Handler {
 	return q.CorsSet(q)
 }
 
 // httpServer creates and returns an HTTP server instance configured with Quick.
+// Method Used Internally
 // The result will httpServer(addr string, handler ...http.Handler) *http.Server
 func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 	// Set the default handler
@@ -642,7 +663,7 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 }
 
 // ListenWithShutdown starts the HTTP server and returns a shutdown function.
-// ListenWithShutdown retorna server e shutdown, mas NÃO inicia o server
+// The result will ListenWithShutdown(addr string, handler ...http.Handler) (*http.Server, func(), error)
 func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.Server, func(), error) {
 	if q.config.MoreRequests > 0 {
 		debug.SetGCPercent(q.config.MoreRequests)
@@ -669,7 +690,8 @@ func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.
 	return server, shutdownFunc, nil
 }
 
-// Listen chama ListenWithShutdown e bloqueia com `select{}`
+// Listen calls ListenWithShutdown and blocks with select{}
+// The result will Listen(addr string, handler ...http.Handler) error
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	_, shutdown, err := q.ListenWithShutdown(addr, handler...)
 	if err != nil {
@@ -677,11 +699,12 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	}
 	defer shutdown()
 
-	// Bloqueia indefinidamente
+	// Locks indefinitely
 	select {}
 }
 
 // ListenTLS starts an HTTPS server with TLS support
+// The result will ListenTLS(addr, certFile, keyFile string, handler ...http.Handler) error
 func (q *Quick) ListenTLS(addr, certFile, keyFile string, handler ...http.Handler) error {
 	if q.config.MoreRequests > 0 {
 		debug.SetGCPercent(q.config.MoreRequests)
@@ -715,12 +738,16 @@ func (q *Quick) ListenTLS(addr, certFile, keyFile string, handler ...http.Handle
 	select {}
 }
 
+// Shutdown gracefully shuts down the server without interrupting any active connections
+// The result will (q *Quick) Shutdown() error
 func (q *Quick) Shutdown() error {
+	// Create a context with a timeout to control the shutdown process
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	defer cancel() // Ensure the context is cancelled to free resources
 
+	// Check if the server is initialized before attempting to shut it down
 	if q.server != nil {
-		return q.server.Shutdown(ctx)
+		return q.server.Shutdown(ctx) // Attempt to shutdown the server gracefully
 	}
-	return nil
+	return nil // Return nil if there is no server to shutdown
 }
