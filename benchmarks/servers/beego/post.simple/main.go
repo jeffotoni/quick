@@ -17,7 +17,7 @@ type MainController struct {
 
 func (c MainController) Post() {
 	var user User
-	if err := c.Ctx.Input.Context.BindJSON(&user); err != nil {
+	if err := c.BindJSON(&user); err != nil {
 		c.Ctx.Output.SetStatus(http.StatusBadRequest)
 		c.Data["json"] = map[string]string{"error": "Erro ao decodificar JSON"}
 		c.ServeJSON()
@@ -29,6 +29,6 @@ func (c MainController) Post() {
 }
 
 func main() {
-	web.Router("/user", &MainController{})
+	web.Router("/v1/user", &MainController{}, "post:Post")
 	web.Run()
 }
