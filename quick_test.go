@@ -633,6 +633,8 @@ func TestRegisterRoute_WithRegexParamPanic(t *testing.T) {
 	}
 }
 
+// $ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"
+// $ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
 // TestListenTLS tests if a TLS server starts and responds correctly
 // The result will TestListenTLS(expected any) error
 func TestListenTLS(t *testing.T) {
@@ -644,7 +646,50 @@ func TestListenTLS(t *testing.T) {
 	})
 
 	go func() {
-		err := q.ListenTLS(":8443", "cert.pem", "key.pem")
+		err := q.ListenTLS(":8443", "cert.pem", "key.pem", false)
+		if err != nil {
+			t.Errorf("error starting TLS server: %v", err)
+		}
+	}()
+
+	// Short timeout to make sure the server is up
+	time.Sleep(500 * time.Millisecond)
+
+	// Create an HTTP client to test the TLS connection
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // Skip SSL verification
+		},
+	}
+
+	resp, err := client.Get("https://localhost:8443/")
+	if err != nil {
+		t.Fatalf("failed to connect to TLS server: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode)
+	}
+
+	// Shut down the server at the end of the test
+	_ = q.Shutdown()
+}
+
+// TestListenTLSH2 tests if a TLS server starts and responds correctly
+// $ curl -i -X GET -H "Content-Type: application/json" --http2 -v https://localhost:443/v1/user
+// $ curl -i -X GET -H "Content-Type: application/json" --http2 -k https://localhost:443/v1/user
+// The result will TestListenTLS(expected any) error
+func TestListenTLSH2(t *testing.T) {
+	q := New()
+
+	// Define a simple handler for the root "/"
+	q.Get("/", func(c *Ctx) error {
+		return c.Status(200).String("OK")
+	})
+
+	go func() {
+		err := q.ListenTLS(":8443", "cert.pem", "key.pem", true)
 		if err != nil {
 			t.Errorf("error starting TLS server: %v", err)
 		}
