@@ -238,6 +238,8 @@ checks.........................: 50.00% 933734 out of 1867468
 
 ### Iris
 
+#### ReadJSON
+
     checks.........................: 50.00% 909438 out of 1818876
      data_received..................: 142 MB 6.4 MB/s
      data_sent......................: 156 MB 7.1 MB/s
@@ -255,6 +257,27 @@ checks.........................: 50.00% 933734 out of 1867468
      iterations.....................: 909438 41336.851766/s
      vus............................: 6      min=6                 max=994 
      vus_max........................: 1000   min=1000              max=1000
+
+#### Byte
+
+  checks.........................: 50.00% 881099 out of 1762198
+     data_received..................: 111 MB 5.0 MB/s
+     data_sent......................: 152 MB 6.9 MB/s
+     http_req_blocked...............: avg=9.29µs   min=679ns   med=2.02µs  max=110.4ms  p(90)=2.86µs  p(95)=3.31µs  
+     http_req_connecting............: avg=5.35µs   min=0s      med=0s      max=110.35ms p(90)=0s      p(95)=0s      
+     http_req_duration..............: avg=7.97ms   min=29.9µs  med=5.53ms  max=133.31ms p(90)=17.06ms p(95)=23.77ms 
+       { expected_response:true }...: avg=7.97ms   min=29.9µs  med=5.53ms  max=133.31ms p(90)=17.06ms p(95)=23.77ms 
+     http_req_failed................: 0.00%  0 out of 881099
+     http_req_receiving.............: avg=164.65µs min=5.23µs  med=14.43µs max=97.6ms   p(90)=22.73µs p(95)=129.47µs
+     http_req_sending...............: avg=80.87µs  min=2.77µs  med=6.88µs  max=88.85ms  p(90)=11.28µs p(95)=32.84µs 
+     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s      
+     http_req_waiting...............: avg=7.73ms   min=19.61µs med=5.45ms  max=80.13ms  p(90)=16.73ms p(95)=23.05ms 
+     http_reqs......................: 881099 40048.684602/s
+     iteration_duration.............: avg=12.65ms  min=54.65µs med=8.87ms  max=160.41ms p(90)=28.77ms p(95)=39.69ms 
+     iterations.....................: 881099 40048.684602/s
+     vus............................: 6      min=6                 max=994 
+     vus_max........................: 1000   min=1000              max=1000
+
 
 
 ### Beego
