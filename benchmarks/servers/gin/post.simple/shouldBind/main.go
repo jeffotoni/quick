@@ -19,7 +19,7 @@ func main() {
 	// r := gin.Default()
 	r := gin.New()
 
-	r.GET("/v1/user/", func(c *gin.Context) {
+	r.POST("/v1/user", func(c *gin.Context) {
 		var my My // Create a variable to store incoming user data
 
 		// Parse the request body into the struct
