@@ -36,3 +36,7 @@ func main() {
 
 	e.Start(":8080")
 }
+
+//curl --location 'http://localhost:8080/v1/user' \
+// --header 'Content-Type: application/json' \
+// --data '{"name": "Alice", "year": 20}'
