@@ -2,12 +2,20 @@ package quick
 
 import "testing"
 
+// TestQuick_HttpStatus verifies that the HTTP statuses and HTTP methods are registered correctly.
+// This test only prints the values into the log for visual inspection.
+// The will test func TestQuick_HttpStatus(t *testing.T)
+//
+//	$ go test -v -run ^func TestQuick_HttpStatus(t *testing.T)
 func TestQuick_HttpStatus(t *testing.T) {
+
+	// Log of informative status codes
 	t.Log(StatusContinue)
 	t.Log(StatusSwitchingProtocols)
 	t.Log(StatusProcessing)
 	t.Log(StatusEarlyHints)
 
+	// Log of success status codes
 	t.Log(StatusOK)
 	t.Log(StatusCreated)
 	t.Log(StatusAccepted)
@@ -16,6 +24,7 @@ func TestQuick_HttpStatus(t *testing.T) {
 	t.Log(StatusResetContent)
 	t.Log(StatusPartialContent)
 
+	// Log of supported HTTP methods
 	t.Log(MethodGet)
 	t.Log(MethodHead)
 	t.Log(MethodPost)
@@ -26,15 +35,24 @@ func TestQuick_HttpStatus(t *testing.T) {
 	t.Log(MethodTrace)
 }
 
+// TestStatusText checks if the StatusText function returns the correct description
+// for each HTTP status code.
+// The will test func TestStatusText(t *testing.T)
+//
+//	$ go test -v -run ^func TestStatusText(t *testing.T)
 func TestStatusText(t *testing.T) {
+	// Set of tests with HTTP status codes and their expected descriptions.
 	tests := []struct {
-		code     int
-		expected string
+		code     int    // HTTP status code
+		expected string // Expected description
 	}{
+		// Tests for 1xx status codes (Informative)
 		{StatusContinue, "Continue"},
 		{StatusSwitchingProtocols, "Switching Protocols"},
 		{StatusProcessing, "Processing"},
 		{StatusEarlyHints, "Early Hints"},
+
+		// Tests for 2xx status codes (Success)
 		{StatusOK, "OK"},
 		{StatusCreated, "Created"},
 		{StatusAccepted, "Accepted"},
@@ -45,6 +63,8 @@ func TestStatusText(t *testing.T) {
 		{StatusMultiStatus, "Multi-Status"},
 		{StatusAlreadyReported, "Already Reported"},
 		{StatusIMUsed, "IM Used"},
+
+		// Tests for 3xx status codes (Redirection)
 		{StatusMultipleChoices, "Multiple Choices"},
 		{StatusMovedPermanently, "Moved Permanently"},
 		{StatusFound, "Found"},
@@ -53,6 +73,8 @@ func TestStatusText(t *testing.T) {
 		{StatusUseProxy, "Use Proxy"},
 		{StatusTemporaryRedirect, "Temporary Redirect"},
 		{StatusPermanentRedirect, "Permanent Redirect"},
+
+		// Testing for 4xx status codes (Customer Error)
 		{StatusBadRequest, "Bad Request"},
 		{StatusUnauthorized, "Unauthorized"},
 		{StatusPaymentRequired, "Payment Required"},
@@ -81,6 +103,8 @@ func TestStatusText(t *testing.T) {
 		{StatusPreconditionRequired, "Precondition Required"},
 		{StatusTooManyRequests, "Too Many Requests"},
 		{StatusRequestHeaderFieldsTooLarge, "Request Header Fields Too Large"},
+
+		// Tests for 5xx status codes (Server Error)
 		{StatusUnavailableForLegalReasons, "Unavailable For Legal Reasons"},
 		{StatusInternalServerError, "Internal Server Error"},
 		{StatusNotImplemented, "Not Implemented"},
@@ -93,14 +117,14 @@ func TestStatusText(t *testing.T) {
 		{StatusLoopDetected, "Loop Detected"},
 		{StatusNotExtended, "Not Extended"},
 		{StatusNetworkAuthenticationRequired, "Network Authentication Required"},
-		{999, ""}, // Teste para um código desconhecido
+		{999, ""}, // Test for an unknown code
 	}
 
 	for _, test := range tests {
 		t.Run(test.expected, func(t *testing.T) {
 			result := StatusText(test.code)
 			if result != test.expected {
-				t.Errorf("Para código %d, esperado '%s', mas obteve '%s'", test.code, test.expected, result)
+				t.Errorf("For code %d, expected '%s', but got '%s'", test.code, test.expected, result)
 			}
 		})
 	}

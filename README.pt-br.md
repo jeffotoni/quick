@@ -28,6 +28,28 @@
 # Quick em ação 💕🐧🚀😍
 ![Quick](quick_server.gif)
 
+---
+## 📦 Go Packages Documentation
+
+Para acessar a documentação de cada pacote do **Quick Framework**, clique nos links abaixo:
+
+| Pacote | Descrição | Go.dev |
+|--------|----------|--------|
+| **quick** | Roteador principal e funcionalidades do framework | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick) |
+| **quick/http/client** | Cliente HTTP otimizado para requisições e failover | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/http/client.svg)](https://pkg.go.dev/github.com/jeffotoni/quick/http/client) |
+| **quick/middleware** | Middlewares do framework | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/middleware.svg)](https://pkg.go.dev/github.com/jeffotoni/quick/middleware) |
+| **quick/ctx** | Contexto da requisição e resposta HTTP | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Ctx) |
+| **quick/http/status** | Definições de status HTTP no framework | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Status) |
+| **quick/group** | Manipulação de grupos de rotas | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Group) |
+| **quickTest** | Pacote para testes unitários e integração no Quick | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/quickTest.svg)](https://pkg.go.dev/github.com/jeffotoni/quick/quickTest) |
+| **quick/route** | Definição e gerenciamento de rotas | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Route) |
+| **quick/config** | Estruturas de configuração do framework | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Config) |
+| **quick/qtest** | Ferramentas auxiliares para testes no Quick | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#QTest) |
+| **quick/uploadedFile** | Gerenciamento de uploads de arquivos | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#UploadedFile) |
+| **quick/zeroth** | Utilitários auxiliares do framework | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Zeroth) |
+
+---
+
 ## 🎛️| Características
 
 | Características   | Tem  | Status | Conclusão |

@@ -15,8 +15,6 @@ import (
 // TestQuick_Group verifies if a route group is correctly created with the expected prefix.
 // The will test TestQuick_Group(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestQuick_Group
 func TestQuick_Group(t *testing.T) {
 	q := New()
@@ -45,8 +43,6 @@ func TestQuick_Group(t *testing.T) {
 
 // TestGroup_Get verifies if a GET request to a route within a group returns the expected response.
 // The will test TestGroup_Get(t *testing.T)
-
-// Run:
 //
 //	$ go test -v -run ^TestGroup_Get
 func TestGroup_Get(t *testing.T) {
@@ -80,10 +76,8 @@ func TestGroup_Get(t *testing.T) {
 
 // TestGroup_Post verifies if a POST request creates a resource and returns the expected response.
 // The will test TestGroup_Post(t *testing.T)
-
-// Run:
 //
-//	$ go test -v -run ^TestGroup_Post
+// $ go test -v -run ^TestGroup_Post
 func TestGroup_Post(t *testing.T) {
 	q := New()
 
@@ -115,8 +109,6 @@ func TestGroup_Post(t *testing.T) {
 
 // TestGroup_Put verifies if a PUT request updates a resource and returns the expected response.
 // The will test TestGroup_Put(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestGroup_Put
 func TestGroup_Put(t *testing.T) {
@@ -150,8 +142,6 @@ func TestGroup_Put(t *testing.T) {
 
 // TestGroup_Delete verifies if a DELETE request removes a resource and returns the expected response.
 // The will test TestGroup_Delete(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestGroup_Delete
 func TestGroup_Delete(t *testing.T) {

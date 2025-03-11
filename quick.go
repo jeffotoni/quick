@@ -150,6 +150,7 @@ func New(c ...Config) *Quick {
 }
 
 // Use function adds middleware to the Quick server, with special treatment for CORS
+// Method Used Internally
 // The result will Use(mw any, nf ...string)
 func (q *Quick) Use(mw any, nf ...string) {
 	if len(nf) > 0 {
@@ -168,6 +169,7 @@ func (q *Quick) Use(mw any, nf ...string) {
 
 // Responsible for clearing the path to be accepted in
 // Servemux receives something like get#/v1/user/_id:[0-9]+_, without {}
+// Method Used Internally
 // The result will clearRegex(route string) string
 func clearRegex(route string) string {
 	// Here you transform "/v1/user/{id:[0-9]+}"
@@ -184,6 +186,7 @@ func clearRegex(route string) string {
 }
 
 // registerRoute is a helper function to centralize route registration logic.
+// Method Used Internally
 // The result will registerRoute(method, pattern string, handlerFunc HandleFunc)
 func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 	path, params, patternExist := extractParamsPattern(pattern)
@@ -237,6 +240,7 @@ func (q *Quick) Options(pattern string, handlerFunc HandleFunc) {
 }
 
 // Generic handler extractor to minimize repeated logic across HTTP methods
+// Method Used Internally
 // The result will extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc
 func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc {
 	switch method {
@@ -257,38 +261,63 @@ func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFun
 }
 
 // PATCH is generally used for partial updates, while PUT replaces the entire resource.
+// Method Used Internally
 // However, both methods often handle request parameters and body parsing in the same way.
 func extractParamsPatch(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return extractParamsPut(q, handlerFunc)
 }
 
-// extractParamsOptions processes an HTTP request for a dynamic route, extracting query parameters, headers, and handling the request using the provided handler function
-// The result will extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc
+// extractParamsOptions processes an HTTP OPTIONS request, setting appropriate
+// headers to handle CORS preflight requests. It reuses a pooled Ctx instance
+// for optimized memory usage and performance.
+//
+// If a handlerFunc is provided, it executes that handler with the pooled context.
+// If no handlerFunc is given, it responds with HTTP 204 No Content.
+//
+// Parameters:
+//   - q: The Quick instance providing configurations and routing context.
+//   - method: The HTTP method being handled (typically "OPTIONS").
+//   - path: The route path being handled.
+//   - handlerFunc: An optional handler to execute for the OPTIONS request.
+//
+// Returns:
+//   - http.HandlerFunc: A handler function optimized for handling OPTIONS requests.
 func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Define allowed HTTP methods
-		allowMethods := []string{MethodGet, MethodPost, MethodPut, MethodDelete, MethodPatch, MethodOptions}
-		w.Header().Set("Allow", strings.Join(allowMethods, ", "))
+		// Define allowed HTTP methods for CORS
+		allowMethods := []string{
+			MethodGet, MethodPost, MethodPut,
+			MethodDelete, MethodPatch, MethodOptions,
+		}
 
-		// Add CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", strings.Join(allowMethods, ", "))
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		// Acquire a pooled context
+		ctx := acquireCtx()
+		defer releaseCtx(ctx) // Ensure context is returned to the pool after handling
 
-		// If a handlerFunc exists, execute it
+		// Populate the pooled context
+		ctx.Response = w
+		ctx.Request = r
+		ctx.MoreRequests = q.config.MoreRequests
+
+		// Define standard headers through ctx
+		ctx.Set("Allow", strings.Join(allowMethods, ", "))
+		ctx.Set("Access-Control-Allow-Origin", "*")
+		ctx.Set("Access-Control-Allow-Methods", strings.Join(allowMethods, ", "))
+		ctx.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Execute handler function if provided
 		if handlerFunc != nil {
-			err := handlerFunc(&Ctx{Response: w, Request: r})
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+			if err := handlerFunc(ctx); err != nil {
+				http.Error(w, err.Error(), StatusInternalServerError)
 			}
 		} else {
-			w.WriteHeader(http.StatusNoContent) // Use 204 if no body is needed
+			w.WriteHeader(StatusNoContent) // 204 No Content if no handlerFunc
 		}
 	}
 }
 
 // extractHeaders extracts all headers from an HTTP request and returns them
+// Method Used Internally
 // The result will extractHeaders(req http.Request) map[string][]string
 func extractHeaders(req http.Request) map[string][]string {
 	headersMap := make(map[string][]string)
@@ -298,22 +327,82 @@ func extractHeaders(req http.Request) map[string][]string {
 	return headersMap
 }
 
-// extractBind decodes the request body into the provided interface based on the Content-Type header
-// The result will extractBind(c *Ctx, v interface{}) (err error)
-func extractBind(c *Ctx, v interface{}) (err error) {
-	var req http.Request = *c.Request
-	if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppJSON ||
-		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
-		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
-		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-	} else if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeTextXML ||
-		strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppXML {
-		err = xml.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-	}
-	return err
+var jsonBufferPool = sync.Pool{
+	New: func() interface{} {
+		return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
+	},
 }
 
+// acquireJSONBuffer retrieves a buffer from the pool.
+func acquireJSONBuffer() *bytes.Buffer {
+	return jsonBufferPool.Get().(*bytes.Buffer)
+}
+
+// releaseJSONBuffer resets and returns the buffer to the pool.
+func releaseJSONBuffer(buf *bytes.Buffer) {
+	buf.Reset()
+	jsonBufferPool.Put(buf)
+}
+
+// extractParamsBind decodes request bodies for JSON/XML payloads using a pooled buffer
+// to minimize memory allocations and garbage collection overhead.
+//
+// Parameters:
+//   - c: The Quick context containing request information.
+//   - v: The target structure to decode the JSON/XML payload.
+//
+// Returns:
+//   - error: Any decoding errors encountered or unsupported content-type errors.
+func extractParamsBind(c *Ctx, v interface{}) error {
+	contentType := strings.ToLower(c.Request.Header.Get("Content-Type"))
+
+	// Check supported Content-Type
+	if !strings.HasPrefix(contentType, ContentTypeAppJSON) &&
+		!strings.HasPrefix(contentType, ContentTypeAppXML) &&
+		!strings.HasPrefix(contentType, ContentTypeTextXML) {
+		return fmt.Errorf("unsupported content type: %s", contentType)
+	}
+
+	// Acquire pooled buffer
+	buf := acquireJSONBuffer()
+	defer releaseJSONBuffer(buf)
+
+	// Read body content into buffer
+	if _, err := buf.ReadFrom(c.Request.Body); err != nil {
+		return err
+	}
+
+	// Reset the Request.Body after reading, enabling re-reads if needed
+	c.Request.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
+
+	switch {
+	case strings.HasPrefix(contentType, ContentTypeAppJSON):
+		return json.Unmarshal(buf.Bytes(), v)
+	case strings.HasPrefix(contentType, ContentTypeAppXML), strings.HasPrefix(contentType, ContentTypeTextXML):
+		return xml.Unmarshal(buf.Bytes(), v)
+	default:
+		return fmt.Errorf("unsupported content type: %s", contentType)
+	}
+}
+
+// extractBind decodes the request body into the provided interface based on the Content-Type header
+// Method Used Internally
+// The result will extractBind(c *Ctx, v interface{}) (err error)
+// func extractBind(c *Ctx, v interface{}) (err error) {
+// 	var req http.Request = *c.Request
+// 	if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppJSON ||
+// 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
+// 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
+// 		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
+// 	} else if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeTextXML ||
+// 		strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppXML {
+// 		err = xml.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
+// 	}
+// 	return err
+// }
+
 // extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern
+// Method Used Internally
 // The result will extractParamsPattern(pattern string) (path, params, partternExist string)
 func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	path = pattern
@@ -351,185 +440,229 @@ func acquireCtx() *Ctx {
 
 // releaseCtx resets the Ctx fields and returns it to the sync.Pool for reuse.
 func releaseCtx(ctx *Ctx) {
-	// Clear or nil out the Ctx fields so we avoid data leaking between requests.
-	ctx.Params = nil
-	ctx.Query = nil
-	ctx.Headers = nil
+	// clear maps without reallocating
+	for k := range ctx.Params {
+		delete(ctx.Params, k)
+	}
+	for k := range ctx.Query {
+		delete(ctx.Query, k)
+	}
+	for k := range ctx.Headers {
+		delete(ctx.Headers, k)
+	}
+
 	ctx.Response = nil
 	ctx.Request = nil
 	ctx.bodyByte = nil
+	ctx.JsonStr = ""
+	ctx.resStatus = 0
 	ctx.MoreRequests = 0
+
 	ctxPool.Put(ctx)
 }
 
-// extractParamsGet processes an HTTP request for a dynamic GET route,
+// extractParamsGet processes an HTTP GET request for a dynamic route,
 // extracting query parameters, headers, and handling the request using
 // the provided handler function.
+//
+// This function ensures efficient processing by leveraging a pooled
+// Ctx instance, which minimizes memory allocations and reduces garbage
+// collection overhead.
+//
+// The request context (`myContextKey`) is retrieved to extract dynamic
+// parameters mapped to the route.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - pathTmp: The template path used for dynamic route matching.
+//   - paramsPath: The actual path used to extract route parameters.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A function that processes the request efficiently.
 func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		// Acquire a pooled context at the beginning of the request.
+		// Acquire a context from the pool
 		ctx := acquireCtx()
-		// Ensure the context is released back to the pool once this handler finishes.
 		defer releaseCtx(ctx)
 
-		// Retrieve our custom context value from the request's context.
+		// Retrieve the custom context from the request (myContextKey)
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			// If there's no context value, respond with 404.
 			http.NotFound(w, req)
 			return
 		}
 
-		// Cast the interface{} to our internal type.
 		cval := v.(ctxServeHttp)
 
-		// Build a map of query parameters.
-		// You could also reuse a pooled map if desired, but here we create a new one each time.
-		queryParams := req.URL.Query()
-		querys := make(map[string]string, len(queryParams))
-		for key, values := range queryParams {
-			// We only store the first value; adapt as needed for multi-value params.
-			querys[key] = values[0]
-		}
-
-		// Extract headers into a map[string][]string
-		headersMap := extractHeaders(*req)
-
-		// Populate the Ctx object with current request data.
+		// Fill the pooled context with request-specific data
 		ctx.Response = w
 		ctx.Request = req
 		ctx.Params = cval.ParamsMap
-		ctx.Query = querys
-		ctx.Headers = headersMap
+
+		// Initialize Query and Headers maps properly
+		ctx.Query = make(map[string]string)
+		for key, val := range req.URL.Query() {
+			ctx.Query[key] = val[0]
+		}
+
+		ctx.Headers = extractHeaders(*req)
 		ctx.MoreRequests = q.config.MoreRequests
 
-		// Finally, execute the provided handler function with this context.
+		// Execute the handler function using the pooled context
 		execHandleFunc(ctx, handlerFunc)
 	}
 }
 
-// // extractParamsGet processes an HTTP request for a dynamic GET route, extracting query parameters, headers, and handling the request using the provided handler function
-// // The result will extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc
-// func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, req *http.Request) {
-// 		v := req.Context().Value(myContextKey)
-// 		if v == nil {
-// 			http.NotFound(w, req)
-// 			return
-// 		}
-
-// 		cval := v.(ctxServeHttp)
-// 		querys := make(map[string]string)
-// 		queryParams := req.URL.Query()
-// 		for key, values := range queryParams {
-// 			querys[key] = values[0]
-// 		}
-// 		headersMap := extractHeaders(*req)
-
-// 		c := &Ctx{
-// 			Response:     w,
-// 			Request:      req,
-// 			Params:       cval.ParamsMap,
-// 			Query:        querys,
-// 			Headers:      headersMap,
-// 			MoreRequests: q.config.MoreRequests,
-// 		}
-// 		execHandleFunc(c, handlerFunc)
-// 	}
-// }
-
-// extractParamsPost processes an HTTP POST request, extracting the request body and headers and handling the request using the provided handler function
-// The result will extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
+// extractParamsPost processes an HTTP POST request, extracting the request body
+// and headers and handling the request using the provided handler function.
+//
+// This function ensures that the request body is within the allowed size limit,
+// extracts headers, and reuses a pooled Ctx instance to optimize memory usage.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A handler function that processes the request efficiently.
 func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		// Check if body size exceeds limit before further validations
+		// Validate body size before processing
 		if req.ContentLength > q.config.MaxBodySize {
-			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+			http.Error(w, "Request body too large", StatusRequestEntityTooLarge)
 			return
 		}
 
+		// Acquire a pooled context for request processing
+		ctx := acquireCtx()
+		defer releaseCtx(ctx) // Ensure the context is returned to the pool after execution
+
+		// Retrieve the custom context from the request
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			http.NotFound(w, req)
+			http.NotFound(w, req) // Return 404 if no context value is found
 			return
 		}
 
-		headersMap := extractHeaders(*req)
+		// Extract headers into the pooled Ctx
+		ctx.Headers = extractHeaders(*req)
+
+		// Read the request body while minimizing allocations
 		bodyBytes, bodyReader := extractBodyBytes(req.Body)
 
-		c := &Ctx{
-			Response:     w,
-			Request:      req,
-			bodyByte:     bodyBytes,
-			Headers:      headersMap,
-			MoreRequests: q.config.MoreRequests,
-		}
+		// Populate the Ctx with relevant data
+		ctx.Response = w
+		ctx.Request = req
+		ctx.bodyByte = bodyBytes
+		ctx.MoreRequests = q.config.MoreRequests
 
-		// reset `Request.Body` with `bodyReader`
-		c.Request.Body = bodyReader
-		execHandleFunc(c, handlerFunc)
+		// Reset `Request.Body` with the new bodyReader to allow re-reading
+		ctx.Request.Body = bodyReader
+
+		// Execute the handler function using the pooled context
+		execHandleFunc(ctx, handlerFunc)
 	}
 }
 
-// extractParamsPut processes an HTTP PUT request, extracting request parameters, headers and request body before executing the provided handler function
-// The result will extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
+// extractParamsPut processes an HTTP PUT request, extracting the request body,
+// headers, and route parameters while efficiently reusing a pooled Ctx instance.
+//
+// This function ensures that the request body does not exceed the configured
+// size limit, extracts headers, and minimizes memory allocations by leveraging
+// a preallocated Ctx from the sync.Pool.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A function that processes the request efficiently.
 func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		// Validate body size before processing
 		if req.ContentLength > q.config.MaxBodySize {
-			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+			http.Error(w, "Request body too large", StatusRequestEntityTooLarge)
 			return
 		}
 
+		// Acquire a pooled context for request processing
+		ctx := acquireCtx()
+		defer releaseCtx(ctx) // Ensure the context is returned to the pool after execution
+
+		// Retrieve the custom context from the request
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			http.NotFound(w, req)
+			http.NotFound(w, req) // Return 404 if no context value is found
 			return
 		}
 
-		headersMap := extractHeaders(*req)
 		cval := v.(ctxServeHttp)
+
+		// Extract headers into the pooled Ctx
+		ctx.Headers = extractHeaders(*req)
+
+		// Read the request body while minimizing allocations
 		bodyBytes, bodyReader := extractBodyBytes(req.Body)
 
-		c := &Ctx{
-			Response:     w,
-			Request:      req,
-			Headers:      headersMap,
-			bodyByte:     bodyBytes,
-			Params:       cval.ParamsMap,
-			MoreRequests: q.config.MoreRequests,
-		}
+		// Populate the Ctx with relevant data
+		ctx.Response = w
+		ctx.Request = req
+		ctx.bodyByte = bodyBytes
+		ctx.Params = cval.ParamsMap
+		ctx.MoreRequests = q.config.MoreRequests
 
-		// reset `Request.Body` with `bodyReader`
-		c.Request.Body = bodyReader
-		execHandleFunc(c, handlerFunc)
+		// Reset `Request.Body` with the new bodyReader to allow re-reading
+		ctx.Request.Body = bodyReader
+
+		// Execute the handler function using the pooled context
+		execHandleFunc(ctx, handlerFunc)
 	}
 }
 
-// extractParamsDelete processes an HTTP DELETE request, extracting request parameters and headers before executing the provided handler function
-// The result will extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
+// extractParamsDelete processes an HTTP DELETE request, extracting request parameters
+// and headers before executing the provided handler function.
+//
+// This function optimizes memory usage by reusing a pooled Ctx instance,
+// reducing unnecessary allocations and garbage collection overhead.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A function that processes the request efficiently.
 func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		// Acquire a pooled context for request processing
+		ctx := acquireCtx()
+		defer releaseCtx(ctx) // Ensure the context is returned to the pool after execution
+
+		// Retrieve the custom context from the request
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			http.NotFound(w, req)
+			http.NotFound(w, req) // Return 404 if no context value is found
 			return
 		}
 
-		headersMap := extractHeaders(*req)
 		cval := v.(ctxServeHttp)
 
-		c := &Ctx{
-			Response:     w,
-			Request:      req,
-			Headers:      headersMap,
-			Params:       cval.ParamsMap,
-			MoreRequests: q.config.MoreRequests,
-		}
-		execHandleFunc(c, handlerFunc)
+		// Extract headers into the pooled Ctx
+		ctx.Headers = extractHeaders(*req)
+
+		// Populate the Ctx with relevant data
+		ctx.Response = w
+		ctx.Request = req
+		ctx.Params = cval.ParamsMap
+		ctx.MoreRequests = q.config.MoreRequests
+
+		// Execute the handler function using the pooled context
+		execHandleFunc(ctx, handlerFunc)
 	}
 }
 
 // execHandleFunc executes the provided handler function and handles errors if they occur
+// Method Used Internally
 // The result will execHandleFunc(c *Ctx, handleFunc HandleFunc)
 func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	err := handleFunc(c)
@@ -594,6 +727,7 @@ func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
 }
 
 // mwWrapper applies all registered middlewares to an HTTP handler
+// Method Used Internally
 // The result will mwWrapper(handler http.Handler) http.Handler
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	for i := len(q.mws2) - 1; i >= 0; i-- {
@@ -611,6 +745,7 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 }
 
 // appendRoute registers a new route in the Quick router and applies middlewares
+// Method Used Internally
 // The result will appendRoute(route *Route)
 func (q *Quick) appendRoute(route *Route) {
 	route.handler = q.mwWrapper(route.handler).ServeHTTP
@@ -618,42 +753,47 @@ func (q *Quick) appendRoute(route *Route) {
 	q.routes = append(q.routes, route)
 }
 
-// ///// pool connection
+// pooledResponseWriter wraps http.ResponseWriter and provides a buffer for potential response optimizations.
 type pooledResponseWriter struct {
 	http.ResponseWriter
 	buf *bytes.Buffer
 }
 
+// responseWriterPool is a sync.Pool for pooledResponseWriter instances to reduce allocations.
 var responseWriterPool = sync.Pool{
 	New: func() interface{} {
 		return &pooledResponseWriter{
-			buf: bytes.NewBuffer(nil),
+			buf: bytes.NewBuffer(make([]byte, 0, 4096)), // initial 4KB buffer
 		}
 	},
 }
 
+// acquireResponseWriter retrieves a pooledResponseWriter instance from the pool.
 func acquireResponseWriter(w http.ResponseWriter) *pooledResponseWriter {
 	rw := responseWriterPool.Get().(*pooledResponseWriter)
 	rw.ResponseWriter = w
 	return rw
 }
 
+// releaseResponseWriter resets and returns the pooledResponseWriter to the pool for reuse.
 func releaseResponseWriter(rw *pooledResponseWriter) {
 	rw.buf.Reset()
 	rw.ResponseWriter = nil
 	responseWriterPool.Put(rw)
 }
 
-//////// pool connection
+func (rw *pooledResponseWriter) Header() http.Header {
+	return rw.ResponseWriter.Header()
+}
 
-// ServeHTTP is the main HTTP request dispatcher for the Quick router
-// The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
+// ServeHTTP processes incoming HTTP requests and matches registered routes.
+// It uses a pooledResponseWriter to reduce memory allocations and improve performance.
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// Acquire a ResponseWriter from the pool for efficient request handling.
+	rw := acquireResponseWriter(w)
+	defer releaseResponseWriter(rw) // Ensure it returns to the pool.
 
-	//  rw := acquireResponseWriter(w)
-	// defer releaseResponseWriter(rw)
-
-	for i := 0; i < len(q.routes); i++ {
+	for i := range q.routes {
 		var requestURI = req.URL.Path
 		var patternUri = q.routes[i].Pattern
 
@@ -668,18 +808,60 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
 
 		if !isValid {
-			continue
+			continue // This route doesn't match, continue checking.
 		}
 
-		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
+		var c = ctxServeHttp{
+			Path:      requestURI,
+			ParamsMap: paramsMap,
+			Method:    q.routes[i].Method,
+		}
 		req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
-		q.routes[i].handler(w, req)
+
+		// Pass the rw (pooledResponseWriter) to the handler
+		q.routes[i].handler(rw, req)
 		return
 	}
-	http.NotFound(w, req)
+
+	// If no route matches, send a 404 response.
+	http.NotFound(rw, req)
 }
 
+// // ServeHTTP is the main HTTP request dispatcher for the Quick router
+// // The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
+// func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+
+// 	//  rw := acquireResponseWriter(w)
+// 	// defer releaseResponseWriter(rw)
+
+// 	for i := 0; i < len(q.routes); i++ {
+// 		var requestURI = req.URL.Path
+// 		var patternUri = q.routes[i].Pattern
+
+// 		if q.routes[i].Method != req.Method {
+// 			continue
+// 		}
+
+// 		if len(patternUri) == 0 {
+// 			patternUri = q.routes[i].Path
+// 		}
+
+// 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
+
+// 		if !isValid {
+// 			continue
+// 		}
+
+// 		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
+// 		req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
+// 		q.routes[i].handler(w, req)
+// 		return
+// 	}
+// 	http.NotFound(w, req)
+// }
+
 // createParamsAndValid create params map and check if the request URI and pattern URI are valid
+// Method Used Internally
 // The result will createParamsAndValid(reqURI, patternURI string) (map[string]string, bool)
 func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	params := make(map[string]string)
@@ -775,6 +957,7 @@ func (q *Quick) Static(route string, dirOrFS any) {
 }
 
 // execHandler wraps an HTTP handler with additional processing
+// Method Used Internally
 // The result will execHandler(next http.Handler) http.Handler
 func (q *Quick) execHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -800,7 +983,6 @@ func (q *Quick) corsHandler() http.Handler {
 // If no custom handler is provided, the default Quick router is used by default.
 // If q.Cors is enabled, the returned handler includes CORS middleware.
 func (q *Quick) httpServerTLS(addr string, tlsConfig *tls.Config, handler ...http.Handler) *http.Server {
-	// Determine the handler to use based on optional arguments and CORS configuration.
 	var h http.Handler = q
 	if len(handler) > 0 {
 		h = q.execHandler(handler[0])
@@ -911,7 +1093,8 @@ func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.
 	return server, shutdownFunc, nil
 }
 
-// Listen chama ListenWithShutdown e bloqueia com `select{}`
+// Listen calls ListenWithShutdown and blocks with select{}
+// The result will Listen(addr string, handler ...http.Handler) error
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	_, shutdown, err := q.ListenWithShutdown(addr, handler...)
 	if err != nil {
@@ -919,7 +1102,7 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	}
 	defer shutdown()
 
-	// Bloqueia indefinidamente
+	// Locks indefinitely
 	select {}
 }
 
@@ -954,10 +1137,12 @@ func (q *Quick) ListenTLS(addr, certFile, keyFile string, useHTTP2 bool, handler
 			CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
 			CipherSuites: []uint16{
 				tls.TLS_AES_128_GCM_SHA256,
-				tls.TLS_CHACHA20_POLY1305_SHA256,
 				tls.TLS_AES_256_GCM_SHA384,
+				tls.TLS_CHACHA20_POLY1305_SHA256,
 			},
-			NextProtos: []string{"h2", "http/1.1"}, // Default to supporting HTTP/2
+			PreferServerCipherSuites: true,                              // Prioritize server ciphers
+			SessionTicketsDisabled:   false,                             // Enable Session Resumption (minus TLS Handshakes)
+			ClientSessionCache:       tls.NewLRUClientSessionCache(128), // Cache TLS sessions for reuse
 		}
 	}
 
@@ -1017,6 +1202,7 @@ func (q *Quick) ListenTLS(addr, certFile, keyFile string, useHTTP2 bool, handler
 //   - error: An error if the server fails to start, or if a forced shutdown occurs.
 //     Returns nil on normal shutdown.
 func (q *Quick) startServerWithGracefulShutdown(listener net.Listener, certFile, keyFile string) error {
+
 	serverErr := make(chan error, 1)
 
 	// Run ServeTLS in a goroutine. Any unrecoverable error that isn't http.ErrServerClosed
@@ -1053,12 +1239,16 @@ func (q *Quick) startServerWithGracefulShutdown(listener net.Listener, certFile,
 	}
 }
 
+// Shutdown gracefully shuts down the server without interrupting any active connections
+// The result will (q *Quick) Shutdown() error
 func (q *Quick) Shutdown() error {
+	// Create a context with a timeout to control the shutdown process
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	defer cancel() // Ensure the context is cancelled to free resources
 
+	// Check if the server is initialized before attempting to shut it down
 	if q.server != nil {
-		return q.server.Shutdown(ctx)
+		return q.server.Shutdown(ctx) // Attempt to shutdown the server gracefully
 	}
-	return nil
+	return nil // Return nil if there is no server to shutdown
 }

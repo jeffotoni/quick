@@ -1,0 +1,3007 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>quick: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/jeffotoni/quick/ctx.go (85.5%)</option>
+				
+				<option value="file1">github.com/jeffotoni/quick/group.go (82.1%)</option>
+				
+				<option value="file2">github.com/jeffotoni/quick/http.status.go (100.0%)</option>
+				
+				<option value="file3">github.com/jeffotoni/quick/quick.go (97.6%)</option>
+				
+				<option value="file4">github.com/jeffotoni/quick/quick_ctx_mock.go (100.0%)</option>
+				
+				<option value="file5">github.com/jeffotoni/quick/quick_upload_file.go (91.9%)</option>
+				
+				<option value="file6">github.com/jeffotoni/quick/quicktest.go (87.1%)</option>
+				
+				<option value="file7">github.com/jeffotoni/quick/quicktest_v2.go (77.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package quick
+
+import (
+        "bytes"
+        "encoding/json"
+        "encoding/xml"
+        "errors"
+        "fmt"
+        "io"
+        "mime/multipart"
+        "net/http"
+        "os"
+        "path/filepath"
+        "strings"
+        "sync"
+)
+
+type Ctx struct {
+        Response       http.ResponseWriter
+        Request        *http.Request
+        resStatus      int
+        MoreRequests   int
+        bodyByte       []byte
+        JsonStr        string
+        Headers        map[string][]string
+        Params         map[string]string
+        Query          map[string]string
+        uploadFileSize int64 // Upload limit in bytes
+}
+
+// UploadedFile holds details of an uploaded file.
+type UploadedFile struct {
+        File      multipart.File
+        Multipart *multipart.FileHeader
+        Info      FileInfo
+}
+
+// FileInfo contains metadata of the uploaded file.
+type FileInfo struct {
+        Filename    string
+        Size        int64
+        ContentType string
+        Bytes       []byte
+}
+
+// GetReqHeadersAll returns all the request headers
+// The result will GetReqHeadersAll() map[string][]string
+func (c *Ctx) GetReqHeadersAll() map[string][]string <span class="cov8" title="1">{
+        return c.Headers
+}</span>
+
+// GetHeadersAll returns all HTTP response headers stored in the context
+// The result will GetHeadersAll() map[string][]string
+func (c *Ctx) GetHeadersAll() map[string][]string <span class="cov8" title="1">{
+        return c.Headers
+}</span>
+
+// Http serveFile send specific file
+// The result will File(filePath string)
+func (c *Ctx) File(filePath string) error <span class="cov8" title="1">{
+        filePath = strings.TrimSuffix(filePath, "/*")
+
+        if stat, err := os.Stat(filePath); err == nil &amp;&amp; stat.IsDir() </span><span class="cov8" title="1">{
+                filePath = filepath.Join(filePath, "index.html")
+        }</span>
+        <span class="cov8" title="1">http.ServeFile(c.Response, c.Request, filePath)
+        return nil</span>
+}
+
+// Bind analyzes and links the request body to a Go structure
+// The result will Bind(v interface{}) (err error)
+func (c *Ctx) Bind(v interface{}) (err error) <span class="cov8" title="1">{
+        return extractParamsBind(c, v)
+}</span>
+
+// BodyParser efficiently unmarshals the request body into the provided struct (v) based on the Content-Type header.
+//
+// Supported content-types:
+// - application/json
+// - application/xml, text/xml
+//
+// Parameters:
+//   - v: The target structure to decode the request body into.
+//
+// Returns:
+//   - error: An error if decoding fails or if the content-type is unsupported.
+func (c *Ctx) BodyParser(v interface{}) error <span class="cov8" title="1">{
+        contentType := strings.ToLower(c.Request.Header.Get("Content-Type"))
+
+        switch </span>{
+        case strings.HasPrefix(contentType, ContentTypeAppJSON):<span class="cov8" title="1">
+                return json.Unmarshal(c.bodyByte, v)</span>
+
+        case strings.Contains(contentType, ContentTypeAppXML),
+                strings.Contains(contentType, ContentTypeTextXML):<span class="cov0" title="0">
+                return xml.Unmarshal(c.bodyByte, v)</span>
+
+        default:<span class="cov0" title="0">
+                return fmt.Errorf("unsupported content-type: %s", contentType)</span>
+        }
+}
+
+// Param returns the value of the URL parameter corresponding to the given key
+// The result will Param(key string) string
+func (c *Ctx) Param(key string) string <span class="cov8" title="1">{
+        val, ok := c.Params[key]
+        if ok </span><span class="cov8" title="1">{
+                return val
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+// Body returns the request body as a byte slice ([]byte)
+// The result will Body() []byte
+func (c *Ctx) Body() []byte <span class="cov8" title="1">{
+        return c.bodyByte
+}</span>
+
+// BodyString returns the request body as a string
+// The result will BodyString() string
+func (c *Ctx) BodyString() string <span class="cov8" title="1">{
+        return string(c.bodyByte)
+}</span>
+
+// JSON encodes the provided interface (v) as JSON, sets the Content-Type header,
+// and writes the response efficiently using buffer pooling.
+//
+// Parameters:
+//   - v: The data structure to encode as JSON.
+//
+// Returns:
+//   - error: An error if JSON encoding fails or if writing the response fails.
+func (c *Ctx) JSON(v interface{}) error <span class="cov8" title="1">{
+        buf := acquireBuffer()
+        defer releaseBuffer(buf)
+
+        b, err := json.Marshal(v)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">buf.Write(b)
+
+        c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
+        _, err = c.Response.Write(buf.Bytes())
+        return err</span>
+}
+
+// JSONIN encodes the given interface as JSON with indentation and writes it to the HTTP response.
+// Allows optional parameters to define the indentation format.
+//
+// Parameters:
+//   - v: The data structure to encode as JSON.
+//   - params (optional): Defines the indentation settings.
+//   - If params[0] is provided, it will be used as the prefix.
+//   - If params[1] is provided, it will be used as the indentation string.
+//
+// Returns:
+//   - error: An error if JSON encoding fails or if writing to the ResponseWriter fails.
+func (c *Ctx) JSONIN(v interface{}, params ...string) error <span class="cov8" title="1">{
+        // Default indentation settings
+        prefix := ""
+        indent := "  " // Default to 2 spaces
+
+        // Override if parameters are provided
+        if len(params) &gt; 0 </span><span class="cov0" title="0">{
+                prefix = params[0]
+        }</span>
+        <span class="cov8" title="1">if len(params) &gt; 1 </span><span class="cov0" title="0">{
+                indent = params[1]
+        }</span>
+
+        // Use buffer pooling for performance
+        <span class="cov8" title="1">buf := acquireBuffer()
+        defer releaseBuffer(buf)
+
+        // Encode with the provided indentation settings
+        b, err := json.MarshalIndent(v, prefix, indent)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">buf.Write(b)
+
+        // Set Content-Type header
+        c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
+        _, err = c.Response.Write(buf.Bytes())
+        return err</span>
+}
+
+// XML serializes the provided value in XML and writes to the HTTP response
+// The result will XML(v interface{}) error
+// func (c *Ctx) XML(v interface{}) error {
+//         b, err := xml.Marshal(v)
+//         if err != nil {
+//                 return err
+//         }
+//         c.Response.Header().Set("Content-Type", ContentTypeTextXML)
+//         return c.writeResponse(b)
+// }
+
+// xmlBufferPool is a sync.Pool for optimizing XML serialization by reusing buffers.
+var xmlBufferPool = sync.Pool{
+        New: func() interface{} <span class="cov8" title="1">{
+                return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
+        }</span>,
+}
+
+// acquireXMLBuffer retrieves a buffer from the pool.
+func acquireXMLBuffer() *bytes.Buffer <span class="cov8" title="1">{
+        return xmlBufferPool.Get().(*bytes.Buffer)
+}</span>
+
+// releaseXMLBuffer resets and returns the buffer to the pool.
+func releaseXMLBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
+        buf.Reset()
+        xmlBufferPool.Put(buf)
+}</span>
+
+// XML serializes the given value to XML and writes it to the HTTP response.
+// It avoids unnecessary memory allocations by using buffer pooling and ensures that no extra newline is appended.
+//
+// Parameters:
+//   - v: The data structure to encode as XML.
+//
+// Returns:
+//   - error: An error if XML encoding fails or if writing to the ResponseWriter fails.
+func (c *Ctx) XML(v interface{}) error <span class="cov8" title="1">{
+        buf := acquireXMLBuffer()
+        defer releaseXMLBuffer(buf)
+
+        // Marshal XML directly (avoids \n issue from xml.Encoder.Encode)
+        b, err := xml.Marshal(v)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">buf.Write(b)
+
+        // Set Content-Type header
+        c.Response.Header().Set("Content-Type", ContentTypeTextXML)
+        _, err = c.Response.Write(buf.Bytes())
+        return err</span>
+}
+
+// writeResponse writes the provided byte content to the ResponseWriter.
+//
+// If a custom status code (resStatus) has been set, it writes the header before the body.
+//
+// Parameters:
+//   - b: The byte slice to be written in the HTTP response.
+//
+// Returns:
+//   - error: An error if writing to the ResponseWriter fails.
+func (c *Ctx) writeResponse(b []byte) error <span class="cov8" title="1">{
+        if c.resStatus != 0 </span><span class="cov8" title="1">{
+                c.Response.WriteHeader(c.resStatus)
+        }</span>
+        <span class="cov8" title="1">_, err := c.Response.Write(b)
+        return err</span>
+}
+
+// Byte writes an array of bytes to the HTTP response, using writeResponse()
+// The result will Byte(b []byte) (err error)
+func (c *Ctx) Byte(b []byte) (err error) <span class="cov8" title="1">{
+        return c.writeResponse(b)
+}</span>
+
+// Send writes a byte array to the HTTP response, using writeResponse()
+// The result will Send(b []byte) (err error)
+func (c *Ctx) Send(b []byte) (err error) <span class="cov8" title="1">{
+        return c.writeResponse(b)
+}</span>
+
+// SendString writes a string in the HTTP response, converting it to an array of bytes and using writeResponse()
+// The result will SendString(s string) error
+func (c *Ctx) SendString(s string) error <span class="cov8" title="1">{
+        return c.writeResponse([]byte(s))
+
+}</span>
+
+// String escreve uma string na resposta HTTP, convertendo-a para um array de bytes e utilizando writeResponse()
+// The result will String(s string) error
+func (c *Ctx) String(s string) error <span class="cov8" title="1">{
+        return c.writeResponse([]byte(s))
+}</span>
+
+// SendFile writes a file in the HTTP response as an array of bytes
+// The result will SendFile(file []byte) error
+func (c *Ctx) SendFile(file []byte) error <span class="cov8" title="1">{
+        _, err := c.Response.Write(file)
+        return err
+}</span>
+
+// Set defines an HTTP header in the response
+// The result will Set(key, value string)
+func (c *Ctx) Set(key, value string) <span class="cov8" title="1">{
+        c.Response.Header().Set(key, value)
+}</span>
+
+// Append adds a value to the HTTP header specified in the response
+// The result will Append(key, value string)
+func (c *Ctx) Append(key, value string) <span class="cov8" title="1">{
+        c.Response.Header().Add(key, value)
+}</span>
+
+// Accepts defines the HTTP header "Accept" in the response
+// The result will Accepts(acceptType string) *Ctx
+func (c *Ctx) Accepts(acceptType string) *Ctx <span class="cov8" title="1">{
+        c.Response.Header().Set("Accept", acceptType)
+        return c
+}</span>
+
+// Status defines the HTTP status code of the response
+// The result will Status(status int) *Ctx
+func (c *Ctx) Status(status int) *Ctx <span class="cov8" title="1">{
+        c.resStatus = status
+        return c
+}</span>
+
+//MultipartForm
+
+// FormFileLimit sets the maximum allowed upload size.
+func (c *Ctx) FormFileLimit(limit string) error <span class="cov8" title="1">{
+        size, err := parseSize(limit)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">c.uploadFileSize = size
+        return nil</span>
+}
+
+// FormFile processes an uploaded file and returns its details.
+// The result will FormFile(fieldName string) (*UploadedFile, error)
+func (c *Ctx) FormFile(fieldName string) (*UploadedFile, error) <span class="cov8" title="1">{
+        files, err := c.FormFiles(fieldName)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if len(files) == 0 </span><span class="cov0" title="0">{
+                return nil, errors.New("no file uploaded")
+        }</span>
+
+        <span class="cov8" title="1">return files[0], nil</span> // Return the first file if multiple are uploaded
+}
+
+// fileWrapper, which wraps a bytes.Reader and adds the Close() method,
+// allowing it to be treated as an io.ReadCloser.
+// We ensure that the file can be read multiple times without losing data.
+// fileWrapper supports multipart.File.
+type fileWrapper struct {
+        *bytes.Reader
+}
+
+// There is nothing to close as we are reading from memory
+func (fw *fileWrapper) Close() error <span class="cov0" title="0">{
+        return nil
+}</span>
+
+// FormFiles processes an uploaded file and returns its details.
+// The result will FormFiles(fieldName string) (*UploadedFile, error)
+func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) <span class="cov8" title="1">{
+        if c.uploadFileSize == 0 </span><span class="cov8" title="1">{
+                c.uploadFileSize = 1 &lt;&lt; 20 // set default 1MB
+        }</span>
+
+        // check request
+        <span class="cov8" title="1">if c.Request == nil </span><span class="cov8" title="1">{
+                return nil, errors.New("HTTP request is nil")
+        }</span>
+
+        // check body
+        <span class="cov8" title="1">if c.Request.Body == nil </span><span class="cov0" title="0">{
+                return nil, errors.New("request body is nil")
+        }</span>
+
+        // check if `Content-Type` this ok
+        <span class="cov8" title="1">contentType := c.Request.Header.Get("Content-Type")
+        if !strings.HasPrefix(contentType, "multipart/form-data") </span><span class="cov0" title="0">{
+                return nil, errors.New("invalid content type, expected multipart/form-data")
+        }</span>
+
+        // Parse multipart form with the defined limit
+        <span class="cov8" title="1">if err := c.Request.ParseMultipartForm(c.uploadFileSize); err != nil </span><span class="cov0" title="0">{
+                return nil, errors.New("failed to parse multipart form: " + err.Error())
+        }</span>
+
+        // Debugging: Check if files exist
+        <span class="cov8" title="1">if c.Request.MultipartForm == nil || c.Request.MultipartForm.File[fieldName] == nil </span><span class="cov8" title="1">{
+                return nil, errors.New("no files found in the request")
+        }</span>
+
+        // Retrieve all files for the given field name
+        <span class="cov8" title="1">files := c.Request.MultipartForm.File[fieldName]
+        if len(files) == 0 </span><span class="cov0" title="0">{
+                return nil, errors.New("no files found for field: " + fieldName)
+        }</span>
+
+        <span class="cov8" title="1">var uploadedFiles []*UploadedFile
+
+        for _, handler := range files </span><span class="cov8" title="1">{
+                // Open file
+                file, err := handler.Open()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, errors.New("failed to open file: " + err.Error())
+                }</span>
+                <span class="cov8" title="1">defer file.Close()
+
+                // Read file content into memory
+                var buf bytes.Buffer
+                if _, err := io.Copy(&amp;buf, file); err != nil </span><span class="cov0" title="0">{
+                        return nil, errors.New("failed to read file into buffer")
+                }</span>
+
+                // reset  multipart.File
+                // Create a reusable copy of the file
+                // that implements multipart.File correctly
+                <span class="cov8" title="1">fileCopy := &amp;fileWrapper{bytes.NewReader(buf.Bytes())}
+
+                // Detect content type
+                contentType := http.DetectContentType(buf.Bytes())
+
+                // Append file details
+                uploadedFiles = append(uploadedFiles, &amp;UploadedFile{
+                        File:      fileCopy,
+                        Multipart: handler,
+                        Info: FileInfo{
+                                Filename:    handler.Filename,
+                                Size:        handler.Size,
+                                ContentType: contentType,
+                                Bytes:       buf.Bytes(),
+                        },
+                })</span>
+        }
+
+        <span class="cov8" title="1">return uploadedFiles, nil</span>
+}
+
+// MultipartForm allows access to the raw multipart form data (for advanced users)
+// The result will MultipartForm() (*multipart.Form, error)
+func (c *Ctx) MultipartForm() (*multipart.Form, error) <span class="cov8" title="1">{
+        if err := c.Request.ParseMultipartForm(c.uploadFileSize); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return c.Request.MultipartForm, nil</span>
+}
+
+// FormValue retrieves a form value by key.
+// It automatically calls ParseForm() before accessing the value.
+// The result will FormValue(key string) string
+func (c *Ctx) FormValue(key string) string <span class="cov8" title="1">{
+        // Checks if the Content-Type is multipart
+        if c.Request.Header.Get("Content-Type") == "multipart/form-data" </span><span class="cov0" title="0">{
+                _ = c.Request.ParseMultipartForm(c.uploadFileSize) // Force correct processing
+        }</span> else<span class="cov8" title="1"> {
+                _ = c.Request.ParseForm() // For application/x-www-form-urlencoded
+        }</span>
+        <span class="cov8" title="1">return c.Request.FormValue(key)</span>
+}
+
+// FormValues returns all form values as a map.
+// It automatically calls ParseForm() before accessing the values.
+// The result will FormValues() map[string][]string
+func (c *Ctx) FormValues() map[string][]string <span class="cov8" title="1">{
+        // Checks if the Content-Type is multipart
+        if c.Request.Header.Get("Content-Type") == "multipart/form-data" </span><span class="cov0" title="0">{
+                _ = c.Request.ParseMultipartForm(c.uploadFileSize) // Required to process multipart
+        }</span> else<span class="cov8" title="1"> {
+                _ = c.Request.ParseForm() // Processes application/x-www-form-urlencoded
+        }</span>
+        <span class="cov8" title="1">return c.Request.Form</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package quick
+
+import (
+        "net/http"
+        "strings"
+
+        "github.com/jeffotoni/quick/internal/concat"
+)
+
+// Constants for route processing
+const (
+        methodSeparator     = "#"
+        errInvalidExtractor = "Invalid function signature for paramExtractor"
+)
+
+// Group represents a collection of routes that share a common prefix
+type Group struct {
+        prefix      string
+        routes      []Route
+        middlewares []func(http.Handler) http.Handler
+        quick       *Quick
+}
+
+// Use adds middlewares to the group
+// The result will Use(mw func(http.Handler) http.Handler)
+func (g *Group) Use(mw func(http.Handler) http.Handler) <span class="cov0" title="0">{
+        g.middlewares = append(g.middlewares, mw)
+}</span>
+
+// Group creates a new route group with a shared prefix
+// The result will Group(prefix string) *Group
+func (q *Quick) Group(prefix string) *Group <span class="cov8" title="1">{
+        g := &amp;Group{
+                prefix: prefix,
+                routes: []Route{},
+                quick:  q,
+        }
+        q.groups = append(q.groups, *g)
+        return g
+}</span>
+
+// normalizePattern constructs the full path with the group prefix
+// The result will normalizePattern(prefix, pattern string) string
+func normalizePattern(prefix, pattern string) string <span class="cov8" title="1">{
+        return concat.String(strings.TrimRight(prefix, "/"), "/", strings.TrimLeft(pattern, "/"))
+}</span>
+
+// resolveParamExtractor ensures the correct function signature for paramExtractor
+// The result will resolveParamExtractor(q *Quick, handlerFunc HandleFunc, paramExtractor interface{}, path, params string) http.HandlerFunc
+func resolveParamExtractor(q *Quick, handlerFunc HandleFunc, paramExtractor interface{}, path, params string) http.HandlerFunc <span class="cov8" title="1">{
+        switch fn := paramExtractor.(type) </span>{
+        case func(*Quick, HandleFunc) http.HandlerFunc:<span class="cov8" title="1">
+                return fn(q, handlerFunc)</span>
+        case func(*Quick, string, string, HandleFunc) http.HandlerFunc:<span class="cov8" title="1">
+                return fn(q, path, params, handlerFunc)</span>
+        default:<span class="cov0" title="0">
+                panic(errInvalidExtractor)</span>
+        }
+}
+
+// applyMiddlewares applies all middlewares to a handler
+// The result will applyMiddlewares(handler http.HandlerFunc, middlewares []func(http.Handler) http.Handler) http.HandlerFunc
+func applyMiddlewares(handler http.HandlerFunc, middlewares []func(http.Handler) http.Handler) http.HandlerFunc <span class="cov8" title="1">{
+        for _, mw := range middlewares </span><span class="cov0" title="0">{
+                handler = mw(handler).(http.HandlerFunc) // CORREÇÃO: Garante conversão correta
+        }</span>
+        <span class="cov8" title="1">return handler</span>
+}
+
+// createAndRegisterRoute creates a new route and registers it in the Quick router
+// The result will createAndRegisterRoute(g *Group, method, pattern, compiledPattern, params string, handler http.HandlerFunc)
+func createAndRegisterRoute(g *Group, method, pattern, compiledPattern, params string, handler http.HandlerFunc) <span class="cov8" title="1">{
+        route := Route{
+                Pattern: compiledPattern,
+                Path:    pattern,
+                Params:  params,
+                handler: handler,
+                Method:  method,
+                Group:   g.prefix,
+        }
+        g.quick.appendRoute(&amp;route)
+
+        // FIX: Adjust path in mux to maintain compatibility with tests
+        if method == http.MethodGet </span><span class="cov8" title="1">{
+                g.quick.mux.HandleFunc(pattern, handler)
+        }</span> else<span class="cov8" title="1"> {
+                g.quick.mux.HandleFunc(concat.String(strings.ToLower(method), methodSeparator, pattern), handler)
+        }</span>
+}
+
+// Handle registers a new route dynamically
+// The result will Handle(method, pattern string, handlerFunc HandleFunc, paramExtractor interface{})
+func (g *Group) Handle(method, pattern string, handlerFunc HandleFunc, paramExtractor any) <span class="cov8" title="1">{
+        // Normalize pattern and extract parameters
+        pattern = normalizePattern(g.prefix, pattern)
+        path, params, compiledPattern := extractParamsPattern(pattern)
+
+        // Resolve parameter extractor and apply middlewares
+        handler := resolveParamExtractor(g.quick, handlerFunc, paramExtractor, path, params)
+        handler = applyMiddlewares(handler, g.middlewares)
+
+        // Register route
+        createAndRegisterRoute(g, method, pattern, compiledPattern, params, handler)
+}</span>
+
+// Get registers a new GET route
+// The result will Get(pattern string, handlerFunc HandleFunc)
+func (g *Group) Get(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        g.Handle(http.MethodGet, pattern, handlerFunc, extractParamsGet)
+}</span>
+
+// Post registers a new POST route
+// The result will Post(pattern string, handlerFunc HandleFunc)
+func (g *Group) Post(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        g.Handle(http.MethodPost, pattern, handlerFunc, extractParamsPost)
+}</span>
+
+// Put registers a new PUT route
+// The result will Put(pattern string, handlerFunc HandleFunc)
+func (g *Group) Put(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        g.Handle(http.MethodPut, pattern, handlerFunc, extractParamsPut)
+}</span>
+
+// Delete registers a new DELETE route
+// The result will Delete(pattern string, handlerFunc HandleFunc)
+func (g *Group) Delete(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        g.Handle(http.MethodDelete, pattern, handlerFunc, extractParamsDelete)
+}</span>
+
+// Patch registers a new PATCH route
+// The result will Patch(pattern string, handlerFunc HandleFunc)
+func (g *Group) Patch(pattern string, handlerFunc HandleFunc) <span class="cov0" title="0">{
+        g.Handle(http.MethodPatch, pattern, handlerFunc, extractParamsPatch)
+}</span>
+
+// Options registers a new OPTIONS route
+// The result will Options(pattern string, handlerFunc HandleFunc)
+func (g *Group) Options(pattern string, handlerFunc HandleFunc) <span class="cov0" title="0">{
+        g.Handle(http.MethodOptions, pattern, handlerFunc, extractParamsOptions)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Copyright 2009 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package quick
+
+const (
+        // MethodGet represents the HTTP GET method.
+        MethodGet = "GET"
+
+        // MethodHead represents the HTTP HEAD method.
+        MethodHead = "HEAD"
+
+        // MethodPost represents the HTTP POST method.
+        MethodPost = "POST"
+
+        // MethodPut represents the HTTP PUT method.
+        MethodPut = "PUT"
+
+        // MethodPatch represents the HTTP PATCH method (RFC 5789).
+        MethodPatch = "PATCH"
+
+        // MethodDelete represents the HTTP DELETE method.
+        MethodDelete = "DELETE"
+
+        // MethodConnect represents the HTTP CONNECT method.
+        MethodConnect = "CONNECT"
+
+        // MethodOptions represents the HTTP OPTIONS method.
+        MethodOptions = "OPTIONS"
+
+        // MethodTrace represents the HTTP TRACE method.
+        MethodTrace = "TRACE"
+)
+
+// HTTP status codes as registered with IANA.
+// See: https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+const (
+
+        // StatusContinue indicates that the client should continue with its request.
+        StatusContinue = 100 // RFC 9110, 15.2.1
+
+        // StatusSwitchingProtocols indicates that the server is switching protocols as requested.
+        StatusSwitchingProtocols = 101 // RFC 9110, 15.2.2
+
+        // StatusProcessing indicates that the server has received the request but has not completed processing.
+        StatusProcessing = 102 // RFC 2518, 10.1
+
+        // StatusEarlyHints provides early hints to help a client start preloading resources.
+        StatusEarlyHints = 103 // RFC 8297
+
+        // StatusOK indicates that the request has succeeded.
+        StatusOK = 200 // RFC 9110, 15.3.1
+
+        // StatusCreated indicates that the request has been fulfilled and a new resource is created.
+        StatusCreated = 201 // RFC 9110, 15.3.2
+
+        // StatusAccepted indicates that the request has been accepted for processing but is not complete.
+        StatusAccepted = 202 // RFC 9110, 15.3.3
+
+        // StatusNonAuthoritativeInfo indicates that the response contains information from another source.
+        StatusNonAuthoritativeInfo = 203 // RFC 9110, 15.3.4
+
+        // StatusNoContent indicates that the server successfully processed the request but has no content to return.
+        StatusNoContent = 204 // RFC 9110, 15.3.5
+
+        // StatusResetContent indicates that the client should reset the document view.
+        StatusResetContent = 205 // RFC 9110, 15.3.6
+
+        // StatusPartialContent indicates that only part of the requested resource is returned.
+        StatusPartialContent = 206 // RFC 9110, 15.3.7
+
+        // StatusMultiStatus indicates that multiple status codes might be returned.
+        StatusMultiStatus = 207 // RFC 4918, 11.1
+
+        // StatusAlreadyReported indicates that the request has already been reported in a previous response.
+        StatusAlreadyReported = 208 // RFC 5842, 7.1
+
+        // StatusIMUsed indicates that the response is a result of an instance manipulation.
+        StatusIMUsed = 226 // RFC 3229, 10.4.1
+
+        // StatusMultipleChoices indicates that multiple possible resources could be returned.
+        StatusMultipleChoices = 300 // RFC 9110, 15.4.1
+
+        // StatusMovedPermanently indicates that the resource has moved permanently to a new URI.
+        StatusMovedPermanently = 301 // RFC 9110, 15.4.2
+
+        // StatusFound indicates that the requested resource has been temporarily moved.
+        StatusFound = 302 // RFC 9110, 15.4.3
+
+        // StatusSeeOther indicates that the response is available at a different URI.
+        StatusSeeOther = 303 // RFC 9110, 15.4.4
+
+        // StatusNotModified indicates that the resource has not been modified since the last request.
+        StatusNotModified = 304 // RFC 9110, 15.4.5
+
+        // StatusUseProxy indicates that the requested resource must be accessed through a proxy.
+        StatusUseProxy = 305 // RFC 9110, 15.4.6
+
+        // 306 Unused (was previously defined in an earlier version of the HTTP specification).
+        _ = 306 // RFC 9110, 15.4.7 (Unused)
+
+        // StatusTemporaryRedirect indicates that the request should be repeated with a different URI.
+        StatusTemporaryRedirect = 307 // RFC 9110, 15.4.8
+
+        // StatusPermanentRedirect indicates that the resource has been permanently moved.
+        StatusPermanentRedirect = 308 // RFC 9110, 15.4.9
+
+        // StatusBadRequest indicates that the server cannot process the request due to client error.
+        StatusBadRequest = 400 // RFC 9110, 15.5.1
+
+        // StatusUnauthorized indicates that authentication is required and has failed or not been provided.
+        StatusUnauthorized = 401 // RFC 9110, 15.5.2
+
+        // StatusPaymentRequired is reserved for future use (typically related to digital payments).
+        StatusPaymentRequired = 402 // RFC 9110, 15.5.3
+
+        // StatusForbidden indicates that the request is valid, but the server is refusing to process it.
+        StatusForbidden = 403 // RFC 9110, 15.5.4
+
+        // StatusNotFound indicates that the requested resource could not be found.
+        StatusNotFound = 404 // RFC 9110, 15.5.5
+
+        // StatusMethodNotAllowed indicates that the request method is not allowed for the resource.
+        StatusMethodNotAllowed = 405 // RFC 9110, 15.5.6
+
+        // StatusNotAcceptable indicates that the server cannot return a response that meets the client's requirements.
+        StatusNotAcceptable = 406 // RFC 9110, 15.5.7
+
+        // StatusProxyAuthRequired indicates that authentication is required for a proxy server.
+        StatusProxyAuthRequired = 407 // RFC 9110, 15.5.8
+
+        // StatusRequestTimeout indicates that the server timed out waiting for the request.
+        StatusRequestTimeout = 408 // RFC 9110, 15.5.9
+
+        // StatusConflict indicates that the request could not be completed due to a conflict with the current resource state.
+        StatusConflict = 409 // RFC 9110, 15.5.10
+
+        // StatusGone indicates that the requested resource is no longer available and will not return.
+        StatusGone = 410 // RFC 9110, 15.5.11
+
+        // StatusLengthRequired indicates that the request must include a valid `Content-Length` header.
+        StatusLengthRequired = 411 // RFC 9110, 15.5.12
+
+        // StatusPreconditionFailed indicates that a precondition in the request headers was not met.
+        StatusPreconditionFailed = 412 // RFC 9110, 15.5.13
+
+        // StatusRequestEntityTooLarge indicates that the request body is too large for the server to process.
+        StatusRequestEntityTooLarge = 413 // RFC 9110, 15.5.14
+
+        // StatusRequestURITooLong indicates that the request URI is too long for the server to process.
+        StatusRequestURITooLong = 414 // RFC 9110, 15.5.15
+
+        // StatusUnsupportedMediaType indicates that the request body format is not supported by the server.
+        StatusUnsupportedMediaType = 415 // RFC 9110, 15.5.16
+
+        // StatusRequestedRangeNotSatisfiable indicates that the range specified in the request cannot be fulfilled.
+        StatusRequestedRangeNotSatisfiable = 416 // RFC 9110, 15.5.17
+
+        // StatusExpectationFailed indicates that the server cannot meet the expectations set in the request headers.
+        StatusExpectationFailed = 417 // RFC 9110, 15.5.18
+
+        // StatusTeapot is an Easter egg from RFC 9110, originally from April Fools' Day (RFC 2324).
+        StatusTeapot = 418 // RFC 9110, 15.5.19 (Unused)
+
+        // StatusMisdirectedRequest indicates that the request was directed to a server that cannot respond appropriately.
+        StatusMisdirectedRequest = 421 // RFC 9110, 15.5.20
+
+        // StatusUnprocessableEntity indicates that the request was well-formed but contains semantic errors.
+        StatusUnprocessableEntity = 422 // RFC 9110, 15.5.21
+
+        // StatusLocked indicates that the requested resource is currently locked.
+        StatusLocked = 423 // RFC 4918, 11.3
+
+        // StatusFailedDependency indicates that the request failed due to a failed dependency.
+        StatusFailedDependency = 424 // RFC 4918, 11.4
+
+        // StatusTooEarly indicates that the request was sent too early and should be retried later.
+        StatusTooEarly = 425 // RFC 8470, 5.2.
+
+        // StatusUpgradeRequired indicates that the client should switch to a different protocol (e.g., HTTPS).
+        StatusUpgradeRequired = 426 // RFC 9110, 15.5.22
+
+        // StatusPreconditionRequired indicates that a precondition header is required for the request.
+        StatusPreconditionRequired = 428 // RFC 6585, 3
+
+        // StatusTooManyRequests indicates that the client has sent too many requests in a given period.
+        StatusTooManyRequests = 429 // RFC 6585, 4
+
+        // StatusRequestHeaderFieldsTooLarge indicates that the request headers are too large for the server to process.
+        StatusRequestHeaderFieldsTooLarge = 431 // RFC 6585, 5
+
+        // StatusUnavailableForLegalReasons indicates that the resource is unavailable for legal reasons (e.g., censorship).
+        StatusUnavailableForLegalReasons = 451 // RFC 7725, 3
+
+        // StatusInternalServerError indicates that the server encountered an unexpected condition.
+        StatusInternalServerError = 500 // RFC 9110, 15.6.1
+
+        // StatusNotImplemented indicates that the server does not support the requested functionality.
+        StatusNotImplemented = 501 // RFC 9110, 15.6.2
+
+        // StatusBadGateway indicates that the server, acting as a gateway or proxy, received an invalid response.
+        StatusBadGateway = 502 // RFC 9110, 15.6.3
+
+        // StatusServiceUnavailable indicates that the server is temporarily unable to handle the request (e.g., overloaded or under maintenance).
+        StatusServiceUnavailable = 503 // RFC 9110, 15.6.4
+
+        // StatusGatewayTimeout indicates that the server, acting as a gateway or proxy, did not receive a timely response.
+        StatusGatewayTimeout = 504 // RFC 9110, 15.6.5
+
+        // StatusHTTPVersionNotSupported indicates that the server does not support the HTTP version used in the request.
+        StatusHTTPVersionNotSupported = 505 // RFC 9110, 15.6.6
+
+        // StatusVariantAlsoNegotiates indicates that the server has an internal configuration error preventing negotiation.
+        StatusVariantAlsoNegotiates = 506 // RFC 2295, 8.1
+
+        // StatusInsufficientStorage indicates that the server cannot store the representation needed to complete the request.
+        StatusInsufficientStorage = 507 // RFC 4918, 11.5
+
+        // StatusLoopDetected indicates that the server detected an infinite loop while processing the request.
+        StatusLoopDetected = 508 // RFC 5842, 7.2
+
+        // StatusNotExtended indicates that further extensions to the request are required for the server to fulfill it.
+        StatusNotExtended = 510 // RFC 2774, 7
+
+        // StatusNetworkAuthenticationRequired indicates that the client must authenticate to gain network access.
+        StatusNetworkAuthenticationRequired = 511 // RFC 6585, 6
+)
+
+// StatusText returns a text for the HTTP status code. It returns the empty
+// string if the code is unknown.
+func StatusText(code int) string <span class="cov8" title="1">{
+        switch code </span>{
+        case StatusContinue:<span class="cov8" title="1">
+                return "Continue"</span>
+        case StatusSwitchingProtocols:<span class="cov8" title="1">
+                return "Switching Protocols"</span>
+        case StatusProcessing:<span class="cov8" title="1">
+                return "Processing"</span>
+        case StatusEarlyHints:<span class="cov8" title="1">
+                return "Early Hints"</span>
+        case StatusOK:<span class="cov8" title="1">
+                return "OK"</span>
+        case StatusCreated:<span class="cov8" title="1">
+                return "Created"</span>
+        case StatusAccepted:<span class="cov8" title="1">
+                return "Accepted"</span>
+        case StatusNonAuthoritativeInfo:<span class="cov8" title="1">
+                return "Non-Authoritative Information"</span>
+        case StatusNoContent:<span class="cov8" title="1">
+                return "No Content"</span>
+        case StatusResetContent:<span class="cov8" title="1">
+                return "Reset Content"</span>
+        case StatusPartialContent:<span class="cov8" title="1">
+                return "Partial Content"</span>
+        case StatusMultiStatus:<span class="cov8" title="1">
+                return "Multi-Status"</span>
+        case StatusAlreadyReported:<span class="cov8" title="1">
+                return "Already Reported"</span>
+        case StatusIMUsed:<span class="cov8" title="1">
+                return "IM Used"</span>
+        case StatusMultipleChoices:<span class="cov8" title="1">
+                return "Multiple Choices"</span>
+        case StatusMovedPermanently:<span class="cov8" title="1">
+                return "Moved Permanently"</span>
+        case StatusFound:<span class="cov8" title="1">
+                return "Found"</span>
+        case StatusSeeOther:<span class="cov8" title="1">
+                return "See Other"</span>
+        case StatusNotModified:<span class="cov8" title="1">
+                return "Not Modified"</span>
+        case StatusUseProxy:<span class="cov8" title="1">
+                return "Use Proxy"</span>
+        case StatusTemporaryRedirect:<span class="cov8" title="1">
+                return "Temporary Redirect"</span>
+        case StatusPermanentRedirect:<span class="cov8" title="1">
+                return "Permanent Redirect"</span>
+        case StatusBadRequest:<span class="cov8" title="1">
+                return "Bad Request"</span>
+        case StatusUnauthorized:<span class="cov8" title="1">
+                return "Unauthorized"</span>
+        case StatusPaymentRequired:<span class="cov8" title="1">
+                return "Payment Required"</span>
+        case StatusForbidden:<span class="cov8" title="1">
+                return "Forbidden"</span>
+        case StatusNotFound:<span class="cov8" title="1">
+                return "Not Found"</span>
+        case StatusMethodNotAllowed:<span class="cov8" title="1">
+                return "Method Not Allowed"</span>
+        case StatusNotAcceptable:<span class="cov8" title="1">
+                return "Not Acceptable"</span>
+        case StatusProxyAuthRequired:<span class="cov8" title="1">
+                return "Proxy Authentication Required"</span>
+        case StatusRequestTimeout:<span class="cov8" title="1">
+                return "Request Timeout"</span>
+        case StatusConflict:<span class="cov8" title="1">
+                return "Conflict"</span>
+        case StatusGone:<span class="cov8" title="1">
+                return "Gone"</span>
+        case StatusLengthRequired:<span class="cov8" title="1">
+                return "Length Required"</span>
+        case StatusPreconditionFailed:<span class="cov8" title="1">
+                return "Precondition Failed"</span>
+        case StatusRequestEntityTooLarge:<span class="cov8" title="1">
+                return "Request Entity Too Large"</span>
+        case StatusRequestURITooLong:<span class="cov8" title="1">
+                return "Request URI Too Long"</span>
+        case StatusUnsupportedMediaType:<span class="cov8" title="1">
+                return "Unsupported Media Type"</span>
+        case StatusRequestedRangeNotSatisfiable:<span class="cov8" title="1">
+                return "Requested Range Not Satisfiable"</span>
+        case StatusExpectationFailed:<span class="cov8" title="1">
+                return "Expectation Failed"</span>
+        case StatusTeapot:<span class="cov8" title="1">
+                return "I'm a teapot"</span>
+        case StatusMisdirectedRequest:<span class="cov8" title="1">
+                return "Misdirected Request"</span>
+        case StatusUnprocessableEntity:<span class="cov8" title="1">
+                return "Unprocessable Entity"</span>
+        case StatusLocked:<span class="cov8" title="1">
+                return "Locked"</span>
+        case StatusFailedDependency:<span class="cov8" title="1">
+                return "Failed Dependency"</span>
+        case StatusTooEarly:<span class="cov8" title="1">
+                return "Too Early"</span>
+        case StatusUpgradeRequired:<span class="cov8" title="1">
+                return "Upgrade Required"</span>
+        case StatusPreconditionRequired:<span class="cov8" title="1">
+                return "Precondition Required"</span>
+        case StatusTooManyRequests:<span class="cov8" title="1">
+                return "Too Many Requests"</span>
+        case StatusRequestHeaderFieldsTooLarge:<span class="cov8" title="1">
+                return "Request Header Fields Too Large"</span>
+        case StatusUnavailableForLegalReasons:<span class="cov8" title="1">
+                return "Unavailable For Legal Reasons"</span>
+        case StatusInternalServerError:<span class="cov8" title="1">
+                return "Internal Server Error"</span>
+        case StatusNotImplemented:<span class="cov8" title="1">
+                return "Not Implemented"</span>
+        case StatusBadGateway:<span class="cov8" title="1">
+                return "Bad Gateway"</span>
+        case StatusServiceUnavailable:<span class="cov8" title="1">
+                return "Service Unavailable"</span>
+        case StatusGatewayTimeout:<span class="cov8" title="1">
+                return "Gateway Timeout"</span>
+        case StatusHTTPVersionNotSupported:<span class="cov8" title="1">
+                return "HTTP Version Not Supported"</span>
+        case StatusVariantAlsoNegotiates:<span class="cov8" title="1">
+                return "Variant Also Negotiates"</span>
+        case StatusInsufficientStorage:<span class="cov8" title="1">
+                return "Insufficient Storage"</span>
+        case StatusLoopDetected:<span class="cov8" title="1">
+                return "Loop Detected"</span>
+        case StatusNotExtended:<span class="cov8" title="1">
+                return "Not Extended"</span>
+        case StatusNetworkAuthenticationRequired:<span class="cov8" title="1">
+                return "Network Authentication Required"</span>
+        default:<span class="cov8" title="1">
+                return ""</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">/*
+🚀 Quick is a flexible and extensible route manager for the Go language.
+It aims to be fast and performant, and 100% net/http compatible.
+Quick is a project under constant development and is open for collaboration,
+everyone is welcome to contribute. 😍
+*/
+package quick
+
+import (
+        "bytes"
+        "context"
+        "crypto/tls"
+        "embed"
+        "encoding/json"
+        "encoding/xml"
+        "fmt"
+        "io"
+        "log"
+        "net"
+        "net/http"
+        "os"
+        "os/signal"
+        "regexp"
+        "runtime"
+        "runtime/debug"
+        "strings"
+        "sync"
+        "syscall"
+        "time"
+
+        "github.com/jeffotoni/quick/internal/concat"
+)
+
+// show in console
+// Run Server Quick:0.0.0.0:&lt;PORT&gt;
+var PRINT_SERVER = os.Getenv("PRINT_SERVER")
+
+const (
+        ContentTypeAppJSON = `application/json`
+        ContentTypeAppXML  = `application/xml`
+        ContentTypeTextXML = `text/xml`
+)
+
+type contextKey int
+
+const myContextKey contextKey = 0
+
+type HandleFunc func(*Ctx) error
+
+// Route represents a registered HTTP route in the Quick framework
+type Route struct {
+        //Pattern *regexp.Regexp
+        Group   string
+        Pattern string
+        Path    string
+        Params  string
+        Method  string
+        handler http.HandlerFunc
+}
+
+type ctxServeHttp struct {
+        Path      string
+        Params    string
+        Method    string
+        ParamsMap map[string]string
+}
+
+type Config struct {
+        BodyLimit         int64
+        MaxBodySize       int64
+        MaxHeaderBytes    int
+        RouteCapacity     int
+        MoreRequests      int // 0 a 1000
+        ReadTimeout       time.Duration
+        WriteTimeout      time.Duration
+        IdleTimeout       time.Duration
+        ReadHeaderTimeout time.Duration
+        GCPercent         int         // Renamed to be more descriptive (0-1000)
+        TLSConfig         *tls.Config // Integrated TLS configuration
+        CorsConfig        *CorsConfig // Specific type for CORS
+}
+
+var defaultConfig = Config{
+        BodyLimit:      2 * 1024 * 1024,
+        MaxBodySize:    2 * 1024 * 1024,
+        MaxHeaderBytes: 1 * 1024 * 1024,
+        RouteCapacity:  1000,
+        MoreRequests:   290, // equilibrium value
+        // TLSConfig:      &amp;tls.Config{},
+        //ReadTimeout:  10 * time.Second,
+        //WriteTimeout: 10 * time.Second,
+        //IdleTimeout:       1 * time.Second,
+        // ReadHeaderTimeout: time.Duration(3) * time.Second,
+}
+
+type Zeroth int
+
+const (
+        Zero Zeroth = 0
+)
+
+type CorsConfig struct {
+        Enabled  bool
+        Options  map[string]string
+        AllowAll bool
+}
+
+type Quick struct {
+        config        Config
+        Cors          bool
+        groups        []Group
+        handler       http.Handler
+        mux           *http.ServeMux
+        routes        []*Route
+        routeCapacity int
+        mws2          []any
+        CorsSet       func(http.Handler) http.Handler
+        CorsOptions   map[string]string
+        // corsConfig    *CorsConfig // Specific type for CORS
+        embedFS embed.FS
+        server  *http.Server
+}
+
+// GetDefaultConfig Function is responsible for returning a default configuration that is pre-defined for the system
+// The result will be GetDefaultConfig() Config
+func GetDefaultConfig() Config <span class="cov8" title="1">{
+        return defaultConfig
+}</span>
+
+// New function creates a new instance of the Quick structure to manage HTTP routes and handlers
+// The result will New(c ...Config) *Quick
+func New(c ...Config) *Quick <span class="cov8" title="1">{
+        var config Config
+        if len(c) &gt; 0 </span><span class="cov8" title="1">{
+                config = c[0]
+        }</span> else<span class="cov8" title="1"> {
+                config = defaultConfig
+        }</span>
+        <span class="cov8" title="1">if config.RouteCapacity == 0 </span><span class="cov8" title="1">{
+                config.RouteCapacity = 1000
+        }</span>
+
+        <span class="cov8" title="1">return &amp;Quick{
+                routes:        make([]*Route, 0, config.RouteCapacity),
+                routeCapacity: config.RouteCapacity,
+                mux:           http.NewServeMux(),
+                handler:       http.NewServeMux(),
+                config:        config,
+        }</span>
+}
+
+// Use function adds middleware to the Quick server, with special treatment for CORS
+// Method Used Internally
+// The result will Use(mw any, nf ...string)
+func (q *Quick) Use(mw any, nf ...string) <span class="cov8" title="1">{
+        if len(nf) &gt; 0 </span><span class="cov8" title="1">{
+                if strings.ToLower(nf[0]) == "cors" </span><span class="cov8" title="1">{
+                        switch mwc := mw.(type) </span>{
+                        case func(http.Handler) http.Handler:<span class="cov8" title="1">
+                                if strings.ToLower(nf[0]) == "cors" </span><span class="cov8" title="1">{
+                                        q.Cors = true
+                                        q.CorsSet = mwc
+                                }</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">q.mws2 = append(q.mws2, mw)</span>
+}
+
+// Responsible for clearing the path to be accepted in
+// Servemux receives something like get#/v1/user/_id:[0-9]+_, without {}
+// Method Used Internally
+// The result will clearRegex(route string) string
+func clearRegex(route string) string <span class="cov8" title="1">{
+        // Here you transform "/v1/user/{id:[0-9]+}"
+        // into something simple, like "/v1/user/_id_"
+        // You can get more sophisticated if you want
+        var re = regexp.MustCompile(`\{[^/]+\}`)
+        return re.ReplaceAllStringFunc(route, func(s string) string </span><span class="cov8" title="1">{
+                // s is "{id:[0-9]+}"
+                // Let's just replace it with "_id_"
+                // or any string that doesn't contain ":" or "{ }"
+                return "_" + strings.Trim(s, "{}") + "_"
+                //return "_" + strings.ReplaceAll(strings.ReplaceAll(strings.Trim(s, "{}"), ":", "_"), "[", "_") + "_"
+        }</span>)
+}
+
+// registerRoute is a helper function to centralize route registration logic.
+// Method Used Internally
+// The result will registerRoute(method, pattern string, handlerFunc HandleFunc)
+func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        path, params, patternExist := extractParamsPattern(pattern)
+        formattedPath := strings.ToLower(method) + "#" + clearRegex(pattern)
+        route := Route{
+                Pattern: patternExist,
+                Path:    path,
+                Params:  params,
+                handler: extractHandler(q, method, path, params, handlerFunc),
+                Method:  method,
+        }
+
+        q.appendRoute(&amp;route)
+        q.mux.HandleFunc(formattedPath, route.handler)
+}</span>
+
+// Get function is an HTTP route with the GET method on the Quick server
+// The result will Get(pattern string, handlerFunc HandleFunc)
+func (q *Quick) Get(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        q.registerRoute(MethodGet, pattern, handlerFunc)
+}</span>
+
+// Post function registers an HTTP route with the POST method on the Quick server
+// The result will Post(pattern string, handlerFunc HandleFunc)
+func (q *Quick) Post(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        q.registerRoute(MethodPost, pattern, handlerFunc)
+}</span>
+
+// Put function registers an HTTP route with the PUT method on the Quick server.
+// The result will Put(pattern string, handlerFunc HandleFunc)
+func (q *Quick) Put(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        q.registerRoute(MethodPut, pattern, handlerFunc)
+}</span>
+
+// Delete function registers an HTTP route with the DELETE method on the Quick server.
+// The result will Delete(pattern string, handlerFunc HandleFunc)
+func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        q.registerRoute(MethodDelete, pattern, handlerFunc)
+}</span>
+
+// Path function registers an HTTP route with the PATH method on the Quick server.
+// The result will Path(pattern string, handlerFunc HandleFunc)
+func (q *Quick) Patch(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        q.registerRoute(MethodPatch, pattern, handlerFunc)
+}</span>
+
+// Options function registers an HTTP route with the Options method on the Quick server.
+// The result will Options(pattern string, handlerFunc HandleFunc)
+func (q *Quick) Options(pattern string, handlerFunc HandleFunc) <span class="cov8" title="1">{
+        q.registerRoute(MethodOptions, pattern, handlerFunc)
+}</span>
+
+// Generic handler extractor to minimize repeated logic across HTTP methods
+// Method Used Internally
+// The result will extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc
+func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc <span class="cov8" title="1">{
+        switch method </span>{
+        case MethodGet:<span class="cov8" title="1">
+                return extractParamsGet(q, path, params, handlerFunc)</span>
+        case MethodPost:<span class="cov8" title="1">
+                return extractParamsPost(q, handlerFunc)</span>
+        case MethodPut:<span class="cov8" title="1">
+                return extractParamsPut(q, handlerFunc)</span>
+        case MethodDelete:<span class="cov8" title="1">
+                return extractParamsDelete(q, handlerFunc)</span>
+        case MethodPatch:<span class="cov8" title="1">
+                return extractParamsPatch(q, handlerFunc)</span> // same as PUT
+        case MethodOptions:<span class="cov8" title="1">
+                return extractParamsOptions(q, method, path, handlerFunc)</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+// PATCH is generally used for partial updates, while PUT replaces the entire resource.
+// Method Used Internally
+// However, both methods often handle request parameters and body parsing in the same way.
+func extractParamsPatch(q *Quick, handlerFunc HandleFunc) http.HandlerFunc <span class="cov8" title="1">{
+        return extractParamsPut(q, handlerFunc)
+}</span>
+
+// extractParamsOptions processes an HTTP OPTIONS request, setting appropriate
+// headers to handle CORS preflight requests. It reuses a pooled Ctx instance
+// for optimized memory usage and performance.
+//
+// If a handlerFunc is provided, it executes that handler with the pooled context.
+// If no handlerFunc is given, it responds with HTTP 204 No Content.
+//
+// Parameters:
+//   - q: The Quick instance providing configurations and routing context.
+//   - method: The HTTP method being handled (typically "OPTIONS").
+//   - path: The route path being handled.
+//   - handlerFunc: An optional handler to execute for the OPTIONS request.
+//
+// Returns:
+//   - http.HandlerFunc: A handler function optimized for handling OPTIONS requests.
+func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc <span class="cov8" title="1">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+                // Define allowed HTTP methods for CORS
+                allowMethods := []string{
+                        MethodGet, MethodPost, MethodPut,
+                        MethodDelete, MethodPatch, MethodOptions,
+                }
+
+                // Acquire a pooled context
+                ctx := acquireCtx()
+                defer releaseCtx(ctx) // Ensure context is returned to the pool after handling
+
+                // Populate the pooled context
+                ctx.Response = w
+                ctx.Request = r
+                ctx.MoreRequests = q.config.MoreRequests
+
+                // Define standard headers through ctx
+                ctx.Set("Allow", strings.Join(allowMethods, ", "))
+                ctx.Set("Access-Control-Allow-Origin", "*")
+                ctx.Set("Access-Control-Allow-Methods", strings.Join(allowMethods, ", "))
+                ctx.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+                // Execute handler function if provided
+                if handlerFunc != nil </span><span class="cov8" title="1">{
+                        if err := handlerFunc(ctx); err != nil </span><span class="cov8" title="1">{
+                                http.Error(w, err.Error(), StatusInternalServerError)
+                        }</span>
+                } else<span class="cov8" title="1"> {
+                        w.WriteHeader(StatusNoContent) // 204 No Content if no handlerFunc
+                }</span>
+        }
+}
+
+// extractHeaders extracts all headers from an HTTP request and returns them
+// Method Used Internally
+// The result will extractHeaders(req http.Request) map[string][]string
+func extractHeaders(req http.Request) map[string][]string <span class="cov8" title="1">{
+        headersMap := make(map[string][]string)
+        for key, values := range req.Header </span><span class="cov8" title="1">{
+                headersMap[key] = values
+        }</span>
+        <span class="cov8" title="1">return headersMap</span>
+}
+
+var jsonBufferPool = sync.Pool{
+        New: func() interface{} <span class="cov8" title="1">{
+                return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
+        }</span>,
+}
+
+// acquireJSONBuffer retrieves a buffer from the pool.
+func acquireJSONBuffer() *bytes.Buffer <span class="cov8" title="1">{
+        return jsonBufferPool.Get().(*bytes.Buffer)
+}</span>
+
+// releaseJSONBuffer resets and returns the buffer to the pool.
+func releaseJSONBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
+        buf.Reset()
+        jsonBufferPool.Put(buf)
+}</span>
+
+// extractParamsBind decodes request bodies for JSON/XML payloads using a pooled buffer
+// to minimize memory allocations and garbage collection overhead.
+//
+// Parameters:
+//   - c: The Quick context containing request information.
+//   - v: The target structure to decode the JSON/XML payload.
+//
+// Returns:
+//   - error: Any decoding errors encountered or unsupported content-type errors.
+func extractParamsBind(c *Ctx, v interface{}) error <span class="cov8" title="1">{
+        contentType := strings.ToLower(c.Request.Header.Get("Content-Type"))
+
+        // Check supported Content-Type
+        if !strings.HasPrefix(contentType, ContentTypeAppJSON) &amp;&amp;
+                !strings.HasPrefix(contentType, ContentTypeAppXML) &amp;&amp;
+                !strings.HasPrefix(contentType, ContentTypeTextXML) </span><span class="cov0" title="0">{
+                return fmt.Errorf("unsupported content type: %s", contentType)
+        }</span>
+
+        // Acquire pooled buffer
+        <span class="cov8" title="1">buf := acquireJSONBuffer()
+        defer releaseJSONBuffer(buf)
+
+        // Read body content into buffer
+        if _, err := buf.ReadFrom(c.Request.Body); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Reset the Request.Body after reading, enabling re-reads if needed
+        <span class="cov8" title="1">c.Request.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
+
+        switch </span>{
+        case strings.HasPrefix(contentType, ContentTypeAppJSON):<span class="cov8" title="1">
+                return json.Unmarshal(buf.Bytes(), v)</span>
+        case strings.HasPrefix(contentType, ContentTypeAppXML), strings.HasPrefix(contentType, ContentTypeTextXML):<span class="cov8" title="1">
+                return xml.Unmarshal(buf.Bytes(), v)</span>
+        default:<span class="cov0" title="0">
+                return fmt.Errorf("unsupported content type: %s", contentType)</span>
+        }
+}
+
+// extractBind decodes the request body into the provided interface based on the Content-Type header
+// Method Used Internally
+// The result will extractBind(c *Ctx, v interface{}) (err error)
+// func extractBind(c *Ctx, v interface{}) (err error) {
+//         var req http.Request = *c.Request
+//         if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppJSON ||
+//                 strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
+//                 strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
+//                 err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
+//         } else if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeTextXML ||
+//                 strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppXML {
+//                 err = xml.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
+//         }
+//         return err
+// }
+
+// extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern
+// Method Used Internally
+// The result will extractParamsPattern(pattern string) (path, params, partternExist string)
+func extractParamsPattern(pattern string) (path, params, partternExist string) <span class="cov8" title="1">{
+        path = pattern
+        index := strings.Index(pattern, ":")
+
+        if index &gt; 0 </span><span class="cov8" title="1">{
+                path = pattern[:index]
+                path = strings.TrimSuffix(path, "/")
+                if index == 1 </span><span class="cov8" title="1">{
+                        path = "/"
+                }</span>
+                <span class="cov8" title="1">params = strings.TrimPrefix(pattern, path)
+                partternExist = pattern</span>
+        }
+
+        <span class="cov8" title="1">return</span>
+}
+
+// Ctx Pool
+var ctxPool = sync.Pool{
+        New: func() interface{} <span class="cov8" title="1">{
+                // Initialize a new Ctx with empty maps to avoid nil checks in usage.
+                return &amp;Ctx{
+                        Params:  make(map[string]string),
+                        Query:   make(map[string]string),
+                        Headers: make(map[string][]string),
+                }
+        }</span>,
+}
+
+// acquireCtx retrieves a Ctx instance from the sync.Pool.
+func acquireCtx() *Ctx <span class="cov8" title="1">{
+        return ctxPool.Get().(*Ctx)
+}</span>
+
+// releaseCtx resets the Ctx fields and returns it to the sync.Pool for reuse.
+func releaseCtx(ctx *Ctx) <span class="cov8" title="1">{
+        // clear maps without reallocating
+        for k := range ctx.Params </span><span class="cov8" title="1">{
+                delete(ctx.Params, k)
+        }</span>
+        <span class="cov8" title="1">for k := range ctx.Query </span><span class="cov8" title="1">{
+                delete(ctx.Query, k)
+        }</span>
+        <span class="cov8" title="1">for k := range ctx.Headers </span><span class="cov8" title="1">{
+                delete(ctx.Headers, k)
+        }</span>
+
+        <span class="cov8" title="1">ctx.Response = nil
+        ctx.Request = nil
+        ctx.bodyByte = nil
+        ctx.JsonStr = ""
+        ctx.resStatus = 0
+        ctx.MoreRequests = 0
+
+        ctxPool.Put(ctx)</span>
+}
+
+// extractParamsGet processes an HTTP GET request for a dynamic route,
+// extracting query parameters, headers, and handling the request using
+// the provided handler function.
+//
+// This function ensures efficient processing by leveraging a pooled
+// Ctx instance, which minimizes memory allocations and reduces garbage
+// collection overhead.
+//
+// The request context (`myContextKey`) is retrieved to extract dynamic
+// parameters mapped to the route.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - pathTmp: The template path used for dynamic route matching.
+//   - paramsPath: The actual path used to extract route parameters.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A function that processes the request efficiently.
+func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc <span class="cov8" title="1">{
+        return func(w http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
+                // Acquire a context from the pool
+                ctx := acquireCtx()
+                defer releaseCtx(ctx)
+
+                // Retrieve the custom context from the request (myContextKey)
+                v := req.Context().Value(myContextKey)
+                if v == nil </span><span class="cov8" title="1">{
+                        http.NotFound(w, req)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">cval := v.(ctxServeHttp)
+
+                // Fill the pooled context with request-specific data
+                ctx.Response = w
+                ctx.Request = req
+                ctx.Params = cval.ParamsMap
+
+                // Initialize Query and Headers maps properly
+                ctx.Query = make(map[string]string)
+                for key, val := range req.URL.Query() </span><span class="cov8" title="1">{
+                        ctx.Query[key] = val[0]
+                }</span>
+
+                <span class="cov8" title="1">ctx.Headers = extractHeaders(*req)
+                ctx.MoreRequests = q.config.MoreRequests
+
+                // Execute the handler function using the pooled context
+                execHandleFunc(ctx, handlerFunc)</span>
+        }
+}
+
+// extractParamsPost processes an HTTP POST request, extracting the request body
+// and headers and handling the request using the provided handler function.
+//
+// This function ensures that the request body is within the allowed size limit,
+// extracts headers, and reuses a pooled Ctx instance to optimize memory usage.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A handler function that processes the request efficiently.
+func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc <span class="cov8" title="1">{
+        return func(w http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
+                // Validate body size before processing
+                if req.ContentLength &gt; q.config.MaxBodySize </span><span class="cov8" title="1">{
+                        http.Error(w, "Request body too large", StatusRequestEntityTooLarge)
+                        return
+                }</span>
+
+                // Acquire a pooled context for request processing
+                <span class="cov8" title="1">ctx := acquireCtx()
+                defer releaseCtx(ctx) // Ensure the context is returned to the pool after execution
+
+                // Retrieve the custom context from the request
+                v := req.Context().Value(myContextKey)
+                if v == nil </span><span class="cov8" title="1">{
+                        http.NotFound(w, req) // Return 404 if no context value is found
+                        return
+                }</span>
+
+                // Extract headers into the pooled Ctx
+                <span class="cov8" title="1">ctx.Headers = extractHeaders(*req)
+
+                // Read the request body while minimizing allocations
+                bodyBytes, bodyReader := extractBodyBytes(req.Body)
+
+                // Populate the Ctx with relevant data
+                ctx.Response = w
+                ctx.Request = req
+                ctx.bodyByte = bodyBytes
+                ctx.MoreRequests = q.config.MoreRequests
+
+                // Reset `Request.Body` with the new bodyReader to allow re-reading
+                ctx.Request.Body = bodyReader
+
+                // Execute the handler function using the pooled context
+                execHandleFunc(ctx, handlerFunc)</span>
+        }
+}
+
+// extractParamsPut processes an HTTP PUT request, extracting the request body,
+// headers, and route parameters while efficiently reusing a pooled Ctx instance.
+//
+// This function ensures that the request body does not exceed the configured
+// size limit, extracts headers, and minimizes memory allocations by leveraging
+// a preallocated Ctx from the sync.Pool.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A function that processes the request efficiently.
+func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc <span class="cov8" title="1">{
+        return func(w http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
+                // Validate body size before processing
+                if req.ContentLength &gt; q.config.MaxBodySize </span><span class="cov8" title="1">{
+                        http.Error(w, "Request body too large", StatusRequestEntityTooLarge)
+                        return
+                }</span>
+
+                // Acquire a pooled context for request processing
+                <span class="cov8" title="1">ctx := acquireCtx()
+                defer releaseCtx(ctx) // Ensure the context is returned to the pool after execution
+
+                // Retrieve the custom context from the request
+                v := req.Context().Value(myContextKey)
+                if v == nil </span><span class="cov8" title="1">{
+                        http.NotFound(w, req) // Return 404 if no context value is found
+                        return
+                }</span>
+
+                <span class="cov8" title="1">cval := v.(ctxServeHttp)
+
+                // Extract headers into the pooled Ctx
+                ctx.Headers = extractHeaders(*req)
+
+                // Read the request body while minimizing allocations
+                bodyBytes, bodyReader := extractBodyBytes(req.Body)
+
+                // Populate the Ctx with relevant data
+                ctx.Response = w
+                ctx.Request = req
+                ctx.bodyByte = bodyBytes
+                ctx.Params = cval.ParamsMap
+                ctx.MoreRequests = q.config.MoreRequests
+
+                // Reset `Request.Body` with the new bodyReader to allow re-reading
+                ctx.Request.Body = bodyReader
+
+                // Execute the handler function using the pooled context
+                execHandleFunc(ctx, handlerFunc)</span>
+        }
+}
+
+// extractParamsDelete processes an HTTP DELETE request, extracting request parameters
+// and headers before executing the provided handler function.
+//
+// This function optimizes memory usage by reusing a pooled Ctx instance,
+// reducing unnecessary allocations and garbage collection overhead.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A function that processes the request efficiently.
+func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc <span class="cov8" title="1">{
+        return func(w http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
+                // Acquire a pooled context for request processing
+                ctx := acquireCtx()
+                defer releaseCtx(ctx) // Ensure the context is returned to the pool after execution
+
+                // Retrieve the custom context from the request
+                v := req.Context().Value(myContextKey)
+                if v == nil </span><span class="cov8" title="1">{
+                        http.NotFound(w, req) // Return 404 if no context value is found
+                        return
+                }</span>
+
+                <span class="cov8" title="1">cval := v.(ctxServeHttp)
+
+                // Extract headers into the pooled Ctx
+                ctx.Headers = extractHeaders(*req)
+
+                // Populate the Ctx with relevant data
+                ctx.Response = w
+                ctx.Request = req
+                ctx.Params = cval.ParamsMap
+                ctx.MoreRequests = q.config.MoreRequests
+
+                // Execute the handler function using the pooled context
+                execHandleFunc(ctx, handlerFunc)</span>
+        }
+}
+
+// execHandleFunc executes the provided handler function and handles errors if they occur
+// Method Used Internally
+// The result will execHandleFunc(c *Ctx, handleFunc HandleFunc)
+func execHandleFunc(c *Ctx, handleFunc HandleFunc) <span class="cov8" title="1">{
+        err := handleFunc(c)
+        if err != nil </span><span class="cov8" title="1">{
+                c.Set("Content-Type", "text/plain; charset=utf-8")
+                // #nosec G104
+                c.Status(500).SendString(err.Error())
+        }</span>
+}
+
+var bufferPool = sync.Pool{
+        // Create new buffers with an initial capacity of 4KB.
+        // Adjust this size based on expected request body sizes.
+        New: func() interface{} <span class="cov8" title="1">{
+                return bytes.NewBuffer(make([]byte, 0, 4096))
+        }</span>,
+}
+
+// acquireBuffer retrieves a *bytes.Buffer from the sync.Pool.
+func acquireBuffer() *bytes.Buffer <span class="cov8" title="1">{
+        return bufferPool.Get().(*bytes.Buffer)
+}</span>
+
+// releaseBuffer resets the buffer and places it back in the sync.Pool for reuse.
+func releaseBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
+        buf.Reset() // Clear any existing data
+        bufferPool.Put(buf)
+}</span>
+
+// extractBodyBytes reads the entire request body into a pooled buffer, then
+// copies the data to a new byte slice before returning it. This ensures that
+// once the buffer is returned to the pool, the returned data remains valid.
+// The function also returns a new io.ReadCloser wrapping that same data,
+// allowing it to be re-read if needed.
+//
+// Note: If the request body is very large, the buffer will grow automatically
+// and remain larger when placed back in the pool. If extremely large bodies
+// are expected infrequently, you may want additional logic to discard overly
+// large buffers rather than returning them to the pool.
+func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) <span class="cov8" title="1">{
+        // Acquire a reusable buffer from the pool
+        buf := acquireBuffer()
+        defer releaseBuffer(buf)
+
+        // Read all data from the request body into the buffer
+        _, err := buf.ReadFrom(r)
+        if err != nil </span><span class="cov8" title="1">{
+                // If there's an error, return an empty NopCloser
+                // so downstream logic can handle gracefully.
+                return nil, io.NopCloser(bytes.NewBuffer(nil))
+        }</span>
+
+        // Copy the data from the buffer into a separate byte slice.
+        // This step is crucial because once the buffer is released
+        // back to the pool, its underlying memory can be reused.
+        <span class="cov8" title="1">data := make([]byte, buf.Len())
+        copy(data, buf.Bytes())
+
+        // Return both the raw byte slice and a new ReadCloser
+        // wrapping the same data, which allows for re-reading.
+        return data, io.NopCloser(bytes.NewReader(data))</span>
+}
+
+// mwWrapper applies all registered middlewares to an HTTP handler
+// Method Used Internally
+// The result will mwWrapper(handler http.Handler) http.Handler
+func (q *Quick) mwWrapper(handler http.Handler) http.Handler <span class="cov8" title="1">{
+        for i := len(q.mws2) - 1; i &gt;= 0; i-- </span><span class="cov8" title="1">{
+                switch mw := q.mws2[i].(type) </span>{
+                case func(http.Handler) http.Handler:<span class="cov8" title="1">
+                        handler = mw(handler)</span>
+                case func(http.ResponseWriter, *http.Request, http.Handler):<span class="cov8" title="1">
+                        originalHandler := handler // Avoid infinite reassignment
+                        handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+                                mw(w, r, originalHandler)
+                        }</span>)
+                }
+        }
+        <span class="cov8" title="1">return handler</span>
+}
+
+// appendRoute registers a new route in the Quick router and applies middlewares
+// Method Used Internally
+// The result will appendRoute(route *Route)
+func (q *Quick) appendRoute(route *Route) <span class="cov8" title="1">{
+        route.handler = q.mwWrapper(route.handler).ServeHTTP
+        //q.routes = append(q.routes, *route)
+        q.routes = append(q.routes, route)
+}</span>
+
+// pooledResponseWriter wraps http.ResponseWriter and provides a buffer for potential response optimizations.
+type pooledResponseWriter struct {
+        http.ResponseWriter
+        buf *bytes.Buffer
+}
+
+// responseWriterPool is a sync.Pool for pooledResponseWriter instances to reduce allocations.
+var responseWriterPool = sync.Pool{
+        New: func() interface{} <span class="cov8" title="1">{
+                return &amp;pooledResponseWriter{
+                        buf: bytes.NewBuffer(make([]byte, 0, 4096)), // initial 4KB buffer
+                }
+        }</span>,
+}
+
+// acquireResponseWriter retrieves a pooledResponseWriter instance from the pool.
+func acquireResponseWriter(w http.ResponseWriter) *pooledResponseWriter <span class="cov8" title="1">{
+        rw := responseWriterPool.Get().(*pooledResponseWriter)
+        rw.ResponseWriter = w
+        return rw
+}</span>
+
+// releaseResponseWriter resets and returns the pooledResponseWriter to the pool for reuse.
+func releaseResponseWriter(rw *pooledResponseWriter) <span class="cov8" title="1">{
+        rw.buf.Reset()
+        rw.ResponseWriter = nil
+        responseWriterPool.Put(rw)
+}</span>
+
+func (rw *pooledResponseWriter) Header() http.Header <span class="cov8" title="1">{
+        return rw.ResponseWriter.Header()
+}</span>
+
+// ServeHTTP processes incoming HTTP requests and matches registered routes.
+// It uses a pooledResponseWriter to reduce memory allocations and improve performance.
+func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) <span class="cov8" title="1">{
+        // Acquire a ResponseWriter from the pool for efficient request handling.
+        rw := acquireResponseWriter(w)
+        defer releaseResponseWriter(rw) // Ensure it returns to the pool.
+
+        for i := range q.routes </span><span class="cov8" title="1">{
+                var requestURI = req.URL.Path
+                var patternUri = q.routes[i].Pattern
+
+                if q.routes[i].Method != req.Method </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">if len(patternUri) == 0 </span><span class="cov8" title="1">{
+                        patternUri = q.routes[i].Path
+                }</span>
+
+                <span class="cov8" title="1">paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
+
+                if !isValid </span><span class="cov8" title="1">{
+                        continue</span> // This route doesn't match, continue checking.
+                }
+
+                <span class="cov8" title="1">var c = ctxServeHttp{
+                        Path:      requestURI,
+                        ParamsMap: paramsMap,
+                        Method:    q.routes[i].Method,
+                }
+                req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
+
+                // Pass the rw (pooledResponseWriter) to the handler
+                q.routes[i].handler(rw, req)
+                return</span>
+        }
+
+        // If no route matches, send a 404 response.
+        <span class="cov8" title="1">http.NotFound(rw, req)</span>
+}
+
+// // ServeHTTP is the main HTTP request dispatcher for the Quick router
+// // The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
+// func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+
+//         //  rw := acquireResponseWriter(w)
+//         // defer releaseResponseWriter(rw)
+
+//         for i := 0; i &lt; len(q.routes); i++ {
+//                 var requestURI = req.URL.Path
+//                 var patternUri = q.routes[i].Pattern
+
+//                 if q.routes[i].Method != req.Method {
+//                         continue
+//                 }
+
+//                 if len(patternUri) == 0 {
+//                         patternUri = q.routes[i].Path
+//                 }
+
+//                 paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
+
+//                 if !isValid {
+//                         continue
+//                 }
+
+//                 var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
+//                 req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
+//                 q.routes[i].handler(w, req)
+//                 return
+//         }
+//         http.NotFound(w, req)
+// }
+
+// createParamsAndValid create params map and check if the request URI and pattern URI are valid
+// Method Used Internally
+// The result will createParamsAndValid(reqURI, patternURI string) (map[string]string, bool)
+func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) <span class="cov8" title="1">{
+        params := make(map[string]string)
+        var builder strings.Builder
+
+        reqURI = strings.TrimPrefix(reqURI, "/")
+        patternURI = strings.TrimPrefix(patternURI, "/")
+
+        reqSplit := strings.Split(reqURI, "/")
+        patternSplit := strings.Split(patternURI, "/")
+        if len(reqSplit) != len(patternSplit) </span><span class="cov8" title="1">{
+                return nil, false
+        }</span>
+
+        <span class="cov8" title="1">for i, seg := range patternSplit </span><span class="cov8" title="1">{
+                reqSeg := reqSplit[i]
+
+                switch </span>{
+                // Ex: :id =&gt; paramName = "id"
+                case strings.HasPrefix(seg, ":"):<span class="cov8" title="1">
+                        paramName := seg[1:]
+                        if paramName == "" </span><span class="cov8" title="1">{
+                                return nil, false
+                        }</span>
+                        <span class="cov8" title="1">params[paramName] = reqSeg
+                        builder.WriteString("/")
+                        builder.WriteString(reqSeg)</span>
+
+                // Ex: {id:[0-9]+}
+                case strings.HasPrefix(seg, "{") &amp;&amp; strings.HasSuffix(seg, "}"):<span class="cov8" title="1">
+                        content := seg[1 : len(seg)-1]
+                        parts := strings.SplitN(content, ":", 2)
+                        // Check for name and regex
+                        if len(parts) != 2 || parts[0] == "" </span><span class="cov8" title="1">{
+                                return nil, false
+                        }</span>
+                        <span class="cov8" title="1">paramName, regexPattern := parts[0], parts[1]
+
+                        rgx, err := regexp.Compile("^" + regexPattern + "$")
+                        if err != nil || !rgx.MatchString(reqSeg) </span><span class="cov8" title="1">{
+                                return nil, false
+                        }</span>
+                        <span class="cov8" title="1">params[paramName] = reqSeg
+                        builder.WriteString("/")
+                        builder.WriteString(reqSeg)</span>
+
+                default:<span class="cov8" title="1">
+                        if seg != reqSeg </span><span class="cov8" title="1">{
+                                return nil, false
+                        }</span>
+                        <span class="cov8" title="1">builder.WriteString("/")
+                        builder.WriteString(seg)</span>
+                }
+        }
+
+        //if "/"+reqURI != builder.String() {
+        //        return nil, false
+        //}
+
+        <span class="cov8" title="1">return params, true</span>
+}
+
+// GetRoute returns all registered routes in the Quick framework
+// The result will GetRoute() []*Route
+func (q *Quick) GetRoute() []*Route <span class="cov8" title="1">{
+        return q.routes
+}</span>
+
+// Static server files html, css, js etc
+// Embed.FS allows you to include files directly into
+// the binary during compilation, eliminating the need to load files
+// from the file system at runtime. This means that
+// static files (HTML, CSS, JS, images, etc.)
+// are embedded into the executable.
+// The result will Static(route string, dirOrFS any)
+func (q *Quick) Static(route string, dirOrFS any) <span class="cov8" title="1">{
+        route = strings.TrimSuffix(route, "/")
+
+        var fileServer http.Handler
+
+        // check of dirOrFS is a embed.FS
+        switch v := dirOrFS.(type) </span>{
+        case string:<span class="cov8" title="1">
+                fileServer = http.FileServer(http.Dir(v))</span>
+        case embed.FS:<span class="cov8" title="1">
+                q.embedFS = v
+                fileServer = http.FileServer(http.FS(v))</span>
+        default:<span class="cov8" title="1">
+                panic("Static: invalid parameter, must be string or embed.FS")</span>
+        }
+
+        <span class="cov8" title="1">q.mux.Handle(concat.String(route, "/"), http.StripPrefix(route, fileServer))</span>
+}
+
+// execHandler wraps an HTTP handler with additional processing
+// Method Used Internally
+// The result will execHandler(next http.Handler) http.Handler
+func (q *Quick) execHandler(next http.Handler) http.Handler <span class="cov8" title="1">{
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+                next.ServeHTTP(w, r)
+        }</span>)
+}
+
+// corsHandler returns an HTTP handler that applies the configured CORS settings.
+// Internally, it uses q.CorsSet(q) to wrap the Quick router with CORS middleware
+// if the feature is enabled.
+func (q *Quick) corsHandler() http.Handler <span class="cov8" title="1">{
+        return q.CorsSet(q)
+}</span>
+
+// httpServerTLS creates and returns an HTTP server instance configured with Quick
+// for TLS/HTTPS usage. This function accepts a tlsConfig for secure connections.
+//
+// Parameters:
+//   - addr:      The network address the server should listen on (e.g., ":443").
+//   - tlsConfig: A *tls.Config instance containing certificate and security settings.
+//   - handler:   Optionally, one or more custom HTTP handlers.
+//
+// If no custom handler is provided, the default Quick router is used by default.
+// If q.Cors is enabled, the returned handler includes CORS middleware.
+func (q *Quick) httpServerTLS(addr string, tlsConfig *tls.Config, handler ...http.Handler) *http.Server <span class="cov8" title="1">{
+        var h http.Handler = q
+        if len(handler) &gt; 0 </span><span class="cov8" title="1">{
+                h = q.execHandler(handler[0])
+        }</span> else<span class="cov8" title="1"> if q.Cors </span><span class="cov0" title="0">{
+                h = q.corsHandler()
+        }</span>
+
+        // Return a fully configured http.Server, including TLS settings.
+        <span class="cov8" title="1">return &amp;http.Server{
+                Addr:              addr,
+                Handler:           h,
+                TLSConfig:         tlsConfig,
+                ReadTimeout:       q.config.ReadTimeout,
+                WriteTimeout:      q.config.WriteTimeout,
+                IdleTimeout:       q.config.IdleTimeout,
+                ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+                MaxHeaderBytes:    q.config.MaxHeaderBytes,
+        }</span>
+}
+
+// httpServer creates and returns an HTTP server instance configured with Quick
+// for plain HTTP (non-TLS) usage.
+//
+// Parameters:
+//   - addr:    The network address the server should listen on (e.g., ":8080").
+//   - handler: Optionally, one or more custom HTTP handlers.
+//
+// If no custom handler is provided, the default Quick router is used by default.
+// If q.Cors is enabled, the returned handler includes CORS middleware.
+func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server <span class="cov8" title="1">{
+        // Determine the handler to use based on optional arguments and CORS configuration.
+        var h http.Handler = q
+        if len(handler) &gt; 0 </span><span class="cov8" title="1">{
+                h = q.execHandler(handler[0])
+        }</span> else<span class="cov8" title="1"> if q.Cors </span><span class="cov8" title="1">{
+                h = q.corsHandler()
+        }</span>
+
+        // Return a fully configured http.Server for plain HTTP usage.
+        <span class="cov8" title="1">return &amp;http.Server{
+                Addr:              addr,
+                Handler:           h,
+                ReadTimeout:       q.config.ReadTimeout,
+                WriteTimeout:      q.config.WriteTimeout,
+                IdleTimeout:       q.config.IdleTimeout,
+                ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+                MaxHeaderBytes:    q.config.MaxHeaderBytes,
+        }</span>
+}
+
+// ListenWithShutdown starts an HTTP server on the given address and returns both
+// the *http.Server instance and a shutdown function. The server begins listening
+// in a background goroutine, while the caller retains control over the server's
+// lifecycle through the returned function.
+//
+// If q.config.MoreRequests &gt; 0, the function sets the Go garbage collector's
+// percentage via debug.SetGCPercent(q.config.MoreRequests). This can tune how
+// aggressively the garbage collector operates.
+//
+// The returned shutdown function, when called, attempts a graceful shutdown with
+// a 5-second timeout. This allows existing connections to finish processing
+// before the server is closed. It also closes the underlying TCP listener.
+//
+// Parameters:
+//   - addr:    The TCP network address to listen on (e.g. ":8080").
+//   - handler: Optional HTTP handlers; if none is provided, the default handler is used.
+//
+// Returns:
+//   - *http.Server: The configured HTTP server instance.
+//   - func():        A function that triggers graceful shutdown of the server.
+//   - error:         An error if the listener cannot be created.
+//
+// Usage Example:
+//
+//        server, shutdown, err := q.ListenWithShutdown(":8080")
+//        if err != nil {
+//            log.Fatalf("failed to start server: %v", err)
+//        }
+//        // The server is now running in the background.
+//
+//        // At a later point, we can shut down gracefully:
+//        shutdown()
+func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.Server, func(), error) <span class="cov8" title="1">{
+        if q.config.MoreRequests &gt; 0 </span><span class="cov8" title="1">{
+                debug.SetGCPercent(q.config.MoreRequests)
+        }</span>
+
+        <span class="cov8" title="1">listener, err := net.Listen("tcp", addr)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, nil, err
+        }</span>
+
+        <span class="cov8" title="1">server := q.httpServer(listener.Addr().String(), handler...)
+
+        // This function initiates a graceful shutdown of the server.
+        shutdownFunc := func() </span><span class="cov8" title="1">{
+                ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+                defer cancel()
+                server.Shutdown(ctx)
+                listener.Close()
+        }</span>
+
+        // Start the server in the background goroutine.
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                server.Serve(listener)
+        }</span>()
+
+        <span class="cov8" title="1">return server, shutdownFunc, nil</span>
+}
+
+// Listen calls ListenWithShutdown and blocks with select{}
+// The result will Listen(addr string, handler ...http.Handler) error
+func (q *Quick) Listen(addr string, handler ...http.Handler) error <span class="cov8" title="1">{
+        _, shutdown, err := q.ListenWithShutdown(addr, handler...)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">defer shutdown()
+
+        // Locks indefinitely
+        select </span>{}
+}
+
+// ListenTLS starts an HTTPS server on the specified address using the provided
+// certificate and key files. It allows enabling or disabling HTTP/2 support.
+// It also configures basic modern TLS settings, sets up a listener with
+// SO_REUSEPORT (when possible), and applies a graceful shutdown procedure.
+//
+// Parameters:
+//   - addr: the TCP network address to listen on (e.g., ":443")
+//   - certFile: the path to the SSL certificate file
+//   - keyFile: the path to the SSL private key file
+//   - useHTTP2: whether or not to enable HTTP/2
+//   - handler: optional HTTP handlers. If none is provided, the default handler is used.
+//
+// Returns:
+//   - error: an error if something goes wrong creating the listener or starting the server.
+func (q *Quick) ListenTLS(addr, certFile, keyFile string, useHTTP2 bool, handler ...http.Handler) error <span class="cov8" title="1">{
+        // If the user has specified a custom GC percentage (&gt; 0),
+        // set it here to help control garbage collection aggressiveness.
+        if q.config.GCPercent &gt; 0 </span><span class="cov8" title="1">{
+                debug.SetGCPercent(q.config.GCPercent)
+        }</span>
+
+        // Extract or create a TLS configuration.
+        // If q.config.TLSConfig is nil, set up a default TLS config with modern protocols
+        // and ciphers. This includes TLS 1.3 and secure cipher suites.
+        <span class="cov8" title="1">var tlsConfig = q.config.TLSConfig
+        if tlsConfig == nil </span><span class="cov8" title="1">{
+                tlsConfig = &amp;tls.Config{
+                        MinVersion:       tls.VersionTLS13, // Sets TLS 1.3 as the minimum version
+                        CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+                        CipherSuites: []uint16{
+                                tls.TLS_AES_128_GCM_SHA256,
+                                tls.TLS_CHACHA20_POLY1305_SHA256,
+                                tls.TLS_AES_256_GCM_SHA384,
+                        },
+                        NextProtos: []string{"h2", "http/1.1"}, // Default to supporting HTTP/2
+                }
+        }</span>
+
+        // Enable or disable HTTP/2 support based on the useHTTP2 parameter.
+        <span class="cov8" title="1">if useHTTP2 </span><span class="cov8" title="1">{
+                // HTTP/2 + HTTP/1.1
+                tlsConfig.NextProtos = []string{"h2", "http/1.1"}
+        }</span> else<span class="cov8" title="1"> {
+                // Only HTTP/1.1
+                tlsConfig.NextProtos = []string{"http/1.1"}
+        }</span>
+
+        // Create a net.ListenConfig that attempts to set SO_REUSEPORT on supported platforms.
+        // This feature can improve load balancing by letting multiple processes
+        // bind to the same address.
+        <span class="cov8" title="1">cfg := &amp;net.ListenConfig{
+                Control: func(network, address string, c syscall.RawConn) error </span><span class="cov8" title="1">{
+                        return c.Control(func(fd uintptr) </span><span class="cov8" title="1">{
+                                // Avoid setting SO_REUSEPORT on macOS to prevent errors.
+                                if runtime.GOOS != "darwin" </span><span class="cov0" title="0">{
+                                        syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEPORT, 1)
+                                }</span>
+                        })
+                },
+        }
+
+        // Listen on the specified TCP address using our custom ListenConfig.
+        <span class="cov8" title="1">listener, err := cfg.Listen(context.Background(), "tcp", addr)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create listener: %w", err)
+        }</span>
+
+        // Create the HTTP server configured for TLS using the provided or default tlsConfig.
+        // The address is taken from the listener to ensure correctness in case the actual
+        // bound port differs (for example, if you used ":0" for a random port).
+        <span class="cov8" title="1">q.server = q.httpServerTLS(listener.Addr().String(), tlsConfig, handler...)
+
+        // Start the server and perform a graceful shutdown when a termination signal is received.
+        return q.startServerWithGracefulShutdown(listener, certFile, keyFile)</span>
+}
+
+// startServerWithGracefulShutdown starts the HTTPS server (using the provided TLS certificate
+// and private key) on the given listener and blocks until the server either encounters
+// an unrecoverable error or receives a termination signal.
+//
+// The server runs in a goroutine so that this function can simultaneously listen for
+// interrupt signals (SIGINT, SIGTERM, SIGHUP). Once such a signal is detected, the function
+// will gracefully shut down the server, allowing any ongoing requests to finish or timing
+// out after 15 seconds.
+//
+// Parameters:
+//   - listener: A net.Listener that the server will use to accept connections.
+//   - certFile: Path to the TLS certificate file.
+//   - keyFile:  Path to the TLS private key file.
+//
+// Returns:
+//   - error: An error if the server fails to start, or if a forced shutdown occurs.
+//     Returns nil on normal shutdown.
+func (q *Quick) startServerWithGracefulShutdown(listener net.Listener, certFile, keyFile string) error <span class="cov8" title="1">{
+
+        serverErr := make(chan error, 1)
+
+        // Run ServeTLS in a goroutine. Any unrecoverable error that isn't http.ErrServerClosed
+        // is sent to the channel for handling in the main select block.
+        go func() </span><span class="cov8" title="1">{
+                if err := q.server.ServeTLS(listener, certFile, keyFile); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov0" title="0">{
+                        serverErr &lt;- fmt.Errorf("server error: %w", err)
+                }</span>
+                <span class="cov8" title="1">close(serverErr)</span>
+        }()
+
+        // Create a context that listens for SIGINT, SIGTERM, and SIGHUP signals.
+        // When one of these signals occurs, the context is canceled automatically.
+        <span class="cov8" title="1">ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+        defer stop()
+
+        select </span>{
+        case &lt;-ctx.Done():<span class="cov8" title="1">
+                // We've received a termination signal, so attempt a graceful shutdown.
+                log.Println("Received shutdown signal. Stopping server...")
+                shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+                defer cancel()
+
+                // If the server cannot gracefully shut down within 15 seconds,
+                // it will exit with an error.
+                if err := q.server.Shutdown(shutdownCtx); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("forced shutdown: %w", err)
+                }</span>
+                <span class="cov8" title="1">return nil</span>
+
+        case err := &lt;-serverErr:<span class="cov8" title="1">
+                // If an unrecoverable error occurred in ServeTLS, return it here.
+                return err</span>
+        }
+}
+
+// Shutdown gracefully shuts down the server without interrupting any active connections
+// The result will (q *Quick) Shutdown() error
+func (q *Quick) Shutdown() error <span class="cov8" title="1">{
+        // Create a context with a timeout to control the shutdown process
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel() // Ensure the context is cancelled to free resources
+
+        // Check if the server is initialized before attempting to shut it down
+        if q.server != nil </span><span class="cov8" title="1">{
+                return q.server.Shutdown(ctx) // Attempt to shutdown the server gracefully
+        }</span>
+        <span class="cov8" title="1">return nil</span> // Return nil if there is no server to shutdown
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package quick
+
+import (
+        "bytes"
+        "errors"
+        "io"
+        "net/http/httptest"
+        "strings"
+)
+
+type (
+        QuickMockCtx interface {
+                Get(URI string) error
+                Post(URI string, body []byte) error
+                Put(URI string, body []byte) error
+                Delete(URI string) error
+        }
+
+        quickMockCtxJSON struct {
+                Ctx    *Ctx
+                Params map[string]string
+        }
+
+        quickMockCtxXML struct {
+                Ctx         *Ctx
+                Params      map[string]string
+                ContentType string
+        }
+)
+
+func QuickMockCtxJSON(ctx *Ctx, params map[string]string) QuickMockCtx <span class="cov8" title="1">{
+        return &amp;quickMockCtxJSON{
+                Ctx:    ctx,
+                Params: params,
+        }
+}</span>
+
+func QuickMockCtxXML(ctx *Ctx, params map[string]string, contentType string) QuickMockCtx <span class="cov8" title="1">{
+        return &amp;quickMockCtxXML{
+                Ctx:         ctx,
+                Params:      params,
+                ContentType: contentType,
+        }
+}</span>
+
+func (m quickMockCtxJSON) Get(URI string) error <span class="cov8" title="1">{
+        if m.Ctx == nil </span><span class="cov8" title="1">{
+                return errors.New("ctx is null")
+        }</span>
+        <span class="cov8" title="1">queryMap := make(map[string]string)
+
+        req := httptest.NewRequest("GET", URI, nil)
+        m.Ctx.Request = req
+        m.Ctx.Request.Header.Set("Content-Type", ContentTypeAppJSON)
+        m.Ctx.Params = m.Params
+        query := req.URL.Query()
+        spltQuery := strings.Split(query.Encode(), "&amp;")
+
+        for i := 0; i &lt; len(spltQuery); i++ </span><span class="cov8" title="1">{
+                spltVal := strings.Split(spltQuery[i], "=")
+                if len(spltVal) &gt; 1 </span><span class="cov8" title="1">{
+                        queryMap[spltVal[0]] = spltVal[1]
+                }</span>
+        }
+
+        <span class="cov8" title="1">m.Ctx.Query = queryMap
+        return nil</span>
+}
+
+func (m quickMockCtxJSON) Post(URI string, body []byte) error <span class="cov8" title="1">{
+        if m.Ctx == nil </span><span class="cov8" title="1">{
+                return errors.New("ctx is null")
+        }</span>
+
+        <span class="cov8" title="1">req := httptest.NewRequest("POST", URI, io.NopCloser(bytes.NewBuffer(body)))
+        m.Ctx.Request = req
+        m.Ctx.Request.Header.Set("Content-Type", ContentTypeAppJSON)
+        m.Ctx.Params = m.Params
+        m.Ctx.bodyByte = body
+        return nil</span>
+}
+
+func (m quickMockCtxJSON) Put(URI string, body []byte) error <span class="cov8" title="1">{
+        if m.Ctx == nil </span><span class="cov8" title="1">{
+                return errors.New("ctx is null")
+        }</span>
+
+        <span class="cov8" title="1">req := httptest.NewRequest("PUT", URI, io.NopCloser(bytes.NewBuffer(body)))
+        m.Ctx.Request = req
+        m.Ctx.Request.Header.Set("Content-Type", ContentTypeAppJSON)
+        m.Ctx.Params = m.Params
+        m.Ctx.bodyByte = body
+        return nil</span>
+}
+
+func (m quickMockCtxJSON) Delete(URI string) error <span class="cov8" title="1">{
+        if m.Ctx == nil </span><span class="cov8" title="1">{
+                return errors.New("ctx is null")
+        }</span>
+
+        <span class="cov8" title="1">req := httptest.NewRequest("DELETE", URI, nil)
+        m.Ctx.Request = req
+        m.Ctx.Request.Header.Set("Content-Type", ContentTypeAppJSON)
+        m.Ctx.Params = m.Params
+        return nil</span>
+}
+
+func (m quickMockCtxXML) Get(URI string) error <span class="cov8" title="1">{
+        if m.Ctx == nil </span><span class="cov8" title="1">{
+                return errors.New("ctx is null")
+        }</span>
+        <span class="cov8" title="1">queryMap := make(map[string]string)
+
+        contentT := ContentTypeTextXML
+
+        if len(m.ContentType) != 0 </span><span class="cov8" title="1">{
+                contentT = m.ContentType
+        }</span>
+
+        <span class="cov8" title="1">req := httptest.NewRequest("GET", URI, nil)
+        m.Ctx.Request = req
+        m.Ctx.Request.Header.Set("Content-Type", contentT)
+        m.Ctx.Params = m.Params
+        query := req.URL.Query()
+        spltQuery := strings.Split(query.Encode(), "&amp;")
+
+        for i := 0; i &lt; len(spltQuery); i++ </span><span class="cov8" title="1">{
+                spltVal := strings.Split(spltQuery[i], "=")
+                if len(spltVal) &gt; 1 </span><span class="cov8" title="1">{
+                        queryMap[spltVal[0]] = spltVal[1]
+                }</span>
+        }
+
+        <span class="cov8" title="1">m.Ctx.Query = queryMap
+        return nil</span>
+}
+
+func (m quickMockCtxXML) Post(URI string, body []byte) error <span class="cov8" title="1">{
+        if m.Ctx == nil </span><span class="cov8" title="1">{
+                return errors.New("ctx is null")
+        }</span>
+
+        <span class="cov8" title="1">contentT := ContentTypeTextXML
+
+        if len(m.ContentType) != 0 </span><span class="cov8" title="1">{
+                contentT = m.ContentType
+        }</span>
+
+        <span class="cov8" title="1">req := httptest.NewRequest("POST", URI, io.NopCloser(bytes.NewBuffer(body)))
+        m.Ctx.Request = req
+        m.Ctx.Request.Header.Set("Content-Type", contentT)
+        m.Ctx.Params = m.Params
+        m.Ctx.bodyByte = body
+        return nil</span>
+}
+
+func (m quickMockCtxXML) Put(URI string, body []byte) error <span class="cov8" title="1">{
+        if m.Ctx == nil </span><span class="cov8" title="1">{
+                return errors.New("ctx is null")
+        }</span>
+
+        <span class="cov8" title="1">contentT := ContentTypeTextXML
+
+        if len(m.ContentType) != 0 </span><span class="cov8" title="1">{
+                contentT = m.ContentType
+        }</span>
+
+        <span class="cov8" title="1">req := httptest.NewRequest("PUT", URI, io.NopCloser(bytes.NewBuffer(body)))
+        m.Ctx.Request = req
+        m.Ctx.Request.Header.Set("Content-Type", contentT)
+        m.Ctx.Params = m.Params
+        m.Ctx.bodyByte = body
+        return nil</span>
+}
+
+func (m quickMockCtxXML) Delete(URI string) error <span class="cov8" title="1">{
+        if m.Ctx == nil </span><span class="cov8" title="1">{
+                return errors.New("ctx is null")
+        }</span>
+
+        <span class="cov8" title="1">contentT := ContentTypeTextXML
+
+        if len(m.ContentType) != 0 </span><span class="cov8" title="1">{
+                contentT = m.ContentType
+        }</span>
+
+        <span class="cov8" title="1">req := httptest.NewRequest("DELETE", URI, nil)
+        m.Ctx.Request = req
+        m.Ctx.Request.Header.Set("Content-Type", contentT)
+        m.Ctx.Params = m.Params
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package quick
+
+import (
+        "errors"
+        "os"
+        "path/filepath"
+        "regexp"
+        "strconv"
+        "strings"
+
+        "github.com/jeffotoni/quick/internal/concat"
+)
+
+// form multipart/formdata
+///
+
+// FileName returns the uploaded file's name.
+// The result will FileName() string
+func (uf *UploadedFile) FileName() string <span class="cov8" title="1">{
+        return uf.Info.Filename
+}</span>
+
+// Size returns the size of the uploaded file in bytes.
+// The result will Size() int64
+func (uf *UploadedFile) Size() int64 <span class="cov8" title="1">{
+        return uf.Info.Size
+}</span>
+
+// ContentType returns the MIME type of the uploaded file.
+// The result will ContentType() string
+func (uf *UploadedFile) ContentType() string <span class="cov8" title="1">{
+        return uf.Info.ContentType
+}</span>
+
+// Bytes returns the raw bytes of the uploaded file.
+// The result will Bytes() []byte
+func (uf *UploadedFile) Bytes() []byte <span class="cov8" title="1">{
+        return uf.Info.Bytes
+}</span>
+
+// Save stores the uploaded file in the specified directory.
+// The result will Save(destination string) error
+func (uf *UploadedFile) Save(destination string, nameFile ...string) error <span class="cov8" title="1">{
+        var fullPath string
+
+        if len(nameFile) &gt; 0 </span><span class="cov8" title="1">{
+                // Join the files into a single string separated by "/"
+                fullPath = filepath.Join(destination, nameFile[0])
+        }</span> else<span class="cov8" title="1"> {
+                if len(uf.Info.Bytes) == 0 </span><span class="cov8" title="1">{
+                        return errors.New("no file available to save")
+                }</span>
+                <span class="cov8" title="1">fullPath = concat.String(destination, "/", uf.Info.Filename)</span>
+
+        }
+
+        // Ensure the destination directory exists
+        <span class="cov8" title="1">if err := os.MkdirAll(destination, os.ModePerm); err != nil </span><span class="cov8" title="1">{
+                return errors.New("failed to create destination directory")
+        }</span>
+
+        // Create the file on disk
+        <span class="cov8" title="1">dst, err := os.Create(fullPath)
+        if err != nil </span><span class="cov8" title="1">{
+                return errors.New("failed to create file on disk")
+        }</span>
+        <span class="cov8" title="1">defer dst.Close()
+
+        // Write the file content from memory
+        _, err = dst.Write(uf.Info.Bytes)
+        if err != nil </span><span class="cov0" title="0">{
+                return errors.New("failed to save file")
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// SaveAll saves all uploaded files to the specified directory.
+// The result will SaveAll(files []*UploadedFile, destination string) error {
+func SaveAll(files []*UploadedFile, destination string) error <span class="cov8" title="1">{
+        for _, file := range files </span><span class="cov8" title="1">{
+                if err := file.Save(destination); err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+// parseSize converts a human-readable size string (e.g., "10MB") to bytes.
+// The result will parseSize(sizeStr string) (int64, error)
+func parseSize(sizeStr string) (int64, error) <span class="cov8" title="1">{
+        // Normalize string (trim spaces and convert to lowercase)
+        sizeStr = strings.TrimSpace(strings.ToLower(sizeStr))
+
+        // Regular expression to validate format (e.g., "10mb", "200kb", "2gb")
+        re := regexp.MustCompile(`^(\d+)(b|kb|mb|gb|tb)$`)
+        matches := re.FindStringSubmatch(sizeStr)
+
+        if len(matches) != 3 </span><span class="cov8" title="1">{
+                return 0, errors.New("invalid size format")
+        }</span>
+
+        // Convert the numeric part to an integer
+        <span class="cov8" title="1">value, err := strconv.ParseInt(matches[1], 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, errors.New("invalid size number")
+        }</span>
+
+        // Define multipliers for different size units
+        <span class="cov8" title="1">unitMultipliers := map[string]int64{
+                "b":  1,
+                "kb": 1024,
+                "mb": 1024 * 1024,
+                "gb": 1024 * 1024 * 1024,
+                "tb": 1024 * 1024 * 1024 * 1024,
+        }
+
+        // Multiply the value by the corresponding unit multiplier
+        multiplier, exists := unitMultipliers[matches[2]]
+        if !exists </span><span class="cov0" title="0">{
+                return 0, errors.New("unknown size unit")
+        }</span>
+
+        <span class="cov8" title="1">return value * multiplier, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package quick
+
+import (
+        "bytes"
+        "io"
+        "net/http"
+        "net/http/httptest"
+)
+
+const logDelimiter = "====================="
+
+type QuickTestReturn interface {
+        Body() []byte
+        BodyStr() string
+        StatusCode() int
+        Response() *http.Response
+}
+
+type (
+        qTest struct {
+                body       []byte
+                bodyStr    string
+                statusCode int
+                response   *http.Response
+        }
+
+        QuickMockTestServer struct {
+                Client  *http.Client
+                Port    int
+                URI     string
+                Method  string
+                Headers map[string]string
+                Body    []byte
+        }
+)
+
+// QuickTest: Helper function to make HTTP tests quickly.
+// Required Params: method (e.g., GET, POST), URI (path only, e.g., /test/:param)
+// Optional Param: body (optional; use only when necessary)
+func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...[]byte) (QuickTestReturn, error) <span class="cov8" title="1">{
+        requestBody := []byte{}
+        if len(body) &gt; 0 </span><span class="cov8" title="1">{
+                requestBody = body[0]
+        }</span>
+
+        <span class="cov8" title="1">logRequestDetails(method, URI, len(requestBody))
+
+        req, err := createHTTPRequest(method, URI, headers, requestBody)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">rec := httptest.NewRecorder()
+        q.ServeHTTP(rec, req)
+
+        resp := rec.Result()
+        responseBody, err := readResponseBody(resp.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;qTest{
+                body:       responseBody,
+                bodyStr:    string(responseBody),
+                statusCode: resp.StatusCode,
+                response:   resp,
+        }, nil</span>
+}
+
+// createHTTPRequest: Encapsulates the creation of an HTTP request.
+func createHTTPRequest(method, URI string, headers map[string]string, body []byte) (*http.Request, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(method, URI, io.NopCloser(bytes.NewBuffer(body)))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">for key, value := range headers </span><span class="cov8" title="1">{
+                req.Header.Set(key, value)
+        }</span>
+        <span class="cov8" title="1">return req, nil</span>
+}
+
+// readResponseBody safely reads and returns the response body as a byte slice.
+func readResponseBody(body io.ReadCloser) ([]byte, error) <span class="cov8" title="1">{
+        if body == nil </span><span class="cov0" title="0">{
+                return nil, nil
+        }</span>
+        <span class="cov8" title="1">defer body.Close()
+        return io.ReadAll(body)</span>
+}
+
+// logRequestDetails logs the details of the HTTP request.
+func logRequestDetails(method, URI string, bodyLen int) <span class="cov8" title="1">{
+        println(logDelimiter)
+        println("Method:", method, "| URI:", URI, "| Body Length:", bodyLen)
+        println(logDelimiter)
+}</span>
+
+func (qt *qTest) Body() []byte <span class="cov8" title="1">{
+        return qt.body
+}</span>
+
+func (qt *qTest) BodyStr() string <span class="cov8" title="1">{
+        return qt.bodyStr
+}</span>
+
+func (qt *qTest) StatusCode() int <span class="cov8" title="1">{
+        return qt.statusCode
+}</span>
+
+func (qt *qTest) Response() *http.Response <span class="cov8" title="1">{
+        return qt.response
+}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">// Qtest is an advanced HTTP testing function designed to
+// facilitate route validation in the Quick framework.
+//
+// It allows you to test simulated HTTP requests using httptest, supporting:
+//   - Métodos HTTP personalizados (GET, POST, PUT, DELETE, etc.)
+//   - Cabeçalhos (Headers) personalizados.
+//   - Parâmetros de Query (QueryParams).
+//   - Corpo da Requisição (Body).
+//   - Cookies.
+//   - Validações embutidas para status, headers e corpo da resposta.
+//
+// The Qtest function receives a QuickTestOptions structure containing the request
+// parameters, executes the call and returns a QtestReturn object, which provides methods
+// for analyzing and validating the result.
+package quick
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "io"
+        "net/http"
+        "net/http/httptest"
+        "net/url"
+        "strings"
+)
+
+// QtestReturn represents the response and additional functionality for validation.
+type QtestReturn interface {
+        Body() []byte
+        BodyStr() string
+        StatusCode() int
+        Response() *http.Response
+        AssertStatus(expected int) error
+        AssertHeader(key, expectedValue string) error
+        AssertBodyContains(expected any) error
+}
+
+type QTestPlus struct {
+        body       []byte
+        bodyStr    string
+        statusCode int
+        response   *http.Response
+}
+
+// QuickTestOptions holds all parameters for the enhanced Qtest function.
+type QuickTestOptions struct {
+        Method      string
+        URI         string
+        Headers     map[string]string
+        QueryParams map[string]string
+        Body        []byte
+        Cookies     []*http.Cookie
+        LogDetails  bool // Enables request/response logging
+}
+
+// Qtest performs HTTP tests with query params, cookies, and validation options.
+// The result will Qtest(opts QuickTestOptions) (QtestReturn, error)
+func (q Quick) Qtest(opts QuickTestOptions) (QtestReturn, error) <span class="cov8" title="1">{
+        // Build query string
+        uriWithParams, err := attachQueryParams(opts.URI, opts.QueryParams)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Create HTTP request
+        <span class="cov8" title="1">reqBody := bytes.NewBuffer(opts.Body)
+        req, err := http.NewRequest(opts.Method, uriWithParams, reqBody)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("error creating request: %w", err)
+        }</span>
+
+        // Add headers
+        <span class="cov8" title="1">for key, value := range opts.Headers </span><span class="cov8" title="1">{
+                req.Header.Set(key, value)
+        }</span>
+
+        // Add cookies
+        <span class="cov8" title="1">for _, cookie := range opts.Cookies </span><span class="cov8" title="1">{
+                req.AddCookie(cookie)
+        }</span>
+
+        // Simulate HTTP request
+        <span class="cov8" title="1">rec := httptest.NewRecorder()
+        q.ServeHTTP(rec, req) // Calls the handler
+
+        // Capture response
+        resp := rec.Result()
+
+        // Read response body safely
+        respBody, err := readResponseBodyV2(resp)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("error reading response body: %w", err)
+        }</span>
+
+        // Log details if enabled
+        <span class="cov8" title="1">if opts.LogDetails </span><span class="cov8" title="1">{
+                logRequestResponseDetails(opts, resp, respBody)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;QTestPlus{
+                body:       respBody,
+                bodyStr:    string(respBody),
+                statusCode: resp.StatusCode,
+                response:   resp,
+        }, nil</span>
+}
+
+// attachQueryParams builds URL with query parameters.
+// The result will attachQueryParams(uri string, params map[string]string) (string, error)
+func attachQueryParams(uri string, params map[string]string) (string, error) <span class="cov8" title="1">{
+        if len(params) == 0 </span><span class="cov8" title="1">{
+                return uri, nil
+        }</span>
+        <span class="cov8" title="1">u, err := url.Parse(uri)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov8" title="1">query := u.Query()
+        for key, value := range params </span><span class="cov8" title="1">{
+                query.Set(key, value)
+        }</span>
+        <span class="cov8" title="1">u.RawQuery = query.Encode()
+        return u.String(), nil</span>
+}
+
+// logRequestResponseDetails logs detailed request and response information.
+// The result will logRequestResponseDetails(opts QuickTestOptions, resp *http.Response, body []byte)
+func logRequestResponseDetails(opts QuickTestOptions, resp *http.Response, body []byte) <span class="cov8" title="1">{
+        fmt.Println("========================================")
+        fmt.Printf("Request: %s %s\n", opts.Method, opts.URI)
+        fmt.Printf("Request Body: %s\n", string(opts.Body))
+        fmt.Println("--- Response ---")
+        fmt.Printf("Status: %d\n", resp.StatusCode)
+        fmt.Printf("Headers: %+v\n", resp.Header)
+        fmt.Printf("Body: %s\n", string(body))
+        fmt.Println("========================================")
+}</span>
+
+// readResponseBodyV2 reads response body safely and resets it for reuse.
+// The result will readResponseBodyV2(resp *http.Response) ([]byte, error)
+func readResponseBodyV2(resp *http.Response) ([]byte, error) <span class="cov8" title="1">{
+        if resp.Body == nil </span><span class="cov0" title="0">{
+                return nil, nil
+        }</span>
+        <span class="cov8" title="1">defer resp.Body.Close()
+        body, err := io.ReadAll(resp.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        // Reset response body so it can be read again
+        <span class="cov8" title="1">resp.Body = io.NopCloser(bytes.NewReader(body))
+        return body, nil</span>
+}
+
+// Implement QtestReturn interface methods
+///
+
+// The result will Body() []byte
+func (qt *QTestPlus) Body() []byte <span class="cov0" title="0">{
+        return qt.body
+}</span>
+
+// The result will BodyStr() string
+func (qt *QTestPlus) BodyStr() string <span class="cov8" title="1">{
+        return qt.bodyStr
+}</span>
+
+// The result will StatusCode() int
+func (qt *QTestPlus) StatusCode() int <span class="cov8" title="1">{
+        return qt.statusCode
+}</span>
+
+// The result will Response() *http.Response
+func (qt *QTestPlus) Response() *http.Response <span class="cov0" title="0">{
+        return qt.response
+}</span>
+
+// AssertStatus checks if the response status matches the expected.
+// The result will AssertStatus(expected int) error
+func (qt *QTestPlus) AssertStatus(expected int) error <span class="cov8" title="1">{
+        if qt.statusCode != expected </span><span class="cov0" title="0">{
+                return fmt.Errorf("expected status %d but got %d", expected, qt.statusCode)
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// AssertHeader checks if a header has the expected value.
+// The result will AssertHeader(key, expectedValue string) error
+func (qt *QTestPlus) AssertHeader(key, expectedValue string) error <span class="cov8" title="1">{
+        value := qt.response.Header.Get(key)
+        if value != expectedValue </span><span class="cov0" title="0">{
+                return fmt.Errorf("expected header '%s' to be '%s' but got '%s'", key, expectedValue, value)
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// AssertBodyContains checks if the response body contains a specific substring.
+// The result will AssertBodyContains(expected any) error
+func (qt *QTestPlus) AssertBodyContains(expected any) error <span class="cov8" title="1">{
+        var expectedStr string
+
+        // Convert expected to string (if it's not already a string)
+        switch v := expected.(type) </span>{
+        case string:<span class="cov8" title="1">
+                expectedStr = v</span>
+        default:<span class="cov0" title="0">
+                // Convert to JSON string
+                jsonBytes, err := json.Marshal(v)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to convert expected value to JSON: %w", err)
+                }</span>
+                <span class="cov0" title="0">expectedStr = string(jsonBytes)</span>
+        }
+
+        // Perform assertion
+        <span class="cov8" title="1">if !strings.Contains(qt.bodyStr, expectedStr) </span><span class="cov0" title="0">{
+                return fmt.Errorf("expected body to contain '%s' but got '%s'", expectedStr, qt.bodyStr)
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
