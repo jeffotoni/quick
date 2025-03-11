@@ -35,6 +35,8 @@ import (
 // Run Server Quick:0.0.0.0:<PORT>
 var PRINT_SERVER = os.Getenv("PRINT_SERVER")
 
+const SO_REUSEPORT = 0x0F // Manual definition for Linux
+
 const (
 	ContentTypeAppJSON = `application/json`
 	ContentTypeAppXML  = `application/xml`
@@ -1162,8 +1164,14 @@ func (q *Quick) ListenTLS(addr, certFile, keyFile string, useHTTP2 bool, handler
 		Control: func(network, address string, c syscall.RawConn) error {
 			return c.Control(func(fd uintptr) {
 				// Avoid setting SO_REUSEPORT on macOS to prevent errors.
-				if runtime.GOOS != "darwin" {
-					syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEPORT, 1)
+				if runtime.GOOS == "linux" {
+					if err := syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, SO_REUSEPORT, 1); err != nil {
+						log.Fatalf("Erro ao definir SO_REUSEPORT: %v", err)
+					}
+				} else {
+					if err := syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEPORT, 1); err != nil {
+						log.Fatalf("Erro ao definir SO_REUSEPORT: %v", err)
+					}
 				}
 			})
 		},
