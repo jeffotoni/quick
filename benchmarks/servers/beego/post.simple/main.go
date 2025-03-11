@@ -7,8 +7,8 @@ import (
 )
 
 type User struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	Name string `json:"name"`
+	Year int    `json:"year"`
 }
 
 type MainController struct {
