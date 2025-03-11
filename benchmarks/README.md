@@ -47,39 +47,46 @@ Vegeta é uma ferramenta de ataque HTTP multifacetada, utilizada para realizar t
 ## ▶️ Executando os Testes
 Para executar qualquer um dos servidores, navegue até o diretório específico do servidor e, em seguida, entre na subpasta correspondente à funcionalidade desejada para executar o arquivo `main.go`.
 
+
+```bash
+$ go run main.go
+```
+
 ### 🔹 Serviço Beego
 ```bash
-cd servers/beego/post.simples/
-go run main.go
+$ cd servers/beego/post.simples/
 ```
 ### 🔹 Serviço Fiber
 ```bash
-cd servers/fiber/post.simples/[subpasta]
-go run main.go
+$ cd servers/fiber/post.simples/[subpasta]
 ```
 ### 🔹 Serviço Echo
 ```bash
-cd servers/echo/post.simples/[subpasta]
-go run main.go
+$ cd servers/echo/post.simples/[subpasta]
 ```
 ### 🔹 Serviço Gin
 ```bash
-cd servers/gin/post.simples/[subpasta]
-go run main.go
+$ cd servers/gin/post.simples/[subpasta]
 ```
 ### 🔹 Serviço Iris
 ```bash
-cd servers/iris/post.simples/[subpasta]
-go run main.go
+$ cd servers/iris/post.simples/[subpasta]
 ```
 ### 🔹 Serviço Quick
 ```bash
-cd servers/quick/post.simples/[subpasta]
-go run main.go
+$ cd servers/quick/post.simples/[subpasta]
 ```
 
 ### 🧪 Testando com k6
 ```bash
-cd k6/
-k6 run post.js
+$ cd k6/
+$ k6 run post.js
+```
+---
+### 📌 Testing with cURL
+
+```bash
+curl --location 'http://localhost:8080/v1/user' \
+--header 'Content-Type: application/json' \
+--data '{"name": "Alice", "year": 20}'
 ```
