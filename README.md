@@ -29,6 +29,29 @@
 # Quick in action 💕🐧🚀😍
 ![Quick](quick_server.gif)
 
+---
+
+## 📦 Go Packages Documentation
+
+To access the documentation for each **Quick Framework** package, click on the links below:
+
+| Package | Description | Go.dev |
+|---------|-----------|
+| **quick** | Main Router and Framework Features | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick) |
+| **quick/http/client** | HTTP client optimized for requests and failover | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/http/client.svg)](https://pkg.go.dev/githu.com/jeffotoni/quick/http/client) |
+| **quick/middleware** | Framework middlewares | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/middleware.svg)](https://pkg.go.dev/github.com/jeffotoni/quick/middleware) |
+| **quick/ctx** | HTTP request and response context | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Ctx) |
+| **quick/http/status** | HTTP status definitions in the framework | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Status) |
+| **quick/group** | Route group manipulation | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Group) |
+| **quickTest** | Package for unit testing and integration in Quick | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/quickTest.svg)](https://pkg.go.dev/github.com/jeffotoni/quickTest) |
+| **quick/route** | Route definition and management | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Route) |
+| **quick/config** | Framework configuration structures | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Config) |
+| **quick/qtest** | Auxiliary tools for testing in the Quick | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#QTest) |
+| **quick/uploadedFile** | File upload management | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#UploadedFile) |
+| **quick/zeroth** | Framework helpers | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Zeroth) |
+
+---
+
 ## 🎛️| Features
 
 | Features                                         | Has  | Status | Completion |

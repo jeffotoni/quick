@@ -120,6 +120,8 @@ func TestQuick_Put(t *testing.T) {
 	}
 }
 
+// cover     -> go test -v -count=1 -cover -failfast -run ^Test_extractParamsPut$
+// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsPut$; go tool cover -html=coverage.out
 func Test_extractParamsPut(t *testing.T) {
 	type args struct {
 		quick       Quick

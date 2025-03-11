@@ -2,33 +2,38 @@ package quick
 
 import (
 	"errors"
-	"github.com/jeffotoni/quick/internal/concat"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/jeffotoni/quick/internal/concat"
 )
 
 // form multipart/formdata
 ///
 
 // FileName returns the uploaded file's name.
+// The result will FileName() string
 func (uf *UploadedFile) FileName() string {
 	return uf.Info.Filename
 }
 
 // Size returns the size of the uploaded file in bytes.
+// The result will Size() int64
 func (uf *UploadedFile) Size() int64 {
 	return uf.Info.Size
 }
 
 // ContentType returns the MIME type of the uploaded file.
+// The result will ContentType() string
 func (uf *UploadedFile) ContentType() string {
 	return uf.Info.ContentType
 }
 
 // Bytes returns the raw bytes of the uploaded file.
+// The result will Bytes() []byte
 func (uf *UploadedFile) Bytes() []byte {
 	return uf.Info.Bytes
 }

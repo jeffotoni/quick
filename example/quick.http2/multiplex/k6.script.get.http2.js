@@ -4,11 +4,13 @@ import { check, sleep } from 'k6';
 export const options = {
     stages: [
         { duration: '10s', target: 250 }, // Scales to 50 users in 30 seconds
-        { duration: '20s', target: 1000 }, // Keeps 100 users for 1 minute
-        { duration: '30s', target: 0 },  // Reduces to 0 users in 30 seconds
+        //{ duration: '20s', target: 1000 }, // Keeps 100 users for 1 minute
+        { duration: '15s', target: 0 },  // Reduces to 0 users in 30 seconds
     ],
+    http2: true,
     noConnectionReuse: false, // Reuse HTTP/2 connections
     insecureSkipTLSVerify: true, // Skip TLS certificate verification
+    batchPerHost: 100,
 };
 
 export default function () {
@@ -33,8 +35,8 @@ export default function () {
     });
 
     // Logs for debugging
-    console.log(`Requesting user with ID: ${randomId}`);
-    console.log(`Response status: ${res.status}, Protocol: ${res.proto}`);
-
-    sleep(1); // 1 second interval between requests
+    // console.log(`debug..: ${res.body}`)
+    // console.log(`Requesting user with ID: ${randomId}`);
+    // console.log(`Response status: ${res.status}, Protocol: ${res.proto}`);
+    // sleep(1); // 1 second interval between requests
 }

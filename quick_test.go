@@ -5,9 +5,13 @@ import (
 	"crypto/tls"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"runtime/debug"
+	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -717,4 +721,157 @@ func TestListenTLSH2(t *testing.T) {
 
 	// Shut down the server at the end of the test
 	_ = q.Shutdown()
+}
+
+// The result will TestResponseWriterPool
+func TestResponseWriterPool(t *testing.T) {
+	w := httptest.NewRecorder()
+
+	rw := acquireResponseWriter(w)
+	if rw.ResponseWriter != w {
+		t.Errorf("Expected ResponseWriter to match original")
+	}
+	if rw.buf == nil {
+		t.Errorf("Buffer should be initialized")
+	}
+
+	rw.buf.WriteString("test")
+	if rw.buf.Len() == 0 {
+		t.Errorf("Expected buffer length > 0 after WriteString")
+	}
+
+	releaseResponseWriter(rw)
+
+	// Acquire again to ensure buffer reset
+	rw2 := acquireResponseWriter(w)
+	if rw2.buf.Len() != 0 {
+		t.Errorf("Buffer was not reset, got len %d", rw2.buf.Len())
+	}
+	releaseResponseWriter(rw2)
+}
+
+// The result will TestHttpServerTLS
+func TestHttpServerTLS(t *testing.T) {
+	q := New()
+	q.Cors = true
+
+	// Dummy handler to test coverage
+	srv := q.httpServerTLS(":8080", &tls.Config{}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	}))
+
+	if srv, ok := srv.Handler.(http.Handler); !ok || srv == nil {
+		t.Errorf("Expected non-nil handler, got nil")
+	}
+}
+
+// The result will TestQuick_ListenTLS_GCPercent
+func TestQuick_ListenTLS_GCPercent(t *testing.T) {
+	q := New()
+	q.config.GCPercent = 100
+
+	go func() {
+		err := q.ListenTLS(":8081", "cert.pem", "key.pem", false)
+		if err != nil && !strings.Contains(err.Error(), "no such file or directory") {
+			t.Errorf("Expected file error, got: %v", err)
+		}
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	// Check GC percentage
+	if gc := debug.SetGCPercent(-1); gc != q.config.GCPercent {
+		t.Errorf("Expected GCPercent %d, got %d", q.config.GCPercent, gc)
+	}
+}
+
+// The result will TestQuick_StartServerWithGracefulShutdown
+func TestQuick_StartServerWithGracefulShutdown(t *testing.T) {
+	listener, _ := net.Listen("tcp", "localhost:0")
+	defer listener.Close()
+
+	q := &Quick{
+		server: &http.Server{},
+	}
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+	}()
+
+	err := q.startServerWithGracefulShutdown(listener, "cert.pem", "key.pem")
+	if err != nil {
+		t.Errorf("Graceful shutdown failed: %v", err)
+	}
+}
+
+// The result will TestQuick_Shutdown
+func TestQuick_Shutdown(t *testing.T) {
+	q := New()
+	err := q.Shutdown()
+	if err != nil {
+		t.Errorf("Expected nil error, got: %v", err)
+	}
+}
+
+// The result will TestExtractParamsBind_UnsupportedContentType
+func TestExtractParamsBind_UnsupportedContentType(t *testing.T) {
+	// Prepare the request with an unsupported content-type
+	req := httptest.NewRequest("POST", "/", strings.NewReader(`{"name":"Quick"}`))
+	req.Header.Set("Content-Type", "text/plain") // unsupported content-type
+
+	// Prepare context
+	c := &Ctx{
+		Request: req,
+	}
+
+	var target map[string]string
+	err := extractParamsBind(c, &target)
+	if err == nil {
+		t.Fatal("Expected an error due to unsupported content type, got nil")
+	}
+
+	expectedError := "unsupported content type"
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Errorf("Expected error '%s', got '%v'", expectedError, err)
+	}
+}
+
+// The result will TestExtractParamsBind_InvalidXMLContent
+func TestExtractParamsBind_InvalidXMLContent(t *testing.T) {
+	// Prepare the request with invalid XML content
+	body := strings.NewReader("<invalid><xml>")
+	req := httptest.NewRequest("POST", "/", body)
+	req.Header.Set("Content-Type", "application/xml")
+
+	ctx := &Ctx{
+		Request: req,
+	}
+
+	var v interface{}
+	err := extractParamsBind(ctx, &v)
+	if err == nil {
+		t.Fatal("Expected an XML parsing error, got nil")
+	}
+}
+
+type errReader struct{}
+
+// The result will Read(p []byte) (n int, err error)
+func (e *errReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("simulated read error")
+}
+
+// The result will TestExtractParamsBind_BodyReadError
+func TestExtractParamsBind_BodyReadError(t *testing.T) {
+	errReadCloser := ioutil.NopCloser(&errReader{})
+	req := httptest.NewRequest("POST", "/", errReadCloser)
+	req.Header.Set("Content-Type", ContentTypeAppJSON)
+
+	ctx := &Ctx{Request: req}
+
+	var v interface{}
+	err := extractParamsBind(ctx, &v)
+	if err == nil {
+		t.Fatal("Expected an error due to body read failure, got nil")
+	}
 }

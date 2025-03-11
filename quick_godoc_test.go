@@ -12,18 +12,17 @@
 package quick
 
 import (
-	"github.com/jeffotoni/quick/middleware/cors"
 	"net/http"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/jeffotoni/quick/middleware/cors"
 )
 
 // TestExamplePath verifies that a PATCH route returns the expected response
 // The test simulates a partial update functionality.
 // The will test TestExamplePath(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExamplePath
 func TestExamplePath(t *testing.T) {
@@ -58,8 +57,6 @@ func TestExamplePath(t *testing.T) {
 // The test simulates a partial update functionality.
 // The will test TestExampleOptions(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestExampleOptions
 func TestExampleOptions(t *testing.T) {
 	q := New()
@@ -69,38 +66,51 @@ func TestExampleOptions(t *testing.T) {
 		return c.Status(200).String("GET is working!")
 	})
 
+	// default
+	allowedMethods := "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+
 	// Register OPTIONS for the /example route
 	q.Options("/example", func(c *Ctx) error {
 		// Define the methods allowed for this resource in the Allow header
-		allowedMethods := "GET, POST, PUT, DELETE, PATCH, OPTIONS"
 		c.Set("Allow", allowedMethods)
+		//c.Response.Header().Set("Allow", allowedMethods)
 		return c.Status(200).String("OPTIONS request handled")
 	})
 
+	opts := QuickTestOptions{
+		Method: "OPTIONS",
+		URI:    "/example",
+		// Headers:    map[string]string{"Accept": "application/json"},
+		LogDetails: true,
+	}
+
 	// Simulate an OPTIONS request
-	data, err := q.QuickTest("OPTIONS", "/example", nil)
+	resp, err := q.Qtest(opts)
 	if err != nil {
 		t.Errorf("Error executing QuickTest: %v", err)
 		return
 	}
 
 	// Verify that the HTTP status code is 200
-	if data.StatusCode() != 200 {
-		t.Errorf("Expected status 200, but got %d", data.StatusCode())
+	err = resp.AssertStatus(StatusOK)
+	if err != nil {
+		t.Errorf("StatusCode assertion failed: %v", err)
 	}
 
-	// Get the "Allow" header from the HTTP response
-	allowHeader := data.Response().Header.Get("Allow")
-	expectedAllow := "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-	if allowHeader != expectedAllow {
-		t.Errorf("Expected Allow header '%s', but got '%s'", expectedAllow, allowHeader)
+	err = resp.AssertHeader("Allow", allowedMethods)
+	if err != nil {
+		t.Errorf("Header assertion failed: %v", err)
 	}
+
+	// // Get the "Allow" header from the HTTP response
+	// allowHeader := resp.Response().Header.Get("Allow")
+	// if allowHeader != allowedMethods {
+	// 	t.Errorf("Expected Allow header '%s', but got '%s'", allowedMethods, allowHeader)
+	// }
 }
 
 // TestExampleGetDefaultConfig verifies if GetDefaultConfig() returns the expected default configuration values.
 // The will test TestExampleGetDefaultConfig(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExampleGetDefaultConfig
 func TestExampleGetDefaultConfig(t *testing.T) {
@@ -124,8 +134,6 @@ func TestExampleGetDefaultConfig(t *testing.T) {
 
 // TestExampleNew verifies if a simple GET route returns the expected response.
 // The will test TestExampleNew(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExampleNew
 func TestExampleNew(t *testing.T) {
@@ -160,8 +168,6 @@ func TestExampleNew(t *testing.T) {
 
 // TestExampleUse verifies if a middleware (CORS) is correctly applied to the route.
 // The will test TestExampleUse(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExampleUse
 func TestExampleUse(t *testing.T) {
@@ -200,8 +206,6 @@ func TestExampleUse(t *testing.T) {
 // TestExampleGet verifies if a GET request returns the expected response.
 // The will test TestExampleGet(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestExampleGet
 func TestExampleGet(t *testing.T) {
 	q := New()
@@ -235,8 +239,6 @@ func TestExampleGet(t *testing.T) {
 
 // TestExamplePost verifies if a POST request returns the expected response.
 // The will test TestExamplePost(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExamplePost
 func TestExamplePost(t *testing.T) {
@@ -272,8 +274,6 @@ func TestExamplePost(t *testing.T) {
 // TestExamplePut verifies if a PUT request updates the resource and returns the expected response.
 // The will test TestExamplePut(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestExamplePut
 func TestExamplePut(t *testing.T) {
 	q := New()
@@ -304,8 +304,6 @@ func TestExamplePut(t *testing.T) {
 
 // TestExampleDelete verifies if a DELETE request correctly deletes a resource and returns the expected response.
 // The will test TestExampleDelete(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestExampleDelete
 func TestExampleDelete(t *testing.T) {
@@ -338,8 +336,6 @@ func TestExampleDelete(t *testing.T) {
 // TestServeHTTP verifies if dynamic route parameters are correctly handled in a GET request.
 // The will test TestServeHTTP(t *testing.T)
 //
-// Run:
-//
 //	$ go test -v -run ^TestServeHTTP
 func TestServeHTTP(t *testing.T) {
 	q := New()
@@ -370,8 +366,6 @@ func TestServeHTTP(t *testing.T) {
 
 // TestGetRoute verifies if the registered routes are correctly retrieved.
 // The will test TestGetRoute(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestGetRoute
 func TestGetRoute(t *testing.T) {
@@ -418,8 +412,6 @@ func TestGetRoute(t *testing.T) {
 
 // TestQuick_ExampleListen verifies if the Quick server starts correctly and serves responses.
 // The will test TestQuick_ExampleListen(t *testing.T)
-//
-// Run:
 //
 //	$ go test -v -run ^TestQuick_ExampleListen
 func TestQuick_ExampleListen(t *testing.T) {

@@ -8,6 +8,7 @@ package quick
 
 import (
 	"encoding/xml"
+	"fmt"
 	"testing"
 )
 
@@ -70,7 +71,7 @@ func TestCtx_ExampleBind(t *testing.T) {
 		return c.Status(200).JSON(data)
 	})
 
-	body := []byte(`{"name": "Quick", "age": 30}`)
+	body := []byte(`{"name":"Quick","age":30}`)
 
 	res, err := q.QuickTest("POST", "/bind", map[string]string{"Content-Type": "application/json"}, body)
 	if err != nil {
@@ -80,6 +81,8 @@ func TestCtx_ExampleBind(t *testing.T) {
 	if res.StatusCode() != 200 {
 		t.Errorf("Expected status 200, got %d", res.StatusCode())
 	}
+
+	fmt.Println(res.BodyStr())
 
 	expected := `{"name":"Quick","age":30}`
 	if res.BodyStr() != expected {

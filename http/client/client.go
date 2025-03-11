@@ -79,6 +79,7 @@ var (
 )
 
 // GetDefaultClient returns a thread-safe singleton instance of Client
+// The result will GetDefaultClient() *Client
 func GetDefaultClient() *Client {
 	once.Do(func() {
 		defaultClient = New()
@@ -88,6 +89,7 @@ func GetDefaultClient() *Client {
 
 // NewHTTPClientFromConfig creates a configured HTTP client
 // If cfg is nil, sensible defaults are used
+// The result will NewHTTPClientFromConfig(cfg *HTTPClientConfig) *httpGoClient
 func NewHTTPClientFromConfig(cfg *HTTPClientConfig) httpGoClient {
 	if cfg == nil {
 		cfg = &HTTPClientConfig{
@@ -120,6 +122,7 @@ func NewHTTPClientFromConfig(cfg *HTTPClientConfig) httpGoClient {
 }
 
 // WithHTTPClientConfig sets a custom configuration for the HTTP client
+// The result will WithHTTPClientConfig(cfg *HTTPClientConfig) Option
 func WithHTTPClientConfig(cfg *HTTPClientConfig) Option {
 	return func(c *Client) {
 		c.ClientHTTP = NewHTTPClientFromConfig(cfg)
@@ -127,6 +130,7 @@ func WithHTTPClientConfig(cfg *HTTPClientConfig) Option {
 }
 
 // New creates a new Client with optional configurations
+// The result will New(opts ...Option) *Client
 func New(opts ...Option) *Client {
 	c := &Client{
 		Ctx:        context.Background(),
@@ -141,7 +145,10 @@ func New(opts ...Option) *Client {
 	return c
 }
 
-// cloneHeaders creates a thread-safe copy of the headers
+// cloneHeaders creates a thread-safe copy of the headers.
+// This ensures that concurrent access does not modify the original headers.
+// Method Used Internally
+// The result will cloneHeaders() map[string]string
 func (c *Client) cloneHeaders() map[string]string {
 	c.headersLock.RLock()
 	defer c.headersLock.RUnlock()
@@ -154,6 +161,8 @@ func (c *Client) cloneHeaders() map[string]string {
 }
 
 // log writes a log message if logging is enabled and a logger is set.
+// Method Used Internally
+// The result will log(msg string, args ...interface{})
 func (c *Client) log(msg string, args ...interface{}) {
 	if c.EnableLogger && c.Logger != nil {
 		// Format and log the message at the INFO level.
@@ -162,6 +171,7 @@ func (c *Client) log(msg string, args ...interface{}) {
 }
 
 // WithLogger enables or disables logging
+// The result will WithLogger(enable bool) Option
 func WithLogger(enable bool) Option {
 	return func(c *Client) {
 		c.EnableLogger = enable
@@ -169,6 +179,8 @@ func WithLogger(enable bool) Option {
 }
 
 // defaultLogger creates a default JSON logger
+// Method Used Internally
+// The result will defaultLogger() *slog.Logger
 func defaultLogger() *slog.Logger {
 	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -176,36 +188,43 @@ func defaultLogger() *slog.Logger {
 }
 
 // Get performs a GET request using the default client
+// The result will Get(url string) (*ClientResponse, error)
 func Get(url string) (*ClientResponse, error) {
 	return defaultClient.Get(url)
 }
 
 // Post performs a POST request using the default client
+// The result will Post(url string, body any) (*ClientResponse, error)
 func Post(url string, body any) (*ClientResponse, error) {
 	return defaultClient.Post(url, body)
 }
 
 // Put performs a PUT request using the default client
+// The result will Put(url string, body any) (*ClientResponse, error)
 func Put(url string, body any) (*ClientResponse, error) {
 	return defaultClient.Put(url, body)
 }
 
 // Delete performs a DELETE request using the default client
+// The result will Delete(url string) (*ClientResponse, error)
 func Delete(url string) (*ClientResponse, error) {
 	return defaultClient.Delete(url)
 }
 
 // PostForm performs a form POST request using the default client
+// The result will PostForm(url string, formData url.Values) (*ClientResponse, error)
 func PostForm(url string, formData url.Values) (*ClientResponse, error) {
 	return defaultClient.PostForm(url, formData)
 }
 
 // Get performs a GET request
+// The result will Get(url string) (*ClientResponse, error)
 func (c *Client) Get(url string) (*ClientResponse, error) {
 	return c.doRequest(url, http.MethodGet, nil)
 }
 
 // Post performs a POST request
+// The result will Post(url string, body any) (*ClientResponse, error)
 func (c *Client) Post(url string, body any) (*ClientResponse, error) {
 	return c.doRequest(url, http.MethodPost, body)
 }
@@ -216,11 +235,13 @@ func (c *Client) Put(url string, body any) (*ClientResponse, error) {
 }
 
 // Delete sends an HTTP DELETE request.
+// The result will Delete(url string) (*ClientResponse, error)
 func (c *Client) Delete(url string) (*ClientResponse, error) {
 	return c.doRequest(url, http.MethodDelete, nil)
 }
 
 // PostForm performs a form POST request with URL-encoded data
+// The result will PostForm(url string, formData url.Values) (*ClientResponse, error)
 func (c *Client) PostForm(url string, formData url.Values) (*ClientResponse, error) {
 	headers := c.cloneHeaders()
 	headers["Content-Type"] = "application/x-www-form-urlencoded"
@@ -228,11 +249,15 @@ func (c *Client) PostForm(url string, formData url.Values) (*ClientResponse, err
 }
 
 // doRequest executes an HTTP request with default headers
+// Method Used Internally
+// The result will doRequest(url, method string, body any) (*ClientResponse, error)
 func (c *Client) doRequest(url, method string, body any) (*ClientResponse, error) {
 	return c.doRequestWithHeaders(url, method, body, c.cloneHeaders())
 }
 
 // doRequestWithHeaders executes an HTTP request with custom headers
+// Method Used Internally
+// The result will doRequestWithHeaders(endpoint, method string, body any, headers map[string]string) (*ClientResponse, error)
 func (c *Client) doRequestWithHeaders(endpoint, method string, body any, headers map[string]string) (*ClientResponse, error) {
 	reader, err := parseBody(body)
 	if err != nil {
@@ -266,6 +291,8 @@ func (c *Client) doRequestWithHeaders(endpoint, method string, body any, headers
 }
 
 // parseBody converts various types into an io.Reader
+// Method Used Internally
+// The result will parseBody(body any) (io.Reader, error)
 func parseBody(body any) (io.Reader, error) {
 	if body == nil {
 		return nil, nil
@@ -287,6 +314,7 @@ func parseBody(body any) (io.Reader, error) {
 }
 
 // WithRetry configures retry behavior using RetryConfig
+// The result will WithRetry(cfg RetryConfig) Option
 func WithRetry(cfg RetryConfig) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -315,6 +343,7 @@ func WithRetry(cfg RetryConfig) Option {
 }
 
 // WithTimeout sets the HTTP client's timeout
+// The result will WithTimeout(d time.Duration) Option
 func WithTimeout(d time.Duration) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -324,6 +353,7 @@ func WithTimeout(d time.Duration) Option {
 }
 
 // WithDisableKeepAlives enables or disables HTTP keep-alive connections.
+// The result will WithDisableKeepAlives(disable bool) Option
 func WithDisableKeepAlives(disable bool) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -335,6 +365,7 @@ func WithDisableKeepAlives(disable bool) Option {
 }
 
 // WithMaxIdleConns sets the maximum number of idle connections for the HTTP client.
+// The result will WithMaxIdleConns(max int) Option
 func WithMaxIdleConns(max int) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -346,6 +377,7 @@ func WithMaxIdleConns(max int) Option {
 }
 
 // WithMaxConnsPerHost sets the maximum number of concurrent connections per host.
+// The result will WithMaxConnsPerHost(max int) Option
 func WithMaxConnsPerHost(max int) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -357,6 +389,7 @@ func WithMaxConnsPerHost(max int) Option {
 }
 
 // WithMaxIdleConnsPerHost sets the maximum number of idle connections per host.
+// The result will WithMaxIdleConnsPerHost(max int) Option
 func WithMaxIdleConnsPerHost(max int) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -368,6 +401,7 @@ func WithMaxIdleConnsPerHost(max int) Option {
 }
 
 // WithTLSConfig sets the TLS configuration for the HTTP client
+// The result will WithTLSConfig(tlsConfig *tls.Config) Option
 func WithTLSConfig(tlsConfig *tls.Config) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -379,6 +413,7 @@ func WithTLSConfig(tlsConfig *tls.Config) Option {
 }
 
 // WithInsecureTLS enables or disables certificate verification (not recommended for production).
+// The result will WithInsecureTLS(insecure bool) Option
 func WithInsecureTLS(insecure bool) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -396,6 +431,7 @@ func WithInsecureTLS(insecure bool) Option {
 }
 
 // WithTransport sets a custom HTTP transport.
+// The result will WithTransport(transport http.RoundTripper) Option
 func WithTransport(transport http.RoundTripper) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -405,6 +441,7 @@ func WithTransport(transport http.RoundTripper) Option {
 }
 
 // WithCustomHTTPClient replaces the default HTTP client with a fully custom one.
+// The result will WithCustomHTTPClient(client *http.Client) Option
 func WithCustomHTTPClient(client *http.Client) Option {
 	return func(c *Client) {
 		if client.Transport == nil {
@@ -415,6 +452,7 @@ func WithCustomHTTPClient(client *http.Client) Option {
 }
 
 // WithTransportConfig applies a pre-configured HTTP transport.
+// The result will WithTransportConfig(tr *http.Transport) Option
 func WithTransportConfig(tr *http.Transport) Option {
 	return func(c *Client) {
 		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
@@ -424,6 +462,7 @@ func WithTransportConfig(tr *http.Transport) Option {
 }
 
 // WithContext sets a custom context for the client
+// The result will WithContext(ctx context.Context) Option
 func WithContext(ctx context.Context) Option {
 	return func(c *Client) {
 		c.Ctx = ctx
@@ -431,6 +470,7 @@ func WithContext(ctx context.Context) Option {
 }
 
 // WithHeaders sets custom headers for the client
+// The result will WithHeaders(headers map[string]string) Option
 func WithHeaders(headers map[string]string) Option {
 	return func(c *Client) {
 		c.headersLock.Lock()
@@ -444,6 +484,7 @@ func WithHeaders(headers map[string]string) Option {
 
 // The strategy used is Fallback Dinâmico
 // RoundTrip executes the HTTP request with retry and failover logic
+// The result will RoundTrip(req *http.Request) (*http.Response, error)
 func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	var err error
@@ -495,6 +536,8 @@ func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // shouldRetry determines if a request should be retried based on response and error
+// Method Used Internally
+// The result will shouldRetry(resp *http.Response, err error) bool
 func (rt *RetryTransport) shouldRetry(resp *http.Response, err error) bool {
 	if err != nil {
 		return true
@@ -509,6 +552,8 @@ func (rt *RetryTransport) shouldRetry(resp *http.Response, err error) bool {
 }
 
 // sleep implements the backoff strategy for retries
+// Method Used Internally
+// The result will sleep(attempt int)
 func (rt *RetryTransport) sleep(attempt int) {
 	delay := rt.RetryDelay
 	if rt.UseBackoff {

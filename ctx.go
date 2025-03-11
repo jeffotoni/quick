@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type Ctx struct {
@@ -68,28 +70,34 @@ func (c *Ctx) File(filePath string) error {
 // Bind analyzes and links the request body to a Go structure
 // The result will Bind(v interface{}) (err error)
 func (c *Ctx) Bind(v interface{}) (err error) {
-	return extractBind(c, v)
+	return extractParamsBind(c, v)
 }
 
-// BodyParser analyzes the request body and deserializes it to the Go structure reported.
-// The result will BodyParser(v interface{}) (err error)
-func (c *Ctx) BodyParser(v interface{}) (err error) {
-	if strings.Contains(c.Request.Header.Get("Content-Type"), ContentTypeAppJSON) {
-		err = json.Unmarshal(c.bodyByte, v)
-		if err != nil {
-			return err
-		}
-	}
+// BodyParser efficiently unmarshals the request body into the provided struct (v) based on the Content-Type header.
+//
+// Supported content-types:
+// - application/json
+// - application/xml, text/xml
+//
+// Parameters:
+//   - v: The target structure to decode the request body into.
+//
+// Returns:
+//   - error: An error if decoding fails or if the content-type is unsupported.
+func (c *Ctx) BodyParser(v interface{}) error {
+	contentType := strings.ToLower(c.Request.Header.Get("Content-Type"))
 
-	if strings.Contains(c.Request.Header.Get("Content-Type"), ContentTypeTextXML) ||
-		strings.Contains(c.Request.Header.Get("Content-Type"), ContentTypeAppXML) {
-		err = xml.Unmarshal(c.bodyByte, v)
-		if err != nil {
-			return err
-		}
-	}
+	switch {
+	case strings.HasPrefix(contentType, ContentTypeAppJSON):
+		return json.Unmarshal(c.bodyByte, v)
 
-	return nil
+	case strings.Contains(contentType, ContentTypeAppXML),
+		strings.Contains(contentType, ContentTypeTextXML):
+		return xml.Unmarshal(c.bodyByte, v)
+
+	default:
+		return fmt.Errorf("unsupported content-type: %s", contentType)
+	}
 }
 
 // Param returns the value of the URL parameter corresponding to the given key
@@ -114,48 +122,158 @@ func (c *Ctx) BodyString() string {
 	return string(c.bodyByte)
 }
 
-// JSON serializes the value provided in JSON and writes to the HTTP response
-// The result will JSON(v interface{}) error
+// JSON encodes the provided interface (v) as JSON, sets the Content-Type header,
+// and writes the response efficiently using buffer pooling.
+//
+// Parameters:
+//   - v: The data structure to encode as JSON.
+//
+// Returns:
+//   - error: An error if JSON encoding fails or if writing the response fails.
 func (c *Ctx) JSON(v interface{}) error {
+	buf := acquireBuffer()
+	defer releaseBuffer(buf)
+
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
-	c.Response.Header().Set("F", ContentTypeAppJSON)
-	return c.writeResponse(b)
+
+	buf.Write(b)
+
+	c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
+	_, err = c.Response.Write(buf.Bytes())
+	return err
 }
 
-// JSON serializes the value provided in JSON and writes to the HTTP response
-// The result will JSON(v interface{}) error
+// JSONIN encodes the given interface as JSON with indentation and writes it to the HTTP response.
+// Allows optional parameters to define the indentation format.
+//
+// Parameters:
+//   - v: The data structure to encode as JSON.
+//   - params (optional): Defines the indentation settings.
+//   - If params[0] is provided, it will be used as the prefix.
+//   - If params[1] is provided, it will be used as the indentation string.
+//
+// Returns:
+//   - error: An error if JSON encoding fails or if writing to the ResponseWriter fails.
 func (c *Ctx) JSONIN(v interface{}, params ...string) error {
-	b, err := json.MarshalIndent(v, "", " ")
+	// Default indentation settings
+	prefix := ""
+	indent := "  " // Default to 2 spaces
+
+	// Override if parameters are provided
+	if len(params) > 0 {
+		prefix = params[0]
+	}
+	if len(params) > 1 {
+		indent = params[1]
+	}
+
+	// Use buffer pooling for performance
+	buf := acquireBuffer()
+	defer releaseBuffer(buf)
+
+	// Encode with the provided indentation settings
+	b, err := json.MarshalIndent(v, prefix, indent)
 	if err != nil {
 		return err
 	}
-	c.Response.Header().Set("F", ContentTypeAppJSON)
-	return c.writeResponse(b)
+
+	buf.Write(b)
+
+	// Set Content-Type header
+	c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
+	_, err = c.Response.Write(buf.Bytes())
+	return err
 }
 
 // XML serializes the provided value in XML and writes to the HTTP response
 // The result will XML(v interface{}) error
+// func (c *Ctx) XML(v interface{}) error {
+// 	b, err := xml.Marshal(v)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	c.Response.Header().Set("Content-Type", ContentTypeTextXML)
+// 	return c.writeResponse(b)
+// }
+
+// xmlBufferPool is a sync.Pool for optimizing XML serialization by reusing buffers.
+var xmlBufferPool = sync.Pool{
+	New: func() interface{} {
+		return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
+	},
+}
+
+// acquireXMLBuffer retrieves a buffer from the pool.
+func acquireXMLBuffer() *bytes.Buffer {
+	return xmlBufferPool.Get().(*bytes.Buffer)
+}
+
+// releaseXMLBuffer resets and returns the buffer to the pool.
+func releaseXMLBuffer(buf *bytes.Buffer) {
+	buf.Reset()
+	xmlBufferPool.Put(buf)
+}
+
+// XML serializes the given value to XML and writes it to the HTTP response.
+// It avoids unnecessary memory allocations by using buffer pooling and ensures that no extra newline is appended.
+//
+// Parameters:
+//   - v: The data structure to encode as XML.
+//
+// Returns:
+//   - error: An error if XML encoding fails or if writing to the ResponseWriter fails.
 func (c *Ctx) XML(v interface{}) error {
+	buf := acquireXMLBuffer()
+	defer releaseXMLBuffer(buf)
+
+	// Marshal XML directly (avoids \n issue from xml.Encoder.Encode)
 	b, err := xml.Marshal(v)
 	if err != nil {
 		return err
 	}
+
+	buf.Write(b)
+
+	// Set Content-Type header
 	c.Response.Header().Set("Content-Type", ContentTypeTextXML)
-	return c.writeResponse(b)
+	_, err = c.Response.Write(buf.Bytes())
+	return err
 }
 
-// writeResponse writes the content provided in the current request ResponseWriter
-// The result will writeResponse(b []byte) error
+// writeResponse writes the provided byte content to the ResponseWriter.
+//
+// If a custom status code (resStatus) has been set, it writes the header before the body.
+//
+// Parameters:
+//   - b: The byte slice to be written in the HTTP response.
+//
+// Returns:
+//   - error: An error if writing to the ResponseWriter fails.
 func (c *Ctx) writeResponse(b []byte) error {
 	if c.resStatus != 0 {
 		c.Response.WriteHeader(c.resStatus)
 	}
+
 	_, err := c.Response.Write(b)
+
+	// Immediate flush to avoid buffering overhead (important for HTTP/2)
+	if flusher, ok := c.Response.(http.Flusher); ok {
+		flusher.Flush()
+	}
+
 	return err
 }
+
+// func (c *Ctx) writeResponse(b []byte) error {
+// 	if c.resStatus != 0 {
+// 		c.Response.WriteHeader(c.resStatus)
+// 	}
+// 	_, err := c.Response.Write(b)
+// 	return err
+// }
 
 // Byte writes an array of bytes to the HTTP response, using writeResponse()
 // The result will Byte(b []byte) (err error)
@@ -345,6 +463,7 @@ func (c *Ctx) MultipartForm() (*multipart.Form, error) {
 
 // FormValue retrieves a form value by key.
 // It automatically calls ParseForm() before accessing the value.
+// The result will FormValue(key string) string
 func (c *Ctx) FormValue(key string) string {
 	// Checks if the Content-Type is multipart
 	if c.Request.Header.Get("Content-Type") == "multipart/form-data" {
@@ -357,6 +476,7 @@ func (c *Ctx) FormValue(key string) string {
 
 // FormValues returns all form values as a map.
 // It automatically calls ParseForm() before accessing the values.
+// The result will FormValues() map[string][]string
 func (c *Ctx) FormValues() map[string][]string {
 	// Checks if the Content-Type is multipart
 	if c.Request.Header.Get("Content-Type") == "multipart/form-data" {
