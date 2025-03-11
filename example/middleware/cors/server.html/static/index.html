@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Quick Post</title>
+</head>
+<body>
+ <h1>Send Data to API - Quick</h1>
+
+ <label for="name">Name:</label>
+ <input type="text" id="name" placeholder="Enter your name">
+
+ <label for="year">Year:</label>
+ <input type="number" id="year" placeholder="Enter the year">
+
+ <button onclick="sendData()">Send</button>
+
+ <p><strong>Status Code:</strong> <span id="status"></span></p>
+ <pre id="response"></pre>
+
+ <script>
+ async function sendData() {
+ const name = document.getElementById("name").value;
+ const year = document.getElementById("year").value;
+
+ const data = { name, year }; // Assemble the JSON
+
+ try {
+ const response = await fetch('http://localhost:8080/v1/user', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify(data) // Send JSON
+ });
+
+ const statusCode = response.status;
+ const responseData = await response.json(); // Convert JSON response
+
+ document.getElementById("status").textContent = statusCode;
+ document.getElementById("response").textContent = JSON.stringify(responseData, null, 2);
+ } catch (error) {
+ document.getElementById("status").textContent = "Error";
+ document.getElementById("response").textContent = error.message;
+ }
+ }
+ </script>
+</body>
+</html>
