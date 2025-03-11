@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -21,9 +22,13 @@ func main() {
 	e.POST("/v1/user", func(c echo.Context) error {
 		var my My
 
-		_, err := io.ReadAll(c.Request().Body)
+		body, err := io.ReadAll(c.Request().Body)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Erro ao ler o body: "+err.Error())
+		}
+
+		if err := json.Unmarshal(body, &my); err != nil {
+			return c.String(http.StatusBadRequest, "Erro ao decodificar JSON: "+err.Error())
 		}
 
 		return c.JSON(http.StatusOK, my)
@@ -31,3 +36,7 @@ func main() {
 
 	e.Start(":8080")
 }
+
+//curl --location 'http://localhost:8080/v1/user' \
+// --header 'Content-Type: application/json' \
+// --data '{"name": "Alice", "year": 20}'

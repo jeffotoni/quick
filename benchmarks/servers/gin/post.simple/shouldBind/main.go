@@ -19,7 +19,7 @@ func main() {
 	// r := gin.Default()
 	r := gin.New()
 
-	r.GET("/v1/user/", func(c *gin.Context) {
+	r.POST("/v1/user", func(c *gin.Context) {
 		var my My // Create a variable to store incoming user data
 
 		// Parse the request body into the struct
@@ -35,3 +35,7 @@ func main() {
 
 	r.Run(":8080")
 }
+
+//curl --location 'http://localhost:8080/v1/user' \
+// --header 'Content-Type: application/json' \
+// --data '{"name": "Alice", "year": 20}'
