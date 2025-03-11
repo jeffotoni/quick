@@ -6,6 +6,9 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
+// $ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"
+//
+// $ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
 func main() {
 	// Initialize Quick instance
 	q := quick.New()
@@ -17,7 +20,8 @@ func main() {
 	// - The server will listen on port 443
 	// - cert.pem: SSL/TLS certificate file
 	// - key.pem: Private key file for SSL/TLS encryption
-	err := q.ListenTLS(":443", "cert.pem", "key.pem")
+	// - http2 [true or false]
+	err := q.ListenTLS(":443", "cert.pem", "key.pem", false)
 	if err != nil {
 		// Log an error message if the server fails to start
 		fmt.Printf("Error when trying to connect with TLS: %v\n", err)

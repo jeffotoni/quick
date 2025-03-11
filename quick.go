@@ -9,16 +9,23 @@ package quick
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"embed"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"regexp"
+	"runtime"
 	"runtime/debug"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/jeffotoni/quick/internal/concat"
@@ -61,13 +68,16 @@ type ctxServeHttp struct {
 type Config struct {
 	BodyLimit         int64
 	MaxBodySize       int64
-	MaxHeaderBytes    int64
+	MaxHeaderBytes    int
 	RouteCapacity     int
 	MoreRequests      int // 0 a 1000
 	ReadTimeout       time.Duration
 	WriteTimeout      time.Duration
 	IdleTimeout       time.Duration
 	ReadHeaderTimeout time.Duration
+	GCPercent         int         // Renamed to be more descriptive (0-1000)
+	TLSConfig         *tls.Config // Integrated TLS configuration
+	CorsConfig        *CorsConfig // Specific type for CORS
 }
 
 var defaultConfig = Config{
@@ -75,7 +85,8 @@ var defaultConfig = Config{
 	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	RouteCapacity:  1000,
-	MoreRequests:   290, // valor de equilibrio
+	MoreRequests:   290, // equilibrium value
+	// TLSConfig:      &tls.Config{},
 	//ReadTimeout:  10 * time.Second,
 	//WriteTimeout: 10 * time.Second,
 	//IdleTimeout:       1 * time.Second,
@@ -88,6 +99,12 @@ const (
 	Zero Zeroth = 0
 )
 
+type CorsConfig struct {
+	Enabled  bool
+	Options  map[string]string
+	AllowAll bool
+}
+
 type Quick struct {
 	config        Config
 	Cors          bool
@@ -99,8 +116,9 @@ type Quick struct {
 	mws2          []any
 	CorsSet       func(http.Handler) http.Handler
 	CorsOptions   map[string]string
-	embedFS       embed.FS
-	server        *http.Server
+	// corsConfig    *CorsConfig // Specific type for CORS
+	embedFS embed.FS
+	server  *http.Server
 }
 
 // GetDefaultConfig Function is responsible for returning a default configuration that is pre-defined for the system
@@ -314,35 +332,111 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	return
 }
 
-// extractParamsGet processes an HTTP request for a dynamic GET route, extracting query parameters, headers, and handling the request using the provided handler function
-// The result will extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc
+// Ctx Pool
+var ctxPool = sync.Pool{
+	New: func() interface{} {
+		// Initialize a new Ctx with empty maps to avoid nil checks in usage.
+		return &Ctx{
+			Params:  make(map[string]string),
+			Query:   make(map[string]string),
+			Headers: make(map[string][]string),
+		}
+	},
+}
+
+// acquireCtx retrieves a Ctx instance from the sync.Pool.
+func acquireCtx() *Ctx {
+	return ctxPool.Get().(*Ctx)
+}
+
+// releaseCtx resets the Ctx fields and returns it to the sync.Pool for reuse.
+func releaseCtx(ctx *Ctx) {
+	// Clear or nil out the Ctx fields so we avoid data leaking between requests.
+	ctx.Params = nil
+	ctx.Query = nil
+	ctx.Headers = nil
+	ctx.Response = nil
+	ctx.Request = nil
+	ctx.bodyByte = nil
+	ctx.MoreRequests = 0
+	ctxPool.Put(ctx)
+}
+
+// extractParamsGet processes an HTTP request for a dynamic GET route,
+// extracting query parameters, headers, and handling the request using
+// the provided handler function.
 func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		// Acquire a pooled context at the beginning of the request.
+		ctx := acquireCtx()
+		// Ensure the context is released back to the pool once this handler finishes.
+		defer releaseCtx(ctx)
+
+		// Retrieve our custom context value from the request's context.
 		v := req.Context().Value(myContextKey)
 		if v == nil {
+			// If there's no context value, respond with 404.
 			http.NotFound(w, req)
 			return
 		}
 
+		// Cast the interface{} to our internal type.
 		cval := v.(ctxServeHttp)
-		querys := make(map[string]string)
+
+		// Build a map of query parameters.
+		// You could also reuse a pooled map if desired, but here we create a new one each time.
 		queryParams := req.URL.Query()
+		querys := make(map[string]string, len(queryParams))
 		for key, values := range queryParams {
+			// We only store the first value; adapt as needed for multi-value params.
 			querys[key] = values[0]
 		}
+
+		// Extract headers into a map[string][]string
 		headersMap := extractHeaders(*req)
 
-		c := &Ctx{
-			Response:     w,
-			Request:      req,
-			Params:       cval.ParamsMap,
-			Query:        querys,
-			Headers:      headersMap,
-			MoreRequests: q.config.MoreRequests,
-		}
-		execHandleFunc(c, handlerFunc)
+		// Populate the Ctx object with current request data.
+		ctx.Response = w
+		ctx.Request = req
+		ctx.Params = cval.ParamsMap
+		ctx.Query = querys
+		ctx.Headers = headersMap
+		ctx.MoreRequests = q.config.MoreRequests
+
+		// Finally, execute the provided handler function with this context.
+		execHandleFunc(ctx, handlerFunc)
 	}
 }
+
+// // extractParamsGet processes an HTTP request for a dynamic GET route, extracting query parameters, headers, and handling the request using the provided handler function
+// // The result will extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc
+// func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, req *http.Request) {
+// 		v := req.Context().Value(myContextKey)
+// 		if v == nil {
+// 			http.NotFound(w, req)
+// 			return
+// 		}
+
+// 		cval := v.(ctxServeHttp)
+// 		querys := make(map[string]string)
+// 		queryParams := req.URL.Query()
+// 		for key, values := range queryParams {
+// 			querys[key] = values[0]
+// 		}
+// 		headersMap := extractHeaders(*req)
+
+// 		c := &Ctx{
+// 			Response:     w,
+// 			Request:      req,
+// 			Params:       cval.ParamsMap,
+// 			Query:        querys,
+// 			Headers:      headersMap,
+// 			MoreRequests: q.config.MoreRequests,
+// 		}
+// 		execHandleFunc(c, handlerFunc)
+// 	}
+// }
 
 // extractParamsPost processes an HTTP POST request, extracting the request body and headers and handling the request using the provided handler function
 // The result will extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc
@@ -446,14 +540,57 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	}
 }
 
-// extractBodyBytes reads the request body and returns it as a byte slice
-// The result will extractBodyBytes(r io.ReadCloser) []byte
+var bufferPool = sync.Pool{
+	// Create new buffers with an initial capacity of 4KB.
+	// Adjust this size based on expected request body sizes.
+	New: func() interface{} {
+		return bytes.NewBuffer(make([]byte, 0, 4096))
+	},
+}
+
+// acquireBuffer retrieves a *bytes.Buffer from the sync.Pool.
+func acquireBuffer() *bytes.Buffer {
+	return bufferPool.Get().(*bytes.Buffer)
+}
+
+// releaseBuffer resets the buffer and places it back in the sync.Pool for reuse.
+func releaseBuffer(buf *bytes.Buffer) {
+	buf.Reset() // Clear any existing data
+	bufferPool.Put(buf)
+}
+
+// extractBodyBytes reads the entire request body into a pooled buffer, then
+// copies the data to a new byte slice before returning it. This ensures that
+// once the buffer is returned to the pool, the returned data remains valid.
+// The function also returns a new io.ReadCloser wrapping that same data,
+// allowing it to be re-read if needed.
+//
+// Note: If the request body is very large, the buffer will grow automatically
+// and remain larger when placed back in the pool. If extremely large bodies
+// are expected infrequently, you may want additional logic to discard overly
+// large buffers rather than returning them to the pool.
 func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
-	b, err := io.ReadAll(r)
+	// Acquire a reusable buffer from the pool
+	buf := acquireBuffer()
+	defer releaseBuffer(buf)
+
+	// Read all data from the request body into the buffer
+	_, err := buf.ReadFrom(r)
 	if err != nil {
+		// If there's an error, return an empty NopCloser
+		// so downstream logic can handle gracefully.
 		return nil, io.NopCloser(bytes.NewBuffer(nil))
 	}
-	return b, io.NopCloser(bytes.NewReader(b))
+
+	// Copy the data from the buffer into a separate byte slice.
+	// This step is crucial because once the buffer is released
+	// back to the pool, its underlying memory can be reused.
+	data := make([]byte, buf.Len())
+	copy(data, buf.Bytes())
+
+	// Return both the raw byte slice and a new ReadCloser
+	// wrapping the same data, which allows for re-reading.
+	return data, io.NopCloser(bytes.NewReader(data))
 }
 
 // mwWrapper applies all registered middlewares to an HTTP handler
@@ -481,9 +618,41 @@ func (q *Quick) appendRoute(route *Route) {
 	q.routes = append(q.routes, route)
 }
 
+// ///// pool connection
+type pooledResponseWriter struct {
+	http.ResponseWriter
+	buf *bytes.Buffer
+}
+
+var responseWriterPool = sync.Pool{
+	New: func() interface{} {
+		return &pooledResponseWriter{
+			buf: bytes.NewBuffer(nil),
+		}
+	},
+}
+
+func acquireResponseWriter(w http.ResponseWriter) *pooledResponseWriter {
+	rw := responseWriterPool.Get().(*pooledResponseWriter)
+	rw.ResponseWriter = w
+	return rw
+}
+
+func releaseResponseWriter(rw *pooledResponseWriter) {
+	rw.buf.Reset()
+	rw.ResponseWriter = nil
+	responseWriterPool.Put(rw)
+}
+
+//////// pool connection
+
 // ServeHTTP is the main HTTP request dispatcher for the Quick router
 // The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+
+	//  rw := acquireResponseWriter(w)
+	// defer releaseResponseWriter(rw)
+
 	for i := 0; i < len(q.routes); i++ {
 		var requestURI = req.URL.Path
 		var patternUri = q.routes[i].Pattern
@@ -613,16 +782,25 @@ func (q *Quick) execHandler(next http.Handler) http.Handler {
 	})
 }
 
-// corsHandler returns an HTTP handler that applies CORS settings
-// The result will corsHandler() http.Handler
+// corsHandler returns an HTTP handler that applies the configured CORS settings.
+// Internally, it uses q.CorsSet(q) to wrap the Quick router with CORS middleware
+// if the feature is enabled.
 func (q *Quick) corsHandler() http.Handler {
 	return q.CorsSet(q)
 }
 
-// httpServer creates and returns an HTTP server instance configured with Quick.
-// The result will httpServer(addr string, handler ...http.Handler) *http.Server
-func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
-	// Set the default handler
+// httpServerTLS creates and returns an HTTP server instance configured with Quick
+// for TLS/HTTPS usage. This function accepts a tlsConfig for secure connections.
+//
+// Parameters:
+//   - addr:      The network address the server should listen on (e.g., ":443").
+//   - tlsConfig: A *tls.Config instance containing certificate and security settings.
+//   - handler:   Optionally, one or more custom HTTP handlers.
+//
+// If no custom handler is provided, the default Quick router is used by default.
+// If q.Cors is enabled, the returned handler includes CORS middleware.
+func (q *Quick) httpServerTLS(addr string, tlsConfig *tls.Config, handler ...http.Handler) *http.Server {
+	// Determine the handler to use based on optional arguments and CORS configuration.
 	var h http.Handler = q
 	if len(handler) > 0 {
 		h = q.execHandler(handler[0])
@@ -630,7 +808,38 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 		h = q.corsHandler()
 	}
 
-	// Returns a single http.Server struct without code repetition
+	// Return a fully configured http.Server, including TLS settings.
+	return &http.Server{
+		Addr:              addr,
+		Handler:           h,
+		TLSConfig:         tlsConfig,
+		ReadTimeout:       q.config.ReadTimeout,
+		WriteTimeout:      q.config.WriteTimeout,
+		IdleTimeout:       q.config.IdleTimeout,
+		ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+		MaxHeaderBytes:    q.config.MaxHeaderBytes,
+	}
+}
+
+// httpServer creates and returns an HTTP server instance configured with Quick
+// for plain HTTP (non-TLS) usage.
+//
+// Parameters:
+//   - addr:    The network address the server should listen on (e.g., ":8080").
+//   - handler: Optionally, one or more custom HTTP handlers.
+//
+// If no custom handler is provided, the default Quick router is used by default.
+// If q.Cors is enabled, the returned handler includes CORS middleware.
+func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
+	// Determine the handler to use based on optional arguments and CORS configuration.
+	var h http.Handler = q
+	if len(handler) > 0 {
+		h = q.execHandler(handler[0])
+	} else if q.Cors {
+		h = q.corsHandler()
+	}
+
+	// Return a fully configured http.Server for plain HTTP usage.
 	return &http.Server{
 		Addr:              addr,
 		Handler:           h,
@@ -638,11 +847,42 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 		WriteTimeout:      q.config.WriteTimeout,
 		IdleTimeout:       q.config.IdleTimeout,
 		ReadHeaderTimeout: q.config.ReadHeaderTimeout,
+		MaxHeaderBytes:    q.config.MaxHeaderBytes,
 	}
 }
 
-// ListenWithShutdown starts the HTTP server and returns a shutdown function.
-// ListenWithShutdown retorna server e shutdown, mas NÃO inicia o server
+// ListenWithShutdown starts an HTTP server on the given address and returns both
+// the *http.Server instance and a shutdown function. The server begins listening
+// in a background goroutine, while the caller retains control over the server's
+// lifecycle through the returned function.
+//
+// If q.config.MoreRequests > 0, the function sets the Go garbage collector's
+// percentage via debug.SetGCPercent(q.config.MoreRequests). This can tune how
+// aggressively the garbage collector operates.
+//
+// The returned shutdown function, when called, attempts a graceful shutdown with
+// a 5-second timeout. This allows existing connections to finish processing
+// before the server is closed. It also closes the underlying TCP listener.
+//
+// Parameters:
+//   - addr:    The TCP network address to listen on (e.g. ":8080").
+//   - handler: Optional HTTP handlers; if none is provided, the default handler is used.
+//
+// Returns:
+//   - *http.Server: The configured HTTP server instance.
+//   - func():        A function that triggers graceful shutdown of the server.
+//   - error:         An error if the listener cannot be created.
+//
+// Usage Example:
+//
+//	server, shutdown, err := q.ListenWithShutdown(":8080")
+//	if err != nil {
+//	    log.Fatalf("failed to start server: %v", err)
+//	}
+//	// The server is now running in the background.
+//
+//	// At a later point, we can shut down gracefully:
+//	shutdown()
 func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.Server, func(), error) {
 	if q.config.MoreRequests > 0 {
 		debug.SetGCPercent(q.config.MoreRequests)
@@ -654,6 +894,8 @@ func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.
 	}
 
 	server := q.httpServer(listener.Addr().String(), handler...)
+
+	// This function initiates a graceful shutdown of the server.
 	shutdownFunc := func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -661,7 +903,7 @@ func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.
 		listener.Close()
 	}
 
-	// Servidor inicia em background
+	// Start the server in the background goroutine.
 	go func() {
 		server.Serve(listener)
 	}()
@@ -681,38 +923,134 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	select {}
 }
 
-// ListenTLS starts an HTTPS server with TLS support
-func (q *Quick) ListenTLS(addr, certFile, keyFile string, handler ...http.Handler) error {
-	if q.config.MoreRequests > 0 {
-		debug.SetGCPercent(q.config.MoreRequests)
+// ListenTLS starts an HTTPS server on the specified address using the provided
+// certificate and key files. It allows enabling or disabling HTTP/2 support.
+// It also configures basic modern TLS settings, sets up a listener with
+// SO_REUSEPORT (when possible), and applies a graceful shutdown procedure.
+//
+// Parameters:
+//   - addr: the TCP network address to listen on (e.g., ":443")
+//   - certFile: the path to the SSL certificate file
+//   - keyFile: the path to the SSL private key file
+//   - useHTTP2: whether or not to enable HTTP/2
+//   - handler: optional HTTP handlers. If none is provided, the default handler is used.
+//
+// Returns:
+//   - error: an error if something goes wrong creating the listener or starting the server.
+func (q *Quick) ListenTLS(addr, certFile, keyFile string, useHTTP2 bool, handler ...http.Handler) error {
+	// If the user has specified a custom GC percentage (> 0),
+	// set it here to help control garbage collection aggressiveness.
+	if q.config.GCPercent > 0 {
+		debug.SetGCPercent(q.config.GCPercent)
 	}
 
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		return err
-	}
-
-	q.server = q.httpServer(listener.Addr().String(), handler...) // 🔧 Stores the server in the struct Quick
-
-	shutdownFunc := func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if q.server != nil {
-			q.server.Shutdown(ctx)
+	// Extract or create a TLS configuration.
+	// If q.config.TLSConfig is nil, set up a default TLS config with modern protocols
+	// and ciphers. This includes TLS 1.3 and secure cipher suites.
+	var tlsConfig = q.config.TLSConfig
+	if tlsConfig == nil {
+		tlsConfig = &tls.Config{
+			MinVersion:       tls.VersionTLS13, // Sets TLS 1.3 as the minimum version
+			CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+			CipherSuites: []uint16{
+				tls.TLS_AES_128_GCM_SHA256,
+				tls.TLS_CHACHA20_POLY1305_SHA256,
+				tls.TLS_AES_256_GCM_SHA384,
+			},
+			NextProtos: []string{"h2", "http/1.1"}, // Default to supporting HTTP/2
 		}
-		listener.Close()
 	}
 
-	// Start the server TLS in a goroutine
+	// Enable or disable HTTP/2 support based on the useHTTP2 parameter.
+	if useHTTP2 {
+		// HTTP/2 + HTTP/1.1
+		tlsConfig.NextProtos = []string{"h2", "http/1.1"}
+	} else {
+		// Only HTTP/1.1
+		tlsConfig.NextProtos = []string{"http/1.1"}
+	}
+
+	// Create a net.ListenConfig that attempts to set SO_REUSEPORT on supported platforms.
+	// This feature can improve load balancing by letting multiple processes
+	// bind to the same address.
+	cfg := &net.ListenConfig{
+		Control: func(network, address string, c syscall.RawConn) error {
+			return c.Control(func(fd uintptr) {
+				// Avoid setting SO_REUSEPORT on macOS to prevent errors.
+				if runtime.GOOS != "darwin" {
+					syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEPORT, 1)
+				}
+			})
+		},
+	}
+
+	// Listen on the specified TCP address using our custom ListenConfig.
+	listener, err := cfg.Listen(context.Background(), "tcp", addr)
+	if err != nil {
+		return fmt.Errorf("failed to create listener: %w", err)
+	}
+
+	// Create the HTTP server configured for TLS using the provided or default tlsConfig.
+	// The address is taken from the listener to ensure correctness in case the actual
+	// bound port differs (for example, if you used ":0" for a random port).
+	q.server = q.httpServerTLS(listener.Addr().String(), tlsConfig, handler...)
+
+	// Start the server and perform a graceful shutdown when a termination signal is received.
+	return q.startServerWithGracefulShutdown(listener, certFile, keyFile)
+}
+
+// startServerWithGracefulShutdown starts the HTTPS server (using the provided TLS certificate
+// and private key) on the given listener and blocks until the server either encounters
+// an unrecoverable error or receives a termination signal.
+//
+// The server runs in a goroutine so that this function can simultaneously listen for
+// interrupt signals (SIGINT, SIGTERM, SIGHUP). Once such a signal is detected, the function
+// will gracefully shut down the server, allowing any ongoing requests to finish or timing
+// out after 15 seconds.
+//
+// Parameters:
+//   - listener: A net.Listener that the server will use to accept connections.
+//   - certFile: Path to the TLS certificate file.
+//   - keyFile:  Path to the TLS private key file.
+//
+// Returns:
+//   - error: An error if the server fails to start, or if a forced shutdown occurs.
+//     Returns nil on normal shutdown.
+func (q *Quick) startServerWithGracefulShutdown(listener net.Listener, certFile, keyFile string) error {
+	serverErr := make(chan error, 1)
+
+	// Run ServeTLS in a goroutine. Any unrecoverable error that isn't http.ErrServerClosed
+	// is sent to the channel for handling in the main select block.
 	go func() {
 		if err := q.server.ServeTLS(listener, certFile, keyFile); err != nil && err != http.ErrServerClosed {
-			panic(err)
+			serverErr <- fmt.Errorf("server error: %w", err)
 		}
+		close(serverErr)
 	}()
 
-	// Block indefinitely until shutdown
-	defer shutdownFunc()
-	select {}
+	// Create a context that listens for SIGINT, SIGTERM, and SIGHUP signals.
+	// When one of these signals occurs, the context is canceled automatically.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	defer stop()
+
+	select {
+	case <-ctx.Done():
+		// We've received a termination signal, so attempt a graceful shutdown.
+		log.Println("Received shutdown signal. Stopping server...")
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+
+		// If the server cannot gracefully shut down within 15 seconds,
+		// it will exit with an error.
+		if err := q.server.Shutdown(shutdownCtx); err != nil {
+			return fmt.Errorf("forced shutdown: %w", err)
+		}
+		return nil
+
+	case err := <-serverErr:
+		// If an unrecoverable error occurred in ServeTLS, return it here.
+		return err
+	}
 }
 
 func (q *Quick) Shutdown() error {
