@@ -73,7 +73,7 @@ Stay tuned for results, methodology, and detailed analysis! 🚀
 ## 🚀 Table of Commands used to parse Body
 
 ```markdown
-| Framework | Comando Utilizado para Parse |
+| Framework | Command used for parse  |
 |-----------|------------------------------------------------|
 | Quick    | c.BodyParser, c.Bind, c.Body                    |
 | Gin      | c.Bind, c.ShouldBind, c.ShouldBindWithJSON      |
