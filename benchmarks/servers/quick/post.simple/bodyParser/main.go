@@ -8,6 +8,9 @@ type My struct {
 	Year int    `json:"year"` // User's birth year
 }
 
+// $ curl --location 'http://localhost:8080/v1/user' \
+// --header 'Content-Type: application/json' \
+// --data '{"name": "Alice", "year": 20}'
 func main() {
 	q := quick.New() // Initialize Quick framework
 
@@ -23,7 +26,7 @@ func main() {
 		}
 
 		// Return the parsed JSON data as a response with 200 OK
-		return c.Status(200).JSON(&my)
+		return c.Status(200).JSON(my)
 
 		// Alternative:
 		// return c.Status(200).String(c.BodyString())
@@ -33,7 +36,3 @@ func main() {
 	// Start the server and listen on port 8080
 	q.Listen("0.0.0.0:8080")
 }
-
-//curl --location 'http://localhost:8080/v1/user' \
-// --header 'Content-Type: application/json' \
-// --data '{"name": "Alice", "year": 20}'
