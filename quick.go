@@ -414,7 +414,6 @@ func (c *Ctx) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Response = w
 	c.Request = r
 	c.resStatus = 0
-	c.headerWritten = false
 
 	// Clear existing maps for reuse
 	for k := range c.Params {
