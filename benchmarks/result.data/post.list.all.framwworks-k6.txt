@@ -1,4 +1,4 @@
-echo
+### echo
 post.list
 bind
 data_1MB_list
@@ -39,13 +39,12 @@ return c.JSON(http.StatusOK, my)
      vus............................: 176     min=13             max=1000
      vus_max........................: 1000    min=1000           max=1000
 
-    CPU consumption........................: 94.54% MB
+    CPU consumption........................: 94.54% 
     Consumption of Memory ........................: 4.4% GB
 
 
-running (1m02.2s), 0000/1000 VUs, 9887 complete and 0 interrupted iterations
 
-echo
+### echo
 post.list
 byte
 data_1MB_list
@@ -86,7 +85,97 @@ return c.JSON(http.StatusOK, my)
      vus............................: 239     min=14             max=1000
      vus_max........................: 1000    min=1000           max=1000
 
-    CPU consumption........................: 93.58% MB
+    CPU consumption........................: 93.58%
     Consumption of Memory ........................: 4.4% GB
 
-running (1m02.5s), 0000/1000 VUs, 10570 complete and 0 interrupted iterations
+
+
+### Fiber
+post.list
+byte
+data_1MB_list
+return c.Status(200).JSON(my)
+
+       /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: post.file.list.payload.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 1m32s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 1m2s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status is 200 or 201
+     ✓ response contains JSON
+
+     checks.........................: 100.00% 22046 out of 22046
+     data_received..................: 5.2 GB  74 MB/s
+     data_sent......................: 12 GB   166 MB/s
+     http_req_blocked...............: avg=165.46µs min=2.27µs   med=5.2µs   max=213.85ms p(90)=18.49µs  p(95)=203.38µs
+     http_req_connecting............: avg=83.32µs  min=0s       med=0s      max=93.63ms  p(90)=0s       p(95)=138.3µs 
+     http_req_duration..............: avg=3.4s     min=12.97ms  med=2.68s   max=24.6s    p(90)=7.17s    p(95)=10.44s  
+       { expected_response:true }...: avg=3.4s     min=12.97ms  med=2.68s   max=24.6s    p(90)=7.17s    p(95)=10.44s  
+     http_req_failed................: 0.00%   0 out of 11023
+     http_req_receiving.............: avg=77.45ms  min=83.52µs  med=232.9µs max=10.35s   p(90)=2.09ms   p(95)=210.46ms
+     http_req_sending...............: avg=1.14ms   min=228.79µs med=481.9µs max=380.94ms p(90)=913.62µs p(95)=1.57ms  
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s      max=0s       p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=3.32s    min=12.38ms  med=2.67s   max=22.8s    p(90)=7.14s    p(95)=9.85s   
+     http_reqs......................: 11023   158.425424/s
+     iteration_duration.............: avg=3.42s    min=13.39ms  med=2.69s   max=24.6s    p(90)=7.23s    p(95)=10.65s  
+     iterations.....................: 11023   158.425424/s
+     vus............................: 55      min=13             max=1000
+     vus_max........................: 1000    min=1000           max=1000
+
+    CPU consumption........................: 90.79% 
+    Consumption of Memory ........................: 6.3% GB
+
+
+### Fiber
+post.list
+c.Body
+data_307.6kB_list
+return c.Send(response)
+
+
+       /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: post.file.list.payload.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 1m22s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 52s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status is 200 or 201
+     ✓ response contains JSON
+
+     checks.........................: 100.00% 63668 out of 63668
+     data_received..................: 4.4 GB  84 MB/s
+     data_sent......................: 9.8 GB  188 MB/s
+     http_req_blocked...............: avg=22.27µs  min=1.66µs  med=3.59µs   max=25.24ms p(90)=5.75µs   p(95)=9.12µs  
+     http_req_connecting............: avg=15.53µs  min=0s      med=0s       max=25.17ms p(90)=0s       p(95)=0s      
+     http_req_duration..............: avg=855.55ms min=5.32ms  med=556.59ms max=8.26s   p(90)=2.11s    p(95)=2.75s   
+       { expected_response:true }...: avg=855.55ms min=5.32ms  med=556.59ms max=8.26s   p(90)=2.11s    p(95)=2.75s   
+     http_req_failed................: 0.00%   0 out of 31834
+     http_req_receiving.............: avg=2.59ms   min=36.68µs med=78.04µs  max=1.46s   p(90)=177.93µs p(95)=352.46µs
+     http_req_sending...............: avg=225.91µs min=88.6µs  med=167.22µs max=40.75ms p(90)=208.53µs p(95)=307.18µs
+     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       max=0s      p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=852.73ms min=5.11ms  med=555.08ms max=8.26s   p(90)=2.1s     p(95)=2.74s   
+     http_reqs......................: 31834   612.151103/s
+     iteration_duration.............: avg=855.89ms min=5.45ms  med=556.76ms max=8.26s   p(90)=2.11s    p(95)=2.75s   
+     iterations.....................: 31834   612.151103/s
+     vus............................: 20      min=20             max=1000
+     vus_max........................: 1000    min=1000           max=1000
+
+    CPU consumption........................: 92.59% 
+    Consumption of Memory ........................: 1.4% GB
