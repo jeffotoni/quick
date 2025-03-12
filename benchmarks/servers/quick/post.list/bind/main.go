@@ -32,6 +32,7 @@ func main() {
 
 	// Define a POST route at /v1/user
 	q.Post("/v1/user", func(c *quick.Ctx) error {
+		c.Set("Content-type", "application/json")
 		var my = []My{} // Create a variable to store incoming user data
 
 		// Parse the request body into the struct

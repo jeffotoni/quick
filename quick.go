@@ -88,11 +88,6 @@ var defaultConfig = Config{
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	RouteCapacity:  1000,
 	MoreRequests:   290, // equilibrium value
-	// TLSConfig:      &tls.Config{},
-	//ReadTimeout:  10 * time.Second,
-	//WriteTimeout: 10 * time.Second,
-	//IdleTimeout:       1 * time.Second,
-	// ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
 type Zeroth int
@@ -842,39 +837,6 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// If no route matches, send a 404 response.
 	http.NotFound(rw, req)
 }
-
-// // ServeHTTP is the main HTTP request dispatcher for the Quick router
-// // The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
-// func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-
-// 	//  rw := acquireResponseWriter(w)
-// 	// defer releaseResponseWriter(rw)
-
-// 	for i := 0; i < len(q.routes); i++ {
-// 		var requestURI = req.URL.Path
-// 		var patternUri = q.routes[i].Pattern
-
-// 		if q.routes[i].Method != req.Method {
-// 			continue
-// 		}
-
-// 		if len(patternUri) == 0 {
-// 			patternUri = q.routes[i].Path
-// 		}
-
-// 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
-
-// 		if !isValid {
-// 			continue
-// 		}
-
-// 		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
-// 		req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
-// 		q.routes[i].handler(w, req)
-// 		return
-// 	}
-// 	http.NotFound(w, req)
-// }
 
 // createParamsAndValid create params map and check if the request URI and pattern URI are valid
 // Method Used Internally
