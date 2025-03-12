@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 // Load the JSON from the environment variable
-const payloadData = JSON.parse(__ENV.PAYLOAD);
+const payloadData = open('./data_12k_list.json');
 
 // K6 configuration
 export let options = {
@@ -18,13 +18,13 @@ export default function () {
 let url = 'http://localhost:8080/v1/user';
 
 // Always use the same list for sending
-let payload = JSON.stringify(payloadData);
+// let payload = JSON.stringify(payloadData);
 
 let params = {
 headers: { 'Content-Type': 'application/json' },
 };
 
-let res = http.post(url, payload, params);
+let res = http.post(url, payloadData, params);
 
 // Check if the response is correct
 check(res, {
