@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 )
 
 type Ctx struct {
@@ -135,17 +134,26 @@ func (c *Ctx) BodyString() string {
 // Returns:
 //   - error: An error if JSON encoding fails or if writing the response fails.
 func (c *Ctx) JSON(v interface{}) error {
-	b, err := json.Marshal(v)
-	if err != nil {
+	buf := acquireJSONBuffer()
+	defer releaseJSONBuffer(buf)
+
+	if err := json.NewEncoder(buf).Encode(v); err != nil {
 		return err
 	}
 
-	c.writeResponse(b)
+	if buf.Len() > 0 && buf.Bytes()[buf.Len()-1] == '\n' {
+		buf.Truncate(buf.Len() - 1)
+	}
+
+	c.writeResponse(buf.Bytes())
 	return nil
 }
 
 // JSONIN encodes the given interface as JSON with indentation and writes it to the HTTP response.
 // Allows optional parameters to define the indentation format.
+//
+// ATTENTION
+// use only for debugging, very slow
 //
 // Parameters:
 //   - v: The data structure to encode as JSON.
@@ -178,24 +186,6 @@ func (c *Ctx) JSONIN(v interface{}, params ...string) error {
 	return nil
 }
 
-// xmlBufferPool is a sync.Pool for optimizing XML serialization by reusing buffers.
-var xmlBufferPool = sync.Pool{
-	New: func() interface{} {
-		return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
-	},
-}
-
-// acquireXMLBuffer retrieves a buffer from the pool.
-func acquireXMLBuffer() *bytes.Buffer {
-	return xmlBufferPool.Get().(*bytes.Buffer)
-}
-
-// releaseXMLBuffer resets and returns the buffer to the pool.
-func releaseXMLBuffer(buf *bytes.Buffer) {
-	buf.Reset()
-	xmlBufferPool.Put(buf)
-}
-
 // XML serializes the given value to XML and writes it to the HTTP response.
 // It avoids unnecessary memory allocations by using buffer pooling and ensures that no extra newline is appended.
 //
@@ -205,27 +195,19 @@ func releaseXMLBuffer(buf *bytes.Buffer) {
 // Returns:
 //   - error: An error if XML encoding fails or if writing to the ResponseWriter fails.
 func (c *Ctx) XML(v interface{}) error {
-	if c.resStatus == 0 {
-		c.resStatus = http.StatusOK
-	}
+	buf := acquireXMLBuffer()
+	defer releaseXMLBuffer(buf)
 
-	//buf := acquireXMLBuffer()
-	//defer releaseXMLBuffer(buf)
-
-	// Marshal XML directly (avoids \n issue from xml.Encoder.Encode)
-	b, err := xml.Marshal(v)
-	if err != nil {
+	if err := xml.NewEncoder(buf).Encode(v); err != nil {
 		return err
 	}
 
-	// buf.Write(b)
+	if buf.Len() > 0 && buf.Bytes()[buf.Len()-1] == '\n' {
+		buf.Truncate(buf.Len() - 1)
+	}
 
-	// Set Content-Type header
-	// c.Response.Header().Set("Content-Type", ContentTypeTextXML)
-	// _, err = c.Response.Write(buf.Bytes())
-
-	c.writeResponse(b)
-	return err
+	c.writeResponse(buf.Bytes())
+	return nil
 }
 
 // writeResponse writes the provided byte content to the ResponseWriter.
