@@ -554,3 +554,49 @@ return c.Status(200).JSON(my)
 
      CPU consumption........................: 93.33% 
      Consumption of Memory ........................: 3.0% GB
+
+### Quick
+post.list
+Byte
+data_1k_list
+return c.Status(200).Send(bodyBytes)
+
+
+     /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: post.file.list.payload.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 1m22s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 52s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status is 200 or 201
+     ✓ response contains JSON
+
+     checks.........................: 100.00% 37464 out of 37464
+     data_received..................: 9.3 GB  180 MB/s
+     data_sent......................: 9.3 GB  180 MB/s
+     http_req_blocked...............: avg=35.22µs  min=1.69µs   med=4.05µs   max=20.94ms p(90)=7µs      p(95)=168.07µs
+     http_req_connecting............: avg=25.26µs  min=0s       med=0s       max=17.85ms p(90)=0s       p(95)=116.68µs
+     http_req_duration..............: avg=1.48s    min=5.94ms   med=866.27ms max=14.16s  p(90)=3.66s    p(95)=4.85s   
+       { expected_response:true }...: avg=1.48s    min=5.94ms   med=866.27ms max=14.16s  p(90)=3.66s    p(95)=4.85s   
+     http_req_failed................: 0.00%   0 out of 18732
+     http_req_receiving.............: avg=26.04ms  min=89.72µs  med=256.45µs max=3.44s   p(90)=2.08ms   p(95)=19.64ms 
+     http_req_sending...............: avg=329.42µs min=121.23µs med=243.77µs max=36.16ms p(90)=324.94µs p(95)=534.74µs
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       max=0s      p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=1.45s    min=5.68ms   med=846.22ms max=14.16s  p(90)=3.6s     p(95)=4.78s   
+     http_reqs......................: 18732   360.159904/s
+     iteration_duration.............: avg=1.48s    min=6.09ms   med=866.57ms max=14.16s  p(90)=3.66s    p(95)=4.85s   
+     iterations.....................: 18732   360.159904/s
+     vus............................: 26      min=21             max=995 
+     vus_max........................: 1000    min=1000           max=1000
+
+
+     CPU consumption........................: 93.23% 
+     Consumption of Memory ........................: 1.7% GB
