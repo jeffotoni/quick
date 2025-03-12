@@ -2,6 +2,7 @@
 *.out
 testdata/
 **/testdata/
+**/results.bin
 
 # IDE files
 .vscode
