@@ -1,0 +1,47 @@
+echo
+post.list
+bind
+data_1MB_list
+return c.JSON(http.StatusOK, my)
+
+        /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: post.file.list.payload.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 1m32s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 1m2s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status is 200 or 201
+     ✓ response contains JSON
+
+     checks.........................: 100.00% 19774 out of 19774
+     data_received..................: 4.6 GB  75 MB/s
+     data_sent......................: 10 GB   167 MB/s
+     http_req_blocked...............: avg=162.81µs min=2.42µs   med=5.63µs   max=492.77ms p(90)=169.63µs p(95)=224.47µs
+     http_req_connecting............: avg=61.76µs  min=0s       med=0s       max=18.17ms  p(90)=115.59µs p(95)=151.8µs 
+     http_req_duration..............: avg=3.45s    min=13.35ms  med=2.96s    max=20.02s   p(90)=7.16s    p(95)=9.62s   
+       { expected_response:true }...: avg=3.45s    min=13.35ms  med=2.96s    max=20.02s   p(90)=7.16s    p(95)=9.62s   
+     http_req_failed................: 0.00%   0 out of 9887
+     http_req_receiving.............: avg=39.51ms  min=84.41µs  med=294.51µs max=3.62s    p(90)=2.29ms   p(95)=62.22ms 
+     http_req_sending...............: avg=1.07ms   min=248.37µs med=497.55µs max=460.71ms p(90)=1.04ms   p(95)=1.78ms  
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       max=0s       p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=3.41s    min=12.8ms   med=2.93s    max=20.02s   p(90)=7.04s    p(95)=9.55s   
+     http_reqs......................: 9887    158.993907/s
+     iteration_duration.............: avg=3.45s    min=13.64ms  med=2.96s    max=20.02s   p(90)=7.17s    p(95)=9.62s   
+     iterations.....................: 9887    158.993907/s
+     vus............................: 176     min=13             max=1000
+     vus_max........................: 1000    min=1000           max=1000
+
+    CPU consumption 94.54
+    Consumption of Memory 
+
+
+running (1m02.2s), 0000/1000 VUs, 9887 complete and 0 interrupted iterations
+
