@@ -141,11 +141,10 @@ return c.Status(200).JSON(my)
 ### Fiber
 post.list
 Byte
-data_307.6kB_list
+data_1k_list
 return c.Send(response)
 
-
-       /\      Grafana   /‾‾/  
+      /\      Grafana   /‾‾/  
     /\  /  \     |\  __   /  /   
    /  \/    \    | |/ /  /   ‾‾\ 
   /          \   |   (  |  (‾)  |
@@ -162,26 +161,27 @@ return c.Send(response)
      ✓ status is 200 or 201
      ✓ response contains JSON
 
-     checks.........................: 100.00% 63668 out of 63668
-     data_received..................: 4.4 GB  84 MB/s
-     data_sent......................: 9.8 GB  188 MB/s
-     http_req_blocked...............: avg=22.27µs  min=1.66µs  med=3.59µs   max=25.24ms p(90)=5.75µs   p(95)=9.12µs  
-     http_req_connecting............: avg=15.53µs  min=0s      med=0s       max=25.17ms p(90)=0s       p(95)=0s      
-     http_req_duration..............: avg=855.55ms min=5.32ms  med=556.59ms max=8.26s   p(90)=2.11s    p(95)=2.75s   
-       { expected_response:true }...: avg=855.55ms min=5.32ms  med=556.59ms max=8.26s   p(90)=2.11s    p(95)=2.75s   
-     http_req_failed................: 0.00%   0 out of 31834
-     http_req_receiving.............: avg=2.59ms   min=36.68µs med=78.04µs  max=1.46s   p(90)=177.93µs p(95)=352.46µs
-     http_req_sending...............: avg=225.91µs min=88.6µs  med=167.22µs max=40.75ms p(90)=208.53µs p(95)=307.18µs
-     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       max=0s      p(90)=0s       p(95)=0s      
-     http_req_waiting...............: avg=852.73ms min=5.11ms  med=555.08ms max=8.26s   p(90)=2.1s     p(95)=2.74s   
-     http_reqs......................: 31834   612.151103/s
-     iteration_duration.............: avg=855.89ms min=5.45ms  med=556.76ms max=8.26s   p(90)=2.11s    p(95)=2.75s   
-     iterations.....................: 31834   612.151103/s
-     vus............................: 20      min=20             max=1000
+     checks.........................: 100.00% 30918 out of 30918
+     data_received..................: 5.5 GB  105 MB/s
+     data_sent......................: 7.7 GB  148 MB/s
+     http_req_blocked...............: avg=37.93µs  min=2.31µs   med=4.11µs   max=19.37ms p(90)=7.58µs   p(95)=188.36µs
+     http_req_connecting............: avg=27.74µs  min=0s       med=0s       max=19.29ms p(90)=0s       p(95)=130.58µs
+     http_req_duration..............: avg=1.79s    min=11.2ms   med=1.36s    max=14.01s  p(90)=4.01s    p(95)=4.87s   
+       { expected_response:true }...: avg=1.79s    min=11.2ms   med=1.36s    max=14.01s  p(90)=4.01s    p(95)=4.87s   
+     http_req_failed................: 0.00%   0 out of 15459
+     http_req_receiving.............: avg=3.3ms    min=69.68µs  med=160.99µs max=2.63s   p(90)=404.21µs p(95)=935.96µs
+     http_req_sending...............: avg=312.21µs min=126.33µs med=249.27µs max=30.27ms p(90)=322.44µs p(95)=515.47µs
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       max=0s      p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=1.78s    min=10.65ms  med=1.36s    max=14.01s  p(90)=4.01s    p(95)=4.87s   
+     http_reqs......................: 15459   297.254593/s
+     iteration_duration.............: avg=1.79s    min=11.78ms  med=1.36s    max=14.02s  p(90)=4.01s    p(95)=4.87s   
+     iterations.....................: 15459   297.254593/s
+     vus............................: 30      min=19             max=1000
      vus_max........................: 1000    min=1000           max=1000
 
-    CPU consumption........................: 92.59% 
-    Consumption of Memory ........................: 1.4% GB
+
+    CPU consumption........................: 93.16% 
+    Consumption of Memory ........................: 2.3% GB
 
 
 ### Gin
@@ -325,7 +325,7 @@ c.JSON(http.StatusOK, my)
 ### Gin
 post.list
 ShouldBindBodyWithJSON
-data_1MB_list
+data_1k_list
 c.JSON(http.StatusOK, my)
 
          /\      Grafana   /‾‾/  
