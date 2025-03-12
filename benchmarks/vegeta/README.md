@@ -34,7 +34,7 @@ Stay tuned for results, methodology, and detailed analysis! 🚀
 | Iris     | ctx.ReadJSON,  ctx.GetBody                      |
 ```
 
-### ▶️Install Vegeta
+### ▶️ Install Vegeta
 **Linux**
 ```sh
 $ curl -LO https://github.com/tsenart/vegeta/releases/latest/download/vegeta-linux-amd64 && \
@@ -108,7 +108,7 @@ The graphs below represent the main test results:
 4. **Quick has lower max latency (11.906ms vs 17.668ms in Gin)**, indicating better stability under load.
 
 
-# Quick vs Echo Comparison
+## Quick vs Echo Comparison
 ### Post using `bind()`
 
 ## 🔥 Performance Comparison
@@ -137,7 +137,7 @@ The graphs below represent the main test results:
 4. **Both frameworks maintain the same throughput (500 req/s)** with **100% success rate**.
 5. **Echo processes slightly more incoming data (31 bytes per request vs. 30 in Quick)**.
 
-# Quick vs Fiber Comparison
+## Quick vs Fiber Comparison
 ### Function used: `c.BodyParser(&my)`
 
 ## 🔥 Performance Comparison
@@ -171,7 +171,7 @@ The graphs below represent the main test results:
 
 🚀 **Fiber has a slight edge in handling JSON body parsing efficiently, but Quick's lower wait time might still be an advantage in high-throughput applications.**
 
-# Quick vs Fiber Comparison
+## Quick vs Fiber Comparison
 ### Function used: `c.Body()`
 
 ## 🔥 Performance Comparison
@@ -205,7 +205,7 @@ The graphs below represent the main test results:
 
 🚀 **Quick is more stable under heavy load, while Fiber offers slightly better response times in lower latency cases.**
 
-# Quick vs Iris Comparison
+## Quick vs Iris Comparison
 ### Function used:
 - **Iris**: `ctx.GetBody()`
 - **Quick**: `c.Body()`
