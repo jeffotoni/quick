@@ -1,6 +1,10 @@
 package main
 
-import "github.com/jeffotoni/quick"
+import (
+	"time"
+
+	"github.com/jeffotoni/quick"
+)
 
 // Struct representing a user model
 type My struct {
@@ -27,7 +31,11 @@ type Option struct {
 // -d @data_1k_list.json
 func main() {
 	q := quick.New(quick.Config{
-		MaxBodySize: 20 * 1024 * 1024,
+		MaxBodySize:       20 * 1024 * 1024,
+		ReadTimeout:       60 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
 	}) // Initialize Quick framework
 
 	// Define a POST route at /v1/user
