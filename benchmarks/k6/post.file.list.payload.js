@@ -2,12 +2,12 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 // Load the JSON from the environment variable
-const payloadData = open('./data_1MB_list.json');
+const payloadData = open('./data_1k_list.json');
 
 // K6 configuration
 export let options = {
     stages: [
-        { duration: '50s', target: 1000 }, // Ramp-up para 500 VUs
+        { duration: '40s', target: 1000 }, // Ramp-up para 500 VUs
         { duration: '7s', target: 500 },  // Mantém 500 VUs
         { duration: '5s', target: 0 },   // Ramp-down
     ],
