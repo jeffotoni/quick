@@ -1,4 +1,4 @@
-# 🚀 Quick HTTP Framework Benchmarking
+# 🚀 Quick Benchmarking
 
 ## Introduction
 Welcome to our benchmarking project! Here, we are conducting performance tests to evaluate different HTTP frameworks in Go. The goal is to better understand how each framework performs under heavy loads and identify which one offers the best performance for different scenarios.
