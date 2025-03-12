@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,13 +9,30 @@ import (
 
 // Struct representing a user model
 type My struct {
-	Name string `json:"name"` // User's name
-	Year int    `json:"year"` // User's birth year
+	ID       string                 `json:"id"`
+	Name     string                 `json:"name"`
+	Year     int                    `json:"year"`
+	Price    float64                `json:"price"`
+	Big      bool                   `json:"big"`
+	Car      bool                   `json:"car"`
+	Tags     []string               `json:"tags"`
+	Metadata map[string]interface{} `json:"metadata"`
+	Options  []Option               `json:"options"`
+	Extra    interface{}            `json:"extra"`
+	Dynamic  map[string]interface{} `json:"dynamic"`
 }
 
-// $ curl --location 'http://localhost:8080/v1/user' \
+type Option struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// curl --location 'http://localhost:8080/v1/user' \
 // --header 'Content-Type: application/json' \
-// --data '{"name": "Alice", "year": 20}'
+// --data '[{"id": "123", "name": "Alice", "year": 20,
+// "price": 100.5, "big": true, "car": false, "tags": ["fast", "blue"],
+// "metadata": {"brand": "Tesla"}, "options": [{"key": "color", "value": "red"}],
+// "extra": "some data", "dynamic": {"speed": "200km/h"}}]'
 func main() {
 
 	gin.SetMode(gin.ReleaseMode)
@@ -23,10 +40,13 @@ func main() {
 	r := gin.New()
 
 	r.POST("/v1/user", func(c *gin.Context) {
-		var my My // Create a variable to store incoming user data
-		_, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Set("Content-Type", "application/json")
+
+		var my []My // Define a slice to store multiple user objects
+
+		// Read and parse the JSON request body
+		if err := json.NewDecoder(c.Request.Body).Decode(&my); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
 			return
 		}
 

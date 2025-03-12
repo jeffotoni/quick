@@ -8,13 +8,30 @@ import (
 
 // Struct representing a user model
 type My struct {
-	Name string `json:"name"` // User's name
-	Year int    `json:"year"` // User's birth year
+	ID       string                 `json:"id"`
+	Name     string                 `json:"name"`
+	Year     int                    `json:"year"`
+	Price    float64                `json:"price"`
+	Big      bool                   `json:"big"`
+	Car      bool                   `json:"car"`
+	Tags     []string               `json:"tags"`
+	Metadata map[string]interface{} `json:"metadata"`
+	Options  []Option               `json:"options"`
+	Extra    interface{}            `json:"extra"`
+	Dynamic  map[string]interface{} `json:"dynamic"`
 }
 
-// $ curl --location 'http://localhost:8080/v1/user' \
+type Option struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// curl --location 'http://localhost:8080/v1/user' \
 // --header 'Content-Type: application/json' \
-// --data '{"name": "Alice", "year": 20}'
+// --data '[{"id": "123", "name": "Alice", "year": 20,
+// "price": 100.5, "big": true, "car": false, "tags": ["fast", "blue"],
+// "metadata": {"brand": "Tesla"}, "options": [{"key": "color", "value": "red"}],
+// "extra": "some data", "dynamic": {"speed": "200km/h"}}]'
 func main() {
 
 	gin.SetMode(gin.ReleaseMode)
@@ -23,7 +40,7 @@ func main() {
 	r := gin.New()
 
 	r.POST("/v1/user", func(c *gin.Context) {
-		var my My // Create a variable to store incoming user data
+		var my []My // Create a variable to store incoming user data
 
 		// Parse the request body into the struct
 		err := c.ShouldBind(&my)
