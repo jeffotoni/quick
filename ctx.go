@@ -237,8 +237,8 @@ func (c *Ctx) XML(v interface{}) error {
 		c.resStatus = http.StatusOK
 	}
 
-	buf := acquireXMLBuffer()
-	defer releaseXMLBuffer(buf)
+	//buf := acquireXMLBuffer()
+	//defer releaseXMLBuffer(buf)
 
 	// Marshal XML directly (avoids \n issue from xml.Encoder.Encode)
 	b, err := xml.Marshal(v)
@@ -246,11 +246,13 @@ func (c *Ctx) XML(v interface{}) error {
 		return err
 	}
 
-	buf.Write(b)
+	// buf.Write(b)
 
 	// Set Content-Type header
-	c.Response.Header().Set("Content-Type", ContentTypeTextXML)
-	_, err = c.Response.Write(buf.Bytes())
+	// c.Response.Header().Set("Content-Type", ContentTypeTextXML)
+	// _, err = c.Response.Write(buf.Bytes())
+
+	c.writeResponse(b)
 	return err
 }
 
