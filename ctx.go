@@ -27,12 +27,10 @@ type Ctx struct {
 	Query          map[string]string
 	uploadFileSize int64 // Upload limit in bytes
 	headerWritten  bool
+	mu             sync.Mutex
 }
 
 func (c *Ctx) SetStatus(status int) {
-	if c.headerWritten {
-		return
-	}
 	c.resStatus = status
 }
 
@@ -139,26 +137,17 @@ func (c *Ctx) BodyString() string {
 // Returns:
 //   - error: An error if JSON encoding fails or if writing the response fails.
 func (c *Ctx) JSON(v interface{}) error {
-	if c.headerWritten {
-		return nil
-	}
-	if c.resStatus == 0 {
-		c.resStatus = http.StatusOK
-	}
-
-	buf := acquireBuffer()
-	defer releaseBuffer(buf)
+	//buf := acquireBuffer()
+	//defer releaseBuffer(buf)
 
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
 
-	buf.Write(b)
-
-	c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
-	_, err = c.Response.Write(buf.Bytes())
-	return err
+	// buf.Write(b)
+	c.writeResponse(b)
+	return nil
 }
 
 // JSONIN encodes the given interface as JSON with indentation and writes it to the HTTP response.
@@ -173,13 +162,6 @@ func (c *Ctx) JSON(v interface{}) error {
 // Returns:
 //   - error: An error if JSON encoding fails or if writing to the ResponseWriter fails.
 func (c *Ctx) JSONIN(v interface{}, params ...string) error {
-	if c.headerWritten {
-		return nil
-	}
-	if c.resStatus == 0 {
-		c.resStatus = http.StatusOK
-	}
-
 	// Default indentation settings
 	prefix := ""
 	indent := "  " // Default to 2 spaces
@@ -193,8 +175,8 @@ func (c *Ctx) JSONIN(v interface{}, params ...string) error {
 	}
 
 	// Use buffer pooling for performance
-	buf := acquireBuffer()
-	defer releaseBuffer(buf)
+	//buf := acquireBuffer()
+	//defer releaseBuffer(buf)
 
 	// Encode with the provided indentation settings
 	b, err := json.MarshalIndent(v, prefix, indent)
@@ -202,12 +184,15 @@ func (c *Ctx) JSONIN(v interface{}, params ...string) error {
 		return err
 	}
 
-	buf.Write(b)
+	//buf.Write(b)
 
 	// Set Content-Type header
-	c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
-	_, err = c.Response.Write(buf.Bytes())
-	return err
+	// c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
+	// _, err = c.Response.Write(buf.Bytes())
+	// return err
+
+	c.writeResponse(b)
+	return nil
 }
 
 // XML serializes the provided value in XML and writes to the HTTP response
@@ -248,9 +233,6 @@ func releaseXMLBuffer(buf *bytes.Buffer) {
 // Returns:
 //   - error: An error if XML encoding fails or if writing to the ResponseWriter fails.
 func (c *Ctx) XML(v interface{}) error {
-	if c.headerWritten {
-		return nil
-	}
 	if c.resStatus == 0 {
 		c.resStatus = http.StatusOK
 	}
@@ -282,20 +264,8 @@ func (c *Ctx) XML(v interface{}) error {
 // Returns:
 //   - error: An error if writing to the ResponseWriter fails.
 func (c *Ctx) writeResponse(b []byte) error {
-	// if !c.headerWritten {
-	// 	if c.resStatus == 0 {
-	// 		c.resStatus = http.StatusOK
-	// 	}
-	// 	c.Response.WriteHeader(c.resStatus)
-	// 	c.headerWritten = true
-	// }
-
 	if c.Response == nil {
 		return errors.New("nil response writer")
-	}
-
-	if c.headerWritten {
-		return nil // Evita escrever novamente a resposta já enviada
 	}
 
 	if c.resStatus == 0 {
@@ -303,10 +273,8 @@ func (c *Ctx) writeResponse(b []byte) error {
 	}
 
 	c.Response.WriteHeader(c.resStatus)
-	c.headerWritten = true
 
 	_, err := c.Response.Write(b)
-
 	if flusher, ok := c.Response.(http.Flusher); ok {
 		flusher.Flush()
 	}
@@ -317,36 +285,24 @@ func (c *Ctx) writeResponse(b []byte) error {
 // Byte writes an array of bytes to the HTTP response, using writeResponse()
 // The result will Byte(b []byte) (err error)
 func (c *Ctx) Byte(b []byte) (err error) {
-	if c.headerWritten {
-		return nil // ou retorne um erro informando que a resposta já foi enviada
-	}
 	return c.writeResponse(b)
 }
 
 // Send writes a byte array to the HTTP response, using writeResponse()
 // The result will Send(b []byte) (err error)
 func (c *Ctx) Send(b []byte) (err error) {
-	if c.headerWritten {
-		return nil // ou retorne um erro informando que a resposta já foi enviada
-	}
 	return c.writeResponse(b)
 }
 
 // SendString writes a string in the HTTP response, converting it to an array of bytes and using writeResponse()
 // The result will SendString(s string) error
 func (c *Ctx) SendString(s string) error {
-	if c.headerWritten {
-		return nil // ou retorne um erro informando que a resposta já foi enviada
-	}
 	return c.writeResponse([]byte(s))
 }
 
 // String escreve uma string na resposta HTTP, convertendo-a para um array de bytes e utilizando writeResponse()
 // The result will String(s string) error
 func (c *Ctx) String(s string) error {
-	if c.headerWritten {
-		return nil // ou retorne um erro informando que a resposta já foi enviada
-	}
 	return c.writeResponse([]byte(s))
 }
 
@@ -379,9 +335,7 @@ func (c *Ctx) Accepts(acceptType string) *Ctx {
 // Status defines the HTTP status code of the response
 // The result will Status(status int) *Ctx
 func (c *Ctx) Status(status int) *Ctx {
-	if !c.headerWritten {
-		c.resStatus = status
-	}
+	c.resStatus = status
 	return c
 }
 
