@@ -387,22 +387,6 @@ func extractParamsBind(c *Ctx, v interface{}) error {
 	}
 }
 
-// extractBind decodes the request body into the provided interface based on the Content-Type header
-// Method Used Internally
-// The result will extractBind(c *Ctx, v interface{}) (err error)
-// func extractBind(c *Ctx, v interface{}) (err error) {
-// 	var req http.Request = *c.Request
-// 	if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppJSON ||
-// 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
-// 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
-// 		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-// 	} else if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeTextXML ||
-// 		strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppXML {
-// 		err = xml.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-// 	}
-// 	return err
-// }
-
 // extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern
 // Method Used Internally
 // The result will extractParamsPattern(pattern string) (path, params, partternExist string)
@@ -421,6 +405,32 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	}
 
 	return
+}
+
+// newCtx returns a new, clean instance of Ctx
+func newCtx(w http.ResponseWriter, r *http.Request) *Ctx {
+	ctx := ctxPool.Get().(*Ctx)
+	ctx.Reset(w, r)
+	return ctx
+}
+
+// Reset clears Ctx data for safe reuse
+func (c *Ctx) Reset(w http.ResponseWriter, r *http.Request) {
+	c.Response = w
+	c.Request = r
+	c.resStatus = 0
+	c.headerWritten = false
+
+	// Clear existing maps for reuse
+	for k := range c.Params {
+		delete(c.Params, k)
+	}
+	for k := range c.Query {
+		delete(c.Query, k)
+	}
+	for k := range c.Headers {
+		delete(c.Headers, k)
+	}
 }
 
 // Ctx Pool
@@ -794,6 +804,10 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// Acquire a ResponseWriter from the pool for efficient request handling.
 	rw := acquireResponseWriter(w)
 	defer releaseResponseWriter(rw) // Ensure it returns to the pool.
+
+	// Acquiring Ctx from the pool
+	ctx := newCtx(rw, req) // <- creates a new, clean instance of the context
+	defer releaseCtx(ctx)  // Returns it to the pool
 
 	for i := range q.routes {
 		var requestURI = req.URL.Path
