@@ -30,32 +30,10 @@ type Option struct {
 	Value string `json:"value"`
 }
 
-
-1. Jefferson
-2. Arthur
-3. Mariana
-4. Carlos
-5. Fernanda
-6. João
-7. Beatriz
-8. Gabriel
-9. Rafael
-10. Bianca
-11. Eduardo
-12. Camila
-13. André
-14. Juliana
-15. Pedro
-16. Larissa
-17. Lucas
-18. Tatiane
-19. Felipe
-20. Vanessa
-
 // List of random names
 var names = []string{"Jefferson", "Arthur", "Mariana", "Carlos",
-	"Fernanda", "João", "Beatriz", "Gabriel", "Maria", "Jaque", 
-	"Gael","Vanessa","Felipe","Tatiane","Lucas","Larissa", "Pedro"}
+	"Fernanda", "João", "Beatriz", "Gabriel", "Maria", "Jaque",
+	"Gael", "Vanessa", "Felipe", "Tatiane", "Lucas", "Larissa", "Pedro"}
 
 func randomName() string {
 	return names[rand.Intn(len(names))]
