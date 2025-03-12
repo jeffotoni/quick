@@ -26,8 +26,6 @@ type Ctx struct {
 	Params         map[string]string
 	Query          map[string]string
 	uploadFileSize int64 // Upload limit in bytes
-	headerWritten  bool
-	mu             sync.Mutex
 }
 
 func (c *Ctx) SetStatus(status int) {
@@ -137,15 +135,11 @@ func (c *Ctx) BodyString() string {
 // Returns:
 //   - error: An error if JSON encoding fails or if writing the response fails.
 func (c *Ctx) JSON(v interface{}) error {
-	//buf := acquireBuffer()
-	//defer releaseBuffer(buf)
-
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
 
-	// buf.Write(b)
 	c.writeResponse(b)
 	return nil
 }
@@ -174,37 +168,15 @@ func (c *Ctx) JSONIN(v interface{}, params ...string) error {
 		indent = params[1]
 	}
 
-	// Use buffer pooling for performance
-	//buf := acquireBuffer()
-	//defer releaseBuffer(buf)
-
 	// Encode with the provided indentation settings
 	b, err := json.MarshalIndent(v, prefix, indent)
 	if err != nil {
 		return err
 	}
 
-	//buf.Write(b)
-
-	// Set Content-Type header
-	// c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
-	// _, err = c.Response.Write(buf.Bytes())
-	// return err
-
 	c.writeResponse(b)
 	return nil
 }
-
-// XML serializes the provided value in XML and writes to the HTTP response
-// The result will XML(v interface{}) error
-// func (c *Ctx) XML(v interface{}) error {
-// 	b, err := xml.Marshal(v)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	c.Response.Header().Set("Content-Type", ContentTypeTextXML)
-// 	return c.writeResponse(b)
-// }
 
 // xmlBufferPool is a sync.Pool for optimizing XML serialization by reusing buffers.
 var xmlBufferPool = sync.Pool{
