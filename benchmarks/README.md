@@ -100,38 +100,32 @@ The graphs below represent the main test results:
 
 ## 📌k6 Results (Summary)
 
-```markdown
-| Framework | Teste                          | Método de Retorno            | Requisições/s    | Tempo Médio de Resposta | Taxa de Erro |
-|-----------|--------------------------------|------------------------------|------------------|--------------------------|--------------|
-| Quick    | post.simple.bind                 | c.Status(200).JSON(my)         | 117,302 req/s   | 1.37 ms                  | 0%           |
-| Quick    | post.simple.bodyParser           | c.Status(200).JSON(my)         | 112,446 req/s   | 1.25 ms                  | 0%           |
-| Quick    | post.simple.byte                 | c.Status(200).Send(data)       | 115,855 req/s   | 1.39 ms                  | 0%           |
-| Echo     | post.simple.bind                 | c.JSON(http.StatusOK, my)      | 111,629 req/s   | 1.44 ms                  | 0%           |
-| Echo     | post.simple.byte                 | c.JSON(http.StatusOK, my)      | 112,682 req/s   | 1.47 ms                  | 0%           |
-| Fiber    | post.simple.bodyParser           | c.Status(200).JSON(my)         | 111,399 req/s   | 1.30 ms                  | 0%           |
-| Fiber    | post.simple.byte                 | c.Send(rawBody)                | 111,624 req/s   | 1.37 ms                  | 0%           |
-| Gin      | post.simple.bind                 | c.JSON(http.StatusOK, my)      | 111,442 req/s   | 1.58 ms                  | 0%           |
-| Gin      | post.simple.byte                 | c.JSON(http.StatusOK, my)      | 114,425 req/s   | 1.59 ms                  | 0%           |
-| Gin      | post.simple.shouldBind           | c.JSON(http.StatusOK, my)      | 113,500 req/s   | 1.47 ms                   | 0%           |
-| Gin      | post.simple.shouldBindBodyWithJSON | c.JSON(http.StatusOK, my)     | 112,509 req/s   | 1.49 ms                  | 0%           |
-| Iris     | post.simple.byte                 | ctx.Write(bodyBytes)           | 113,852 req/s   | 1.35 ms                   | 0%           |
-| Iris     | post.simple.ReadJSON             | ctx.JSON(my)                   | 112,007 req/s   | 1.29 ms                  | 0%           |
-```
+| Framework | Test         | Return Method          | Total HTTP Requests | Requests/s   | Avg Response Time | Data Received | Data Sent | Error Rate |
+|-----------|-------------|------------------------|----------------------|--------------|-------------------|---------------|-----------|-----------|
+| Quick     | post.simple | bind                   | 2,580,710            | 117,302.95   | 1.37ms            | 361MB         | 444MB     | 0.00%     |
+| Quick     | post.simple | bodyParser             | 2,473,856            | 112,446.38   | 1.25ms            | 346MB         | 426MB     | 0.00%     |
+| Quick     | post.simple | byte                   | 2,548,852            | 115,855.11   | 1.39ms            | 380MB         | 438MB     | 0.00%     |
+| Echo      | post.simple | bind                   | 2,455,926            | 111,629.64   | 1.44ms            | 346MB         | 422MB     | 0.00%     |
+| Echo      | post.simple | byte                   | 2,479,092            | 112,682.71   | 1.47ms            | 350MB         | 426MB     | 0.00%     |
+| Fiber     | post.simple | bodyParser             | 2,450,836            | 111,399.87   | 1.30ms            | 346MB         | 422MB     | 0.00%     |
+| Fiber     | post.simple | byte                   | 2,455,787            | 111,624.79   | 1.37ms            | 346MB         | 422MB     | 0.00%     |
+| Gin       | post.simple | bind                   | 2,451,771            | 111,442.32   | 1.58ms            | 346MB         | 422MB     | 0.00%     |
+| Gin       | post.simple | byte                   | 2,517,425            | 114,425.63   | 1.59ms            | 355MB         | 433MB     | 0.00%     |
+| Gin       | post.simple | shouldBind             | 2,497,045            | 113,500.33   | 1.47ms            | 352MB         | 430MB     | 0.00%     |
+| Gin       | post.simple | shouldBindWithJSON     | 2,475,239            | 112,509.01   | 1.49ms            | 349MB         | 426MB     | 0.00%     |
+| IRIS      | post.simple | byte                   | 2,504,791            | 113,852.23   | 1.35ms            | 388MB         | 431MB     | 0.00%     |
+| IRIS      | post.simple | ReadJSON               | 2,464,202            | 112,007.25   | 1.29ms            | 384MB         | 424MB     | 0.00%     |
 
 
-📌 Final Considerations
-
+### 📌 Final Considerations
 This document is a living benchmark that will be continuously updated as new tests, optimizations, and real-world scenarios are introduced. Our goal is to provide reliable, transparent, and actionable insights into the performance of Go web frameworks, helping developers make informed decisions.
-
 We strongly encourage community participation! If you find areas for improvement, have suggestions for additional tests, or want to share your own benchmark results, feel free to contribute. Open-source collaboration is what drives innovation, and your input is invaluable in refining these benchmarks.
 
-💡 Questions, Suggestions & Ideas?
-
+### 💡 Questions, Suggestions & Ideas?
 Whether you have a technical question, a new test case idea, or feedback on the methodology, we’d love to hear from you!
 
 🔹 Contribute: Open an issue or submit a pull request.
 🔹 Discuss: Join the conversation and share your insights.
 🔹 Connect: Let’s work together to push Go web performance forward!
 
-🚀 Thank you for your interest and participation! Hope you enjoy the benchmarks!
-
+#### 🚀 Thank you for your interest and participation! Hope you enjoy the benchmarks!
