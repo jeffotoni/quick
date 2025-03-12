@@ -45,7 +45,7 @@ func main() {
 		var my []My // Create a variable to store incoming user data
 
 		// Parse the request body into the struct
-		err := c.Bind(&my)
+		err := c.BodyParser(&my)
 		if err != nil {
 			// If parsing fails, return a 400 Bad Request response
 			return c.Status(400).SendString(err.Error())
