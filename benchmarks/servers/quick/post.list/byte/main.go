@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/jeffotoni/quick"
@@ -36,23 +37,25 @@ type Option struct {
 // "extra": "some data", "dynamic": {"speed": "200km/h"}}]'
 func main() {
 	q := quick.New(quick.Config{
-		MaxBodySize: 20 * 1024 * 1024,
-		ReadTimeout: 40 * time.Second,
+		MaxBodySize:       20 * 1024 * 1024,
+		ReadTimeout:       60 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
 	}) // Initialize Quick framework
 
 	// Define a POST route at /v1/user
 	q.Post("/v1/user", func(c *quick.Ctx) error {
-		var my []My // Create a variable to store incoming user data
+		c.Set("Content-type", "application/json")
 
-		// Parse the request body into the struct
-		err := c.Bind(&my)
-		if err != nil {
-			// If parsing fails, return a 400 Bad Request response
-			return c.Status(400).SendString(err.Error())
+		bodyBytes := c.Body()
+
+		var my []My
+		if err := json.Unmarshal(bodyBytes, &my); err != nil {
+			return c.Status(400).JSON(map[string]string{"error": err.Error()})
 		}
-
 		// Return the parsed JSON data as a response with 200 OK
-		return c.Status(200).JSON(my)
+		return c.Status(200).Send(bodyBytes)
 
 		// Alternative:
 		// return c.Status(200).String(c.BodyString())
@@ -60,5 +63,5 @@ func main() {
 	})
 
 	// Start the server and listen on port 8080
-	q.Listen("0.0.0.0:8080")
+	_ = q.Listen("0.0.0.0:8080")
 }
