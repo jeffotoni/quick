@@ -12,11 +12,13 @@ type My struct {
 	Year int    `json:"year"` // User's birth year
 }
 
+// $ curl --location 'http://localhost:8080/v1/user' \
+// --header 'Content-Type: application/json' \
+// --data '{"name": "Alice", "year": 20}'
 func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 
-	// r := gin.Default()
 	r := gin.New()
 
 	r.POST("/v1/user", func(c *gin.Context) {
@@ -25,7 +27,7 @@ func main() {
 		// Parse the request body into the struct
 		err := c.Bind(&my)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request data"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -35,7 +37,3 @@ func main() {
 
 	r.Run(":8080")
 }
-
-//curl --location 'http://localhost:8080/v1/user' \
-// --header 'Content-Type: application/json' \
-// --data '{"name": "Alice", "year": 20}'

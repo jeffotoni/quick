@@ -1,0 +1,535 @@
+quick
+post.simple
+bind
+return c.Status(200).JSON(my)
+
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 5161420 out of 5161420
+     data_received..................: 361 MB  16 MB/s
+     data_sent......................: 444 MB  20 MB/s
+     http_req_blocked...............: avg=1.64µs  min=0s      med=1µs    max=15.19ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=360ns   min=0s      med=0s     max=13.43ms p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.37ms  min=28µs    med=948µs  max=33.66ms p(90)=2.84ms p(95)=3.97ms
+       { expected_response:true }...: avg=1.37ms  min=28µs    med=948µs  max=33.66ms p(90)=2.84ms p(95)=3.97ms
+     http_req_failed................: 0.00%   0 out of 2580710
+     http_req_receiving.............: avg=30.03µs min=2µs     med=5µs    max=19.99ms p(90)=12µs   p(95)=24µs
+     http_req_sending...............: avg=14.92µs min=1µs     med=2µs    max=15.66ms p(90)=5µs    p(95)=7µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.32ms  min=21µs    med=931µs  max=33.65ms p(90)=2.77ms p(95)=3.83ms
+     http_reqs......................: 2580710 117302.95253/s
+     iteration_duration.............: avg=3.32ms  min=45.08µs med=3.04ms max=33.68ms p(90)=6.05ms p(95)=7.94ms
+     iterations.....................: 2580710 117302.95253/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    min=
+
+
+
+quick
+post.simple
+bodyParser
+return c.Status(200).JSON(my)
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 4947712 out of 4947712
+     data_received..................: 346 MB  16 MB/s
+     data_sent......................: 426 MB  19 MB/s
+     http_req_blocked...............: avg=1.64µs  min=0s      med=1µs    max=15.41ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=336ns   min=0s      med=0s     max=9.04ms  p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.25ms  min=25µs    med=807µs  max=22.1ms  p(90)=2.63ms p(95)=3.8ms
+       { expected_response:true }...: avg=1.25ms  min=25µs    med=807µs  max=22.1ms  p(90)=2.63ms p(95)=3.8ms
+     http_req_failed................: 0.00%   0 out of 2473856
+     http_req_receiving.............: avg=33.33µs min=2µs     med=5µs    max=16.72ms p(90)=13µs   p(95)=23µs
+     http_req_sending...............: avg=15.57µs min=1µs     med=2µs    max=14.38ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.2ms   min=18µs    med=790µs  max=19.38ms p(90)=2.56ms p(95)=3.62ms
+     http_reqs......................: 2473856 112446.384861/s
+     iteration_duration.............: avg=3.37ms  min=44.41µs med=3.16ms max=27.51ms p(90)=6.08ms p(95)=7.92ms
+     iterations.....................: 2473856 112446.384861/s
+     vus............................: 3       min=3                  max=998
+     vus_max........................: 1000    min=1
+
+quick
+post.simple
+byte
+return c.Status(200).Send(data)
+
+        /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✗ resposta contém JSON
+      ↳  0% — ✓ 0 / ✗ 2548852
+
+     checks.........................: 50.00%  2548852 out of 5097704
+     data_received..................: 380 MB  17 MB/s
+     data_sent......................: 438 MB  20 MB/s
+     http_req_blocked...............: avg=1.71µs  min=0s      med=1µs    max=14.52ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=402ns   min=0s      med=0s     max=11.43ms p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.39ms  min=24µs    med=1ms    max=25.52ms p(90)=2.86ms p(95)=3.89ms
+       { expected_response:true }...: avg=1.39ms  min=24µs    med=1ms    max=25.52ms p(90)=2.86ms p(95)=3.89ms
+     http_req_failed................: 0.00%   0 out of 2548852
+     http_req_receiving.............: avg=30.42µs min=2µs     med=5µs    max=18.12ms p(90)=12µs   p(95)=23µs
+     http_req_sending...............: avg=14.48µs min=1µs     med=2µs    max=17.93ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.35ms  min=17µs    med=991µs  max=25.51ms p(90)=2.79ms p(95)=3.75ms
+     http_reqs......................: 2548852 115855.113337/s
+     iteration_duration.............: avg=3.36ms  min=41.62µs med=3.03ms max=28.72ms p(90)=6.12ms p(95)=7.82ms
+     iterations.....................: 2548852 115855.113337/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    min=1000
+
+
+
+echo 
+post.simple
+bind
+return c.JSON(http.StatusOK, my)
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 4911852 out of 4911852
+     data_received..................: 346 MB  16 MB/s
+     data_sent......................: 422 MB  19 MB/s
+     http_req_blocked...............: avg=1.51µs  min=0s      med=1µs    max=13.81ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=285ns   min=0s      med=0s     max=12.07ms p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.44ms  min=25µs    med=863µs  max=36.6ms  p(90)=3.32ms p(95)=4.97ms
+       { expected_response:true }...: avg=1.44ms  min=25µs    med=863µs  max=36.6ms  p(90)=3.32ms p(95)=4.97ms
+     http_req_failed................: 0.00%   0 out of 2455926
+     http_req_receiving.............: avg=27.78µs min=2µs     med=5µs    max=16.85ms p(90)=12µs   p(95)=23µs
+     http_req_sending...............: avg=14.18µs min=1µs     med=2µs    max=16.1ms  p(90)=5µs    p(95)=7µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.4ms   min=19µs    med=846µs  max=35.44ms p(90)=3.23ms p(95)=4.83ms
+     http_reqs......................: 2455926 111629.640963/s
+     iteration_duration.............: avg=3.47ms  min=41.87µs med=3.22ms max=39.68ms p(90)=6.45ms p(95)=8.63ms
+     iterations.....................: 2455926 111629.640963/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000
+
+
+echo
+post.simple
+byte
+return c.JSON(http.StatusOK, my)
+
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 4958184 out of 4958184
+     data_received..................: 350 MB  16 MB/s
+     data_sent......................: 426 MB  19 MB/s
+     http_req_blocked...............: avg=1.7µs   min=0s      med=1µs    max=13.38ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=345ns   min=0s      med=0s     max=12.14ms p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.47ms  min=26µs    med=940µs  max=31.47ms p(90)=3.22ms p(95)=4.71ms
+       { expected_response:true }...: avg=1.47ms  min=26µs    med=940µs  max=31.47ms p(90)=3.22ms p(95)=4.71ms
+     http_req_failed................: 0.00%   0 out of 2479092
+     http_req_receiving.............: avg=28.08µs min=2µs     med=5µs    max=16.56ms p(90)=13µs   p(95)=22µs
+     http_req_sending...............: avg=16.05µs min=1µs     med=2µs    max=15.81ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.43ms  min=19µs    med=922µs  max=23.78ms p(90)=3.13ms p(95)=4.54ms
+     http_reqs......................: 2479092 112682.716835/s
+     iteration_duration.............: avg=3.46ms  min=43.95µs med=3.23ms max=34.99ms p(90)=6.25ms p(95)=8.27ms
+     iterations.....................: 2479092 112682.716835/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    min    
+
+
+
+ fiber
+ post.simple
+ bodyParser
+ return c.Status(200).JSON(my)
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 4901672 out of 4901672
+     data_received..................: 346 MB  16 MB/s
+     data_sent......................: 422 MB  19 MB/s
+     http_req_blocked...............: avg=1.56µs  min=0s      med=1µs   max=12.58ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=281ns   min=0s      med=0s    max=8.78ms  p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.3ms   min=26µs    med=775µs max=23.78ms p(90)=2.98ms p(95)=4.51ms
+       { expected_response:true }...: avg=1.3ms   min=26µs    med=775µs max=23.78ms p(90)=2.98ms p(95)=4.51ms
+     http_req_failed................: 0.00%   0 out of 2450836
+     http_req_receiving.............: avg=27.4µs  min=2µs     med=5µs   max=16.53ms p(90)=12µs   p(95)=24µs
+     http_req_sending...............: avg=14.12µs min=1µs     med=2µs   max=14.46ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s    max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.26ms  min=19µs    med=758µs max=22.89ms p(90)=2.89ms p(95)=4.34ms
+     http_reqs......................: 2450836 111399.879284/s
+     iteration_duration.............: avg=3.42ms  min=48.29µs med=3.2ms max=28.19ms p(90)=6.33ms p(95)=8.39ms
+     iterations.....................: 2450836 111399.879284/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    mi
+
+fiber
+post.simple
+byte
+return c.Send(rawBody)
+
+       /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 4911574 out of 4911574
+     data_received..................: 346 MB  16 MB/s
+     data_sent......................: 422 MB  19 MB/s
+     http_req_blocked...............: avg=1.56µs  min=0s      med=1µs    max=12.24ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=325ns   min=0s      med=0s     max=9.06ms  p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.37ms  min=24µs    med=862µs  max=23.45ms p(90)=3.05ms p(95)=4.53ms
+       { expected_response:true }...: avg=1.37ms  min=24µs    med=862µs  max=23.45ms p(90)=3.05ms p(95)=4.53ms
+     http_req_failed................: 0.00%   0 out of 2455787
+     http_req_receiving.............: avg=29.06µs min=2µs     med=5µs    max=17.74ms p(90)=13µs   p(95)=23µs
+     http_req_sending...............: avg=14.52µs min=1µs     med=2µs    max=16.29ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.33ms  min=18µs    med=845µs  max=20.5ms  p(90)=2.96ms p(95)=4.36ms
+     http_reqs......................: 2455787 111624.794344/s
+     iteration_duration.............: avg=3.44ms  min=43.83µs med=3.28ms max=26.68ms p(90)=6.18ms p(95)=8.25ms
+     iterations.....................: 2455787 111624.794344/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000
+
+
+Gin
+post.simple
+bind
+return c.JSON(http.StatusOK, my)
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 4903542 out of 4903542
+     data_received..................: 346 MB  16 MB/s
+     data_sent......................: 422 MB  19 MB/s
+     http_req_blocked...............: avg=1.65µs  min=0s      med=1µs    max=14.35ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=357ns   min=0s      med=0s     max=10.3ms  p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.58ms  min=25µs    med=996µs  max=26.35ms p(90)=3.55ms p(95)=5.15ms
+       { expected_response:true }...: avg=1.58ms  min=25µs    med=996µs  max=26.35ms p(90)=3.55ms p(95)=5.15ms
+     http_req_failed................: 0.00%   0 out of 2451771
+     http_req_receiving.............: avg=27.94µs min=2µs     med=5µs    max=17.56ms p(90)=13µs   p(95)=25µs
+     http_req_sending...............: avg=14.96µs min=1µs     med=2µs    max=15.88ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.53ms  min=19µs    med=978µs  max=23.3ms  p(90)=3.47ms p(95)=4.98ms
+     http_reqs......................: 2451771 111442.322893/s
+     iteration_duration.............: avg=3.55ms  min=44.66µs med=3.21ms max=33.78ms p(90)=6.69ms p(95)=8.94ms
+     iterations.....................: 2451771 111442.322893/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    mi
+
+
+Gin
+post.simple
+byte
+return c.JSON(http.StatusOK, my)
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 5034850 out of 5034850
+     data_received..................: 355 MB  16 MB/s
+     data_sent......................: 433 MB  20 MB/s
+     http_req_blocked...............: avg=1.66µs  min=0s      med=1µs    max=14.36ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=378ns   min=0s      med=0s     max=14.33ms p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.59ms  min=24µs    med=1.02ms max=28.88ms p(90)=3.59ms p(95)=5.17ms
+       { expected_response:true }...: avg=1.59ms  min=24µs    med=1.02ms max=28.88ms p(90)=3.59ms p(95)=5.17ms
+     http_req_failed................: 0.00%   0 out of 2517425
+     http_req_receiving.............: avg=29.75µs min=2µs     med=5µs    max=20.92ms p(90)=13µs   p(95)=22µs
+     http_req_sending...............: avg=14.38µs min=1µs     med=2µs    max=20.53ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.54ms  min=19µs    med=1ms    max=21.78ms p(90)=3.51ms p(95)=5ms
+     http_reqs......................: 2517425 114425.631669/s
+     iteration_duration.............: avg=3.46ms  min=42.58µs med=3.09ms max=33.41ms p(90)=6.57ms p(95)=8.78ms
+     iterations.....................: 2517425 114425.631669/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    mi
+
+
+Gin
+post.simple
+shouldBind
+return c.JSON(http.StatusOK, my)
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 4994090 out of 4994090
+     data_received..................: 352 MB  16 MB/s
+     data_sent......................: 430 MB  20 MB/s
+     http_req_blocked...............: avg=1.61µs  min=0s      med=1µs   max=15.28ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=332ns   min=0s      med=0s    max=7.78ms  p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.47ms  min=25µs    med=901µs max=35.65ms p(90)=3.34ms p(95)=4.92ms
+       { expected_response:true }...: avg=1.47ms  min=25µs    med=901µs max=35.65ms p(90)=3.34ms p(95)=4.92ms
+     http_req_failed................: 0.00%   0 out of 2497045
+     http_req_receiving.............: avg=30.56µs min=2µs     med=5µs   max=16.32ms p(90)=13µs   p(95)=25µs
+     http_req_sending...............: avg=14.44µs min=1µs     med=2µs   max=16.49ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s    max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.42ms  min=19µs    med=883µs max=35.64ms p(90)=3.25ms p(95)=4.74ms
+     http_reqs......................: 2497045 113500.332631/s
+     iteration_duration.............: avg=3.44ms  min=41.29µs med=3.2ms max=35.68ms p(90)=6.29ms p(95)=8.53ms
+     iterations.....................: 2497045 113500.332631/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    min=
+
+Gin
+post.simple
+shouldBindWithJSON
+return c.JSON(http.StatusOK, my)
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✓ resposta contém JSON
+
+     checks.........................: 100.00% 4950478 out of 4950478
+     data_received..................: 349 MB  16 MB/s
+     data_sent......................: 426 MB  19 MB/s
+     http_req_blocked...............: avg=1.67µs  min=0s      med=1µs    max=17.78ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=331ns   min=0s      med=0s     max=10.54ms p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.49ms  min=27µs    med=912µs  max=24.6ms  p(90)=3.43ms p(95)=5.03ms
+       { expected_response:true }...: avg=1.49ms  min=27µs    med=912µs  max=24.6ms  p(90)=3.43ms p(95)=5.03ms
+     http_req_failed................: 0.00%   0 out of 2475239
+     http_req_receiving.............: avg=31.01µs min=2µs     med=5µs    max=17.9ms  p(90)=13µs   p(95)=23µs
+     http_req_sending...............: avg=14.87µs min=1µs     med=2µs    max=17.81ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.45ms  min=19µs    med=894µs  max=22.66ms p(90)=3.34ms p(95)=4.85ms
+     http_reqs......................: 2475239 112509.012352/s
+     iteration_duration.............: avg=3.47ms  min=42.54µs med=3.21ms max=28.36ms p(90)=6.41ms p(95)=8.6ms
+     iterations.....................: 2475239 112509.012352/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    min=1000               max=1000
+
+
+IRIS
+post.simple
+byte
+return ctx.Write(bodyBytes)
+
+        /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✗ resposta contém JSON
+      ↳  0% — ✓ 0 / ✗ 2504791
+
+     checks.........................: 50.00%  2504791 out of 5009582
+     data_received..................: 388 MB  18 MB/s
+     data_sent......................: 431 MB  20 MB/s
+     http_req_blocked...............: avg=1.67µs  min=0s      med=1µs    max=13.85ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=339ns   min=0s      med=0s     max=11.24ms p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.35ms  min=26µs    med=883µs  max=22ms    p(90)=2.92ms p(95)=4.34ms
+       { expected_response:true }...: avg=1.35ms  min=26µs    med=883µs  max=22ms    p(90)=2.92ms p(95)=4.34ms
+     http_req_failed................: 0.00%   0 out of 2504791
+     http_req_receiving.............: avg=30.73µs min=2µs     med=5µs    max=18.15ms p(90)=13µs   p(95)=24µs
+     http_req_sending...............: avg=14.65µs min=1µs     med=2µs    max=15.57ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.31ms  min=18µs    med=866µs  max=20.06ms p(90)=2.84ms p(95)=4.17ms
+     http_reqs......................: 2504791 113852.237101/s
+     iteration_duration.............: avg=3.39ms  min=42.58µs med=3.18ms max=27.11ms p(90)=6.1ms  p(95)=8.09ms
+     iterations.....................: 2504791 113852.237101/s
+     vus............................: 3       min=3                  max=996
+     vus_max........................: 1000    min=1000               max=1000
+
+
+IRIS
+post.simple
+ReadJSON
+return 	ctx.JSON(my)
+        /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: post.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 52s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 22s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status é 200 ou 201
+     ✗ resposta contém JSON
+      ↳  0% — ✓ 0 / ✗ 2464202
+
+     checks.........................: 50.00%  2464202 out of 4928404
+     data_received..................: 384 MB  18 MB/s
+     data_sent......................: 424 MB  19 MB/s
+     http_req_blocked...............: avg=1.55µs  min=0s      med=1µs    max=12.03ms p(90)=2µs    p(95)=2µs
+     http_req_connecting............: avg=316ns   min=0s      med=0s     max=9.42ms  p(90)=0s     p(95)=0s
+     http_req_duration..............: avg=1.29ms  min=26µs    med=836µs  max=20.17ms p(90)=2.77ms p(95)=4.17ms
+       { expected_response:true }...: avg=1.29ms  min=26µs    med=836µs  max=20.17ms p(90)=2.77ms p(95)=4.17ms
+     http_req_failed................: 0.00%   0 out of 2464202
+     http_req_receiving.............: avg=28.58µs min=2µs     med=5µs    max=17.29ms p(90)=13µs   p(95)=23µs
+     http_req_sending...............: avg=12.73µs min=1µs     med=2µs    max=18.23ms p(90)=5µs    p(95)=8µs
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s     max=0s      p(90)=0s     p(95)=0s
+     http_req_waiting...............: avg=1.25ms  min=20µs    med=820µs  max=18.78ms p(90)=2.7ms  p(95)=4.01ms
+     http_reqs......................: 2464202 112007.25733/s
+     iteration_duration.............: avg=3.41ms  min=43.45µs med=3.27ms max=25.2ms  p(90)=6.07ms p(95)=7.99ms
+     iterations.....................: 2464202 112007.25733/s
+     vus............................: 3       min=3                  max=997
+     vus_max........................: 1000    min=1000               max=1000
+

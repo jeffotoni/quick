@@ -12,6 +12,9 @@ type My struct {
 	Year int    `json:"year"` // User's birth year
 }
 
+// $ curl --location 'http://localhost:8080/v1/user' \
+// --header 'Content-Type: application/json' \
+// --data '{"name": "Alice", "year": 20}'
 func main() {
 	i := iris.New()
 
@@ -27,7 +30,3 @@ func main() {
 
 	log.Fatal(i.Listen(":8080"))
 }
-
-//curl --location 'http://localhost:8080/v1/user' \
-// --header 'Content-Type: application/json' \
-// --data '{"name": "Alice", "year": 20}'
