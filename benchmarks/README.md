@@ -1,131 +1,35 @@
-# 📌 Benchmarks Quick
-📌 Benchmarks Quick
+# 🚀 Quick HTTP Framework Benchmarking
 
-This repository provides a comprehensive benchmark comparison of various Go web frameworks, including **Quick**, Fiber, Echo, Iris, and Gin. Our goal is to evaluate their performance under high-load conditions, measuring request handling efficiency, response times, and resource utilization.
+## Introduction
+Welcome to our benchmarking project! Here, we are conducting performance tests to evaluate different HTTP frameworks in Go. The goal is to better understand how each framework performs under heavy loads and identify which one offers the best performance for different scenarios.
 
-We conduct stress tests and real-world scenarios to determine how each framework scales and performs under different workloads. These benchmarks aim to provide valuable insights for developers choosing the most suitable framework for their needs.
+## Tools Used
+To ensure accurate and reliable benchmarking, we use two powerful load-testing tools:
 
-Stay tuned for results, methodology, and detailed analysis! 🚀
+- **[k6](./k6/README.md)**: An open-source tool designed for performance and load testing, known for its ease of use and advanced metric analysis.
+- **[Vegeta](./vegeta/README.md)**: A highly efficient and flexible load tester that allows custom attack configurations to measure server capacity.
+
+## What Are We Measuring?
+Our benchmarking evaluates essential metrics, including:
+- **Total HTTP Requests**: The total number of processed requests.
+- **Requests per Second**: The number of requests handled each second.
+- **Average Response Time**: How long the server takes to respond to each request.
+- **Data Received and Sent**: The total volume of data transmitted.
+- **Error Rate**: The percentage of failed requests.
+
+## Project Structure
+The project is organized into directories, each containing its own tests and configurations:
+
+📁 **k6/** - Load tests using k6. See the [k6 README](./k6/README.md) for details.
+
+📁 **vegeta/** - Load tests using Vegeta. See the [Vegeta README](./vegeta/README.md) for details.
+
+## How to Run the Tests?
+Each directory contains detailed instructions on how to execute the tests. Simply navigate to the corresponding directory and follow the guidelines.
+
+## Contribution
+If you want to contribute with new tests or improvements, feel free to open a PR or share your ideas! 🚀
 
 ---
+Let's discover together which framework delivers the best performance! 🎯
 
-## 🚀 Test Structure
-
-- **Quick**
-- **Gin**
-- **Fiber**
-- **Echo**
-- **Iris**
-
-```bash
- servers
-    ├── echo
-    │   └── post.simples
-    │       ├── bind
-    │       │   └── main.go
-    │       └── byte
-    │           └── main.go
-    ├── fiber
-    │   ├── go.mod
-    │   ├── go.sum
-    │   └── post.simples
-    │       ├── bodyparser
-    │       │   └── main.go
-    │       └── byte
-    │           └── main.go
-    ├── gin
-    │   ├── go.mod
-    │   ├── go.sum
-    │   └── post.simple
-    │       ├── bind
-    │       │   └── main.go
-    │       ├── byte
-    │       │   └── main.go
-    │       ├── shouldBind
-    │       │   └── main.go
-    │       └── shouldBindBodyWithJSON
-    │           └── main.go
-    ├── iris
-    │   ├── go.mod
-    │   ├── go.sum
-    │   └── post.simple
-    │       ├── byte
-    │       │   └── main.go
-    │       └── readJSON
-    │           └── main.go
-    └── quick
-        └── post.simple
-            ├── bind
-            │   └── main.go
-            ├── bodyParser
-            │   └── main.go
-            └── byte
-                └── main.go
-
-### JSON Used in sending
-```json
-{
-    "name": "jeffotoni",
-    "year": 39
-}
-```
-
-## 🚀 Table of Commands used to parse Body
-
-```markdown
-| Framework | Comando Utilizado para Parse |
-|-----------|------------------------------------------------|
-| Quick    | c.BodyParser, c.Bind, c.Body                    |
-| Gin      | c.Bind, c.ShouldBind, c.ShouldBindWithJSON      |
-| Fiber    | c.BodyParser, c.Bind                            |
-| Echo     | c.Bind                                          |
-| Iris     | ctx.ReadJSON,  ctx.GetBody                      |
-```
-
-### ▶️Command to run the tests
-
-```sh
-k6 run k6/post.js
-```
-
-## 📊 Graphics
-
-The graphs below represent the main test results:
-
-- **Number of Requests per Second**
-  ![Número de Requisições](grafico-k6-req.png)
-
-- **Average Response Time**
-  ![Tempo Médio de Resposta](grafico-k6-tresp.png)
-
-## 📌k6 Results (Summary)
-
-| Framework | Test         | Return Method          | Total HTTP Requests | Requests/s   | Avg Response Time | Data Received | Data Sent | Error Rate |
-|-----------|-------------|------------------------|----------------------|--------------|-------------------|---------------|-----------|-----------|
-| Quick     | post.simple | bind                   | 2,580,710            | 117,302.95   | 1.37ms            | 361MB         | 444MB     | 0.00%     |
-| Quick     | post.simple | bodyParser             | 2,473,856            | 112,446.38   | 1.25ms            | 346MB         | 426MB     | 0.00%     |
-| Quick     | post.simple | byte                   | 2,548,852            | 115,855.11   | 1.39ms            | 380MB         | 438MB     | 0.00%     |
-| Echo      | post.simple | bind                   | 2,455,926            | 111,629.64   | 1.44ms            | 346MB         | 422MB     | 0.00%     |
-| Echo      | post.simple | byte                   | 2,479,092            | 112,682.71   | 1.47ms            | 350MB         | 426MB     | 0.00%     |
-| Fiber     | post.simple | bodyParser             | 2,450,836            | 111,399.87   | 1.30ms            | 346MB         | 422MB     | 0.00%     |
-| Fiber     | post.simple | byte                   | 2,455,787            | 111,624.79   | 1.37ms            | 346MB         | 422MB     | 0.00%     |
-| Gin       | post.simple | bind                   | 2,451,771            | 111,442.32   | 1.58ms            | 346MB         | 422MB     | 0.00%     |
-| Gin       | post.simple | byte                   | 2,517,425            | 114,425.63   | 1.59ms            | 355MB         | 433MB     | 0.00%     |
-| Gin       | post.simple | shouldBind             | 2,497,045            | 113,500.33   | 1.47ms            | 352MB         | 430MB     | 0.00%     |
-| Gin       | post.simple | shouldBindWithJSON     | 2,475,239            | 112,509.01   | 1.49ms            | 349MB         | 426MB     | 0.00%     |
-| IRIS      | post.simple | byte                   | 2,504,791            | 113,852.23   | 1.35ms            | 388MB         | 431MB     | 0.00%     |
-| IRIS      | post.simple | ReadJSON               | 2,464,202            | 112,007.25   | 1.29ms            | 384MB         | 424MB     | 0.00%     |
-
-
-### 📌 Final Considerations
-This document is a living benchmark that will be continuously updated as new tests, optimizations, and real-world scenarios are introduced. Our goal is to provide reliable, transparent, and actionable insights into the performance of Go web frameworks, helping developers make informed decisions.
-We strongly encourage community participation! If you find areas for improvement, have suggestions for additional tests, or want to share your own benchmark results, feel free to contribute. Open-source collaboration is what drives innovation, and your input is invaluable in refining these benchmarks.
-
-### 💡 Questions, Suggestions & Ideas?
-Whether you have a technical question, a new test case idea, or feedback on the methodology, we’d love to hear from you!
-
-🔹 Contribute: Open an issue or submit a pull request.
-🔹 Discuss: Join the conversation and share your insights.
-🔹 Connect: Let’s work together to push Go web performance forward!
-
-#### 🚀 Thank you for your interest and participation! Hope you enjoy the benchmarks!
