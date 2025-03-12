@@ -39,9 +39,54 @@ return c.JSON(http.StatusOK, my)
      vus............................: 176     min=13             max=1000
      vus_max........................: 1000    min=1000           max=1000
 
-    CPU consumption 94.54
-    Consumption of Memory 
+    CPU consumption........................: 94.54% MB
+    Consumption of Memory ........................: 4.4% GB
 
 
 running (1m02.2s), 0000/1000 VUs, 9887 complete and 0 interrupted iterations
 
+echo
+post.list
+byte
+data_1MB_list
+return c.JSON(http.StatusOK, my)
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: post.file.list.payload.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 1m32s max duration (incl. graceful stop):
+              * default: Up to 1000 looping VUs for 1m2s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     ✓ status is 200 or 201
+     ✓ response contains JSON
+
+     checks.........................: 100.00% 21140 out of 21140
+     data_received..................: 5.0 GB  79 MB/s
+     data_sent......................: 11 GB   178 MB/s
+     http_req_blocked...............: avg=67.32µs min=2.39µs   med=5.36µs   max=68.5ms  p(90)=42.13µs  p(95)=208.39µs
+     http_req_connecting............: avg=49.6µs  min=0s       med=0s       max=68.44ms p(90)=0s       p(95)=143.27µs
+     http_req_duration..............: avg=3.22s   min=12.99ms  med=2.5s     max=19.49s  p(90)=7.09s    p(95)=9.32s   
+       { expected_response:true }...: avg=3.22s   min=12.99ms  med=2.5s     max=19.49s  p(90)=7.09s    p(95)=9.32s   
+     http_req_failed................: 0.00%   0 out of 10570
+     http_req_receiving.............: avg=24.37ms min=90.16µs  med=280.87µs max=5.45s   p(90)=1.3ms    p(95)=4.06ms  
+     http_req_sending...............: avg=628.7µs min=266.78µs med=485.71µs max=40.77ms p(90)=775.17µs p(95)=1.17ms  
+     http_req_tls_handshaking.......: avg=0s      min=0s       med=0s       max=0s      p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=3.19s   min=12.47ms  med=2.48s    max=19.49s  p(90)=7.04s    p(95)=9.24s   
+     http_reqs......................: 10570   169.248985/s
+     iteration_duration.............: avg=3.22s   min=13.3ms   med=2.5s     max=19.49s  p(90)=7.09s    p(95)=9.32s   
+     iterations.....................: 10570   169.248985/s
+     vus............................: 239     min=14             max=1000
+     vus_max........................: 1000    min=1000           max=1000
+
+    CPU consumption........................: 93.58% MB
+    Consumption of Memory ........................: 4.4% GB
+
+running (1m02.5s), 0000/1000 VUs, 10570 complete and 0 interrupted iterations

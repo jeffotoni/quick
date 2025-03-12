@@ -39,6 +39,8 @@ func main() {
 	// Define a POST route at /v1/user
 
 	e.POST("/v1/user", func(c echo.Context) error {
+		c.Set("Content-type", "application/json")
+
 		var my []My
 
 		body, err := io.ReadAll(c.Request().Body)
