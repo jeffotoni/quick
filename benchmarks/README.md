@@ -1,92 +1,137 @@
-# 📊 Benchmarking de Frameworks HTTP em Go
+# 📌 Benchmarks Quick
+📌 Benchmarks Quick
 
-## 📏 O que é Benchmarking?
+This repository provides a comprehensive benchmark comparison of various Go web frameworks, including **Quick**, Fiber, Echo, Iris, and Gin. Our goal is to evaluate their performance under high-load conditions, measuring request handling efficiency, response times, and resource utilization.
 
-Benchmarking em desenvolvimento de software é o processo de medir e comparar o desempenho de um software ou sistema em relação a um padrão estabelecido. No contexto deste projeto, o benchmarking é utilizado para avaliar a performance de diferentes frameworks HTTP em Go, medindo métricas como tempo de resposta, taxa de requisições, e uso de recursos sob variadas condições de carga. Este processo ajuda a identificar quais frameworks oferecem a melhor eficiência, estabilidade e escalabilidade para desenvolvimento de aplicações web.
+We conduct stress tests and real-world scenarios to determine how each framework scales and performs under different workloads. These benchmarks aim to provide valuable insights for developers choosing the most suitable framework for their needs.
 
-## 🎯 Objetivo do Benchmarking
-
-O objetivo deste projeto de benchmarking é fornecer uma análise comparativa detalhada dos principais frameworks HTTP em Go, como Beego, Echo, Fiber, Gin, Iris, e Quick. Ao simular cenários de uso realista com as ferramentas k6 e Vegeta, buscamos entender como cada framework se comporta sob pressão e qual deles pode ser mais adequado dependendo das necessidades específicas de desempenho e arquitetura de um projeto.
-
-## 🛠️ Ferramentas de Benchmark
-
-### 🚀 k6
-
-k6 é uma ferramenta de teste de desempenho para APIs e serviços web. É usado para simular tráfego e medir a resposta dos serviços sob carga.
-
-#### Comandos k6
-
-- **Executar um teste**: `k6 run script.js`
-- **Ajustar número de usuários virtuais e duração**: `k6 run --vus 10 --duration 30s script.js`
-
-### 🎯 Vegeta
-
-Vegeta é uma ferramenta de ataque HTTP multifacetada, utilizada para realizar testes de carga e medir o desempenho dos endpoints.
-
-### Comandos Vegeta
-
-##### 🚧 Em breve! Estamos trabalhando nisso!
+Stay tuned for results, methodology, and detailed analysis! 🚀
 
 ---
 
-## 🗂️ Estrutura de Diretórios
+## 🚀 Test Structure
 
-```plaintext
-/benchmarks
-├── /servers
-│   ├── /beego
-│   ├── /echo
-│   ├── /fiber
-│   ├── /gin
-│   └── /iris
-└── /k6
-    ├── post.file.list.payload.js
-    └── post.js
-```
----
-## ▶️ Executando os Testes
-Para executar qualquer um dos servidores, navegue até o diretório específico do servidor e, em seguida, entre na subpasta correspondente à funcionalidade desejada para executar o arquivo `main.go`.
-
+- **Quick**
+- **Gin**
+- **Fiber**
+- **Echo**
+- **Iris**
 
 ```bash
-$ go run main.go
+ servers
+    ├── echo
+    │   └── post.simples
+    │       ├── bind
+    │       │   └── main.go
+    │       └── byte
+    │           └── main.go
+    ├── fiber
+    │   ├── go.mod
+    │   ├── go.sum
+    │   └── post.simples
+    │       ├── bodyparser
+    │       │   └── main.go
+    │       └── byte
+    │           └── main.go
+    ├── gin
+    │   ├── go.mod
+    │   ├── go.sum
+    │   └── post.simple
+    │       ├── bind
+    │       │   └── main.go
+    │       ├── byte
+    │       │   └── main.go
+    │       ├── shouldBind
+    │       │   └── main.go
+    │       └── shouldBindBodyWithJSON
+    │           └── main.go
+    ├── iris
+    │   ├── go.mod
+    │   ├── go.sum
+    │   └── post.simple
+    │       ├── byte
+    │       │   └── main.go
+    │       └── readJSON
+    │           └── main.go
+    └── quick
+        └── post.simple
+            ├── bind
+            │   └── main.go
+            ├── bodyParser
+            │   └── main.go
+            └── byte
+                └── main.go
+
+### JSON Used in sending
+```json
+{
+    "name": "jeffotoni",
+    "year": 39
+}
 ```
 
-### 🔹 Serviço Beego
-```bash
-$ cd servers/beego/post.simples/
-```
-### 🔹 Serviço Fiber
-```bash
-$ cd servers/fiber/post.simples/[subpasta]
-```
-### 🔹 Serviço Echo
-```bash
-$ cd servers/echo/post.simples/[subpasta]
-```
-### 🔹 Serviço Gin
-```bash
-$ cd servers/gin/post.simples/[subpasta]
-```
-### 🔹 Serviço Iris
-```bash
-$ cd servers/iris/post.simples/[subpasta]
-```
-### 🔹 Serviço Quick
-```bash
-$ cd servers/quick/post.simples/[subpasta]
+## 🚀 Table of Commands used to parse Body
+
+```markdown
+| Framework | Comando Utilizado para Parse |
+|-----------|------------------------------------------------|
+| Quick    | c.BodyParser, c.Bind, c.Body                    |
+| Gin      | c.Bind, c.ShouldBind, c.ShouldBindWithJSON      |
+| Fiber    | c.BodyParser, c.Bind                            |
+| Echo     | c.Bind                                          |
+| Iris     | ctx.ReadJSON,  ctx.GetBody                      |
 ```
 
-### 🧪 Testando com k6
-```bash
-$ cd k6/
-$ k6 run post.js
-```
----
-### 📌 Testing with cURL
+### ▶️Command to run the tests
 
-```bash
-curl --location 'http://localhost:8080/v1/user' \
---header 'Content-Type: application/json' \
---data '{"name": "Alice", "year": 20}'
+```sh
+k6 run k6/post.js
 ```
+
+## 📊 Graphics
+
+The graphs below represent the main test results:
+
+- **Number of Requests per Second**
+  ![Número de Requisições](grafico-k6-req.png)
+
+- **Average Response Time**
+  ![Tempo Médio de Resposta](grafico-k6-tresp.png)
+
+## 📌k6 Results (Summary)
+
+```markdown
+| Framework | Teste                          | Método de Retorno            | Requisições/s    | Tempo Médio de Resposta | Taxa de Erro |
+|-----------|--------------------------------|------------------------------|------------------|--------------------------|--------------|
+| Quick    | post.simple.bind                 | c.Status(200).JSON(my)         | 117,302 req/s   | 1.37 ms                  | 0%           |
+| Quick    | post.simple.bodyParser           | c.Status(200).JSON(my)         | 112,446 req/s   | 1.25 ms                  | 0%           |
+| Quick    | post.simple.byte                 | c.Status(200).Send(data)       | 115,855 req/s   | 1.39 ms                  | 0%           |
+| Echo     | post.simple.bind                 | c.JSON(http.StatusOK, my)      | 111,629 req/s   | 1.44 ms                  | 0%           |
+| Echo     | post.simple.byte                 | c.JSON(http.StatusOK, my)      | 112,682 req/s   | 1.47 ms                  | 0%           |
+| Fiber    | post.simple.bodyParser           | c.Status(200).JSON(my)         | 111,399 req/s   | 1.30 ms                  | 0%           |
+| Fiber    | post.simple.byte                 | c.Send(rawBody)                | 111,624 req/s   | 1.37 ms                  | 0%           |
+| Gin      | post.simple.bind                 | c.JSON(http.StatusOK, my)      | 111,442 req/s   | 1.58 ms                  | 0%           |
+| Gin      | post.simple.byte                 | c.JSON(http.StatusOK, my)      | 114,425 req/s   | 1.59 ms                  | 0%           |
+| Gin      | post.simple.shouldBind           | c.JSON(http.StatusOK, my)      | 113,500 req/s   | 1.47 ms                   | 0%           |
+| Gin      | post.simple.shouldBindBodyWithJSON | c.JSON(http.StatusOK, my)     | 112,509 req/s   | 1.49 ms                  | 0%           |
+| Iris     | post.simple.byte                 | ctx.Write(bodyBytes)           | 113,852 req/s   | 1.35 ms                   | 0%           |
+| Iris     | post.simple.ReadJSON             | ctx.JSON(my)                   | 112,007 req/s   | 1.29 ms                  | 0%           |
+```
+
+
+📌 Final Considerations
+
+This document is a living benchmark that will be continuously updated as new tests, optimizations, and real-world scenarios are introduced. Our goal is to provide reliable, transparent, and actionable insights into the performance of Go web frameworks, helping developers make informed decisions.
+
+We strongly encourage community participation! If you find areas for improvement, have suggestions for additional tests, or want to share your own benchmark results, feel free to contribute. Open-source collaboration is what drives innovation, and your input is invaluable in refining these benchmarks.
+
+💡 Questions, Suggestions & Ideas?
+
+Whether you have a technical question, a new test case idea, or feedback on the methodology, we’d love to hear from you!
+
+🔹 Contribute: Open an issue or submit a pull request.
+🔹 Discuss: Join the conversation and share your insights.
+🔹 Connect: Let’s work together to push Go web performance forward!
+
+🚀 Thank you for your interest and participation! Hope you enjoy the benchmarks!
+
