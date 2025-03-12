@@ -1,4 +1,4 @@
-# 📌 Benchmarks Quick
+# 📌 Benchmarks Quick k6
 📌 Benchmarks Quick
 
 This repository provides a comprehensive benchmark comparison of various Go web frameworks, including **Quick**, Fiber, Echo, Iris, and Gin. Our goal is to evaluate their performance under high-load conditions, measuring request handling efficiency, response times, and resource utilization.
@@ -82,6 +82,9 @@ Stay tuned for results, methodology, and detailed analysis! 🚀
 | Iris     | ctx.ReadJSON,  ctx.GetBody                      |
 ```
 
+### ▶️Install k6
+
+
 ### ▶️Command to run the tests
 
 ```sh
@@ -93,10 +96,10 @@ k6 run k6/post.js
 The graphs below represent the main test results:
 
 - **Number of Requests per Second**
-  ![Número de Requisições](grafico-k6-req.png)
+  ![Number of Requests](grafico-k6-req.png)
 
 - **Average Response Time**
-  ![Tempo Médio de Resposta](grafico-k6-tresp.png)
+  ![Average Response Time](grafico-k6-tresp.png)
 
 ## 📌k6 Results (Summary)
 
