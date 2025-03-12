@@ -29,7 +29,10 @@ type Option struct {
 
 //curl --location 'http://localhost:8080/v1/user' \
 //--header 'Content-Type: application/json' \
-//--data '[{"id": "123", "name": "Alice", "year": 20, "price": 100.5, "big": true, "car": false, "tags": ["fast", "blue"], "metadata": {"brand": "Tesla"}, "options": [{"key": "color", "value": "red"}], "extra": "some data", "dynamic": {"speed": "200km/h"}}]'
+//--data '[{"id": "123", "name": "Alice", "year": 20,
+// "price": 100.5, "big": true, "car": false, "tags": ["fast", "blue"],
+// "metadata": {"brand": "Tesla"}, "options": [{"key": "color", "value": "red"}],
+// "extra": "some data", "dynamic": {"speed": "200km/h"}}]'
 
 func main() {
 	// Create a new Echo instance
