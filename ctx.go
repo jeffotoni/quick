@@ -176,13 +176,22 @@ func (c *Ctx) JSONIN(v interface{}, params ...string) error {
 		indent = params[1]
 	}
 
-	// Encode with the provided indentation settings
-	b, err := json.MarshalIndent(v, prefix, indent)
-	if err != nil {
+	buf := acquireJSONBuffer()
+	defer releaseJSONBuffer(buf)
+
+	// Exemplo com JSON:
+	enc := json.NewEncoder(buf)
+	enc.SetIndent(prefix, indent)
+
+	if buf.Len() > 0 && buf.Bytes()[buf.Len()-1] == '\n' {
+		buf.Truncate(buf.Len() - 1)
+	}
+
+	if err := enc.Encode(v); err != nil {
 		return err
 	}
 
-	c.writeResponse(b)
+	c.writeResponse(buf.Bytes())
 	return nil
 }
 

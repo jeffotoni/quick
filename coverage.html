@@ -55,21 +55,23 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/jeffotoni/quick/ctx.go (85.5%)</option>
+				<option value="file0">github.com/jeffotoni/quick/ctx.go (82.4%)</option>
 				
 				<option value="file1">github.com/jeffotoni/quick/group.go (82.1%)</option>
 				
 				<option value="file2">github.com/jeffotoni/quick/http.status.go (100.0%)</option>
 				
-				<option value="file3">github.com/jeffotoni/quick/quick.go (97.6%)</option>
+				<option value="file3">github.com/jeffotoni/quick/quick.go (97.4%)</option>
 				
 				<option value="file4">github.com/jeffotoni/quick/quick_ctx_mock.go (100.0%)</option>
 				
-				<option value="file5">github.com/jeffotoni/quick/quick_upload_file.go (91.9%)</option>
+				<option value="file5">github.com/jeffotoni/quick/quick_pool.go (93.5%)</option>
 				
-				<option value="file6">github.com/jeffotoni/quick/quicktest.go (87.1%)</option>
+				<option value="file6">github.com/jeffotoni/quick/quick_upload_file.go (91.9%)</option>
 				
-				<option value="file7">github.com/jeffotoni/quick/quicktest_v2.go (77.6%)</option>
+				<option value="file7">github.com/jeffotoni/quick/quicktest.go (87.1%)</option>
+				
+				<option value="file8">github.com/jeffotoni/quick/quicktest_v2.go (76.1%)</option>
 				
 				</select>
 			</div>
@@ -97,7 +99,6 @@ import (
         "os"
         "path/filepath"
         "strings"
-        "sync"
 )
 
 type Ctx struct {
@@ -112,6 +113,10 @@ type Ctx struct {
         Query          map[string]string
         uploadFileSize int64 // Upload limit in bytes
 }
+
+func (c *Ctx) SetStatus(status int) <span class="cov0" title="0">{
+        c.resStatus = status
+}</span>
 
 // UploadedFile holds details of an uploaded file.
 type UploadedFile struct {
@@ -216,23 +221,26 @@ func (c *Ctx) BodyString() string <span class="cov8" title="1">{
 // Returns:
 //   - error: An error if JSON encoding fails or if writing the response fails.
 func (c *Ctx) JSON(v interface{}) error <span class="cov8" title="1">{
-        buf := acquireBuffer()
-        defer releaseBuffer(buf)
+        buf := acquireJSONBuffer()
+        defer releaseJSONBuffer(buf)
 
-        b, err := json.Marshal(v)
-        if err != nil </span><span class="cov0" title="0">{
+        if err := json.NewEncoder(buf).Encode(v); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">buf.Write(b)
+        <span class="cov8" title="1">if buf.Len() &gt; 0 &amp;&amp; buf.Bytes()[buf.Len()-1] == '\n' </span><span class="cov8" title="1">{
+                buf.Truncate(buf.Len() - 1)
+        }</span>
 
-        c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
-        _, err = c.Response.Write(buf.Bytes())
-        return err</span>
+        <span class="cov8" title="1">c.writeResponse(buf.Bytes())
+        return nil</span>
 }
 
 // JSONIN encodes the given interface as JSON with indentation and writes it to the HTTP response.
 // Allows optional parameters to define the indentation format.
+//
+// ATTENTION
+// use only for debugging, very slow
 //
 // Parameters:
 //   - v: The data structure to encode as JSON.
@@ -255,52 +263,24 @@ func (c *Ctx) JSONIN(v interface{}, params ...string) error <span class="cov8" t
                 indent = params[1]
         }</span>
 
-        // Use buffer pooling for performance
-        <span class="cov8" title="1">buf := acquireBuffer()
-        defer releaseBuffer(buf)
+        <span class="cov8" title="1">buf := acquireJSONBuffer()
+        defer releaseJSONBuffer(buf)
 
-        // Encode with the provided indentation settings
-        b, err := json.MarshalIndent(v, prefix, indent)
-        if err != nil </span><span class="cov0" title="0">{
+        // Exemplo com JSON:
+        enc := json.NewEncoder(buf)
+        enc.SetIndent(prefix, indent)
+
+        if buf.Len() &gt; 0 &amp;&amp; buf.Bytes()[buf.Len()-1] == '\n' </span><span class="cov0" title="0">{
+                buf.Truncate(buf.Len() - 1)
+        }</span>
+
+        <span class="cov8" title="1">if err := enc.Encode(v); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">buf.Write(b)
-
-        // Set Content-Type header
-        c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
-        _, err = c.Response.Write(buf.Bytes())
-        return err</span>
+        <span class="cov8" title="1">c.writeResponse(buf.Bytes())
+        return nil</span>
 }
-
-// XML serializes the provided value in XML and writes to the HTTP response
-// The result will XML(v interface{}) error
-// func (c *Ctx) XML(v interface{}) error {
-//         b, err := xml.Marshal(v)
-//         if err != nil {
-//                 return err
-//         }
-//         c.Response.Header().Set("Content-Type", ContentTypeTextXML)
-//         return c.writeResponse(b)
-// }
-
-// xmlBufferPool is a sync.Pool for optimizing XML serialization by reusing buffers.
-var xmlBufferPool = sync.Pool{
-        New: func() interface{} <span class="cov8" title="1">{
-                return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
-        }</span>,
-}
-
-// acquireXMLBuffer retrieves a buffer from the pool.
-func acquireXMLBuffer() *bytes.Buffer <span class="cov8" title="1">{
-        return xmlBufferPool.Get().(*bytes.Buffer)
-}</span>
-
-// releaseXMLBuffer resets and returns the buffer to the pool.
-func releaseXMLBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
-        buf.Reset()
-        xmlBufferPool.Put(buf)
-}</span>
 
 // XML serializes the given value to XML and writes it to the HTTP response.
 // It avoids unnecessary memory allocations by using buffer pooling and ensures that no extra newline is appended.
@@ -314,18 +294,16 @@ func (c *Ctx) XML(v interface{}) error <span class="cov8" title="1">{
         buf := acquireXMLBuffer()
         defer releaseXMLBuffer(buf)
 
-        // Marshal XML directly (avoids \n issue from xml.Encoder.Encode)
-        b, err := xml.Marshal(v)
-        if err != nil </span><span class="cov0" title="0">{
+        if err := xml.NewEncoder(buf).Encode(v); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">buf.Write(b)
+        <span class="cov8" title="1">if buf.Len() &gt; 0 &amp;&amp; buf.Bytes()[buf.Len()-1] == '\n' </span><span class="cov0" title="0">{
+                buf.Truncate(buf.Len() - 1)
+        }</span>
 
-        // Set Content-Type header
-        c.Response.Header().Set("Content-Type", ContentTypeTextXML)
-        _, err = c.Response.Write(buf.Bytes())
-        return err</span>
+        <span class="cov8" title="1">c.writeResponse(buf.Bytes())
+        return nil</span>
 }
 
 // writeResponse writes the provided byte content to the ResponseWriter.
@@ -338,11 +316,22 @@ func (c *Ctx) XML(v interface{}) error <span class="cov8" title="1">{
 // Returns:
 //   - error: An error if writing to the ResponseWriter fails.
 func (c *Ctx) writeResponse(b []byte) error <span class="cov8" title="1">{
-        if c.resStatus != 0 </span><span class="cov8" title="1">{
-                c.Response.WriteHeader(c.resStatus)
+        if c.Response == nil </span><span class="cov0" title="0">{
+                return errors.New("nil response writer")
         }</span>
-        <span class="cov8" title="1">_, err := c.Response.Write(b)
-        return err</span>
+
+        <span class="cov8" title="1">if c.resStatus == 0 </span><span class="cov8" title="1">{
+                c.resStatus = http.StatusOK
+        }</span>
+
+        <span class="cov8" title="1">c.Response.WriteHeader(c.resStatus)
+
+        _, err := c.Response.Write(b)
+        if flusher, ok := c.Response.(http.Flusher); ok </span><span class="cov8" title="1">{
+                flusher.Flush()
+        }</span>
+
+        <span class="cov8" title="1">return err</span>
 }
 
 // Byte writes an array of bytes to the HTTP response, using writeResponse()
@@ -361,7 +350,6 @@ func (c *Ctx) Send(b []byte) (err error) <span class="cov8" title="1">{
 // The result will SendString(s string) error
 func (c *Ctx) SendString(s string) error <span class="cov8" title="1">{
         return c.writeResponse([]byte(s))
-
 }</span>
 
 // String escreve uma string na resposta HTTP, convertendo-a para um array de bytes e utilizando writeResponse()
@@ -1089,7 +1077,6 @@ import (
         "runtime"
         "runtime/debug"
         "strings"
-        "sync"
         "syscall"
         "time"
 
@@ -1099,6 +1086,8 @@ import (
 // show in console
 // Run Server Quick:0.0.0.0:&lt;PORT&gt;
 var PRINT_SERVER = os.Getenv("PRINT_SERVER")
+
+const SO_REUSEPORT = 0x0F // Manual definition for Linux
 
 const (
         ContentTypeAppJSON = `application/json`
@@ -1151,11 +1140,6 @@ var defaultConfig = Config{
         MaxHeaderBytes: 1 * 1024 * 1024,
         RouteCapacity:  1000,
         MoreRequests:   290, // equilibrium value
-        // TLSConfig:      &amp;tls.Config{},
-        //ReadTimeout:  10 * time.Second,
-        //WriteTimeout: 10 * time.Second,
-        //IdleTimeout:       1 * time.Second,
-        // ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
 type Zeroth int
@@ -1392,23 +1376,6 @@ func extractHeaders(req http.Request) map[string][]string <span class="cov8" tit
         <span class="cov8" title="1">return headersMap</span>
 }
 
-var jsonBufferPool = sync.Pool{
-        New: func() interface{} <span class="cov8" title="1">{
-                return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
-        }</span>,
-}
-
-// acquireJSONBuffer retrieves a buffer from the pool.
-func acquireJSONBuffer() *bytes.Buffer <span class="cov8" title="1">{
-        return jsonBufferPool.Get().(*bytes.Buffer)
-}</span>
-
-// releaseJSONBuffer resets and returns the buffer to the pool.
-func releaseJSONBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
-        buf.Reset()
-        jsonBufferPool.Put(buf)
-}</span>
-
 // extractParamsBind decodes request bodies for JSON/XML payloads using a pooled buffer
 // to minimize memory allocations and garbage collection overhead.
 //
@@ -1424,7 +1391,7 @@ func extractParamsBind(c *Ctx, v interface{}) error <span class="cov8" title="1"
         // Check supported Content-Type
         if !strings.HasPrefix(contentType, ContentTypeAppJSON) &amp;&amp;
                 !strings.HasPrefix(contentType, ContentTypeAppXML) &amp;&amp;
-                !strings.HasPrefix(contentType, ContentTypeTextXML) </span><span class="cov0" title="0">{
+                !strings.HasPrefix(contentType, ContentTypeTextXML) </span><span class="cov8" title="1">{
                 return fmt.Errorf("unsupported content type: %s", contentType)
         }</span>
 
@@ -1433,7 +1400,7 @@ func extractParamsBind(c *Ctx, v interface{}) error <span class="cov8" title="1"
         defer releaseJSONBuffer(buf)
 
         // Read body content into buffer
-        if _, err := buf.ReadFrom(c.Request.Body); err != nil </span><span class="cov0" title="0">{
+        if _, err := buf.ReadFrom(c.Request.Body); err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
@@ -1449,22 +1416,6 @@ func extractParamsBind(c *Ctx, v interface{}) error <span class="cov8" title="1"
                 return fmt.Errorf("unsupported content type: %s", contentType)</span>
         }
 }
-
-// extractBind decodes the request body into the provided interface based on the Content-Type header
-// Method Used Internally
-// The result will extractBind(c *Ctx, v interface{}) (err error)
-// func extractBind(c *Ctx, v interface{}) (err error) {
-//         var req http.Request = *c.Request
-//         if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppJSON ||
-//                 strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
-//                 strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
-//                 err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-//         } else if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeTextXML ||
-//                 strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppXML {
-//                 err = xml.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-//         }
-//         return err
-// }
 
 // extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern
 // Method Used Internally
@@ -1484,46 +1435,6 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) <
         }
 
         <span class="cov8" title="1">return</span>
-}
-
-// Ctx Pool
-var ctxPool = sync.Pool{
-        New: func() interface{} <span class="cov8" title="1">{
-                // Initialize a new Ctx with empty maps to avoid nil checks in usage.
-                return &amp;Ctx{
-                        Params:  make(map[string]string),
-                        Query:   make(map[string]string),
-                        Headers: make(map[string][]string),
-                }
-        }</span>,
-}
-
-// acquireCtx retrieves a Ctx instance from the sync.Pool.
-func acquireCtx() *Ctx <span class="cov8" title="1">{
-        return ctxPool.Get().(*Ctx)
-}</span>
-
-// releaseCtx resets the Ctx fields and returns it to the sync.Pool for reuse.
-func releaseCtx(ctx *Ctx) <span class="cov8" title="1">{
-        // clear maps without reallocating
-        for k := range ctx.Params </span><span class="cov8" title="1">{
-                delete(ctx.Params, k)
-        }</span>
-        <span class="cov8" title="1">for k := range ctx.Query </span><span class="cov8" title="1">{
-                delete(ctx.Query, k)
-        }</span>
-        <span class="cov8" title="1">for k := range ctx.Headers </span><span class="cov8" title="1">{
-                delete(ctx.Headers, k)
-        }</span>
-
-        <span class="cov8" title="1">ctx.Response = nil
-        ctx.Request = nil
-        ctx.bodyByte = nil
-        ctx.JsonStr = ""
-        ctx.resStatus = 0
-        ctx.MoreRequests = 0
-
-        ctxPool.Put(ctx)</span>
 }
 
 // extractParamsGet processes an HTTP GET request for a dynamic route,
@@ -1738,25 +1649,6 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) <span class="cov8" title="1">
         }</span>
 }
 
-var bufferPool = sync.Pool{
-        // Create new buffers with an initial capacity of 4KB.
-        // Adjust this size based on expected request body sizes.
-        New: func() interface{} <span class="cov8" title="1">{
-                return bytes.NewBuffer(make([]byte, 0, 4096))
-        }</span>,
-}
-
-// acquireBuffer retrieves a *bytes.Buffer from the sync.Pool.
-func acquireBuffer() *bytes.Buffer <span class="cov8" title="1">{
-        return bufferPool.Get().(*bytes.Buffer)
-}</span>
-
-// releaseBuffer resets the buffer and places it back in the sync.Pool for reuse.
-func releaseBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
-        buf.Reset() // Clear any existing data
-        bufferPool.Put(buf)
-}</span>
-
 // extractBodyBytes reads the entire request body into a pooled buffer, then
 // copies the data to a new byte slice before returning it. This ensures that
 // once the buffer is returned to the pool, the returned data remains valid.
@@ -1818,35 +1710,6 @@ func (q *Quick) appendRoute(route *Route) <span class="cov8" title="1">{
         q.routes = append(q.routes, route)
 }</span>
 
-// pooledResponseWriter wraps http.ResponseWriter and provides a buffer for potential response optimizations.
-type pooledResponseWriter struct {
-        http.ResponseWriter
-        buf *bytes.Buffer
-}
-
-// responseWriterPool is a sync.Pool for pooledResponseWriter instances to reduce allocations.
-var responseWriterPool = sync.Pool{
-        New: func() interface{} <span class="cov8" title="1">{
-                return &amp;pooledResponseWriter{
-                        buf: bytes.NewBuffer(make([]byte, 0, 4096)), // initial 4KB buffer
-                }
-        }</span>,
-}
-
-// acquireResponseWriter retrieves a pooledResponseWriter instance from the pool.
-func acquireResponseWriter(w http.ResponseWriter) *pooledResponseWriter <span class="cov8" title="1">{
-        rw := responseWriterPool.Get().(*pooledResponseWriter)
-        rw.ResponseWriter = w
-        return rw
-}</span>
-
-// releaseResponseWriter resets and returns the pooledResponseWriter to the pool for reuse.
-func releaseResponseWriter(rw *pooledResponseWriter) <span class="cov8" title="1">{
-        rw.buf.Reset()
-        rw.ResponseWriter = nil
-        responseWriterPool.Put(rw)
-}</span>
-
 func (rw *pooledResponseWriter) Header() http.Header <span class="cov8" title="1">{
         return rw.ResponseWriter.Header()
 }</span>
@@ -1857,6 +1720,10 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) <span class=
         // Acquire a ResponseWriter from the pool for efficient request handling.
         rw := acquireResponseWriter(w)
         defer releaseResponseWriter(rw) // Ensure it returns to the pool.
+
+        // Acquiring Ctx from the pool
+        ctx := newCtx(rw, req) // &lt;- creates a new, clean instance of the context
+        defer releaseCtx(ctx)  // Returns it to the pool
 
         for i := range q.routes </span><span class="cov8" title="1">{
                 var requestURI = req.URL.Path
@@ -1891,39 +1758,6 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) <span class=
         // If no route matches, send a 404 response.
         <span class="cov8" title="1">http.NotFound(rw, req)</span>
 }
-
-// // ServeHTTP is the main HTTP request dispatcher for the Quick router
-// // The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
-// func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-
-//         //  rw := acquireResponseWriter(w)
-//         // defer releaseResponseWriter(rw)
-
-//         for i := 0; i &lt; len(q.routes); i++ {
-//                 var requestURI = req.URL.Path
-//                 var patternUri = q.routes[i].Pattern
-
-//                 if q.routes[i].Method != req.Method {
-//                         continue
-//                 }
-
-//                 if len(patternUri) == 0 {
-//                         patternUri = q.routes[i].Path
-//                 }
-
-//                 paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
-
-//                 if !isValid {
-//                         continue
-//                 }
-
-//                 var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
-//                 req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
-//                 q.routes[i].handler(w, req)
-//                 return
-//         }
-//         http.NotFound(w, req)
-// }
 
 // createParamsAndValid create params map and check if the request URI and pattern URI are valid
 // Method Used Internally
@@ -2202,10 +2036,12 @@ func (q *Quick) ListenTLS(addr, certFile, keyFile string, useHTTP2 bool, handler
                         CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
                         CipherSuites: []uint16{
                                 tls.TLS_AES_128_GCM_SHA256,
-                                tls.TLS_CHACHA20_POLY1305_SHA256,
                                 tls.TLS_AES_256_GCM_SHA384,
+                                tls.TLS_CHACHA20_POLY1305_SHA256,
                         },
-                        NextProtos: []string{"h2", "http/1.1"}, // Default to supporting HTTP/2
+                        PreferServerCipherSuites: true,                              // Prioritize server ciphers
+                        SessionTicketsDisabled:   false,                             // Enable Session Resumption (minus TLS Handshakes)
+                        ClientSessionCache:       tls.NewLRUClientSessionCache(128), // Cache TLS sessions for reuse
                 }
         }</span>
 
@@ -2226,8 +2062,17 @@ func (q *Quick) ListenTLS(addr, certFile, keyFile string, useHTTP2 bool, handler
                         return c.Control(func(fd uintptr) </span><span class="cov8" title="1">{
                                 // Avoid setting SO_REUSEPORT on macOS to prevent errors.
                                 if runtime.GOOS != "darwin" </span><span class="cov0" title="0">{
-                                        syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEPORT, 1)
-                                }</span>
+                                        if runtime.GOOS == "linux" </span><span class="cov0" title="0">{
+                                                if err := syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, SO_REUSEPORT, 1); err != nil </span><span class="cov0" title="0">{
+                                                        log.Fatalf("Erro ao definir SO_REUSEPORT: %v", err)
+                                                }</span>
+                                        }
+                                        // } else {
+                                        //         if err := syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEPORT, 1); err != nil {
+                                        //                 log.Fatalf("Erro ao definir SO_REUSEPORT: %v", err)
+                                        //         }
+                                        // }
+                                }
                         })
                 },
         }
@@ -2514,6 +2359,163 @@ func (m quickMockCtxXML) Delete(URI string) error <span class="cov8" title="1">{
 		<pre class="file" id="file5" style="display: none">package quick
 
 import (
+        "bytes"
+        "net/http"
+        "sync"
+)
+
+// Ctx Pool
+var ctxPool = sync.Pool{
+        New: func() interface{} <span class="cov8" title="1">{
+                // Initialize a new Ctx with empty maps to avoid nil checks in usage.
+                return &amp;Ctx{
+                        Params:  make(map[string]string),
+                        Query:   make(map[string]string),
+                        Headers: make(map[string][]string),
+                }
+        }</span>,
+}
+
+// acquireCtx retrieves a Ctx instance from the sync.Pool.
+func acquireCtx() *Ctx <span class="cov8" title="1">{
+        return ctxPool.Get().(*Ctx)
+}</span>
+
+// releaseCtx resets the Ctx fields and returns it to the sync.Pool for reuse.
+func releaseCtx(ctx *Ctx) <span class="cov8" title="1">{
+        // clear maps without reallocating
+        for k := range ctx.Params </span><span class="cov8" title="1">{
+                delete(ctx.Params, k)
+        }</span>
+        <span class="cov8" title="1">for k := range ctx.Query </span><span class="cov8" title="1">{
+                delete(ctx.Query, k)
+        }</span>
+        <span class="cov8" title="1">for k := range ctx.Headers </span><span class="cov8" title="1">{
+                delete(ctx.Headers, k)
+        }</span>
+
+        <span class="cov8" title="1">ctx.Response = nil
+        ctx.Request = nil
+        ctx.bodyByte = nil
+        ctx.JsonStr = ""
+        ctx.resStatus = 0
+        ctx.MoreRequests = 0
+
+        ctxPool.Put(ctx)</span>
+}
+
+// pooledResponseWriter wraps http.ResponseWriter and provides a buffer for potential response optimizations.
+type pooledResponseWriter struct {
+        http.ResponseWriter
+        buf *bytes.Buffer
+}
+
+// responseWriterPool is a sync.Pool for pooledResponseWriter instances to reduce allocations.
+var responseWriterPool = sync.Pool{
+        New: func() interface{} <span class="cov8" title="1">{
+                return &amp;pooledResponseWriter{
+                        buf: bytes.NewBuffer(make([]byte, 0, 4096)), // initial 4KB buffer
+                }
+        }</span>,
+}
+
+// acquireResponseWriter retrieves a pooledResponseWriter instance from the pool.
+func acquireResponseWriter(w http.ResponseWriter) *pooledResponseWriter <span class="cov8" title="1">{
+        rw := responseWriterPool.Get().(*pooledResponseWriter)
+        rw.ResponseWriter = w
+        return rw
+}</span>
+
+// releaseResponseWriter resets and returns the pooledResponseWriter to the pool for reuse.
+func releaseResponseWriter(rw *pooledResponseWriter) <span class="cov8" title="1">{
+        rw.buf.Reset()
+        rw.ResponseWriter = nil
+        responseWriterPool.Put(rw)
+}</span>
+
+var jsonBufferPool = sync.Pool{
+        New: func() interface{} <span class="cov8" title="1">{
+                return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
+        }</span>,
+}
+
+// acquireJSONBuffer retrieves a buffer from the pool.
+func acquireJSONBuffer() *bytes.Buffer <span class="cov8" title="1">{
+        return jsonBufferPool.Get().(*bytes.Buffer)
+}</span>
+
+// releaseJSONBuffer resets and returns the buffer to the pool.
+func releaseJSONBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
+        buf.Reset()
+        jsonBufferPool.Put(buf)
+}</span>
+
+// xmlBufferPool is a sync.Pool for optimizing XML serialization by reusing buffers.
+var xmlBufferPool = sync.Pool{
+        New: func() interface{} <span class="cov8" title="1">{
+                return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
+        }</span>,
+}
+
+// acquireXMLBuffer retrieves a buffer from the pool.
+func acquireXMLBuffer() *bytes.Buffer <span class="cov8" title="1">{
+        return xmlBufferPool.Get().(*bytes.Buffer)
+}</span>
+
+// releaseXMLBuffer resets and returns the buffer to the pool.
+func releaseXMLBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
+        buf.Reset()
+        xmlBufferPool.Put(buf)
+}</span>
+
+var bufferPool = sync.Pool{
+        // Create new buffers with an initial capacity of 4KB.
+        // Adjust this size based on expected request body sizes.
+        New: func() interface{} <span class="cov8" title="1">{
+                return bytes.NewBuffer(make([]byte, 0, 4096))
+        }</span>,
+}
+
+// acquireBuffer retrieves a *bytes.Buffer from the sync.Pool.
+func acquireBuffer() *bytes.Buffer <span class="cov8" title="1">{
+        return bufferPool.Get().(*bytes.Buffer)
+}</span>
+
+// releaseBuffer resets the buffer and places it back in the sync.Pool for reuse.
+func releaseBuffer(buf *bytes.Buffer) <span class="cov8" title="1">{
+        buf.Reset() // Clear any existing data
+        bufferPool.Put(buf)
+}</span>
+
+// newCtx returns a new, clean instance of Ctx
+func newCtx(w http.ResponseWriter, r *http.Request) *Ctx <span class="cov8" title="1">{
+        ctx := ctxPool.Get().(*Ctx)
+        ctx.Reset(w, r)
+        return ctx
+}</span>
+
+// Reset clears Ctx data for safe reuse
+func (c *Ctx) Reset(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        c.Response = w
+        c.Request = r
+        c.resStatus = 0
+
+        // Clear existing maps for reuse
+        for k := range c.Params </span><span class="cov0" title="0">{
+                delete(c.Params, k)
+        }</span>
+        <span class="cov8" title="1">for k := range c.Query </span><span class="cov0" title="0">{
+                delete(c.Query, k)
+        }</span>
+        <span class="cov8" title="1">for k := range c.Headers </span><span class="cov0" title="0">{
+                delete(c.Headers, k)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package quick
+
+import (
         "errors"
         "os"
         "path/filepath"
@@ -2638,7 +2640,7 @@ func parseSize(sizeStr string) (int64, error) <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package quick
+		<pre class="file" id="file7" style="display: none">package quick
 
 import (
         "bytes"
@@ -2752,7 +2754,7 @@ func (qt *qTest) Response() *http.Response <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">// Qtest is an advanced HTTP testing function designed to
+		<pre class="file" id="file8" style="display: none">// Qtest is an advanced HTTP testing function designed to
 // facilitate route validation in the Quick framework.
 //
 // It allows you to test simulated HTTP requests using httptest, supporting:
@@ -2921,7 +2923,7 @@ func (qt *QTestPlus) BodyStr() string <span class="cov8" title="1">{
 }</span>
 
 // The result will StatusCode() int
-func (qt *QTestPlus) StatusCode() int <span class="cov8" title="1">{
+func (qt *QTestPlus) StatusCode() int <span class="cov0" title="0">{
         return qt.statusCode
 }</span>
 
