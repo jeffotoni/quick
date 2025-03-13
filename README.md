@@ -211,7 +211,7 @@ func main() {
         return c.Status(200).SendString("Quick in action ❤️!")
     })
 
-	// Start the Quick server on port 8080
+	/// Start the server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 
@@ -256,6 +256,7 @@ func main() {
         })
     })
 
+	// Start the server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 
@@ -306,6 +307,7 @@ func main() {
         // return c.Status(200).JSON(&my)
     })
 
+	// Start the server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 ```
@@ -407,7 +409,8 @@ func main() {
 		
     })
 
-     q.Listen("0.0.0.0:8080")
+	// Start the server on port 8080
+    q.Listen("0.0.0.0:8080")
 }
 ```
 ### 📌 cURL
@@ -473,6 +476,7 @@ func main() {
 		return c.Status(200).JSON("Upload successfully completed")
 	})
 
+	// Start the server on port 8080
 	q.Listen("0.0.0.0:8080")
 }
 ```
@@ -517,6 +521,8 @@ func main() {
 		// Return the received JSON data
 		return c.Status(200).JSON(&my)
 	})
+
+	// Start the server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 ```
@@ -562,7 +568,7 @@ import (
 
 func main() {
 
-   // Create a new Quick server instance
+   // Initialize a new Quick instance
     q := quick.New()
 
     // Use the CORS middleware to allow cross-origin requests
@@ -577,6 +583,7 @@ func main() {
         return c.Status(200).SendString("Quick in action com Cors❤️!")
     })
 
+	// Start the server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 
@@ -610,7 +617,7 @@ func main() {
         return c.Status(200).SendString("Quick in action com Cors❤️!") // Return response
     })
 
-
+	// Start the server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 ```
@@ -661,6 +668,7 @@ func main() {
         return c.Status(200).SendString("Quick in action com [POST] /v2/user ❤️!")
     })
 
+	// Start the server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 
@@ -692,9 +700,10 @@ Quick in action com [POST] /v2/user ❤️!
 ```
 
 ### Quick Tests
+This example demonstrates how to unit test routes in Quick using QuickTest().
+It simulates HTTP requests and verifies if the response matches the expected output
 
 ```go
-
 package main
 
 import (
@@ -715,27 +724,33 @@ func TestQuickExample(t *testing.T) {
         return c.Byte([]byte(resp))
     }
 
+    // Initialize Quick instance for testing
     q := quick.New()
-    // Here you can create all routes that you want to test
+
+    // Define test routes
     q.Post("/v1/user", testSuccessMockHandler)
     q.Post("/v1/user/:p1", testSuccessMockHandler)
 
+    // Expected response data
     wantOutData := `"data":{"name":"jeff", "age":35}`
     reqBody := []byte(`{"name":"jeff", "age":35}`)
     reqHeaders := map[string]string{"Content-Type": "application/json"}
 
+    // Perform test request
     data, err := q.QuickTest("POST", "/v1/user", reqHeaders, reqBody)
     if err != nil {
         t.Errorf("error: %v", err)
         return
     }
 
+    // Compare expected and actual response
     s := strings.TrimSpace(data.BodyStr())
     if s != wantOutData {
-        t.Errorf("was suppose to return %s and %s come", wantOutData, s)
+        t.Errorf("Expected %s but got %s", wantOutData, s)
         return
     }
 
+    // Log test results
     t.Logf("\nOutputBodyString -> %v", data.BodyStr())
     t.Logf("\nStatusCode -> %d", data.StatusCode())
     t.Logf("\nOutputBody -> %v", string(data.Body()))
@@ -746,9 +761,9 @@ func TestQuickExample(t *testing.T) {
 
 ---
 
-## 🔎📝 Regex
+###  Regex
 
-### quick.regex - Accepts only numbers in id
+This example allows access only when the ID is numeric ([0-9]+).
 
 ```go
 package main
@@ -758,6 +773,7 @@ import (
 )
 
 func main() {
+	// Initialize a new Quick instance
 	q := quick.New()
 
 	// Route that accepts only numeric IDs (using regex [0-9]+)
@@ -773,8 +789,18 @@ func main() {
 	q.Listen(":8080")
 }
 ```
+### 📌 cURL
+```bash
+$ curl -i -X GET http://localhost:8080/users/123
 
-### quick.regex - Accepts only lowercase letters in the slug
+{
+   "message":"User found",
+   "user_id":"123"
+}
+```
+
+### Accepts only lowercase letters in the slug
+This example ensures that only lowercase letters ([a-z]+) are accepted in the slug
 
 ```go
 package main
@@ -784,6 +810,7 @@ import (
 )
 
 func main() {
+	// Initialize a new Quick instance
 	q := quick.New()
 
 	// Route that accepts only lowercase slugs (words with lowercase letters)
@@ -798,10 +825,18 @@ func main() {
 	// Start the server on port 8080
 	q.Listen(":8080")
 }
+```
+### 📌 cURL
+```bash
+$ curl -i -X GET http://localhost:8080/profile/johndoe
 
+{
+   "message":"Profile found",
+   "profile":"johndoe"
+}
 ```
 
-### quick.regex - Supports API version and numeric Id
+### Supports API version and numeric Id
 
 ```go
 package main
@@ -811,6 +846,7 @@ import (
 )
 
 func main() {
+	// Initialize a new Quick instance
 	q := quick.New()
 
 	// Route that accepts an API version (v1, v2, etc.) and a numeric user ID
@@ -827,7 +863,16 @@ func main() {
 	// Start the server on port 8080
 	q.Listen(":8080")
 }
+```
+### 📌 cURL
+```bash
+$ curl -i -X GET http://localhost:8080/api/v1/users/123
 
+{
+   "message":"API Versioned User",
+   "user_id":"123",
+   "version":"v1"
+}
 ```
 
 ### 🔑 Basic Authentication
@@ -868,31 +913,43 @@ import (
 	middleware "github.com/jeffotoni/quick/middleware/basicauth"
 )
 
+// Environment variables for authentication
 // export USER=admin
 // export PASSWORD=1234
 
 var (
+	// Retrieve the username and password from environment variables
 	User     = os.Getenv("USER")
 	Password = os.Getenv("PASSORD")
 )
 
 func main() {
 
+		// Create a new Quick server instance
 	q := quick.New()
 
+	// Apply Basic Authentication middleware
 	q.Use(middleware.BasicAuth(User, Password))
 
+	// Define a protected route
 	q.Get("/protected", func(c *quick.Ctx) error {
+		// Set the response content type to JSON
 		c.Set("Content-Type", "application/json")
+
+		// Return a success message
 		return c.SendString("You have accessed a protected route!")
 	})
 
-	// Start server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
+	// Start the server on port 8080
+	q.Listen("0.0.0.0:8080")
 }
-
 ```
+### 📌 cURL
+```bash
+$ curl -i -X GET http://localhost:8080/api/v1/users/123
 
+You have accessed a protected route!
+```
 ---
 
 ### Basic Authentication with Quick Middleware
@@ -923,10 +980,17 @@ func main() {
 		return c.SendString("You have accessed a protected route!")
 	})
 
-	// Start server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
+	// Start the server on port 8080
+	q.Listen("0.0.0.0:8080")
 }
 
+```
+### 📌 cURL
+```bash
+$ curl -i -X GET 'http://localhost:8080/protected' \
+--header 'Authorization: Basic YWRtaW46MTIzNA=='
+
+You have accessed a protected route!
 ```
 
 ### Basic Authentication with Quick Route Groups
@@ -935,7 +999,6 @@ This example shows how to apply Basic Authentication to a specific group of rout
 When we use group we can isolate the middleware, this works for any middleware in quick.
 
 ```go
-
 package main
 
 import (
@@ -967,11 +1030,18 @@ func main() {
 		return c.SendString("You have accessed a protected route!")
 	})
 
-	// Start server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
+	// Start the server on port 8080
+	q.Listen("0.0.0.0:8080")
 }
 
 ```
+### 📌 cURL
+```bash
+$ curl -i -X GET http://localhost:8080/v1/user
+
+Public quick route
+```
+
 
 ### BasicAuth Customized
 
@@ -1034,11 +1104,16 @@ func main() {
 		return c.SendString("You have accessed a protected route!")
 	})
 
-	// Start server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
+	// Start the server on port 8080
+	q.Listen("0.0.0.0:8080")
 
 }
+```
+### 📌 cURL
+```bash
+$ curl -i -u admin:1234 -X GET http://localhost:8080/protected
 
+You have accessed a protected route!
 ```
 
 ---
@@ -1096,10 +1171,13 @@ func main() {
     // Starts the server to listen for incoming requests on port 8080.
     q.Listen("0.0.0.0:8080")
 }
-
-
 ```
+### 📌 cURL
+```bash
+$ curl -i -X GET http://localhost:8080/
 
+File Server Go example html
+```
 ---
 
 #### 📁 EMBED
