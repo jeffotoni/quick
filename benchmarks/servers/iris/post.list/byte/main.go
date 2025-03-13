@@ -1,12 +1,10 @@
 package main
 
 import (
-<<<<<<< HEAD
-=======
-	"time"
+	"encoding/json"
+	"log"
 
->>>>>>> 7ec1c71cbb6bf4f754bead24cee8c42d3463e2a1
-	"github.com/jeffotoni/quick"
+	"github.com/kataras/iris/v12"
 )
 
 // Struct representing a user model
@@ -38,30 +36,38 @@ type Option struct {
 //
 // "extra": "some data", "dynamic": {"speed": "200km/h"}}]'
 func main() {
-	q := quick.New(quick.Config{
-		MaxBodySize: 20 * 1024 * 1024,
-		// ReadTimeout: 40 * time.Second,
-	}) // Initialize Quick framework
+	app := iris.New()
 
-	// Define a POST route at /v1/user
-	q.Post("/v1/user", func(c *quick.Ctx) error {
-		var my []My // Create a variable to store incoming user data
+	app.Post("/v1/user", func(ctx iris.Context) {
+		ctx.ContentType("application/json")
 
-		// Parse the request body into the struct
-		err := c.BodyParser(&my)
+		// Capture the request body as `[]byte`
+		bodyBytes, err := ctx.GetBody()
 		if err != nil {
-			// If parsing fails, return a 400 Bad Request response
-			return c.Status(400).SendString(err.Error())
+			ctx.StatusCode(iris.StatusInternalServerError)
+			ctx.WriteString("Error reading body")
+			return
 		}
 
-		// Return the parsed JSON data as a response with 200 OK
-		return c.Status(200).JSON(my)
+		// Deserialize the JSON into a struct
+		var users []My
+		if err := json.Unmarshal(bodyBytes, &users); err != nil {
+			ctx.StatusCode(iris.StatusBadRequest)
+			ctx.JSON(iris.Map{"error": "Invalid JSON format"})
+			return
+		}
 
-		// Alternative:
-		// return c.Status(200).String(c.BodyString())
-		// Return raw request body as a string
+		// Serialize back to JSON
+		responseBytes, err := json.Marshal(users)
+		if err != nil {
+			ctx.StatusCode(iris.StatusInternalServerError)
+			ctx.JSON(iris.Map{"error": "Error encoding JSON response"})
+			return
+		}
+
+		// Return the received JSON
+		ctx.Write(responseBytes)
 	})
 
-	// Start the server and listen on port 8080
-	q.Listen("0.0.0.0:8080")
+	log.Fatal(app.Listen(":8080"))
 }

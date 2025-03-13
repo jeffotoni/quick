@@ -181,6 +181,8 @@ The graphs below represent the main test results:
     •   ❌ Gin struggled in multiple areas, making it the weakest option.
 
 
+----
+
 ### 📌 Final Considerations
 This document is a living benchmark that will be continuously updated as new tests, optimizations, and real-world scenarios are introduced. Our goal is to provide reliable, transparent, and actionable insights into the performance of Go web frameworks, helping developers make informed decisions.
 We strongly encourage community participation! If you find areas for improvement, have suggestions for additional tests, or want to share your own benchmark results, feel free to contribute. Open-source collaboration is what drives innovation, and your input is invaluable in refining these benchmarks.
