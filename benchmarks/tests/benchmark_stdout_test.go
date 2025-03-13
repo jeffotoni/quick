@@ -1,4 +1,4 @@
-package quick
+package benchmark
 
 import (
 	"fmt"
