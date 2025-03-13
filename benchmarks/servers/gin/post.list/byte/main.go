@@ -44,14 +44,21 @@ func main() {
 
 		var my []My // Define a slice to store multiple user objects
 
-		// Read and parse the JSON request body
-		if err := json.NewDecoder(c.Request.Body).Decode(&my); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
+		err := json.NewDecoder(c.Request.Body).Decode(&my)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
+		// Serialize users struct to JSON
+		b, err := json.Marshal(my)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+
 		// Return the parsed JSON data as a response with 200 OK
-		c.JSON(http.StatusOK, my)
+		// c.JSON(http.StatusOK, my)
+		c.Data(http.StatusOK, "text/plain", b)
 	})
 
 	r.Run(":8080")

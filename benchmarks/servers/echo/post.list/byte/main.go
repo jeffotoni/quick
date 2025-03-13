@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -37,22 +36,24 @@ func main() {
 	e := echo.New()
 
 	// Define a POST route at /v1/user
-
 	e.POST("/v1/user", func(c echo.Context) error {
 		c.Set("Content-type", "application/json")
 
 		var my []My
 
-		body, err := io.ReadAll(c.Request().Body)
+		err := json.NewDecoder(c.Request().Body).Decode(&my)
 		if err != nil {
-			return c.String(http.StatusInternalServerError, "Erro ao ler o body: "+err.Error())
+			return c.String(http.StatusBadRequest, "Error: "+err.Error())
 		}
 
-		if err := json.Unmarshal(body, &my); err != nil {
-			return c.String(http.StatusBadRequest, "Erro ao decodificar JSON: "+err.Error())
+		// Serialize users struct to JSON
+		b, err := json.Marshal(my)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Error: "+err.Error())
 		}
 
-		return c.JSON(http.StatusOK, my)
+		return c.Blob(http.StatusOK, "text/plain", b)
+		//return c.JSON(http.StatusOK, my)
 	})
 
 	e.Start(":8080")

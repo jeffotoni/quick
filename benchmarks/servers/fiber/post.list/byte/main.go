@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"
@@ -42,20 +43,25 @@ func main() {
 		// Set the Content-Type header to application/json
 		c.Set("Content-Type", "application/json")
 
-		var users []My
+		var my []My
+
+		// NewReader
+		bodyReader := bytes.NewReader(c.Body())
 
 		// Read the request body and unmarshal JSON
-		if err := json.Unmarshal(c.Body(), &users); err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid JSON format")
+		err := json.NewDecoder(bodyReader).Decode(&my)
+		if err != nil {
+			return c.Status(500).JSON(map[string]string{"error": err.Error()})
 		}
 
 		// Serialize users struct to JSON
-		response, err := json.Marshal(users)
+		b, err := json.Marshal(my)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Error encoding JSON response")
 		}
+
 		// Return the serialized JSON as response
-		return c.Send(response)
+		return c.Send(b)
 	})
 
 	// Start the Fiber server on port 8080
