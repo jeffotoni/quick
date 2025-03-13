@@ -61,26 +61,24 @@ func TestExamplePath(t *testing.T) {
 func TestExampleOptions(t *testing.T) {
 	q := New()
 
-	// Define a GET route
-	q.Get("/example", func(c *Ctx) error {
-		return c.Status(200).String("GET is working!")
-	})
-
 	// default
 	allowedMethods := "GET, POST, PUT, DELETE, PATCH, OPTIONS"
 
-	// Register OPTIONS for the /example route
-	q.Options("/example", func(c *Ctx) error {
-		// Define the methods allowed for this resource in the Allow header
+	// Define a GET route
+	q.Get("/v1/user", func(c *Ctx) error {
+		c.Set("Content-Type", "application/json")
 		c.Set("Allow", allowedMethods)
-		//c.Response.Header().Set("Allow", allowedMethods)
-		return c.Status(200).String("OPTIONS request handled")
+		return c.Status(200).String("GET is working!")
 	})
 
 	opts := QuickTestOptions{
-		Method: "OPTIONS",
-		URI:    "/example",
-		// Headers:    map[string]string{"Accept": "application/json"},
+		Method: "GET",
+		URI:    "/v1/user",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+			"Accept":       "application/json",
+			"Allow":        allowedMethods,
+		},
 		LogDetails: true,
 	}
 
@@ -92,7 +90,7 @@ func TestExampleOptions(t *testing.T) {
 	}
 
 	// Verify that the HTTP status code is 200
-	err = resp.AssertStatus(StatusOK)
+	err = resp.AssertStatus(200)
 	if err != nil {
 		t.Errorf("StatusCode assertion failed: %v", err)
 	}
@@ -102,11 +100,43 @@ func TestExampleOptions(t *testing.T) {
 		t.Errorf("Header assertion failed: %v", err)
 	}
 
-	// // Get the "Allow" header from the HTTP response
-	// allowHeader := resp.Response().Header.Get("Allow")
-	// if allowHeader != allowedMethods {
-	// 	t.Errorf("Expected Allow header '%s', but got '%s'", allowedMethods, allowHeader)
-	// }
+	err = resp.AssertHeader("Content-Type", "application/json")
+	if err != nil {
+		t.Errorf("Header assertion failed: %v", err)
+	}
+
+	// Register OPTIONS for the /options route
+	q.Options("/options", func(c *Ctx) error {
+		// Define the methods allowed for this
+		// resource in the Allow header
+		c.Set("Allow", allowedMethods)
+		//c.Response.Header().Set("Allow", allowedMethods)
+		return c.Status(204).Send(nil)
+	})
+
+	opts = QuickTestOptions{
+		Method: "OPTIONS",
+		URI:    "/options",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+			"Accept":       "application/json",
+			"Allow":        allowedMethods,
+		},
+		LogDetails: true,
+	}
+
+	// Simulate an OPTIONS request
+	resp, err = q.Qtest(opts)
+	if err != nil {
+		t.Errorf("Error executing QuickTest: %v", err)
+		return
+	}
+
+	// Verify that the HTTP status code is 200
+	err = resp.AssertStatus(204)
+	if err != nil {
+		t.Errorf("StatusCode assertion failed: %v", err)
+	}
 }
 
 // TestExampleGetDefaultConfig verifies if GetDefaultConfig() returns the expected default configuration values.

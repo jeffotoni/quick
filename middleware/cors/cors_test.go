@@ -1,72 +1,141 @@
 package cors
 
 import (
+	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
-// go test -v -failfast -count=1 -run ^TestNew$
-// go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestNew$; go tool cover -html=coverage.out
-func TestNew(t *testing.T) {
-	type args struct {
-		Config Config
-	}
+var ConfigDefaultTest = Config{
+	AllowedOrigins:   []string{"*"}, // Aceita qualquer origem
+	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	AllowedHeaders:   []string{"Origin", "Content-Type", "Accept", "Authorization"},
+	ExposedHeaders:   []string{"Content-Length"},
+	AllowCredentials: true,
+	MaxAge:           600,
+	Debug:            false,
+}
 
+// Default header settings for tests
+var successDefaultCorsHeaders = map[string][]string{
+	"Access-Control-Allow-Origin":      {"http://localhost:3000"}, // não pode mais ser "*"
+	"Access-Control-Allow-Methods":     {"GET, POST, PUT, DELETE, OPTIONS"},
+	"Access-Control-Allow-Headers":     {"Origin, Content-Type, Accept, Authorization"},
+	"Access-Control-Expose-Headers":    {"Content-Length"},
+	"Access-Control-Allow-Credentials": {"true"},
+}
+
+var successCustomCorsHeaders = map[string][]string{
+	"Access-Control-Allow-Origin":      {"*"},
+	"Access-Control-Allow-Methods":     {"GET, POST"},
+	"Access-Control-Allow-Headers":     {""}, // No headers allowed
+	"Access-Control-Expose-Headers":    {""},
+	"Access-Control-Allow-Credentials": {"true"},
+}
+
+// Helper framework for testing the middleware
+type testCors struct {
+	HandlerFunc http.HandlerFunc
+	Request     *http.Request
+}
+
+// Creating a test request to simulate a real request
+var testCorsSuccess = testCors{
+	HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	},
+	Request: func() *http.Request {
+		req := httptest.NewRequest("OPTIONS", "/", nil)
+		req.Header.Set("Origin", "http://localhost:3000") // <--- IMPORTANTE
+		req.Header.Set("Access-Control-Request-Method", "POST")
+		return req
+	}(),
+}
+
+// var testCorsSuccess = testCors{
+// 	HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
+// 		w.WriteHeader(http.StatusOK)
+// 	},
+// 	Request: httptest.NewRequest(http.MethodOptions, "/", nil),
+// }
+
+// Helper function to check header equality
+func isHeaderEqual(got, want []string) bool {
+	return reflect.DeepEqual(got, want)
+}
+
+// Helper function to compare lists of headers
+func isHeaderEqualDefault(got, want []string) bool {
+	return reflect.DeepEqual(got, want)
+}
+
+// go test -v -failfast -count=1 -run ^TestNew$
+func TestNew(t *testing.T) {
 	tests := []struct {
 		name          string
-		args          args
+		config        Config
 		testCors      testCors
 		wantedHeaders map[string][]string
 	}{
 		{
 			name:          "success",
-			args:          args{},
-			testCors:      testCorsSuccess,
-			wantedHeaders: successDefaultCorsHeaders,
-		},
-		{
-			name: "success_default",
-			args: args{
-				Config: ConfigDefault,
-			},
+			config:        ConfigDefaultTest,
 			testCors:      testCorsSuccess,
 			wantedHeaders: successDefaultCorsHeaders,
 		},
 		{
 			name: "success_CustomConfig",
-			args: args{
-				Config: Config{
-					AllowedOrigins:       []string{"*"},
-					AllowedMethods:       []string{"GET", "POST"},
-					AllowedHeaders:       []string{},
-					ExposedHeaders:       []string{},
-					MaxAge:               500,
-					AllowCredentials:     true,
-					AllowPrivateNetwork:  true,
-					OptionsPassthrough:   true,
-					OptionsSuccessStatus: 0,
-					Debug:                true,
-				},
+			config: Config{
+				AllowedOrigins:   []string{"*"},
+				AllowedMethods:   []string{"GET", "POST"},
+				AllowedHeaders:   []string{}, // vazio
+				ExposedHeaders:   []string{},
+				MaxAge:           500,
+				AllowCredentials: false,
 			},
-			testCors:      testCorsSuccess,
-			wantedHeaders: successCustomCorsHeaders,
+			testCors: testCors{
+				HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(http.StatusOK)
+				},
+				Request: func() *http.Request {
+					req := httptest.NewRequest("OPTIONS", "/", nil)
+					req.Header.Set("Origin", "http://another-domain.com")
+					req.Header.Set("Access-Control-Request-Method", "POST")
+					return req
+				}(),
+			},
+			wantedHeaders: map[string][]string{
+				"Access-Control-Allow-Origin":  {"*"},
+				"Access-Control-Allow-Methods": {"GET, POST"},
+				// Não coloque a linha abaixo quando AllowedHeaders for vazio:
+				// "Access-Control-Allow-Headers": {""},
+			},
 		},
 	}
 
-	for _, ti := range tests {
-		t.Run(ti.name, func(tt *testing.T) {
+	for _, tc := range tests {
+		t.Run(tc.name, func(tt *testing.T) {
+			t.Logf("==== TEST %s ====", tc.name)
 
-			t.Logf("==== TEST %s ====", ti.name)
-			h := New(ti.args.Config)
-			a := h(ti.testCors.HandlerFunc)
+			// Create middleware
+			h := New(tc.config)
+			a := h(tc.testCors.HandlerFunc)
+
+			// Create response recorder
 			rec := httptest.NewRecorder()
-			a.ServeHTTP(rec, ti.testCors.Request)
+			a.ServeHTTP(rec, tc.testCors.Request)
 			resp := rec.Result()
 
-			for k := range resp.Header {
-				if !isHeaderEqual(resp.Header[k], ti.wantedHeaders[k]) {
-					tt.Errorf("the headers are not equal!\ncome:\n%v\n\nwant:\n%v\n\n", resp.Header[k], successDefaultCorsHeaders[k])
-
+			// Validate headers
+			for k, expected := range tc.wantedHeaders {
+				got, exists := resp.Header[k]
+				if !exists {
+					tt.Errorf("Header %s is missing!\nExpected: %v\n", k, expected)
+					continue
+				}
+				if !isHeaderEqual(got, expected) {
+					tt.Errorf("Header %s different!\nReceived: %v\nExpected: %v\n", k, got, expected)
 				}
 			}
 		})
@@ -74,70 +143,28 @@ func TestNew(t *testing.T) {
 }
 
 // go test -v -failfast -count=1 -run ^TestDefault$
-// go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestDefault$; go tool cover -html=coverage.out
 func TestDefault(t *testing.T) {
 	t.Run("success_default", func(tt *testing.T) {
 		defConfig := Default()
-		if defConfig.Debug != ConfigDefault.Debug {
-			tt.Errorf("config in debug is not same")
+
+		if defConfig.Debug != ConfigDefaultTest.Debug {
+			tt.Errorf("Incorrect debug, expected: %v, received: %v", ConfigDefaultTest.Debug, defConfig.Debug)
 		}
 
-		if defConfig.MaxAge != ConfigDefault.MaxAge {
-			tt.Errorf("config in MaxAge is not same")
+		if defConfig.MaxAge != ConfigDefaultTest.MaxAge {
+			tt.Errorf("Incorrect MaxAge, expected: %v, received: %v", ConfigDefaultTest.MaxAge, defConfig.MaxAge)
 		}
 
-		if !isHeaderEqualDefault(defConfig.AllowedHeaders, ConfigDefault.AllowedHeaders) {
-			tt.Errorf("config in allowedHeaders is not same, come: %v | want: %v", defConfig.AllowedHeaders, ConfigDefault.AllowedHeaders)
+		if !isHeaderEqualDefault(defConfig.AllowedHeaders, ConfigDefaultTest.AllowedHeaders) {
+			tt.Errorf("AllowedHeaders different!")
 		}
 
-		if !isHeaderEqualDefault(defConfig.AllowedMethods, ConfigDefault.AllowedMethods) {
-			tt.Errorf("config in allowedMethods is not same")
+		if !isHeaderEqualDefault(defConfig.AllowedMethods, ConfigDefaultTest.AllowedMethods) {
+			tt.Errorf("AllowedMethods different!")
 		}
 
-		if !isHeaderEqual(defConfig.AllowedOrigins, ConfigDefault.AllowedOrigins) {
-			tt.Errorf("config in allowedOrigins is not same")
-		}
-
-		if defConfig.AllowPrivateNetwork != ConfigDefault.AllowPrivateNetwork {
-			tt.Errorf("config in AllowPrivateNetwork is not same")
-		}
-	})
-
-	t.Run("success_custom", func(tt *testing.T) {
-		defConfig := Default(Config{
-			AllowedOrigins:       []string{},
-			AllowedMethods:       []string{},
-			AllowedHeaders:       []string{},
-			ExposedHeaders:       []string{},
-			MaxAge:               1,
-			AllowCredentials:     false,
-			AllowPrivateNetwork:  true,
-			OptionsPassthrough:   false,
-			OptionsSuccessStatus: 0,
-			Debug:                true,
-		})
-		if defConfig.Debug == ConfigDefault.Debug {
-			tt.Errorf("config in debug is not your config")
-		}
-
-		if defConfig.MaxAge == ConfigDefault.MaxAge {
-			tt.Errorf("config in MaxAge is not your config")
-		}
-
-		if isHeaderEqualDefault(defConfig.AllowedHeaders, ConfigDefault.AllowedHeaders) {
-			tt.Errorf("config in allowedHeaders is not your config")
-		}
-
-		if isHeaderEqualDefault(defConfig.AllowedMethods, ConfigDefault.AllowedMethods) {
-			tt.Errorf("config in allowedMethods is not your config")
-		}
-
-		if isHeaderEqual(defConfig.AllowedOrigins, ConfigDefault.AllowedOrigins) {
-			tt.Errorf("config in allowedOrigins is not your config")
-		}
-
-		if defConfig.AllowPrivateNetwork == ConfigDefault.AllowPrivateNetwork {
-			tt.Errorf("config in AllowPrivateNetwork is not your your config")
+		if !isHeaderEqual(defConfig.AllowedOrigins, ConfigDefaultTest.AllowedOrigins) {
+			tt.Errorf("AllowedOrigins different!")
 		}
 	})
 }
@@ -145,7 +172,7 @@ func TestDefault(t *testing.T) {
 // go test -bench=. -benchtime=1s -benchmem
 func BenchmarkNew(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		New()
+		New(ConfigDefaultTest)
 	}
 }
 

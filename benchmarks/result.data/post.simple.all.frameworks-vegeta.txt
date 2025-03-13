@@ -1,0 +1,112 @@
+Funçao usada: 
+c.Body() em ambos
+
+Quick
+Requests      [total, rate, throughput]         11000, 500.05, 500.04
+Duration      [total, attack, wait]             21.998s, 21.998s, 296.625µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  102.25µs, 443.084µs, 406.857µs, 640.813µs, 769.009µs, 1.264ms, 13.354ms
+Bytes In      [total, mean]                     484000, 44.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+Error Set:
+
+Fiber
+Requests      [total, rate, throughput]         11000, 500.04, 500.03
+Duration      [total, attack, wait]             21.999s, 21.998s, 390.125µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  71.042µs, 468.807µs, 387.458µs, 700.019µs, 915.951µs, 2.37ms, 21.926ms
+Bytes In      [total, mean]                     484000, 44.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+
+
+
+função usada:
+c.BodyParser(&my)
+
+fiber
+Requests      [total, rate, throughput]         11000, 500.04, 500.04
+Duration      [total, attack, wait]             21.998s, 21.998s, 324.125µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  65.208µs, 368.739µs, 331.394µs, 572.707µs, 712.555µs, 1.348ms, 12.919ms
+Bytes In      [total, mean]                     330000, 30.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+Error Set:
+
+Quick
+vegeta attack -duration=22s -rate=500 -max-workers=1000 -targets=targets.txt | tee results.bin | vegeta report
+Requests      [total, rate, throughput]         11000, 500.05, 500.04
+Duration      [total, attack, wait]             21.998s, 21.998s, 215.666µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  88.375µs, 473.363µs, 450.511µs, 692.284µs, 836.958µs, 1.396ms, 18.985ms
+Bytes In      [total, mean]                     330000, 30.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+
+Quick vs Iris
+Funçao usada:
+ctx.GetBody() do Iris
+
+E no Quick usamos
+c.Body()
+
+IRIS
+Requests      [total, rate, throughput]         11000, 500.05, 500.03
+Duration      [total, attack, wait]             21.999s, 21.998s, 532.291µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  82.667µs, 449.265µs, 377.28µs, 671.349µs, 857.188µs, 2.004ms, 22.352ms
+Bytes In      [total, mean]                     484000, 44.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+
+QUICK
+
+Requests      [total, rate, throughput]         11000, 500.04, 500.03
+Duration      [total, attack, wait]             21.999s, 21.998s, 562.375µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  73.083µs, 461.874µs, 432.788µs, 667.976µs, 799.616µs, 1.475ms, 9.447ms
+Bytes In      [total, mean]                     484000, 44.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+Error Set:
+
+
+
+Quick vs Echo
+Funçao usada:
+c.Bind()
+
+QUICK
+Requests      [total, rate, throughput]         11000, 500.05, 500.04
+Duration      [total, attack, wait]             21.998s, 21.998s, 368.875µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  72.042µs, 415.78µs, 365.956µs, 610.803µs, 761.875µs, 1.49ms, 11.906ms
+Bytes In      [total, mean]                     330000, 30.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+
+ECHO
+results.bin | vegeta report
+Requests      [total, rate, throughput]         11000, 500.04, 500.03
+Duration      [total, attack, wait]             21.999s, 21.998s, 640.083µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  52µs, 498.178µs, 436.115µs, 724.694µs, 965.72µs, 1.887ms, 16.273ms
+Bytes In      [total, mean]                     341000, 31.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+
+Quick vs Gin
+Funçao usada:
+c.Bind()
+
+Requests      [total, rate, throughput]         11000, 500.05, 500.03
+Duration      [total, attack, wait]             21.999s, 21.998s, 656.708µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  79.458µs, 501.271µs, 462.721µs, 737.037µs, 900.326µs, 1.665ms, 17.668ms
+Bytes In      [total, mean]                     330000, 30.00
+Bytes Out     [total, mean]                     484000, 44.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:11000
+Error Set:
+
