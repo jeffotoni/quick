@@ -63,12 +63,6 @@ var unbufPool = sync.Pool{
 	},
 }
 
-var UnPersonPool = sync.Pool{
-	New: func() interface{} {
-		return new(UnPerson)
-	},
-}
-
 // Benchmark using io.ReadAll + json.Unmarshal with sync.Pool
 func BenchmarkReadAllUnmarshalPool(b *testing.B) {
 	p := UnPerson{Name: "John Doe", Age: 30, Email: "john@example.com"}
@@ -87,17 +81,17 @@ func BenchmarkReadAllUnmarshalPool(b *testing.B) {
 			b.Fatalf("Error reading JSON: %v", err)
 		}
 
-		p2 := UnPersonPool.Get().(*UnPerson)
+		p2 := unbufPool.Get().(*UnPerson)
 		if err := json.Unmarshal(data, p2); err != nil {
 			b.Fatalf("Error decoding JSON: %v", err)
 		}
-		UnPersonPool.Put(p2)
+		unbufPool.Put(p2)
 	}
 }
 
 // Benchmark using json.NewDecoder().Decode(&v) with sync.Pool
 func BenchmarkReadAlJSONDecoderPool(b *testing.B) {
-	p := UnPerson{Name: "John Doe", Age: 30, Email: "john@example.com"}
+	p := unbufPool{Name: "John Doe", Age: 30, Email: "john@example.com"}
 	buf := unbufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	if err := json.NewEncoder(buf).Encode(p); err != nil {
@@ -108,11 +102,11 @@ func BenchmarkReadAlJSONDecoderPool(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		reader := bytes.NewReader(jsonData)
-		p2 := UnPersonPool.Get().(*UnPerson)
+		p2 := unbufPool.Get().(*UnPerson)
 
 		if err := json.NewDecoder(reader).Decode(p2); err != nil {
 			b.Fatalf("Error decoding JSON: %v", err)
 		}
-		UnPersonPool.Put(p2)
+		unbufPool.Put(p2)
 	}
 }

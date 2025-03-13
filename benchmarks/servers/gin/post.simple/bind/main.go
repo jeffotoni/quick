@@ -17,7 +17,7 @@ type My struct {
 // --data '{"name": "Alice", "year": 20}'
 func main() {
 
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
 
