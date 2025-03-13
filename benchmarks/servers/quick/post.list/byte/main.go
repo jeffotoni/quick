@@ -2,10 +2,6 @@ package main
 
 import (
 	"encoding/json"
-<<<<<<< HEAD
-=======
-	"time"
->>>>>>> 7ec1c71cbb6bf4f754bead24cee8c42d3463e2a1
 
 	"github.com/jeffotoni/quick"
 )

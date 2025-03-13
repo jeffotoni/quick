@@ -1,11 +1,6 @@
 package main
 
 import (
-<<<<<<< HEAD
-=======
-	"time"
-
->>>>>>> 7ec1c71cbb6bf4f754bead24cee8c42d3463e2a1
 	"github.com/jeffotoni/quick"
 )
 
@@ -67,5 +62,5 @@ func main() {
 	})
 
 	// Start the server and listen on port 8080
-	 q.Listen("0.0.0.0:8080")
+	q.Listen("0.0.0.0:8080")
 }
