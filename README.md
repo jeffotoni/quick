@@ -1,8 +1,6 @@
-
 ![Logo do Quick](./quick_logo.png)
 
-
-[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/main) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/main)  ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick) ![GitHub contributors](https://img.shields.io/github/contributors/jeffotoni/quick)
+[![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/main) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/main) ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick) ![GitHub contributors](https://img.shields.io/github/contributors/jeffotoni/quick)
 ![GitHub stars](https://img.shields.io/github/last-commit/jeffotoni/quick) ![GitHub stars](https://img.shields.io/github/forks/jeffotoni/quick?style=social) ![GitHub stars](https://img.shields.io/github/stars/jeffotoni/quick)
 
 <!-- [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) -->
@@ -17,8 +15,8 @@
 ```bash
    ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗
   ██╔═══██╗██║   ██║██║██╔═══   ██║ ██╔╝
-  ██║   ██║██║   ██║██║██║      █████╔╝ 
-  ██║▄▄ ██║██║   ██║██║██║      ██╔═██╗ 
+  ██║   ██║██║   ██║██║██║      █████╔╝
+  ██║▄▄ ██║██║   ██║██║██║      ██╔═██╗
   ╚██████╔╝╚██████╔╝██║╚██████╔ ██║  ██╗
    ╚══▀▀═╝  ╚═════╝ ╚═╝ ╚═════╝ ╚═╝  ╚═╝
 
@@ -41,8 +39,8 @@
 
 🔍 The repository of examples of the Framework Quick Run [Examples](https://github.com/jeffotoni/quick/tree/main/example).
 
-
 # Quick in action 💕🐧🚀😍
+
 ![Quick](quick_server.gif)
 
 ---
@@ -51,197 +49,210 @@
 
 To access the documentation for each **Quick Framework** package, click on the links below:
 
-| Package | Description | Go.dev |
-|---------|-----------|-----------|
-| **quick** | Main Router and Framework Features | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick) |
-| **quick/http/client** | HTTP client optimized for requests and failover | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/http/client.svg)](https://pkg.go.dev/githu.com/jeffotoni/quick/http/client) |
-| **quick/middleware** | Framework middlewares | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/middleware.svg)](https://pkg.go.dev/github.com/jeffotoni/quick/middleware) |
-| **quick/ctx** | HTTP request and response context | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Ctx) |
-| **quick/http/status** | HTTP status definitions in the framework | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Status) |
-| **quick/group** | Route group manipulation | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Group) |
-| **quickTest** | Package for unit testing and integration in Quick | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/quickTest.svg)](https://pkg.go.dev/github.com/jeffotoni/quickTest) |
-| **quick/route** | Route definition and management | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Route) |
-| **quick/config** | Framework configuration structures | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Config) |
-| **quick/qtest** | Auxiliary tools for testing in the Quick | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#QTest) |
-| **quick/uploadedFile** | File upload management | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#UploadedFile) |
-| **quick/zeroth** | Framework helpers | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Zeroth) |
+| Package                | Description                                       | Go.dev                                                                                                                                    |
+| ---------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **quick**              | Main Router and Framework Features                | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick)                        |
+| **quick/http/client**  | HTTP client optimized for requests and failover   | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/http/client.svg)](https://pkg.go.dev/githu.com/jeffotoni/quick/http/client) |
+| **quick/middleware**   | Framework middlewares                             | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/middleware.svg)](https://pkg.go.dev/github.com/jeffotoni/quick/middleware)  |
+| **quick/ctx**          | HTTP request and response context                 | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Ctx)                    |
+| **quick/http/status**  | HTTP status definitions in the framework          | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Status)                 |
+| **quick/group**        | Route group manipulation                          | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Group)                  |
+| **quickTest**          | Package for unit testing and integration in Quick | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/quickTest.svg)](https://pkg.go.dev/github.com/jeffotoni/quickTest)          |
+| **quick/route**        | Route definition and management                   | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Route)                  |
+| **quick/config**       | Framework configuration structures                | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Config)                 |
+| **quick/qtest**        | Auxiliary tools for testing in the Quick          | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#QTest)                  |
+| **quick/uploadedFile** | File upload management                            | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#UploadedFile)           |
+| **quick/zeroth**       | Framework helpers                                 | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Zeroth)                 |
 
 ---
 
 ## 🎛️| Features
 
-| Features                                         | Has  | Status | Completion |
-|--------------------------------------------------|------|--------|------------|
-| 🛣️ Route Manager                                  | yes  | 🟢     | 100%       |
-| 📁 Server Files Static                            | yes  | 🟢     | 100%       |
-| 🔗 Http Client                                    | yes  | 🟢     | 100%       |
-| 📤 Upload Files (multipart/form-data)             | yes  | 🟢     | 100%       |
-| 🚪 Route Group                                    | yes  | 🟢     | 100%       |
-| 🛡️ Middlewares                                    | yes  | 🟡     | 50%        |
-| ⚡ HTTP/2 support                                  | yes  | 🟢     | 100%       |
-| 🔄 Data binding for JSON, XML and form payload    | yes  | 🟢     | 100%       |
-| 🔍 Regex support                                  | yes  | 🟡     | 80%        |
-| 🌎 Site                                           | yes  | 🟡     | 90%        |
-| 📚 Docs                                           | yes  | 🟡     | 40%        |
-
+| Features                                       | Has | Status | Completion |
+| ---------------------------------------------- | --- | ------ | ---------- |
+| 🛣️ Route Manager                               | yes | 🟢     | 100%       |
+| 📁 Server Files Static                         | yes | 🟢     | 100%       |
+| 🔗 Http Client                                 | yes | 🟢     | 100%       |
+| 📤 Upload Files (multipart/form-data)          | yes | 🟢     | 100%       |
+| 🚪 Route Group                                 | yes | 🟢     | 100%       |
+| 🛡️ Middlewares                                 | yes | 🟡     | 50%        |
+| ⚡ HTTP/2 support                              | yes | 🟢     | 100%       |
+| 🔄 Data binding for JSON, XML and form payload | yes | 🟢     | 100%       |
+| 🔍 Regex support                               | yes | 🟡     | 80%        |
+| 🌎 Site                                        | yes | 🟡     | 90%        |
+| 📚 Docs                                        | yes | 🟡     | 40%        |
 
 ## 🗺️| Development Rodmap
 
-| Task   | Progress |
-|-------------------------------------------------|-----------|
-| Develop MaxBodySize method Post   | 100%   |
-| Develop MaxBodySize method Put   | 100%   |
-| Develop Config in New(Config{}) not required | 100%   |
-| Create print function to not use fmt too much | 100% |
-| Creation of own function for Concat String   | 100%   |
-| Creation of benchmarking between the. Stdout and fmt.Println | 100%   |
-| Develop Routes GET method   | 100%   |
-| Develop Routes GET method by accepting Query String | 100%   |
-| Develop Routes GET method accepting Parameters | 100%   |
-| Develop Routes GET method accepting Query String and Parameters | 100% |
-| Develop Routes GET method accepting regular expression | 100% |
-| Develop Routes Method POST   | 100%   |
-| Develop Routes POST method accepting JSON   | 100%   |
-| Develop for METHOD POST the parse JSON   | 100%   |
-| Develop for the POST METHOD functions to access byte or string from Parse | 100% |
-| Develop for PUT METHOD   | 100%   |
-| Develop for the PUT METHOD the JSON parse   | 100%   |
-| Develop for the PUT METHOD the JSON parse   | 100%   |
-| Develop for METHOD PUT functions to access byte or string from the Parse | 100% |
-| Develop for DELETE METHOD   | 100%   |
-| Develop method for ListenAndServe   | 100%   |
-| Develop ServeHTTP support   | 100%   |
-| Develop middleware support   | 100%   |
-| Develop support for middleware compress   | 100%   |
-| Develop support for middleware cors   | 100%   |
-| Develop logger middleware support   | 100%   |
-| Develop support for maxbody middlewares   | 100%   |
-| Develop middleware support msgid   | 100%   |
-| Develop middleware support msguuid   | 100%   |
-| Develop support Cors   | 100%   |
-| Develop Cient Get   | 100%   |
-| Develop Cient Post support   | 100%   |
-| Develop Cient Put support   | 100%   |
-| Develop Cient support Delete   | 100%   |
-
+| Task                                                                      | Progress |
+| ------------------------------------------------------------------------- | -------- |
+| Develop MaxBodySize method Post                                           | 100%     |
+| Develop MaxBodySize method Put                                            | 100%     |
+| Develop Config in New(Config{}) not required                              | 100%     |
+| Create print function to not use fmt too much                             | 100%     |
+| Creation of own function for Concat String                                | 100%     |
+| Creation of benchmarking between the. Stdout and fmt.Println              | 100%     |
+| Develop Routes GET method                                                 | 100%     |
+| Develop Routes GET method by accepting Query String                       | 100%     |
+| Develop Routes GET method accepting Parameters                            | 100%     |
+| Develop Routes GET method accepting Query String and Parameters           | 100%     |
+| Develop Routes GET method accepting regular expression                    | 100%     |
+| Develop Routes Method POST                                                | 100%     |
+| Develop Routes POST method accepting JSON                                 | 100%     |
+| Develop for METHOD POST the parse JSON                                    | 100%     |
+| Develop for the POST METHOD functions to access byte or string from Parse | 100%     |
+| Develop for PUT METHOD                                                    | 100%     |
+| Develop for the PUT METHOD the JSON parse                                 | 100%     |
+| Develop for the PUT METHOD the JSON parse                                 | 100%     |
+| Develop for METHOD PUT functions to access byte or string from the Parse  | 100%     |
+| Develop for DELETE METHOD                                                 | 100%     |
+| Develop method for ListenAndServe                                         | 100%     |
+| Develop ServeHTTP support                                                 | 100%     |
+| Develop middleware support                                                | 100%     |
+| Develop support for middleware compress                                   | 100%     |
+| Develop support for middleware cors                                       | 100%     |
+| Develop logger middleware support                                         | 100%     |
+| Develop support for maxbody middlewares                                   | 100%     |
+| Develop middleware support msgid                                          | 100%     |
+| Develop middleware support msguuid                                        | 100%     |
+| Develop support Cors                                                      | 100%     |
+| Develop Cient Get                                                         | 100%     |
+| Develop Cient Post support                                                | 100%     |
+| Develop Cient Put support                                                 | 100%     |
+| Develop Cient support Delete                                              | 100%     |
 
 ## 🚧| Rodmap in progress
 
- | Task   | Progress |
-|--------------------------------------------------|-----------|
-| Develop and relate to Listen the Config   | 42%   |
-| Develops support for Uploads and Uploads Multiples | 100% |
-| Develops support for JWT | 10% |
-| Develop method to Facilitate ResponseWriter handling | 80% |
-| Develop method to Facilitate the handling of the Request | 80%  |
-| Develop Standard of Unit Testing   | 90%   |
-
+| Task                                                     | Progress |
+| -------------------------------------------------------- | -------- |
+| Develop and relate to Listen the Config                  | 42%      |
+| Develops support for Uploads and Uploads Multiples       | 100%     |
+| Develops support for JWT                                 | 10%      |
+| Develop method to Facilitate ResponseWriter handling     | 80%      |
+| Develop method to Facilitate the handling of the Request | 80%      |
+| Develop Standard of Unit Testing                         | 90%      |
 
 ## 🚀| Rodmap for development
 
-
-| Task   | Progress |
-|---------------------------------------------------|-----------|
-| Documentation Tests Examples PKG Go | 45% |
-| Test Coverage go test -cover | 74.6% |
-| Regex feature coverage, but possibilities | 0.% |
-| Develop for OPTIONS METHOD | 100% |
-| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.% |
-| Develop method for ListenAndServeTLS (http2) | 0.% |
-| Develop Static Files support | 100% |
-| WebSocket Support | 0.% |
-| Rate Limiter Support                              | 0.%       |
-| Template Engines                                  | 0.%       |
-| Documentation Tests Examples PKG Go   | 45%   |
-| Test coverage go test -cover   | 75.5%   |
-| Coverage of Regex resources, but possibilities   | 0.%   |
-| Develop for METHOD OPTIONS   | 100%   |
-| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect)   | 0.%   |
-| Develop method for ListenAndServeTLS (http2) | 0.%   |
-| Create a CLI (Command Line Interface) Quick.   | 0.%   |
-
-
+| Task                                                                                            | Progress |
+| ----------------------------------------------------------------------------------------------- | -------- |
+| Documentation Tests Examples PKG Go                                                             | 45%      |
+| Test Coverage go test -cover                                                                    | 74.6%    |
+| Regex feature coverage, but possibilities                                                       | 0.%      |
+| Develop for OPTIONS METHOD                                                                      | 100%     |
+| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.%      |
+| Develop method for ListenAndServeTLS (http2)                                                    | 0.%      |
+| Develop Static Files support                                                                    | 100%     |
+| WebSocket Support                                                                               | 0.%      |
+| Rate Limiter Support                                                                            | 0.%      |
+| Template Engines                                                                                | 0.%      |
+| Documentation Tests Examples PKG Go                                                             | 45%      |
+| Test coverage go test -cover                                                                    | 75.5%    |
+| Coverage of Regex resources, but possibilities                                                  | 0.%      |
+| Develop for METHOD OPTIONS                                                                      | 100%     |
+| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.%      |
+| Develop method for ListenAndServeTLS (http2)                                                    | 0.%      |
+| Create a CLI (Command Line Interface) Quick.                                                    | 0.%      |
 
 ## 📊| Cover Testing Roadmap
 
-| Archive   | Coverage | Status  |
-|---------------|-----------|---------|
-| Ctx   | 84.1%   | 🟡   |
-| Group   | 100.0%   | 🟢   |
-| Http Status  | 7.8%   | 🔴   |
-| Client   | 83.3%   | 🟢   |
-| Mock   | 100.0%   | 🟢   |
-| Concat   | 100.0%   | 🟢   |
-| Log   | 0.0%   | 🔴   |
-| Print   | 66.7%   |  🟡   |
-| Qos   | 0.0%   |  🔴   |
-| Rand   | 0.0%   |  🔴   |
-| Compressa   | 71,4%   | 🟡   |
-| Cors   | 76.0%   | 🟡   |
-| Logger   | 100.0%   | 🟢   |
-| Maxbody   | 100.0%   | 🟢   |
-| Msgid   | 100.0%   | 🟢   |
-| Msguuid   | 86.4%   | 🟢   |
-| Quick   | 79.5%   | 🟡   |
-| QuickTest   | 100.0%   | 🟢   |
-
+| Archive     | Coverage | Status |
+| ----------- | -------- | ------ |
+| Ctx         | 84.1%    | 🟡     |
+| Group       | 100.0%   | 🟢     |
+| Http Status | 7.8%     | 🔴     |
+| Client      | 83.3%    | 🟢     |
+| Mock        | 100.0%   | 🟢     |
+| Concat      | 100.0%   | 🟢     |
+| Log         | 0.0%     | 🔴     |
+| Print       | 66.7%    | 🟡     |
+| Qos         | 0.0%     | 🔴     |
+| Rand        | 0.0%     | 🔴     |
+| Compressa   | 71,4%    | 🟡     |
+| Cors        | 76.0%    | 🟡     |
+| Logger      | 100.0%   | 🟢     |
+| Maxbody     | 100.0%   | 🟢     |
+| Msgid       | 100.0%   | 🟢     |
+| Msguuid     | 86.4%    | 🟢     |
+| Quick       | 79.5%    | 🟡     |
+| QuickTest   | 100.0%   | 🟢     |
 
 ### Fast quick example
-```go
 
+When using New, you can configure global parameters such as request body limits, read/write time-out and route capacity. Below is a custom configuration:
+
+```go
+var ConfigDefault = Config{
+	BodyLimit:         4 * 1024 * 1024,
+	MaxBodySize:       4 * 1024 * 1024,
+	MaxHeaderBytes:    2 * 1024 * 1024,
+	RouteCapacity:     500,
+	MoreRequests:      500,
+	ReadTimeout:       5 * time.Second,
+	WriteTimeout:      5 * time.Second,
+	IdleTimeout:       2 * time.Second,
+	ReadHeaderTimeout: 1 * time.Second,
+}
+```
+
+Check out the code below:
+
+```go
 package main
 
 import "github.com/jeffotoni/quick"
-
 func main() {
+	// Initialize a new Quick instance
     q := quick.New()
 
+	// Define a simple GET route at the root path
     q.Get("/v1/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
         return c.Status(200).SendString("Quick in action ❤️!")
     })
 
+	// Start the Quick server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 
 ```
-
+### 📌 cURL
 ```bash
-
 $ curl -i -XGET -H "Content-Type:application/json" \
 'localhost:8080/v1/user'
-HTTP/1.1 200 OK
-Content-Type: application/json
-Date: Wed, 22 Feb 2023 07:45:36 GMT
-Content-Length: 23
 
-Quick in action ❤️!
-
+"Quick in action ❤️!"
 ```
 
 ### Quick Get Params
-```go
+The example below defines a GET/v1/customer/:param1/:param2 endpoint, where :param1 and :param2 are variables on the route that can receive dynamic values.
 
+```go
 package main
 
 import "github.com/jeffotoni/quick"
 
 func main() {
+    // Initialize a new Quick instance
     q := quick.New()
 
+    // Define a GET route with two dynamic parameters (:param1 and :param2)
     q.Get("/v1/customer/:param1/:param2", func(c *quick.Ctx) error {
+        // Set response content type to JSON
         c.Set("Content-Type", "application/json")
 
+        // Define a struct for the response format
         type my struct {
-            Msg string `json:"msg"`
-            Key string `json:"key"`
-            Val string `json:"val"`
+            Msg string `json:"msg"` 
+            Key string `json:"key"` 
+            Val string `json:"val"` 
         }
 
+        // Return a JSON response with extracted parameters
         return c.Status(200).JSON(&my{
             Msg: "Quick ❤️",
-            Key: c.Param("param1"),
-            Val: c.Param("param2"),
+            Key: c.Param("param1"), 
+            Val: c.Param("param2"), 
         })
     })
 
@@ -249,71 +260,73 @@ func main() {
 }
 
 ```
-
+### 📌 cURL
 ```bash
-
 $ curl -i -XGET -H "Content-Type:application/json" \
 'localhost:8080/v1/customer/val1/val2'
-HTTP/1.1 200 OK
-Content-Type: application/json
-Date: Wed, 22 Feb 2023 07:45:36 GMT
-Content-Length: 23
 
-{"msg":"Quick ❤️","key":"val1","val":"val2"}
-
+{
+   "msg":"Quick ❤️",
+   "key":"val1",
+   "val":"val2"
+}
 ```
 
 ### Quick Post Body json
-```go
+This example shows how to create a POST endpoint to receive and process a JSON request body. The code reads the data sent in the request body and converts it to a Go structure.
 
+```go
 package main
 
 import "github.com/jeffotoni/quick"
 
+// Define a struct to map the expected JSON body
 type My struct {
     Name string `json:"name"`
     Year int    `json:"year"`
 }
 
 func main() {
+    // Initialize a new Quick instance
     q := quick.New()
+
+    // Define a POST route to handle JSON request body
     q.Post("/v1/user", func(c *quick.Ctx) error {
         var my My
+
+		// Parse the request body into the 'my' struct
         err := c.BodyParser(&my)
         if err != nil {
             return c.Status(400).SendString(err.Error())
         }
 
+        // Return the received JSON data
         return c.Status(200).String(c.BodyString())
-        // ou 
-        // c.Status(200).JSON(&my)
+        // Alternative:
+        // return c.Status(200).JSON(&my)
     })
 
     q.Listen("0.0.0.0:8080")
 }
-
 ```
 ### 📌 cURL
 
 ```bash
-
 $ curl -i -XPOST -H "Content-Type:application/json" \
 'localhost:8080/v1/user' \
 -d '{"name":"jeffotoni", "year":1990}'
-HTTP/1.1 200 OK
-Date: Wed, 22 Feb 2023 08:10:06 GMT
-Content-Length: 32
-Content-Type: text/plain; charset=utf-8
 
-{"name":"jeffotoni","year":1990}
-
+{
+   "name":"jeffotoni",
+   "year":1990
+}
 ```
 
-### Uploads multipart/form-data
+## Uploads multipart/form-data
 
 Quick provides a simplified API for managing uploads, allowing you to easily retrieve and manipulate files.
 
-✅ **Main Methods and Functionalities**:
+### ✅ **Main Methods and Functionalities**:
 | Method | Description |
 |--------|-----------|
 | `c.FormFile("file")` | Returns a single file uploaded in the form. |
@@ -329,19 +342,19 @@ Quick provides a simplified API for managing uploads, allowing you to easily ret
 
 ---
 
-##### 📌 File Upload Feature Comparison with other Frameworks
+### 📌 File Upload Feature Comparison with other Frameworks
 
-| Framework  | `FormFile()` | `FormFiles()` | Dynamic Limit | Methods (`FileName()`, `Size()`) | `Save()`, `SaveAll()` Method |
-|------------|-------------|--------------|---------------|---------------------------------|------------|
-| **Quick**  | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| Fiber      | ✅ Yes | ✅ Yes | ❌ No | ❌ No (uses `FileHeader` directly) | ✅ Yes |
-| Gin        | ✅ Yes | ✅ Yes | ❌ No | ❌ No (uses `FileHeader` directly) | ❌ No |
-| Echo       | ✅ Yes | ❌ No  | ❌ No | ❌ No | ❌ No |
-| net/http   | ✅ Yes | ❌ No  | ❌ No | ❌ No | ❌ No |
+| Framework | `FormFile()` | `FormFiles()` | Dynamic Limit | Methods (`FileName()`, `Size()`)   | `Save()`, `SaveAll()` Method |
+| --------- | ------------ | ------------- | ------------- | ---------------------------------- | ---------------------------- |
+| **Quick** | ✅ Yes       | ✅ Yes        | ✅ Yes        | ✅ Yes                             | ✅ Yes                       |
+| Fiber     | ✅ Yes       | ✅ Yes        | ❌ No         | ❌ No (uses `FileHeader` directly) | ✅ Yes                       |
+| Gin       | ✅ Yes       | ✅ Yes        | ❌ No         | ❌ No (uses `FileHeader` directly) | ❌ No                        |
+| Echo      | ✅ Yes       | ❌ No         | ❌ No         | ❌ No                              | ❌ No                        |
+| net/http  | ✅ Yes       | ❌ No         | ❌ No         | ❌ No                              | ❌ No                        |
 
 ---
-
 ### 📌 File Upload Example
+This example shows how to create a file upload endpoint. It allows users to send a single file via POST to the/upload route.
 
 ```go
 package main
@@ -351,14 +364,22 @@ import (
     "github.com/jeffotoni/quick"
 )
 
+// Define a struct for error messages
+type Msg struct {
+	Msg   string `json:"msg"`
+	Error string `json:"error"`
+}
+
 func main() {
-    // start Quick
+    // Initialize a new Quick instance
     q := quick.New()
 
+	// Define a route for file upload
     q.Post("/upload", func(c *quick.Ctx) error {
         // set limit upload
         c.FormFileLimit("10MB")
 
+		// Retrieve the uploaded file
         uploadedFile, err := c.FormFile("file")
         if err != nil {
             return c.Status(400).JSON(Msg{
@@ -367,6 +388,7 @@ func main() {
              })
         }
 
+		// Print file details
         fmt.Println("Name:", uploadedFile.FileName())
         fmt.Println("Size:", uploadedFile.Size())
         fmt.Println("MIME Type:", uploadedFile.ContentType())
@@ -374,73 +396,96 @@ func main() {
         // Save the file (optional)
         // uploadedFile.Save("/tmp/uploads")
 
-        return c.Status(200).JSONIN(uploadedFile)
-
+		// Return JSON response with file details
+		// Alternative:
+        //return c.Status(200).JSONIN(uploadedFile)
+		return c.Status(200).JSON(map[string]interface{}{
+			"name": uploadedFile.FileName(),
+			"size": uploadedFile.Size(),
+			"type": uploadedFile.ContentType(),
+		})
+		
     })
 
      q.Listen("0.0.0.0:8080")
 }
 ```
+### 📌 cURL
+
+```bash
+$ curl -i -X POST http://localhost:8080/upload -F "file=quick.txt"
+
+{
+   "name":"quick.txt",
+   "size":1109,
+   "type":"text/plain; charset=utf-8"
+}
+```
+
 ### 📌 Multiple Upload Example
+This example allows users to send multiple files via POST to the/upload-multiple route
 
 ```go
 package main
 
 import (
-    "fmt"
-    "github.com/jeffotoni/quick"
+	"fmt"
+
+	"github.com/jeffotoni/quick"
 )
 
+// Define a struct for error messages
+type Msg struct {
+	Msg   string `json:"msg"`
+	Error string `json:"error"`
+}
+
 func main() {
-    // start Quick
-    q := quick.New()
+	// start Quick
+	q := quick.New()
 
-    q.Post("/upload-multiple", func(c *quick.Ctx) error {
-        // set limit upload
-        c.FormFileLimit("10MB")
+	q.Post("/upload-multiple", func(c *quick.Ctx) error {
+		// set limit upload
+		c.FormFileLimit("10MB")
 
-        // recebereceiving files
-        files, err := c.FormFiles("files")
-        if err != nil {
-            return c.Status(400).JSON(Msg{
-                Msg:   "Upload error",
-                Error: err.Error(),
-            })
-        }
+		// recebereceiving files
+		files, err := c.FormFiles("files")
+		if err != nil {
+			return c.Status(400).JSON(Msg{
+				Msg:   "Upload error",
+				Error: err.Error(),
+			})
+		}
 
-        // listing all files
-        for _, file := range files {
-            fmt.Println("Name:", file.FileName())
-            fmt.Println("Size:", file.Size())
-            fmt.Println("Type MINE:", file.ContentType())
-            fmt.Println("Bytes:", file.Bytes())
-        }
+		// listing all files
+		for _, file := range files {
+			fmt.Println("Name:", file.FileName())
+			fmt.Println("Size:", file.Size())
+			fmt.Println("Type MINE:", file.ContentType())
+			fmt.Println("Bytes:", file.Bytes())
+		}
 
-        // optional
-        // files.SaveAll("/my-dir/uploads")
+		// optional
+		// files.SaveAll("/my-dir/uploads")
 
-        return c.Status(200).JSONIN(files)
-    })
-        
-    q.Listen("0.0.0.0:8080")
+		// Alternative:
+		//return c.Status(200).JSONIN(files)
+		return c.Status(200).JSON("Upload successfully completed")
+	})
+
+	q.Listen("0.0.0.0:8080")
 }
 ```
-### 📌 Testing with cURL
 
-##### 🔹Upload a single file:
+### 📌 cURL
+
 ```bash
-
-$ curl -X POST http://localhost:8080/upload -F "file=@example.png"
-```
-
-##### 🔹 Upload multiple files:
-```bash
-
 $ curl -X POST http://localhost:8080/upload-multiple \
 -F "files=@image1.jpg" -F "files=@document.pdf"
 ```
 
 ### Quick Post Bind json
+
 ```go
 
 package main
@@ -469,6 +514,7 @@ func main() {
 ```
 
 ### 📌 cURL
+
 ```bash
 
 $ curl -i -XPOST -H "Content-Type:application/json" \
@@ -484,7 +530,9 @@ Content-Type: text/plain; charset=utf-8
 ```
 
 ### Cors
+
 Using the Cors middleware, making your call in the default way, which is:
+
 ```go
 var ConfigDefault = Config{
  AllowedOrigins: []string{"*"},
@@ -496,7 +544,9 @@ var ConfigDefault = Config{
  Debug: false,
 }
 ```
+
 Check out the code below:
+
 ```go
 package main
 
@@ -506,7 +556,7 @@ import (
 )
 
 func main() {
-	
+
     q := quick.New()
     q.Use(cors.New())
 
@@ -521,6 +571,7 @@ func main() {
 ```
 
 ### quick.New(quick.Config{})
+
 ```go
 
 package main
@@ -543,6 +594,7 @@ func main() {
 ```
 
 ### quick.Group()
+
 ```go
 package main
 
@@ -578,6 +630,7 @@ func main() {
 ```
 
 ### Quick Tests
+
 ```go
 
 package main
@@ -623,15 +676,18 @@ func TestQuickExample(t *testing.T) {
 
     t.Logf("\nOutputBodyString -> %v", data.BodyStr())
     t.Logf("\nStatusCode -> %d", data.StatusCode())
-    t.Logf("\nOutputBody -> %v", string(data.Body())) 
+    t.Logf("\nOutputBody -> %v", string(data.Body()))
     t.Logf("\nResponse -> %v", data.Response())
 }
 
 ```
+
 ---
+
 ## 🔎📝 Regex
 
 ### quick.regex - Accepts only numbers in id
+
 ```go
 package main
 
@@ -656,7 +712,7 @@ func main() {
 }
 ```
 
-### quick.regex - Accepts only lowercase letters in the slug 
+### quick.regex - Accepts only lowercase letters in the slug
 
 ```go
 package main
@@ -711,22 +767,26 @@ func main() {
 }
 
 ```
+
 ### 🔑 Basic Authentication
 
 Basic Authentication (Basic Auth) is a simple authentication mechanism defined in RFC 7617. It is commonly used for HTTP-based authentication, allowing clients to provide credentials (username and password) in the request header.
 
-**🔹 How it Works** 
-  1.	The client encodes the username and password in Base64 (username:password → dXNlcm5hbWU6cGFzc3dvcmQ=).
-  2.	The encoded credentials are sent in the Authorization header:
+**🔹 How it Works**
+
+1. The client encodes the username and password in Base64 (username:password → dXNlcm5hbWU6cGFzc3dvcmQ=).
+2. The encoded credentials are sent in the Authorization header:
+
 ```bash
 Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
 ```
-  3.	The server decodes the credentials and verifies them before granting access.
+
+3. The server decodes the credentials and verifies them before granting access.
 
 **⚠️ Security Considerations**
-	• Not encrypted: Basic Auth only encodes credentials in Base64, but does not encrypt them.
-	• Use over HTTPS: Always use Basic Auth with TLS/SSL (HTTPS) to prevent credentials from being exposed.
-	• Alternative authentication methods: For higher security, consider OAuth2, JWT, or API keys.
+• Not encrypted: Basic Auth only encodes credentials in Base64, but does not encrypt them.
+• Use over HTTPS: Always use Basic Auth with TLS/SSL (HTTPS) to prevent credentials from being exposed.
+• Alternative authentication methods: For higher security, consider OAuth2, JWT, or API keys.
 
 Basic Auth is suitable for simple use cases, but for production applications, stronger authentication mechanisms are recommended. 🚀
 
@@ -734,6 +794,7 @@ Basic Auth is suitable for simple use cases, but for production applications, st
 
 This example sets up Basic Authentication using environment variables to store the credentials securely.
 the routes below are affected, to isolate the route use group to apply only to routes in the group.
+
 ```go
 package main
 
@@ -769,6 +830,7 @@ func main() {
 }
 
 ```
+
 ---
 
 ### Basic Authentication with Quick Middleware
@@ -804,10 +866,12 @@ func main() {
 }
 
 ```
+
 ### Basic Authentication with Quick Route Groups
 
 This example shows how to apply Basic Authentication to a specific group of routes using Quick's Group functionality.
 When we use group we can isolate the middleware, this works for any middleware in quick.
+
 ```go
 
 package main
@@ -846,7 +910,9 @@ func main() {
 }
 
 ```
+
 ### BasicAuth Customized
+
 This example shows a custom implementation of Basic Authentication without using any middleware. It manually verifies user credentials and applies authentication to protected routes.
 
 In quick you are allowed to make your own custom implementation directly in q.Use(..), that is, you will be able to implement it directly if you wish.
@@ -912,26 +978,28 @@ func main() {
 }
 
 ```
+
 ---
 
 #### 📂 STATIC FILES
 
 A Static File Server is a fundamental feature in web frameworks, allowing the efficient serving of static content such as HTML, CSS, JavaScript, images, and other assets. It is useful for hosting front-end applications, providing downloadable files, or serving resources directly from the backend.
 
-
 🔹 How It Works
-    
+
 1. The server listens for HTTP requests targeting static file paths.
 2. If a requested file exists in the configured directory, the server reads and returns the file as a response.
 3. MIME types are automatically determined based on the file extension.
 
 :zap: Key Features
+
 - Efficient handling: Serves files directly without additional processing.
 - MIME type detection: Automatically identifies file types for proper rendering.
 - Caching support: Can be configured to improve performance via HTTP headers.
 - Directory listing: (Optional) Allows browsing available static files.
 
 :warning: Security Considerations
+
 - Restrict access to sensitive files (.env, .git, etc.).
 - Configure CORS policies when necessary.
 - Use a Content Security Policy (CSP) to mitigate XSS risks.
@@ -946,12 +1014,12 @@ package main
 import "github.com/jeffotoni/quick"
 
 func main() {
-    
+
     // Create a new Quick server instance
     q := quick.New()
 
     // Static Files Setup
-    // Serves files from the "./static" directory 
+    // Serves files from the "./static" directory
     // under the "/static" URL path.
     q.Static("/static", "./static")
 
@@ -969,21 +1037,25 @@ func main() {
 
 
 ```
+
 ---
 
 #### 📁 EMBED
+
 🔹 How Embedded Static Files Work
-    
+
 1. Static assets are compiled directly into the binary at build time (e.g., using Go’s embed package).
 2. The application serves these files from memory instead of reading from disk.
 3. This eliminates external dependencies, making deployment easier.
 
-:zap:  Advantages of Embedded Files
+:zap: Advantages of Embedded Files
+
 - Portability: Single binary distribution without extra files.
 - Performance: Faster access to static assets as they are stored in memory.
 - Security: Reduces exposure to external file system attacks.
 
 ### Embedding Files
+
 When embedding static files into a binary executable, the server does not rely on an external file system to serve assets. This approach is useful for standalone applications, CLI tools, and cross-platform deployments where dependencies should be minimized.
 
 This example incorporates static files into the binary using the embed package and serves them using the Quick structure.
@@ -1022,8 +1094,11 @@ func main() {
 }
 
 ```
+
 ---
-## 🌍 HTTP Client 
+
+## 🌍 HTTP Client
+
 The HTTP Client package in Quick provides a simple and flexible way to make HTTP requests, supporting GET, POST, PUT, and DELETE operations. It is designed to handle different types of request bodies and parse responses easily.
 
 This client abstracts low-level HTTP handling and offers:
@@ -1056,6 +1131,7 @@ func main() {
 ```
 
 #### POST Request Example (Using a Struct)
+
 ```go
 package main
 
@@ -1091,6 +1167,7 @@ func main() {
 ```
 
 #### PUT Request Example (Using a String)
+
 ```go
 package main
 
@@ -1158,6 +1235,7 @@ func main() {
 	}
 }
 ```
+
 ---
 
 # Qtest - HTTP Testing Utility for Quick
@@ -1172,8 +1250,8 @@ Qtest is an **advanced HTTP testing function** designed to simplify route valida
 - **Built-in validation methods** for status codes, headers, and response bodies.
 
 ## 📌 Overview
+
 The `Qtest` function takes a `QuickTestOptions` struct containing request parameters, executes the request, and returns a `QtestReturn` object, which provides methods for analyzing and validating the result.
- 
 
 ```go
 func TestQTest_Options_POST(t *testing.T) {
@@ -1224,14 +1302,17 @@ func TestQTest_Options_POST(t *testing.T) {
     }
 }
 ```
+
 🚀 **More details here [Qtest - Quick](https://github.com/jeffotoni/quick/tree/main/quickTest)**
 
 ---
+
 ## 🔄 Retry & Failover Mechanisms in Quick HTTP Client
 
 The **Quick HTTP Client** now includes **built-in retry and failover support**, allowing for more resilient and reliable HTTP requests. These features are essential for handling **transient failures**, **network instability**, and **service downtime** efficiently.
 
 ## 🚀 Key Features
+
 - **Automatic Retries**: Retries failed requests based on configurable rules.
 - **Exponential Backoff**: Gradually increases the delay between retry attempts.
 - **Status-Based Retries**: Retries only on specified HTTP status codes (e.g., `500`, `502`, `503`).
@@ -1241,21 +1322,24 @@ The **Quick HTTP Client** now includes **built-in retry and failover support**, 
 ---
 
 ## 🔹 How Retry & Failover Work
+
 The retry mechanism works by **automatically resending the request** if it fails, with options to **limit retries**, **introduce backoff delays**, and **retry only for specific response statuses**. The failover system ensures **high availability** by redirecting failed requests to alternate URLs.
 
 ### ✅ Configuration Options:
-| Option                | Description |
-|-----------------------|-------------|
-| **MaxRetries**       | Defines the number of retry attempts. |
-| **Delay**            | Specifies the delay before each retry. |
-| **UseBackoff**       | Enables exponential backoff to increase delay dynamically. |
-| **Statuses**         | List of HTTP status codes that trigger a retry. |
-| **FailoverURLs**     | List of backup URLs for failover in case of repeated failures. |
-| **EnableLog**        | Enables logging for debugging retry attempts. |
+
+| Option           | Description                                                    |
+| ---------------- | -------------------------------------------------------------- |
+| **MaxRetries**   | Defines the number of retry attempts.                          |
+| **Delay**        | Specifies the delay before each retry.                         |
+| **UseBackoff**   | Enables exponential backoff to increase delay dynamically.     |
+| **Statuses**     | List of HTTP status codes that trigger a retry.                |
+| **FailoverURLs** | List of backup URLs for failover in case of repeated failures. |
+| **EnableLog**    | Enables logging for debugging retry attempts.                  |
 
 ---
 
 ### **Retry with Exponential Backoff**
+
 This example demonstrates **retrying a request** with an increasing delay (`backoff`) when encountering errors.
 
 ```go
@@ -1289,8 +1373,11 @@ func main() {
 }
 
 ```
+
 ### **Failover to Backup URLs**
+
 This example switches to a backup URL when the primary request fails.
+
 ```go
 package main
 
@@ -1321,29 +1408,31 @@ func main() {
 }
 
 ```
+
 ---
+
 ## 📝 Form Submission with PostForm in Quick HTTP Client
 
 The Quick HTTP Client now includes built-in support for `PostForm`, enabling seamless handling of application/`x-www-form-urlencoded` form submissions. This feature simplifies interaction with web services and APIs that require form-encoded data, making it ideal for authentication requests, data submissions, and legacy system integrations.
 
-
 ## 🔹 Why Use `PostForm`?
 
-| Feature                | Benefit |
-|------------------------|---------|
-| **Optimized for Forms** | Simplifies sending form-encoded data (`application/x-www-form-urlencoded`). |
-| **Automatic Encoding**  | Converts `url.Values` into a valid form submission payload. |
-| **Header Management**   | Automatically sets `Content-Type` to `application/x-www-form-urlencoded`. |
-| **Consistent API**      | Follows the same design as `Post`, `Get`, `Put`, etc. |
-| **Better Compatibility** | Works with APIs that do not accept JSON payloads. |
+| Feature                  | Benefit                                                                     |
+| ------------------------ | --------------------------------------------------------------------------- |
+| **Optimized for Forms**  | Simplifies sending form-encoded data (`application/x-www-form-urlencoded`). |
+| **Automatic Encoding**   | Converts `url.Values` into a valid form submission payload.                 |
+| **Header Management**    | Automatically sets `Content-Type` to `application/x-www-form-urlencoded`.   |
+| **Consistent API**       | Follows the same design as `Post`, `Get`, `Put`, etc.                       |
+| **Better Compatibility** | Works with APIs that do not accept JSON payloads.                           |
 
 ---
+
 ## 🔹 How PostForm Works
 
 The PostForm method encodes form parameters, adds necessary headers, and sends an HTTP POST request to the specified URL. It is specifically designed for APIs and web services that do not accept JSON payloads but require form-encoded data.
 
-
 ### 🔹 **Quick Server with Form Submission**
+
 The following example demonstrates how to send form-encoded data using Quick PostForm:
 
 ```go
@@ -1418,28 +1507,28 @@ func main() {
 }
 
 ```
+
 ---
-### 🌐 Transport Configuration 
+
+### 🌐 Transport Configuration
 
 The `Transport` setting in the Quick HTTP Client is essential for managing the network layer of HTTP communications. It allows detailed customization of how HTTP requests and responses are handled, optimizing performance, security, and reliability.
 
 ### ✅ Key Features of Transport Configuration
 
-| Setting                  | Description |
-|--------------------------|-------------|
-| **Proxy Settings**       | Manages how HTTP requests handle proxy servers, using system environment settings for automatic configuration. |
-| **TLS Configuration**    | Controls aspects of security, such as TLS version and certificate verification. `InsecureSkipVerify` is available for development to bypass SSL certificate verification. |
-| **Connection Management**| Includes settings like `MaxIdleConns`, `MaxConnsPerHost`, and `MaxIdleConnsPerHost`, managing the number and state of connections to optimize resource use and improve scalability. |
-| **DisableKeepAlives**    | Determines whether to use persistent connections, improving performance by reducing connection setup times. |
-| **HTTP/2 Support**       | Enables HTTP/2 for supported servers, enhancing communication efficiency and performance. |
+| Setting                   | Description                                                                                                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Proxy Settings**        | Manages how HTTP requests handle proxy servers, using system environment settings for automatic configuration.                                                                      |
+| **TLS Configuration**     | Controls aspects of security, such as TLS version and certificate verification. `InsecureSkipVerify` is available for development to bypass SSL certificate verification.           |
+| **Connection Management** | Includes settings like `MaxIdleConns`, `MaxConnsPerHost`, and `MaxIdleConnsPerHost`, managing the number and state of connections to optimize resource use and improve scalability. |
+| **DisableKeepAlives**     | Determines whether to use persistent connections, improving performance by reducing connection setup times.                                                                         |
+| **HTTP/2 Support**        | Enables HTTP/2 for supported servers, enhancing communication efficiency and performance.                                                                                           |
 
 This configuration ensures optimal performance and security customization, making it suitable for both development and production environments.
 
-
-
 #### 🔹 Advanced HTTP client configuration with failover mechanism
 
-This code example showcases the setup of an HTTP client capable of handling network interruptions and server failures gracefully. It features custom transport configurations, including enhanced security settings, connection management, and a robust failover mechanism. Such a setup ensures that the application remains resilient and responsive under various network conditions. 
+This code example showcases the setup of an HTTP client capable of handling network interruptions and server failures gracefully. It features custom transport configurations, including enhanced security settings, connection management, and a robust failover mechanism. Such a setup ensures that the application remains resilient and responsive under various network conditions.
 
 ```go
 package main
@@ -1456,24 +1545,24 @@ import (
 )
 
 func main() {
-	
+
 	customTransport := &http.Transport{
 		// Uses system proxy settings if available.
-		Proxy: http.ProxyFromEnvironment, 
+		Proxy: http.ProxyFromEnvironment,
 		TLSClientConfig: &tls.Config{
 			// Allows insecure TLS connections (not recommended for production).
-			InsecureSkipVerify: true,    
-			// Enforces a minimum TLS version for security.         
-			MinVersion:         tls.VersionTLS12, 
+			InsecureSkipVerify: true,
+			// Enforces a minimum TLS version for security.
+			MinVersion:         tls.VersionTLS12,
 		},
 		 // Maximum number of idle connections across all hosts.
-		MaxIdleConns:        50,  
-		// Maximum simultaneous connections per host. 
-		MaxConnsPerHost:     30, 
-		// Maximum number of idle connections per host.   
-		MaxIdleConnsPerHost: 10, 
-		// Enables persistent connections (Keep-Alive).   
-		DisableKeepAlives:   false, 
+		MaxIdleConns:        50,
+		// Maximum simultaneous connections per host.
+		MaxConnsPerHost:     30,
+		// Maximum number of idle connections per host.
+		MaxIdleConnsPerHost: 10,
+		// Enables persistent connections (Keep-Alive).
+		DisableKeepAlives:   false,
 	}
 
 	// Creating a fully custom *http.Client with the transport and timeout settings.
@@ -1485,17 +1574,17 @@ func main() {
 	// Creating a client using both the custom transport and other configurations.
 	cClient := client.New(
 		// Applying the custom HTTP client.
-		client.WithCustomHTTPClient(customHTTPClient), 
+		client.WithCustomHTTPClient(customHTTPClient),
 		// Custom context for request cancellation and deadlines.
-		client.WithContext(context.Background()),      
+		client.WithContext(context.Background()),
 		client.WithHeaders(map[string]string{
 			"Content-Type":  "application/json",
 			"Authorization": "Bearer YOUR_ACCESS_TOKEN",
 		}),
 		// Applying the custom transport.
-		client.WithTransport(customTransport), 
+		client.WithTransport(customTransport),
 		// Setting a timeout for requests.
-		client.WithTimeout(5*time.Second),     
+		client.WithTimeout(5*time.Second),
 		// Retry on specific status codes.
 		client.WithRetry(
 			client.RetryConfig{
@@ -1519,10 +1608,12 @@ func main() {
 }
 
 ```
+
 ---
+
 #### 🔹 HTTP Client with Advanced Transport and Failover Capabilities
 
-Explore how to set up an HTTP client that not only adheres to security best practices with TLS configurations but also ensures your application remains operational through network issues. This example includes detailed setups for handling HTTP client retries and switching to failover URLs when typical requests fail. Ideal for systems requiring high reliability and fault tolerance. 
+Explore how to set up an HTTP client that not only adheres to security best practices with TLS configurations but also ensures your application remains operational through network issues. This example includes detailed setups for handling HTTP client retries and switching to failover URLs when typical requests fail. Ideal for systems requiring high reliability and fault tolerance.
 
 ```go
 package main
@@ -1543,21 +1634,21 @@ func main() {
 	// Creating a custom HTTP transport with advanced settings.
 	customTransport := &http.Transport{
 		// Uses system proxy settings if available.
-		Proxy: http.ProxyFromEnvironment, 
+		Proxy: http.ProxyFromEnvironment,
 		TLSClientConfig: &tls.Config{
 			 // Allows insecure TLS connections (not recommended for production).
-			InsecureSkipVerify: true,      
-			// Enforces a minimum TLS version for security.      
-			MinVersion:         tls.VersionTLS12, 
+			InsecureSkipVerify: true,
+			// Enforces a minimum TLS version for security.
+			MinVersion:         tls.VersionTLS12,
 		},
 		// Maximum number of idle connections across all hosts.
-		MaxIdleConns:        50, 
-		// Maximum simultaneous connections per host.   
-		MaxConnsPerHost:     30,   
-		 // Maximum number of idle connections per host. 
-		MaxIdleConnsPerHost: 10,  
-		// Enables persistent connections (Keep-Alive). 
-		DisableKeepAlives:   false, 
+		MaxIdleConns:        50,
+		// Maximum simultaneous connections per host.
+		MaxConnsPerHost:     30,
+		 // Maximum number of idle connections per host.
+		MaxIdleConnsPerHost: 10,
+		// Enables persistent connections (Keep-Alive).
+		DisableKeepAlives:   false,
 	}
 
 	// Creating a fully custom *http.Client with the transport and timeout settings.
@@ -1565,15 +1656,15 @@ func main() {
 		 // Sets a global timeout for all requests.
 		Timeout:   5 * time.Second,
 		// Uses the custom transport.
-		Transport: customTransport, 
+		Transport: customTransport,
 	}
 
 	// Creating a client using both the custom transport and other configurations.
 	cClient := client.New(
 		// Applying the custom HTTP client.
-		client.WithCustomHTTPClient(customHTTPClient), 
+		client.WithCustomHTTPClient(customHTTPClient),
 		 // Custom context for request cancellation and deadlines.
-		client.WithContext(context.Background()),     
+		client.WithContext(context.Background()),
 		client.WithHeaders(map[string]string{
 			"Content-Type":  "application/json",
 			"Authorization": "Bearer YOUR_ACCESS_TOKEN",
@@ -1600,10 +1691,12 @@ func main() {
 	fmt.Println("POST response:", string(resp.Body))
 }
 ```
+
 ---
+
 ### 🔹Configuring HTTP Client with Retry and Failover Mechanisms
 
-Discover how to build an HTTP client capable of dealing with network instabilities and server failures. This setup includes detailed retry configurations and introduces failover URLs to ensure that your application can maintain communication under adverse conditions. The example demonstrates using exponential backoff for retries and provides multiple endpoints to guarantee the availability of services. 
+Discover how to build an HTTP client capable of dealing with network instabilities and server failures. This setup includes detailed retry configurations and introduces failover URLs to ensure that your application can maintain communication under adverse conditions. The example demonstrates using exponential backoff for retries and provides multiple endpoints to guarantee the availability of services.
 
 ```go
 package main
@@ -1635,20 +1728,20 @@ func main() {
 		client.WithRetry(
 			client.RetryConfig{
 				 // Retry failed requests up to two times.
-				MaxRetries: 2,      
-				// Wait for 1 second before retrying.             
-				Delay:      1 * time.Second, 
-				 // Use exponential backoff strategy for retries.     
-				UseBackoff: true,         
-				// HTTP status codes that trigger a retry.       
-				Statuses:   []int{500, 502, 503}, 
+				MaxRetries: 2,
+				// Wait for 1 second before retrying.
+				Delay:      1 * time.Second,
+				 // Use exponential backoff strategy for retries.
+				UseBackoff: true,
+				// HTTP status codes that trigger a retry.
+				Statuses:   []int{500, 502, 503},
 				// Alternate URLs to try if the main request fails.
-				FailoverURLs: []string{ 
+				FailoverURLs: []string{
 					"http://hosterror",
 					"https://httpbin.org/post",
 				},
 				// Enable logging for retry operations.
-				EnableLog: true, 
+				EnableLog: true,
 			}),
 	)
 
@@ -1669,10 +1762,12 @@ func main() {
 }
 
 ```
+
 ---
+
 ### 🔹Advanced HTTP Client Configuration with Transport and Retry Settings
 
-Explore the configuration of an HTTP client designed for high reliability and security in network communications. This example includes sophisticated transport settings, featuring TLS configurations for enhanced security, and a robust retry mechanism to handle request failures gracefully. These settings are essential for applications requiring reliable data exchange with external APIs, especially in environments where network stability might be a concern. 
+Explore the configuration of an HTTP client designed for high reliability and security in network communications. This example includes sophisticated transport settings, featuring TLS configurations for enhanced security, and a robust retry mechanism to handle request failures gracefully. These settings are essential for applications requiring reliable data exchange with external APIs, especially in environments where network stability might be a concern.
 
 ```go
 package main
@@ -1703,7 +1798,7 @@ func main() {
 			// Use the system environment settings for proxy configuration.
 			Proxy: http.ProxyFromEnvironment,
 
-			// Configure TLS settings to skip verification of the server's 
+			// Configure TLS settings to skip verification of the server's
 			// certificate chain and hostname.
 			// Warning: Setting InsecureSkipVerify to true is not recommended for
 			//  production as it is insecure.
@@ -1739,22 +1834,26 @@ func main() {
 }
 
 ```
+
 ---
+
 ## 📌 TLS
 
 `TLS (Transport Layer Security)` is a cryptographic protocol that provides **secure communication** over a network. It is widely used to encrypt data transmitted between clients and servers, ensuring **confidentiality, integrity, and authentication**. TLS is the successor to SSL (Secure Sockets Layer) and is used in HTTPS, email security, and many other applications.
 
 ### 🔹 TLS Features
 
-| Feature           | Description |
-|------------------|-------------|
-| 🔐 **Encryption** | Protects data from being intercepted during transmission. |
-| 🔑 **Authentication** | Ensures the server (and optionally the client) is legitimate. |
-| 🔄 **Data Integrity** | Prevents data from being modified or tampered with in transit. |
-| 🚀 **Performance** | Modern TLS versions (1.2, 1.3) provide strong security with minimal overhead. |
+| Feature               | Description                                                                   |
+| --------------------- | ----------------------------------------------------------------------------- |
+| 🔐 **Encryption**     | Protects data from being intercepted during transmission.                     |
+| 🔑 **Authentication** | Ensures the server (and optionally the client) is legitimate.                 |
+| 🔄 **Data Integrity** | Prevents data from being modified or tampered with in transit.                |
+| 🚀 **Performance**    | Modern TLS versions (1.2, 1.3) provide strong security with minimal overhead. |
+
 ---
 
 ### 🔹 Running a Secure HTTPS Server with Quick and TLS
+
 ```go
 package main
 
@@ -1784,6 +1883,7 @@ func main() {
 ```
 
 ### ⚠️ **Note on Ports and Permissions**
+
 This example **uses port 8443** so that it runs on **any operating system without requiring extra permissions**.
 
 However, in production, you may want to use the **standard HTTPS port 443**.
@@ -1796,6 +1896,7 @@ To run on **port 443** on Linux, use:
 ```bash
 $ sudo go run main.go
 ```
+
 ---
 
 ## 📚| More Examples
@@ -1804,9 +1905,8 @@ This directory contains practical examples of the Quick Framework, a fast and li
 
 ## 🤝| Contributions
 
-We already have several examples, and we can already test and play 😁. Of course, we are at the beginning, still has much to do. 
+We already have several examples, and we can already test and play 😁. Of course, we are at the beginning, still has much to do.
 Feel free to do **PR** (at risk of winning a Go t-shirt ❤️ and of course recognition as a professional Go 😍 in the labor market).
-
 
 ## 🚀 **Quick Project Supporters** 🙏
 
@@ -1816,20 +1916,9 @@ We thank all our supporters! 🙌 If you also believe in our work and want to co
 
 Together we can continue to build amazing tools! 🚀
 
-| Avatar | User | Donation |
-|--------|------|----------|
-| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20> | [@jeffotoni](https://github.com/jeffotoni) | x 10 |
-| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | [@Crow3442](https://github.com/Crow3442) | x 5  |
-| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20> | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | x 5 |
-| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height=20> | [@jaquelineabreu](https://github.com/jaquelineabreu) | x 1 |
-
-
-
-
-
-
-
-
-
-
-
+| Avatar                                                                                                                      | User                                                           | Donation |
+| --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------- |
+| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20>                                              | [@jeffotoni](https://github.com/jeffotoni)                     | x 10     |
+| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | [@Crow3442](https://github.com/Crow3442)                       | x 5      |
+| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20>                                                  | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | x 5      |
+| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height=20>                                                  | [@jaquelineabreu](https://github.com/jaquelineabreu)           | x 1      |
