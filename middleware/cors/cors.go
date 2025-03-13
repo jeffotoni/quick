@@ -2,6 +2,7 @@ package cors
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -52,20 +53,13 @@ type Config struct {
 }
 
 var ConfigDefault = Config{
-	AllowedOrigins: []string{"*"},
-	AllowedMethods: []string{
-		"POST",
-		"GET",
-		"PUT",
-		"DELETE",
-		"PATH",
-		"HEAD",
-		"OPTIONS",
-	},
-	AllowCredentials: true,
-	AllowedHeaders:   []string{"Origin", "Content-Type"},
+	AllowedOrigins:   []string{"*"},
+	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	AllowedHeaders:   []string{"Origin", "Content-Type", "Accept", "Authorization"},
+	ExposedHeaders:   []string{"Content-Length"},
+	AllowCredentials: false,
+	MaxAge:           600,
 	Debug:            false,
-	MaxAge:           0,
 }
 
 func New(config ...Config) func(http.Handler) http.Handler {
@@ -75,27 +69,110 @@ func New(config ...Config) func(http.Handler) http.Handler {
 	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			rules(c, w, r)
-			if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
-				w.WriteHeader(http.StatusNoContent)
+
+			// aply rules CORS
+			applyCORSHeaders(c, w, r)
+
+			// If it is an OPTIONS (preflight) request, respond directly
+			if r.Method == http.MethodOptions {
+				if r.Header.Get("Access-Control-Request-Method") != "" {
+					w.WriteHeader(http.StatusNoContent)
+					return
+				}
 			}
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func rules(c Config, w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("X-Cors", "true")
+// applyCORSHeaders applies the necessary CORS headers to an HTTP response.
+// This function is called during request handling to ensure cross-origin requests
+// are properly validated and allowed based on the provided configuration.
+//
+// The function dynamically sets `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`,
+// `Access-Control-Allow-Headers`, and other necessary headers to comply with CORS policies.
+//
+// If `AllowCredentials` is `true`, it ensures the correct Origin is set instead of "*",
+// since browsers restrict using "*" when credentials are enabled.
+//
+// Headers Managed by This Function:
+// - Access-Control-Allow-Origin: Specifies the allowed origin(s) based on configuration.
+// - Access-Control-Allow-Credentials: Determines whether credentials (cookies, HTTP authentication) are allowed.
+// - Access-Control-Allow-Methods: Lists allowed HTTP methods.
+// - Access-Control-Allow-Headers: Specifies allowed request headers, supporting `*` dynamically.
+// - Access-Control-Expose-Headers: Defines headers that are accessible from the frontend.
+// - Access-Control-Max-Age: Specifies the cache duration for preflight responses.
+//
+// Parameters:
+// - c: Config – CORS configuration settings.
+// - w: http.ResponseWriter – The response writer to send headers.
+// - r: *http.Request – The incoming HTTP request.
+//
+// Example Usage:
+// This function is used inside a middleware for handling CORS.
+//
+//	func New(config Config) func(http.Handler) http.Handler {
+//	    return func(next http.Handler) http.Handler {
+//	        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//	            applyCORSHeaders(config, w, r)
+//	            next.ServeHTTP(w, r)
+//	        })
+//	    }
+//	}
+func applyCORSHeaders(c Config, w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
 
-	if len(c.AllowedOrigins) > 0 {
-		w.Header().Set("Access-Control-Allow-Origin", strings.Join(c.AllowedOrigins, ", "))
+	// If there is no Origin in the request, there's no need to apply CORS.
+	if origin == "" {
+		return
 	}
+
+	// Handle Access-Control-Allow-Origin based on configuration
+	if contains(c.AllowedOrigins, "*") && c.AllowCredentials {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+	} else if contains(c.AllowedOrigins, "*") && !c.AllowCredentials {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+	} else if contains(c.AllowedOrigins, origin) {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		if c.AllowCredentials {
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+	}
+
+	// Set Allowed Methods
 	if len(c.AllowedMethods) > 0 {
 		w.Header().Set("Access-Control-Allow-Methods", strings.Join(c.AllowedMethods, ", "))
 	}
-	if len(c.AllowedHeaders) > 0 {
+
+	// Set Allowed Headers
+	if len(c.AllowedHeaders) == 1 && c.AllowedHeaders[0] == "*" {
+		reqHeaders := r.Header.Get("Access-Control-Request-Headers")
+		if reqHeaders != "" {
+			w.Header().Set("Access-Control-Allow-Headers", reqHeaders)
+		}
+	} else if len(c.AllowedHeaders) > 0 {
 		w.Header().Set("Access-Control-Allow-Headers", strings.Join(c.AllowedHeaders, ", "))
 	}
+
+	// Set Exposed Headers
+	if len(c.ExposedHeaders) > 0 {
+		w.Header().Set("Access-Control-Expose-Headers", strings.Join(c.ExposedHeaders, ", "))
+	}
+
+	// Set Max-Age if specified
+	if c.MaxAge > 0 {
+		w.Header().Set("Access-Control-Max-Age", strconv.Itoa(c.MaxAge))
+	}
+}
+
+func contains(list []string, val string) bool {
+	for _, v := range list {
+		if v == val {
+			return true
+		}
+	}
+	return false
 }
 
 func Default(config ...Config) Config {
@@ -108,11 +185,14 @@ func Default(config ...Config) Config {
 
 func (c Config) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rules(c, w, r)
+		// aply rules CORS
+		applyCORSHeaders(c, w, r)
+
 		if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
 			// w.WriteHeader(http.StatusNoContent)
 			return
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }

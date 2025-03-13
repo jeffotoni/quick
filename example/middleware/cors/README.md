@@ -33,7 +33,7 @@ func main() {
 		AllowedOrigins: []string{"*"}, // Allows requests from any origin
 		AllowedMethods: []string{"*"}, // Allows all HTTP methods (GET, POST, PUT, DELETE, etc.)
 		AllowedHeaders: []string{"*"}, // Allows all headers
-	}), "cors")
+	}))
 
 	// Define a POST route for creating a user
 	app.Post("/v1/user", func(c *quick.Ctx) error {

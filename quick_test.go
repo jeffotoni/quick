@@ -35,23 +35,6 @@ func TestNew(t *testing.T) {
 	})
 }
 
-// TestUseCorsMiddleware test if CORS middleware is applied correctly.
-// The result will TestUseCorsMiddleware(expected any) error
-func TestUseCorsMiddleware(t *testing.T) {
-	t.Run("Apply CORS middleware", func(t *testing.T) {
-		q := New()
-		middleware := func(h http.Handler) http.Handler { return h }
-		q.Use(middleware, "cors")
-
-		if !q.Cors {
-			t.Errorf("Expected q.Cors to be true")
-		}
-		if q.CorsSet == nil {
-			t.Errorf("Expected q.CorsSet to be set")
-		}
-	})
-}
-
 // TestExtractHandler test if an unknown HTTP method returns nil
 // The result will TestExtractHandler(expected any) error
 func TestExtractHandler(t *testing.T) {

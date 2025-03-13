@@ -9,6 +9,12 @@ import (
 
 type MyHandler struct{}
 
+// / Example cURL to test
+// curl -X OPTIONS -v http://localhost:8080/v1/user
+//
+//	curl -X OPTIONS -H "Origin: http://localhost:3000/" \
+//	 -H "Access-Control-Request-Method: POST" -v \
+//	 http://localhost:8080/v1/user
 func (h *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	b, err := io.ReadAll(r.Body)
