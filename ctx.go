@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 )
 
 type Ctx struct {
@@ -26,6 +25,10 @@ type Ctx struct {
 	Params         map[string]string
 	Query          map[string]string
 	uploadFileSize int64 // Upload limit in bytes
+}
+
+func (c *Ctx) SetStatus(status int) {
+	c.resStatus = status
 }
 
 // UploadedFile holds details of an uploaded file.
@@ -131,23 +134,26 @@ func (c *Ctx) BodyString() string {
 // Returns:
 //   - error: An error if JSON encoding fails or if writing the response fails.
 func (c *Ctx) JSON(v interface{}) error {
-	buf := acquireBuffer()
-	defer releaseBuffer(buf)
+	buf := acquireJSONBuffer()
+	defer releaseJSONBuffer(buf)
 
-	b, err := json.Marshal(v)
-	if err != nil {
+	if err := json.NewEncoder(buf).Encode(v); err != nil {
 		return err
 	}
 
-	buf.Write(b)
+	if buf.Len() > 0 && buf.Bytes()[buf.Len()-1] == '\n' {
+		buf.Truncate(buf.Len() - 1)
+	}
 
-	c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
-	_, err = c.Response.Write(buf.Bytes())
-	return err
+	c.writeResponse(buf.Bytes())
+	return nil
 }
 
 // JSONIN encodes the given interface as JSON with indentation and writes it to the HTTP response.
 // Allows optional parameters to define the indentation format.
+//
+// ATTENTION
+// use only for debugging, very slow
 //
 // Parameters:
 //   - v: The data structure to encode as JSON.
@@ -170,51 +176,23 @@ func (c *Ctx) JSONIN(v interface{}, params ...string) error {
 		indent = params[1]
 	}
 
-	// Use buffer pooling for performance
-	buf := acquireBuffer()
-	defer releaseBuffer(buf)
+	buf := acquireJSONBuffer()
+	defer releaseJSONBuffer(buf)
 
-	// Encode with the provided indentation settings
-	b, err := json.MarshalIndent(v, prefix, indent)
-	if err != nil {
+	// Exemplo com JSON:
+	enc := json.NewEncoder(buf)
+	enc.SetIndent(prefix, indent)
+
+	if buf.Len() > 0 && buf.Bytes()[buf.Len()-1] == '\n' {
+		buf.Truncate(buf.Len() - 1)
+	}
+
+	if err := enc.Encode(v); err != nil {
 		return err
 	}
 
-	buf.Write(b)
-
-	// Set Content-Type header
-	c.Response.Header().Set("Content-Type", ContentTypeAppJSON)
-	_, err = c.Response.Write(buf.Bytes())
-	return err
-}
-
-// XML serializes the provided value in XML and writes to the HTTP response
-// The result will XML(v interface{}) error
-// func (c *Ctx) XML(v interface{}) error {
-// 	b, err := xml.Marshal(v)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	c.Response.Header().Set("Content-Type", ContentTypeTextXML)
-// 	return c.writeResponse(b)
-// }
-
-// xmlBufferPool is a sync.Pool for optimizing XML serialization by reusing buffers.
-var xmlBufferPool = sync.Pool{
-	New: func() interface{} {
-		return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
-	},
-}
-
-// acquireXMLBuffer retrieves a buffer from the pool.
-func acquireXMLBuffer() *bytes.Buffer {
-	return xmlBufferPool.Get().(*bytes.Buffer)
-}
-
-// releaseXMLBuffer resets and returns the buffer to the pool.
-func releaseXMLBuffer(buf *bytes.Buffer) {
-	buf.Reset()
-	xmlBufferPool.Put(buf)
+	c.writeResponse(buf.Bytes())
+	return nil
 }
 
 // XML serializes the given value to XML and writes it to the HTTP response.
@@ -229,18 +207,16 @@ func (c *Ctx) XML(v interface{}) error {
 	buf := acquireXMLBuffer()
 	defer releaseXMLBuffer(buf)
 
-	// Marshal XML directly (avoids \n issue from xml.Encoder.Encode)
-	b, err := xml.Marshal(v)
-	if err != nil {
+	if err := xml.NewEncoder(buf).Encode(v); err != nil {
 		return err
 	}
 
-	buf.Write(b)
+	if buf.Len() > 0 && buf.Bytes()[buf.Len()-1] == '\n' {
+		buf.Truncate(buf.Len() - 1)
+	}
 
-	// Set Content-Type header
-	c.Response.Header().Set("Content-Type", ContentTypeTextXML)
-	_, err = c.Response.Write(buf.Bytes())
-	return err
+	c.writeResponse(buf.Bytes())
+	return nil
 }
 
 // writeResponse writes the provided byte content to the ResponseWriter.
@@ -253,27 +229,23 @@ func (c *Ctx) XML(v interface{}) error {
 // Returns:
 //   - error: An error if writing to the ResponseWriter fails.
 func (c *Ctx) writeResponse(b []byte) error {
-	if c.resStatus != 0 {
-		c.Response.WriteHeader(c.resStatus)
+	if c.Response == nil {
+		return errors.New("nil response writer")
 	}
 
-	_, err := c.Response.Write(b)
+	if c.resStatus == 0 {
+		c.resStatus = http.StatusOK
+	}
 
-	// Immediate flush to avoid buffering overhead (important for HTTP/2)
+	c.Response.WriteHeader(c.resStatus)
+
+	_, err := c.Response.Write(b)
 	if flusher, ok := c.Response.(http.Flusher); ok {
 		flusher.Flush()
 	}
 
 	return err
 }
-
-// func (c *Ctx) writeResponse(b []byte) error {
-// 	if c.resStatus != 0 {
-// 		c.Response.WriteHeader(c.resStatus)
-// 	}
-// 	_, err := c.Response.Write(b)
-// 	return err
-// }
 
 // Byte writes an array of bytes to the HTTP response, using writeResponse()
 // The result will Byte(b []byte) (err error)
@@ -291,7 +263,6 @@ func (c *Ctx) Send(b []byte) (err error) {
 // The result will SendString(s string) error
 func (c *Ctx) SendString(s string) error {
 	return c.writeResponse([]byte(s))
-
 }
 
 // String escreve uma string na resposta HTTP, convertendo-a para um array de bytes e utilizando writeResponse()

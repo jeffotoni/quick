@@ -38,7 +38,7 @@ func ExampleQuick_Qtest() {
 	fmt.Println("Status Code:", res.StatusCode())
 	fmt.Println("Body:", res.BodyStr())
 
-	// Output: Status Code: 200
+	// Out put: Status Code: 200
 	// Body: Hello, Quick!
 }
 

@@ -18,13 +18,13 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/signal"
 	"regexp"
 	"runtime"
 	"runtime/debug"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
@@ -88,11 +88,6 @@ var defaultConfig = Config{
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	RouteCapacity:  1000,
 	MoreRequests:   290, // equilibrium value
-	// TLSConfig:      &tls.Config{},
-	//ReadTimeout:  10 * time.Second,
-	//WriteTimeout: 10 * time.Second,
-	//IdleTimeout:       1 * time.Second,
-	// ReadHeaderTimeout: time.Duration(3) * time.Second,
 }
 
 type Zeroth int
@@ -153,21 +148,45 @@ func New(c ...Config) *Quick {
 
 // Use function adds middleware to the Quick server, with special treatment for CORS
 // Method Used Internally
-// The result will Use(mw any, nf ...string)
-func (q *Quick) Use(mw any, nf ...string) {
-	if len(nf) > 0 {
-		if strings.ToLower(nf[0]) == "cors" {
-			switch mwc := mw.(type) {
-			case func(http.Handler) http.Handler:
-				if strings.ToLower(nf[0]) == "cors" {
-					q.Cors = true
-					q.CorsSet = mwc
-				}
-			}
+// The result will Use(mw any)
+func (q *Quick) Use(mw any) {
+	switch mwc := mw.(type) {
+	case func(http.Handler) http.Handler:
+		// Automatically detects if it is CORS
+		if isCorsMiddleware(mwc) {
+			q.Cors = true
+			q.CorsSet = mwc
+			return
 		}
 	}
 	q.mws2 = append(q.mws2, mw)
 }
+
+// Helper function to automatically detect whether the middleware is CORS
+func isCorsMiddleware(mw func(http.Handler) http.Handler) bool {
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	testRequest := httptest.NewRequest("OPTIONS", "/", nil)
+	testResponse := httptest.NewRecorder()
+
+	mw(testHandler).ServeHTTP(testResponse, testRequest)
+
+	// If the middleware sets Access-Control-Allow-Origin, it's CORS
+	return testResponse.Header().Get("Access-Control-Allow-Origin") != ""
+}
+
+// func (q *Quick) Use(mw any, nf ...string) {
+// 	if len(nf) > 0 {
+// 		if strings.ToLower(nf[0]) == "cors" {
+// 			switch mwc := mw.(type) {
+// 			case func(http.Handler) http.Handler:
+// 				q.Cors = true
+// 				q.CorsSet = mwc
+// 			}
+// 			return
+// 		}
+// 	}
+// 	q.mws2 = append(q.mws2, mw)
+// }
 
 // Responsible for clearing the path to be accepted in
 // Servemux receives something like get#/v1/user/_id:[0-9]+_, without {}
@@ -192,7 +211,15 @@ func clearRegex(route string) string {
 // The result will registerRoute(method, pattern string, handlerFunc HandleFunc)
 func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 	path, params, patternExist := extractParamsPattern(pattern)
-	formattedPath := strings.ToLower(method) + "#" + clearRegex(pattern)
+	formattedPath := concat.String(strings.ToLower(method), "#", clearRegex(pattern))
+
+	for _, route := range q.routes {
+		if route.Method == method && route.Path == path {
+			fmt.Printf("Warning: Route '%s %s' is already registered, ignoring duplicate registration.\n", method, path)
+			return // Ignore duplication instead of generating panic
+		}
+	}
+
 	route := Route{
 		Pattern: patternExist,
 		Path:    path,
@@ -203,6 +230,50 @@ func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 
 	q.appendRoute(&route)
 	q.mux.HandleFunc(formattedPath, route.handler)
+
+}
+
+// handleOptions processes HTTP OPTIONS requests for CORS preflight checks.
+// This function is automatically called before routing when an OPTIONS request is received.
+// It ensures that the appropriate CORS headers are included in the response.
+//
+// If CORS middleware is enabled, it applies the middleware before setting default headers.
+//
+// Headers added by this function:
+// - Access-Control-Allow-Origin: Allows cross-origin requests (set dynamically).
+// - Access-Control-Allow-Methods: Specifies allowed HTTP methods (GET, POST, PUT, DELETE, OPTIONS).
+// - Access-Control-Allow-Headers: Defines which headers are allowed in the request.
+//
+// If no Origin header is provided in the request, a 204 No Content response is returned.
+//
+// Parameters:
+// - w: http.ResponseWriter – The response writer to send headers and status.
+// - r: *http.Request – The incoming HTTP request.
+//
+// Response:
+// - 204 No Content (if the request is valid and processed successfully).
+//
+// Example Usage:
+// This function is automatically triggered in `ServeHTTP()` when an OPTIONS request is received.
+func (q *Quick) handleOptions(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		w.WriteHeader(StatusNoContent)
+		return
+	}
+
+	// Apply CORS middleware before setting headers
+	if q.Cors && q.CorsSet != nil {
+		q.CorsSet(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).ServeHTTP(w, r)
+	}
+
+	// Set default CORS headers
+	w.Header().Set("Allow", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Origin", "*") // Ajustável pelo middleware
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+	w.WriteHeader(http.StatusNoContent) // Returns 204 No Content
 }
 
 // Get function is an HTTP route with the GET method on the Quick server
@@ -286,12 +357,6 @@ func extractParamsPatch(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 //   - http.HandlerFunc: A handler function optimized for handling OPTIONS requests.
 func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Define allowed HTTP methods for CORS
-		allowMethods := []string{
-			MethodGet, MethodPost, MethodPut,
-			MethodDelete, MethodPatch, MethodOptions,
-		}
-
 		// Acquire a pooled context
 		ctx := acquireCtx()
 		defer releaseCtx(ctx) // Ensure context is returned to the pool after handling
@@ -301,11 +366,20 @@ func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc)
 		ctx.Request = r
 		ctx.MoreRequests = q.config.MoreRequests
 
-		// Define standard headers through ctx
-		ctx.Set("Allow", strings.Join(allowMethods, ", "))
-		ctx.Set("Access-Control-Allow-Origin", "*")
-		ctx.Set("Access-Control-Allow-Methods", strings.Join(allowMethods, ", "))
-		ctx.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if q.Cors && q.CorsSet != nil {
+			wrappedHandler := q.CorsSet(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Middleware CORS apply success
+			}))
+			wrappedHandler.ServeHTTP(w, r)
+		}
+
+		if ctx.Response.Header().Get("Access-Control-Allow-Origin") == "" {
+			allowMethods := []string{MethodGet, MethodPost, MethodPut, MethodDelete, MethodPatch, MethodOptions}
+			ctx.Set("Allow", strings.Join(allowMethods, ", "))
+			ctx.Set("Access-Control-Allow-Origin", "*")
+			ctx.Set("Access-Control-Allow-Methods", strings.Join(allowMethods, ", "))
+			ctx.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		}
 
 		// Execute handler function if provided
 		if handlerFunc != nil {
@@ -329,23 +403,6 @@ func extractHeaders(req http.Request) map[string][]string {
 	return headersMap
 }
 
-var jsonBufferPool = sync.Pool{
-	New: func() interface{} {
-		return bytes.NewBuffer(make([]byte, 0, 4096)) // 4KB buffer
-	},
-}
-
-// acquireJSONBuffer retrieves a buffer from the pool.
-func acquireJSONBuffer() *bytes.Buffer {
-	return jsonBufferPool.Get().(*bytes.Buffer)
-}
-
-// releaseJSONBuffer resets and returns the buffer to the pool.
-func releaseJSONBuffer(buf *bytes.Buffer) {
-	buf.Reset()
-	jsonBufferPool.Put(buf)
-}
-
 // extractParamsBind decodes request bodies for JSON/XML payloads using a pooled buffer
 // to minimize memory allocations and garbage collection overhead.
 //
@@ -365,43 +422,41 @@ func extractParamsBind(c *Ctx, v interface{}) error {
 		return fmt.Errorf("unsupported content type: %s", contentType)
 	}
 
-	// Acquire pooled buffer
-	buf := acquireJSONBuffer()
-	defer releaseJSONBuffer(buf)
-
-	// Read body content into buffer
-	if _, err := buf.ReadFrom(c.Request.Body); err != nil {
-		return err
-	}
-
-	// Reset the Request.Body after reading, enabling re-reads if needed
-	c.Request.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
-
 	switch {
 	case strings.HasPrefix(contentType, ContentTypeAppJSON):
+
+		// Acquire pooled buffer
+		buf := acquireJSONBuffer()
+		defer releaseJSONBuffer(buf)
+
+		// Read body content into buffer
+		if _, err := buf.ReadFrom(c.Request.Body); err != nil {
+			return err
+		}
+
+		// Reset the Request.Body after reading, enabling re-reads if needed
+		c.Request.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
+
 		return json.Unmarshal(buf.Bytes(), v)
 	case strings.HasPrefix(contentType, ContentTypeAppXML), strings.HasPrefix(contentType, ContentTypeTextXML):
+
+		// Acquire pooled buffer
+		buf := acquireXMLBuffer()
+		defer releaseXMLBuffer(buf)
+
+		// Read body content into buffer
+		if _, err := buf.ReadFrom(c.Request.Body); err != nil {
+			return err
+		}
+
+		// Reset the Request.Body after reading, enabling re-reads if needed
+		c.Request.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
+
 		return xml.Unmarshal(buf.Bytes(), v)
 	default:
 		return fmt.Errorf("unsupported content type: %s", contentType)
 	}
 }
-
-// extractBind decodes the request body into the provided interface based on the Content-Type header
-// Method Used Internally
-// The result will extractBind(c *Ctx, v interface{}) (err error)
-// func extractBind(c *Ctx, v interface{}) (err error) {
-// 	var req http.Request = *c.Request
-// 	if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppJSON ||
-// 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json; charset=utf-8" ||
-// 		strings.ToLower(req.Header.Get("Content-Type")) == "application/json;charset=utf-8" {
-// 		err = json.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-// 	} else if strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeTextXML ||
-// 		strings.ToLower(req.Header.Get("Content-Type")) == ContentTypeAppXML {
-// 		err = xml.NewDecoder(bytes.NewReader(c.bodyByte)).Decode(v)
-// 	}
-// 	return err
-// }
 
 // extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern
 // Method Used Internally
@@ -421,46 +476,6 @@ func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	}
 
 	return
-}
-
-// Ctx Pool
-var ctxPool = sync.Pool{
-	New: func() interface{} {
-		// Initialize a new Ctx with empty maps to avoid nil checks in usage.
-		return &Ctx{
-			Params:  make(map[string]string),
-			Query:   make(map[string]string),
-			Headers: make(map[string][]string),
-		}
-	},
-}
-
-// acquireCtx retrieves a Ctx instance from the sync.Pool.
-func acquireCtx() *Ctx {
-	return ctxPool.Get().(*Ctx)
-}
-
-// releaseCtx resets the Ctx fields and returns it to the sync.Pool for reuse.
-func releaseCtx(ctx *Ctx) {
-	// clear maps without reallocating
-	for k := range ctx.Params {
-		delete(ctx.Params, k)
-	}
-	for k := range ctx.Query {
-		delete(ctx.Query, k)
-	}
-	for k := range ctx.Headers {
-		delete(ctx.Headers, k)
-	}
-
-	ctx.Response = nil
-	ctx.Request = nil
-	ctx.bodyByte = nil
-	ctx.JsonStr = ""
-	ctx.resStatus = 0
-	ctx.MoreRequests = 0
-
-	ctxPool.Put(ctx)
 }
 
 // extractParamsGet processes an HTTP GET request for a dynamic route,
@@ -675,25 +690,6 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	}
 }
 
-var bufferPool = sync.Pool{
-	// Create new buffers with an initial capacity of 4KB.
-	// Adjust this size based on expected request body sizes.
-	New: func() interface{} {
-		return bytes.NewBuffer(make([]byte, 0, 4096))
-	},
-}
-
-// acquireBuffer retrieves a *bytes.Buffer from the sync.Pool.
-func acquireBuffer() *bytes.Buffer {
-	return bufferPool.Get().(*bytes.Buffer)
-}
-
-// releaseBuffer resets the buffer and places it back in the sync.Pool for reuse.
-func releaseBuffer(buf *bytes.Buffer) {
-	buf.Reset() // Clear any existing data
-	bufferPool.Put(buf)
-}
-
 // extractBodyBytes reads the entire request body into a pooled buffer, then
 // copies the data to a new byte slice before returning it. This ensures that
 // once the buffer is returned to the pool, the returned data remains valid.
@@ -755,35 +751,6 @@ func (q *Quick) appendRoute(route *Route) {
 	q.routes = append(q.routes, route)
 }
 
-// pooledResponseWriter wraps http.ResponseWriter and provides a buffer for potential response optimizations.
-type pooledResponseWriter struct {
-	http.ResponseWriter
-	buf *bytes.Buffer
-}
-
-// responseWriterPool is a sync.Pool for pooledResponseWriter instances to reduce allocations.
-var responseWriterPool = sync.Pool{
-	New: func() interface{} {
-		return &pooledResponseWriter{
-			buf: bytes.NewBuffer(make([]byte, 0, 4096)), // initial 4KB buffer
-		}
-	},
-}
-
-// acquireResponseWriter retrieves a pooledResponseWriter instance from the pool.
-func acquireResponseWriter(w http.ResponseWriter) *pooledResponseWriter {
-	rw := responseWriterPool.Get().(*pooledResponseWriter)
-	rw.ResponseWriter = w
-	return rw
-}
-
-// releaseResponseWriter resets and returns the pooledResponseWriter to the pool for reuse.
-func releaseResponseWriter(rw *pooledResponseWriter) {
-	rw.buf.Reset()
-	rw.ResponseWriter = nil
-	responseWriterPool.Put(rw)
-}
-
 func (rw *pooledResponseWriter) Header() http.Header {
 	return rw.ResponseWriter.Header()
 }
@@ -791,9 +758,19 @@ func (rw *pooledResponseWriter) Header() http.Header {
 // ServeHTTP processes incoming HTTP requests and matches registered routes.
 // It uses a pooledResponseWriter to reduce memory allocations and improve performance.
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// call options
+	if req.Method == http.MethodOptions {
+		q.handleOptions(w, req)
+		return
+	}
+
 	// Acquire a ResponseWriter from the pool for efficient request handling.
 	rw := acquireResponseWriter(w)
 	defer releaseResponseWriter(rw) // Ensure it returns to the pool.
+
+	// Acquiring Ctx from the pool
+	ctx := newCtx(rw, req) // <- creates a new, clean instance of the context
+	defer releaseCtx(ctx)  // Returns it to the pool
 
 	for i := range q.routes {
 		var requestURI = req.URL.Path
@@ -828,39 +805,6 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// If no route matches, send a 404 response.
 	http.NotFound(rw, req)
 }
-
-// // ServeHTTP is the main HTTP request dispatcher for the Quick router
-// // The result will ServeHTTP(w http.ResponseWriter, req *http.Request)
-// func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-
-// 	//  rw := acquireResponseWriter(w)
-// 	// defer releaseResponseWriter(rw)
-
-// 	for i := 0; i < len(q.routes); i++ {
-// 		var requestURI = req.URL.Path
-// 		var patternUri = q.routes[i].Pattern
-
-// 		if q.routes[i].Method != req.Method {
-// 			continue
-// 		}
-
-// 		if len(patternUri) == 0 {
-// 			patternUri = q.routes[i].Path
-// 		}
-
-// 		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
-
-// 		if !isValid {
-// 			continue
-// 		}
-
-// 		var c = ctxServeHttp{Path: requestURI, ParamsMap: paramsMap, Method: q.routes[i].Method}
-// 		req = req.WithContext(context.WithValue(req.Context(), myContextKey, c))
-// 		q.routes[i].handler(w, req)
-// 		return
-// 	}
-// 	http.NotFound(w, req)
-// }
 
 // createParamsAndValid create params map and check if the request URI and pattern URI are valid
 // Method Used Internally

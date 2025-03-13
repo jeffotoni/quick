@@ -243,6 +243,7 @@ func TestCtx_ExampleXML(t *testing.T) {
 	q := New()
 
 	q.Get("/xml", func(c *Ctx) error {
+		c.Set("Content-Type", "text/xml")
 		data := XMLMessage{Message: "Hello, Quick!"}
 		return c.XML(data)
 	})
@@ -266,7 +267,7 @@ func TestCtx_ExampleXML(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleXML
+// go test -v -run ^TestCtx_ExamplewriteResponse
 func TestCtx_ExamplewriteResponse(t *testing.T) {
 	q := New()
 

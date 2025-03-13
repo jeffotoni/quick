@@ -1,3 +1,4 @@
+// Package compress provides middleware for compressing HTTP responses using gzip.
 package compress
 
 import (

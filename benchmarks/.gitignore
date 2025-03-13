@@ -1,0 +1,9 @@
+# Ignorar arquivos do Go Modules dentro de benchmarks
+go.mod
+go.sum
+
+# Ignorar binários e caches do Go
+*.out
+*.exe
+*.test
+*.log
