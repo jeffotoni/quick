@@ -7,7 +7,12 @@ import (
 )
 
 func main() {
-	q := quick.New() // Initialize Quick framework
+
+	// Initialize Quick framework
+	q := quick.New(
+		quick.Config{
+			NoBanner: true,
+		})
 
 	// Route to greet a user by name (dynamic route parameter)
 	q.Get("/v1/user/:name", func(c *quick.Ctx) error {

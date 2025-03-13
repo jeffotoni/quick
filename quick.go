@@ -80,6 +80,8 @@ type Config struct {
 	GCPercent         int         // Renamed to be more descriptive (0-1000)
 	TLSConfig         *tls.Config // Integrated TLS configuration
 	CorsConfig        *CorsConfig // Specific type for CORS
+
+	NoBanner bool
 }
 
 var defaultConfig = Config{
@@ -87,7 +89,8 @@ var defaultConfig = Config{
 	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	RouteCapacity:  1000,
-	MoreRequests:   290, // equilibrium value
+	MoreRequests:   290,  // equilibrium value
+	NoBanner:       true, // Display Quick
 }
 
 type Zeroth int
@@ -1048,6 +1051,7 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	}
 	defer shutdown()
 
+	q.Display("http", addr)
 	// Locks indefinitely
 	select {}
 }
