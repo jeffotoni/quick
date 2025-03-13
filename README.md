@@ -1,5 +1,5 @@
 
-![Logo do Quick](/quick_logo.png)
+![Logo do Quick](./quick_logo.png)
 
 
 [![GoDoc](https://godoc.org/github.com/jeffotoni/quick?status.svg)](https://godoc.org/github.com/jeffotoni/quick) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/jeffotoni/quick/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/jeffotoni/quick/tree/main) [![Go Report](https://goreportcard.com/badge/github.com/jeffotoni/quick)](https://goreportcard.com/badge/github.com/jeffotoni/quick) [![License](https://img.shields.io/github/license/jeffotoni/quick)](https://img.shields.io/github/license/jeffotoni/quick) ![CircleCI](https://img.shields.io/circleci/build/github/jeffotoni/quick/main)  ![Coveralls](https://img.shields.io/coverallsCoverage/github/jeffotoni/quick) ![GitHub contributors](https://img.shields.io/github/contributors/jeffotoni/quick)
@@ -14,8 +14,24 @@
     </p> 
 </h2>
 
+```bash
+   ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗
+  ██╔═══██╗██║   ██║██║██╔═══   ██║ ██╔╝
+  ██║   ██║██║   ██║██║██║      █████╔╝ 
+  ██║▄▄ ██║██║   ██║██║██║      ██╔═██╗ 
+  ╚██████╔╝╚██████╔╝██║╚██████╔ ██║  ██╗
+   ╚══▀▀═╝  ╚═════╝ ╚═╝ ╚═════╝ ╚═╝  ╚═╝
 
-# Quick - a lightweight router for go ![Quick Logo](/quick.png)
+ Quick v0.0.1 🚀 Fast & Minimal Web Framework
+─────────────────── ───────────────────────────────
+ 🌎 Host : http://127.0.0.1:0.0.0.0:8080
+ 📌 Port : 0.0.0.0:8080
+ 🔀 Routes: 4
+─────────────────── ───────────────────────────────
+
+```
+
+# Quick - a lightweight router for go ![Quick Logo](./quick.png)
 
 🚀 Quick is a **flexible and extensible** route manager for the Go language. Its goal is to be **fast and high-performance**, as well as being **100% compatible with net/http**. Quick is a **project in constant development** and is open for **collaboration**, everyone is welcome to contribute. 😍
 
@@ -36,7 +52,7 @@
 To access the documentation for each **Quick Framework** package, click on the links below:
 
 | Package | Description | Go.dev |
-|---------|-----------|
+|---------|-----------|-----------|
 | **quick** | Main Router and Framework Features | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick) |
 | **quick/http/client** | HTTP client optimized for requests and failover | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/http/client.svg)](https://pkg.go.dev/githu.com/jeffotoni/quick/http/client) |
 | **quick/middleware** | Framework middlewares | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick/middleware.svg)](https://pkg.go.dev/github.com/jeffotoni/quick/middleware) |
@@ -468,9 +484,20 @@ Content-Type: text/plain; charset=utf-8
 ```
 
 ### Cors
-
+Using the Cors middleware, making your call in the default way, which is:
 ```go
-
+var ConfigDefault = Config{
+ AllowedOrigins: []string{"*"},
+ AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+ AllowedHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
+ ExposedHeaders: []string{"Content-Length"},
+ AllowCredentials: false,
+ MaxAge: 600,
+ Debug: false,
+}
+```
+Check out the code below:
+```go
 package main
 
 import (
@@ -479,6 +506,7 @@ import (
 )
 
 func main() {
+	
     q := quick.New()
     q.Use(cors.New())
 
