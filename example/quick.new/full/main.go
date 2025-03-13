@@ -21,7 +21,7 @@ func main() {
 			fmt.Printf("Received request: %s %s\n", r.Method, r.URL.Path)
 			h.ServeHTTP(w, r)
 		})
-	}, "logger")
+	})
 
 	// Define multiple routes
 	q.Get("/", func(c *quick.Ctx) error {

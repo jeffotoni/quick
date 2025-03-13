@@ -18,6 +18,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/signal"
 	"regexp"
@@ -147,21 +148,45 @@ func New(c ...Config) *Quick {
 
 // Use function adds middleware to the Quick server, with special treatment for CORS
 // Method Used Internally
-// The result will Use(mw any, nf ...string)
-func (q *Quick) Use(mw any, nf ...string) {
-	if len(nf) > 0 {
-		if strings.ToLower(nf[0]) == "cors" {
-			switch mwc := mw.(type) {
-			case func(http.Handler) http.Handler:
-				if strings.ToLower(nf[0]) == "cors" {
-					q.Cors = true
-					q.CorsSet = mwc
-				}
-			}
+// The result will Use(mw any)
+func (q *Quick) Use(mw any) {
+	switch mwc := mw.(type) {
+	case func(http.Handler) http.Handler:
+		// Automatically detects if it is CORS
+		if isCorsMiddleware(mwc) {
+			q.Cors = true
+			q.CorsSet = mwc
+			return
 		}
 	}
 	q.mws2 = append(q.mws2, mw)
 }
+
+// Helper function to automatically detect whether the middleware is CORS
+func isCorsMiddleware(mw func(http.Handler) http.Handler) bool {
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	testRequest := httptest.NewRequest("OPTIONS", "/", nil)
+	testResponse := httptest.NewRecorder()
+
+	mw(testHandler).ServeHTTP(testResponse, testRequest)
+
+	// If the middleware sets Access-Control-Allow-Origin, it's CORS
+	return testResponse.Header().Get("Access-Control-Allow-Origin") != ""
+}
+
+// func (q *Quick) Use(mw any, nf ...string) {
+// 	if len(nf) > 0 {
+// 		if strings.ToLower(nf[0]) == "cors" {
+// 			switch mwc := mw.(type) {
+// 			case func(http.Handler) http.Handler:
+// 				q.Cors = true
+// 				q.CorsSet = mwc
+// 			}
+// 			return
+// 		}
+// 	}
+// 	q.mws2 = append(q.mws2, mw)
+// }
 
 // Responsible for clearing the path to be accepted in
 // Servemux receives something like get#/v1/user/_id:[0-9]+_, without {}
@@ -186,7 +211,15 @@ func clearRegex(route string) string {
 // The result will registerRoute(method, pattern string, handlerFunc HandleFunc)
 func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 	path, params, patternExist := extractParamsPattern(pattern)
-	formattedPath := strings.ToLower(method) + "#" + clearRegex(pattern)
+	formattedPath := concat.String(strings.ToLower(method), "#", clearRegex(pattern))
+
+	for _, route := range q.routes {
+		if route.Method == method && route.Path == path {
+			fmt.Printf("Warning: Route '%s %s' is already registered, ignoring duplicate registration.\n", method, path)
+			return // Ignore duplication instead of generating panic
+		}
+	}
+
 	route := Route{
 		Pattern: patternExist,
 		Path:    path,
@@ -197,6 +230,50 @@ func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 
 	q.appendRoute(&route)
 	q.mux.HandleFunc(formattedPath, route.handler)
+
+}
+
+// handleOptions processes HTTP OPTIONS requests for CORS preflight checks.
+// This function is automatically called before routing when an OPTIONS request is received.
+// It ensures that the appropriate CORS headers are included in the response.
+//
+// If CORS middleware is enabled, it applies the middleware before setting default headers.
+//
+// Headers added by this function:
+// - Access-Control-Allow-Origin: Allows cross-origin requests (set dynamically).
+// - Access-Control-Allow-Methods: Specifies allowed HTTP methods (GET, POST, PUT, DELETE, OPTIONS).
+// - Access-Control-Allow-Headers: Defines which headers are allowed in the request.
+//
+// If no Origin header is provided in the request, a 204 No Content response is returned.
+//
+// Parameters:
+// - w: http.ResponseWriter – The response writer to send headers and status.
+// - r: *http.Request – The incoming HTTP request.
+//
+// Response:
+// - 204 No Content (if the request is valid and processed successfully).
+//
+// Example Usage:
+// This function is automatically triggered in `ServeHTTP()` when an OPTIONS request is received.
+func (q *Quick) handleOptions(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		w.WriteHeader(StatusNoContent)
+		return
+	}
+
+	// Apply CORS middleware before setting headers
+	if q.Cors && q.CorsSet != nil {
+		q.CorsSet(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).ServeHTTP(w, r)
+	}
+
+	// Set default CORS headers
+	w.Header().Set("Allow", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Origin", "*") // Ajustável pelo middleware
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+	w.WriteHeader(http.StatusNoContent) // Returns 204 No Content
 }
 
 // Get function is an HTTP route with the GET method on the Quick server
@@ -280,12 +357,6 @@ func extractParamsPatch(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 //   - http.HandlerFunc: A handler function optimized for handling OPTIONS requests.
 func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Define allowed HTTP methods for CORS
-		allowMethods := []string{
-			MethodGet, MethodPost, MethodPut,
-			MethodDelete, MethodPatch, MethodOptions,
-		}
-
 		// Acquire a pooled context
 		ctx := acquireCtx()
 		defer releaseCtx(ctx) // Ensure context is returned to the pool after handling
@@ -295,11 +366,20 @@ func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc)
 		ctx.Request = r
 		ctx.MoreRequests = q.config.MoreRequests
 
-		// Define standard headers through ctx
-		ctx.Set("Allow", strings.Join(allowMethods, ", "))
-		ctx.Set("Access-Control-Allow-Origin", "*")
-		ctx.Set("Access-Control-Allow-Methods", strings.Join(allowMethods, ", "))
-		ctx.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if q.Cors && q.CorsSet != nil {
+			wrappedHandler := q.CorsSet(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Middleware CORS apply success
+			}))
+			wrappedHandler.ServeHTTP(w, r)
+		}
+
+		if ctx.Response.Header().Get("Access-Control-Allow-Origin") == "" {
+			allowMethods := []string{MethodGet, MethodPost, MethodPut, MethodDelete, MethodPatch, MethodOptions}
+			ctx.Set("Allow", strings.Join(allowMethods, ", "))
+			ctx.Set("Access-Control-Allow-Origin", "*")
+			ctx.Set("Access-Control-Allow-Methods", strings.Join(allowMethods, ", "))
+			ctx.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		}
 
 		// Execute handler function if provided
 		if handlerFunc != nil {
@@ -678,6 +758,12 @@ func (rw *pooledResponseWriter) Header() http.Header {
 // ServeHTTP processes incoming HTTP requests and matches registered routes.
 // It uses a pooledResponseWriter to reduce memory allocations and improve performance.
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// call options
+	if req.Method == http.MethodOptions {
+		q.handleOptions(w, req)
+		return
+	}
+
 	// Acquire a ResponseWriter from the pool for efficient request handling.
 	rw := acquireResponseWriter(w)
 	defer releaseResponseWriter(rw) // Ensure it returns to the pool.
