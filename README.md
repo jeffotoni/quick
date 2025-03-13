@@ -353,7 +353,7 @@ Quick provides a simplified API for managing uploads, allowing you to easily ret
 | net/http  | ✅ Yes       | ❌ No         | ❌ No         | ❌ No                              | ❌ No                        |
 
 ---
-### 📌 File Upload Example
+### File Upload Example
 This example shows how to create a file upload endpoint. It allows users to send a single file via POST to the/upload route.
 
 ```go
@@ -422,7 +422,7 @@ $ curl -i -X POST http://localhost:8080/upload -F "file=quick.txt"
 }
 ```
 
-### 📌 Multiple Upload Example
+### Multiple Upload Example
 This example allows users to send multiple files via POST to the/upload-multiple route
 
 ```go
@@ -441,7 +441,7 @@ type Msg struct {
 }
 
 func main() {
-	// start Quick
+	// Initialize a new Quick instance
 	q := quick.New()
 
 	q.Post("/upload-multiple", func(c *quick.Ctx) error {
@@ -482,53 +482,58 @@ func main() {
 ```bash
 $ curl -X POST http://localhost:8080/upload-multiple \
 -F "files=@image1.jpg" -F "files=@document.pdf"
+
+Upload successfully completed
 ```
 
 ### Quick Post Bind json
 
 ```go
-
 package main
 
 import "github.com/jeffotoni/quick"
 
+// Define a struct to map the expected JSON body
 type My struct {
     Name string `json:"name"`
     Year int    `json:"year"`
 }
 
 func main() {
+	// Initialize a new Quick instance
     q := quick.New()
-    q.Post("/v2/user", func(c *quick.Ctx) error {
-        var my My
-        err := c.Bind(&my)
-        if err != nil {
-            return c.Status(400).SendString(err.Error())
-        }
-        return c.Status(200).JSON(&my)
-    })
 
+   // Define a POST route to handle JSON request body
+	q.Post("/v2/user", func(c *quick.Ctx) error {
+		var my My
+
+		// Parse the request body into the 'my' struct
+		err := c.Bind(&my)
+		if err != nil {
+			// Return a 400 status if JSON parsing fails
+			return c.Status(400).SendString(err.Error())
+		}
+
+		// Return the received JSON data
+		return c.Status(200).JSON(&my)
+	})
     q.Listen("0.0.0.0:8080")
 }
-
 ```
 
 ### 📌 cURL
 
 ```bash
-
 $ curl -i -XPOST -H "Content-Type:application/json" \
 'localhost:8080/v2/user' \
 -d '{"name":"Marcos", "year":1990}'
-HTTP/1.1 200 OK
-Date: Wed, 22 Feb 2023 08:10:06 GMT
-Content-Length: 32
-Content-Type: text/plain; charset=utf-8
 
-{"name":"Marcos","year":1990}
+{
+   "name":"Marcos",
+   "year":1990
+}
 
 ```
-
 ### Cors
 
 Using the Cors middleware, making your call in the default way, which is:
@@ -557,11 +562,18 @@ import (
 
 func main() {
 
+   // Create a new Quick server instance
     q := quick.New()
+
+    // Use the CORS middleware to allow cross-origin requests
     q.Use(cors.New())
 
+    // Define a GET route at /v1/user
     q.Get("/v1/user", func(c *quick.Ctx) error {
+        // Set the response content type to JSON
         c.Set("Content-Type", "application/json")
+
+        // Return a response with status 200 and a message
         return c.Status(200).SendString("Quick in action com Cors❤️!")
     })
 
@@ -569,43 +581,65 @@ func main() {
 }
 
 ```
+### 📌 cURL
 
-### quick.New(quick.Config{})
+```bash
+$ curl -i -XGET -H "Content-Type:application/json" \
+'http://localhost:8080/v1/user'
 
+Quick in action com Cors❤️!
+```
+
+
+### Initializing Quick with Custom Configuration
+This example demonstrates how to start a Quick server with a custom configuration.
 ```go
-
 package main
 
 import "github.com/jeffotoni/quick"
 
 func main() {
+    // Create a new Quick server instance with custom configuration
     q := quick.New(quick.Config{
-        MaxBodySize: 5 * 1024 * 1024,
+        MaxBodySize: 5 * 1024 * 1024, // Set max request body size to 5MB
     })
 
+    // Define a GET route that returns a JSON response
     q.Get("/v1/user", func(c *quick.Ctx) error {
-        c.Set("Content-Type", "application/json")
-        return c.Status(200).SendString("Quick in action com Cors❤️!")
+        c.Set("Content-Type", "application/json") // Set response content type
+        return c.Status(200).SendString("Quick in action com Cors❤️!") // Return response
     })
+
 
     q.Listen("0.0.0.0:8080")
 }
+```
+### 📌 cURL
 
+```bash
+$ curl -i -XGET -H "Content-Type:application/json" \
+'http://localhost:8080/v1/user'
+
+Quick in action com Cors❤️!
 ```
 
-### quick.Group()
-
+### Grouping Routes
+This example demonstrates how to group routes using quick. Group(), making the code more organized
 ```go
 package main
 
 import "github.com/jeffotoni/quick"
 
 func main() {
+     // Create a new Quick server instance with custom configuration
     q := quick.New(quick.Config{
-        MaxBodySize: 5 * 1024 * 1024,
+        MaxBodySize: 5 * 1024 * 1024, 
     })
 
+    // Group for /v1 routes
     v1 := q.Group("/v1")
+
+    // Define GET and POST routes for /v1/user
     v1.Get("/user", func(c *quick.Ctx) error {
         return c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
     })
@@ -613,7 +647,10 @@ func main() {
         return c.Status(200).SendString("[POST] [GROUP] /v1/user ok!!!")
     })
 
+ 	 // Group for /v2 routes
     v2 := q.Group("/v2")
+
+    // Define GET and POST routes for /v2/user
     v2.Get("/user", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
         return c.Status(200).SendString("Quick in action com [GET] /v2/user ❤️!")
@@ -627,6 +664,31 @@ func main() {
     q.Listen("0.0.0.0:8080")
 }
 
+```
+### 📌 cURL
+1️⃣ GET /v1/user
+```bash
+$ curl -i -X GET http://localhost:8080/v1/user
+
+[GET] [GROUP] /v1/user ok!!!
+```
+2️⃣ POST /v1/user
+```bash
+$ curl -i -X POST http://localhost:8080/v1/user
+
+[POST] [GROUP] /v1/user ok!!!
+```
+3️⃣ GET /v2/user
+```bash
+$ curl -i -X GET http://localhost:8080/v2/user
+
+Quick in action com [GET] /v2/user ❤️!
+```
+4️⃣ POST /v2/user
+```bash
+$ curl -i -X POST http://localhost:8080/v2/user
+
+Quick in action com [POST] /v2/user ❤️!
 ```
 
 ### Quick Tests
