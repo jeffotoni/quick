@@ -98,6 +98,7 @@ func TestDefaultConfig(t *testing.T) {
 		WriteTimeout:      0,
 		IdleTimeout:       0,
 		ReadHeaderTimeout: 0,
+		NoBanner:          false,
 	}
 
 	if defaultConfig != expectedConfig {

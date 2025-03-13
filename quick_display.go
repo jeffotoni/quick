@@ -18,7 +18,7 @@ const (
 const QuickVersion = "v0.0.1"
 
 func (q *Quick) Display(scheme, port string) {
-	if q.config.NoBanner {
+	if !q.config.NoBanner {
 
 		// Counts the number of registered routes
 		routeCount := len(q.GetRoute())

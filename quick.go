@@ -89,8 +89,8 @@ var defaultConfig = Config{
 	MaxBodySize:    2 * 1024 * 1024,
 	MaxHeaderBytes: 1 * 1024 * 1024,
 	RouteCapacity:  1000,
-	MoreRequests:   290,  // equilibrium value
-	NoBanner:       true, // Display Quick
+	MoreRequests:   290,   // equilibrium value
+	NoBanner:       false, // Display Quick
 }
 
 type Zeroth int

@@ -91,7 +91,7 @@ func BenchmarkReadAllUnmarshalPool(b *testing.B) {
 
 // Benchmark using json.NewDecoder().Decode(&v) with sync.Pool
 func BenchmarkReadAlJSONDecoderPool(b *testing.B) {
-	p := unbufPool{Name: "John Doe", Age: 30, Email: "john@example.com"}
+	p := UnPerson{Name: "John Doe", Age: 30, Email: "john@example.com"}
 	buf := unbufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	if err := json.NewEncoder(buf).Encode(p); err != nil {
