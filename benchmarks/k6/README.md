@@ -20,45 +20,45 @@ Stay tuned for results, methodology, and detailed analysis! 🚀
 ```bash
  servers
     ├── echo
-    │   └── post.simples
-    │       ├── bind
-    │       │   └── main.go
-    │       └── byte
-    │           └── main.go
+    │ └── post.simples
+    │     ├── bind
+    │     │ └── main.go
+    │     └── byte
+    │         └── main.go
     ├── fiber
-    │   ├── go.mod
-    │   ├── go.sum
-    │   └── post.simples
-    │       ├── bodyparser
-    │       │   └── main.go
-    │       └── byte
-    │           └── main.go
+    │ ├── go.mod
+    │ ├── go.sum
+    │ └── post.simples
+    │     ├── bodyparser
+    │     │ └── main.go
+    │     └── byte
+    │         └── main.go
     ├── gin
-    │   ├── go.mod
-    │   ├── go.sum
-    │   └── post.simple
-    │       ├── bind
-    │       │   └── main.go
-    │       ├── byte
-    │       │   └── main.go
-    │       ├── shouldBind
-    │       │   └── main.go
-    │       └── shouldBindBodyWithJSON
-    │           └── main.go
+    │ ├── go.mod
+    │ ├── go.sum
+    │ └── post.simple
+    │     ├── bind
+    │     │ └── main.go
+    │     ├── byte
+    │     │ └── main.go
+    │     ├── shouldBind
+    │     │ └── main.go
+    │     └── shouldBindBodyWithJSON
+    │         └── main.go
     ├── iris
-    │   ├── go.mod
-    │   ├── go.sum
-    │   └── post.simple
-    │       ├── byte
-    │       │   └── main.go
-    │       └── readJSON
-    │           └── main.go
+    │ ├── go.mod
+    │ ├── go.sum
+    │ └── post.simple
+    │     ├── byte
+    │     │ └── main.go
+    │     └── readJSON
+    │         └── main.go
     └── quick
         └── post.simple
             ├── bind
-            │   └── main.go
+            │ └── main.go
             ├── bodyParser
-            │   └── main.go
+            │ └── main.go
             └── byte
                 └── main.go
 
@@ -101,7 +101,9 @@ The graphs below represent the main test results:
 - **Average Response Time**
   ![Average Response Time](grafico-k6-tresp.png)
 
-## 📌k6 Results (Summary)
+## 📌k6 Results (Summary) - 
+
+Apple M3 16 physical CPU cores and 16 virtual cores
 
 | Framework | Test         | Return Method          | Total HTTP Requests | Requests/s   | Avg Response Time | Data Received | Data Sent | Error Rate |
 |-----------|-------------|------------------------|----------------------|--------------|-------------------|---------------|-----------|-----------|
@@ -118,6 +120,65 @@ The graphs below represent the main test results:
 | Gin       | post.simple | shouldBindWithJSON     | 2,475,239            | 112,509.01   | 1.49ms            | 349MB         | 426MB     | 0.00%     |
 | IRIS      | post.simple | byte                   | 2,504,791            | 113,852.23   | 1.35ms            | 388MB         | 431MB     | 0.00%     |
 | IRIS      | post.simple | ReadJSON               | 2,464,202            | 112,007.25   | 1.29ms            | 384MB         | 424MB     | 0.00%     |
+
+
+--- 
+
+### K6 Benchmark Comparison 487Kb, 35000 lines use []struct - list
+
+A list [{}] in JSON is being sent with the POST method and it is 487kb in size.
+We tested the Quick, Echo, Fiber, Gin and Iris frameworks, and all of them had the same or corresponding functions.
+
+**Apple M3 16 physical CPU cores and 16 virtual cores**
+
+| Framework | Function          | Requests/s  | Avg Duration (s) | CPU (%)  | Memory (GB)  |
+|-----------|------------------|-------------|------------------|---------|-------------|
+| Quick     | c.Bind()          | 1625.90 ✅  | 0.324 ✅         | 82.50 ✅ | 2.66        |
+| Quick     | c.BodyParser()    | 1572.24     | 0.335            | 82.20   | 1.97        |
+| Quick     | c.Body()          | 1513.69     | 0.348            | 82.20   | 1.80        |
+| Echo      | c.Request().Body  | 1425.05     | 0.369            | 84.65 ❌ | 1.77        |
+| Echo      | c.Bind()          | 1433.59     | 0.366            | 83.76   | 1.81        |
+| Fiber     | c.Body()          | 1371.05 ❌  | 0.381            | 83.90   | 2.86 ❌      |
+| Fiber     | c.BodyParser()    | 1544.03     | 0.337            | 82.80   | 2.26        |
+| Gin       | c.ShouldBind()    | 1374.53     | 0.383 ❌         | 82.70   | 1.72 ✅      |
+| Gin       | c.Bind()          | 1355.15 ❌  | 0.388 ❌         | 82.50 ✅ | 1.91        |
+| Gin       | c.Request.Body    | 1440.02     | 0.366            | 82.70   | 1.95        |
+| Iris      | c.ReadJSON()      | 1457.08     | 0.361            | 82.00 ✅ | 1.50 ✅      |
+| Iris      | c.GetBody()       | 1430.75     | 0.366            | 82.90   | 1.85        |
+
+
+| Metric                | Best Framework / Function         | Worst Framework / Function        |
+|-----------------------|---------------------------------|----------------------------------|
+| **Highest Requests/s** | ✅ **Quick - c.Bind() (1625.90/s)** | ❌ Gin - c.Bind() (1355.15/s)       |
+| **Lowest Avg Duration** | ✅ **Quick - c.Bind() (0.324s)**   | ❌ Gin - c.Bind() (0.388s)          |
+| **Lowest CPU Usage**    | ✅ **Iris - c.ReadJSON() (82.00%)** | ❌ Echo - c.Request().Body (84.65%) |
+| **Lowest Memory Usage** | ✅ **Iris - c.ReadJSON() (1.50GB)** | ❌ Fiber - c.Body() (2.86GB)        |
+
+
+## 📊 Graphics
+
+Here is the bar and line chart comparing Requests/s and Avg Duration (s) for each framework and function tested. 🚀
+
+The graphs below represent the main test results:
+
+- **Number of Requests per Second and Avg Duration (s)**
+  ![Number of Requests and Avg Duration (s)](grafico-full-v2.png)
+
+- **CPU Usage (%) and Memory Usage (GB)**
+  ![CPU and Memory](grafico-full-cpu-ram-v2.png)
+
+
+    Key Takeaways
+    •   ✅ Quick performed best overall, with the highest requests per second (1625.90/s) and lowest average duration (0.324s).
+    •   ✅ Iris was the most efficient in resource consumption, using only 1.50GB of memory for c.ReadJSON(), while Fiber consumed the most (2.86GB).
+    •   ❌ Echo had the highest CPU consumption at 84.65%, whereas Iris had the lowest (82.00%).
+    •   ❌ Gin performed the worst in multiple metrics, especially with c.Bind(), which had a low request rate and higher response time.
+
+    Final Verdict:
+    •   🚀 Quick is the best overall framework for high performance.
+    •   ⚡ Iris is the most efficient in CPU & memory usage.
+    •   ⚖️ Fiber & Echo had intermediate results.
+    •   ❌ Gin struggled in multiple areas, making it the weakest option.
 
 
 ### 📌 Final Considerations

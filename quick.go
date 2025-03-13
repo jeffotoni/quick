@@ -342,22 +342,36 @@ func extractParamsBind(c *Ctx, v interface{}) error {
 		return fmt.Errorf("unsupported content type: %s", contentType)
 	}
 
-	// Acquire pooled buffer
-	buf := acquireJSONBuffer()
-	defer releaseJSONBuffer(buf)
-
-	// Read body content into buffer
-	if _, err := buf.ReadFrom(c.Request.Body); err != nil {
-		return err
-	}
-
-	// Reset the Request.Body after reading, enabling re-reads if needed
-	c.Request.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
-
 	switch {
 	case strings.HasPrefix(contentType, ContentTypeAppJSON):
+
+		// Acquire pooled buffer
+		buf := acquireJSONBuffer()
+		defer releaseJSONBuffer(buf)
+
+		// Read body content into buffer
+		if _, err := buf.ReadFrom(c.Request.Body); err != nil {
+			return err
+		}
+
+		// Reset the Request.Body after reading, enabling re-reads if needed
+		c.Request.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
+
 		return json.Unmarshal(buf.Bytes(), v)
 	case strings.HasPrefix(contentType, ContentTypeAppXML), strings.HasPrefix(contentType, ContentTypeTextXML):
+
+		// Acquire pooled buffer
+		buf := acquireXMLBuffer()
+		defer releaseXMLBuffer(buf)
+
+		// Read body content into buffer
+		if _, err := buf.ReadFrom(c.Request.Body); err != nil {
+			return err
+		}
+
+		// Reset the Request.Body after reading, enabling re-reads if needed
+		c.Request.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
+
 		return xml.Unmarshal(buf.Bytes(), v)
 	default:
 		return fmt.Errorf("unsupported content type: %s", contentType)

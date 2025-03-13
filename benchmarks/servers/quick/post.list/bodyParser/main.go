@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/jeffotoni/quick"
 )
 
@@ -37,7 +35,7 @@ type Option struct {
 func main() {
 	q := quick.New(quick.Config{
 		MaxBodySize: 20 * 1024 * 1024,
-		ReadTimeout: 40 * time.Second,
+		// ReadTimeout: 40 * time.Second,
 	}) // Initialize Quick framework
 
 	// Define a POST route at /v1/user
@@ -45,7 +43,7 @@ func main() {
 		var my []My // Create a variable to store incoming user data
 
 		// Parse the request body into the struct
-		err := c.Bind(&my)
+		err := c.BodyParser(&my)
 		if err != nil {
 			// If parsing fails, return a 400 Bad Request response
 			return c.Status(400).SendString(err.Error())

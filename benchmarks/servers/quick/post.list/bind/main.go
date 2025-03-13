@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/jeffotoni/quick"
 )
 
@@ -36,11 +34,11 @@ type Option struct {
 // "extra": "some data", "dynamic": {"speed": "200km/h"}}]'
 func main() {
 	q := quick.New(quick.Config{
-		MaxBodySize:       20 * 1024 * 1024,
-		ReadTimeout:       60 * time.Second,
-		WriteTimeout:      60 * time.Second,
-		IdleTimeout:       120 * time.Second,
-		ReadHeaderTimeout: 10 * time.Second,
+		MaxBodySize: 20 * 1024 * 1024,
+		// ReadTimeout:       60 * time.Second,
+		// WriteTimeout:      60 * time.Second,
+		// IdleTimeout:       120 * time.Second,
+		// ReadHeaderTimeout: 10 * time.Second,
 	}) // Initialize Quick framework
 
 	// Define a POST route at /v1/user

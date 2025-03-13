@@ -1,8 +1,8 @@
 ### echo
 post.list
-bind
+Input Parse c.Bind(&my)
 data_1k_list
-return c.JSON(http.StatusOK, my)
+Output Parse c.JSON
 
          /\      Grafana   /‾‾/  
     /\  /  \     |\  __   /  /   
