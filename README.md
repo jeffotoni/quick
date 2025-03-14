@@ -1285,13 +1285,12 @@ It is designed to handle different types of request bodies and parse responses e
 The `Client` struct represents a configurable HTTP client with advanced features:
 
 ```go
-type Client struct {
-	Ctx          context.Context   
-	ClientHTTP   httpGoClient      
-	Headers      map[string]string 
-	EnableLogger bool              
-	Logger       *slog.Logger      
-	headersLock  sync.RWMutex     
+var ClientDefault = Client{
+	Ctx:          context.Background(),
+	ClientHTTP:   httpGoClient{},
+	Headers:      map[string]string{"Content-Type": "application/json"},
+	EnableLogger: true,
+	Logger:       slog.Default(),
 }
 ```
 Check out the code below:
