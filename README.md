@@ -1311,25 +1311,42 @@ import (
 
 func main() {
 	// Create a new HTTP client
-	client := client.New()
+	httpClient := client.New()
 
 	// Making a GET request to fetch a list of users
-	resp, err := client.Get("https://reqres.in/api/users")
+	resp, err := httpClient.Get("https://reqres.in/api/users")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("GET response:", string(resp.Body))
+
+	// Parse JSON response
+	var result map[string]interface{}
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		log.Fatal("Error decoding response:", err)
+	}
+
+	// Extract first user
+	users := result["data"].([]interface{})
+	firstUser := users[0].(map[string]interface{})
+
+	// Print only first user
+	fmt.Printf("Id: %v\n", firstUser["id"])
+	fmt.Printf("Name: %v %v\n", firstUser["first_name"], firstUser["last_name"])
+	fmt.Printf("Email: %v\n", firstUser["email"])
+	fmt.Printf("Avatar: %v\n", firstUser["avatar"])
 }
 ```
-### 📌 cURL
+📌 Response
 ```bash
-$ curl -i -XGET -H "Content-Type: application/json" \
-"https://reqres.in/api/users"
-```
-🔗 See the full API response **[here](https://reqres.in/api/users)**.
+Id: 1
+Name: George Bluth
+Email: george.bluth@reqres.in
+Avatar: https://reqres.in/img/faces/1-image.jpg
 
+```
 
 #### POST Request Example (Using a Struct)
+A POST request is used to send data to a server, often for creating new resources.
 
 ```go
 package main
@@ -1343,34 +1360,46 @@ import (
 )
 
 func main() {
-	// Define a struct to send as JSON
+	// Create a new HTTP client
+	httpClient := client.New()
+
+	// Define a struct for the request body
 	data := struct {
-		user string `json:"user"`
+		Name string `json:"name"`
 	}{
-		user: "Emma",
+		Name: "Emma",
 	}
 
-	// POST request to ReqRes API
-	resp, err := client.Post("https://reqres.in/api/users", data)
+	// Making a POST request with JSON data
+	resp, err := httpClient.Post("https://reqres.in/api/users", data)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error making POST request:", err)
 	}
 
-	// Unmarshal the JSON response (if applicable)
-	var result map[string]string
+	// Parse JSON response
+	var result map[string]interface{}
 	if err := json.Unmarshal(resp.Body, &result); err != nil {
-		log.Fatal(err)
+		log.Fatal("Error decoding response:", err)
 	}
-	fmt.Println("POST response:", result)
+
+	// Print formatted response
+	fmt.Println("Id:", result["id"])
+	fmt.Println("Created_At:", result["createdAt"])
 }
+```
+📌 Response
+```bash
+Id: 322
+Created_At: 2025-03-14T14:48:24.305Z
 ```
 
 #### PUT Request Example (Using a String)
-
+A PUT request is used to update an existing resource.
 ```go
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -1378,33 +1407,39 @@ import (
 )
 
 func main() {
-	// Define a struct with user data
-	data := struct {
-		user string `json:"name"`
-	}{
-		user: "Jeff",
-	}
+	// Create a new HTTP client
+	httpClient := client.New()
 
-	// Convert struct to JSON
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		log.Fatal("Error encoding JSON:", err)
+	// Define a struct with updated user data
+	data := struct {
+		Name string `json:"name"`
+	}{
+		Name: "Jeff",
 	}
 
 	// PUT request to ReqRes API
-	resp, err := client.Put("https://reqres.in/api/users/2", string(jsonData))
+	resp, err := httpClient.Put("https://reqres.in/api/users/2", data)
 	if err != nil {
-		log.Fatal("Error making request:", err)
+		log.Fatal("Error making PUT request:", err)
 	}
 
-	// Print the HTTP status and response body
-	fmt.Println("HTTP Status Code:", resp.StatusCode)
-	fmt.Println("Raw Response Body:", string(resp.Body))
+	// Parse JSON response
+	var result map[string]interface{}
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		log.Fatal("Error decoding response:", err)
+	}
+
+	// Print formatted response
+	fmt.Println("Updated_At:", result["updatedAt"])
 }
+```
+📌 Response
+```bash
+Updated_At: 2025-03-14T14:56:35.202Z
 ```
 
 #### DELETE Request Example
-
+A DELETE request is used to remove a resource from the server.
 ```go
 package main
 
@@ -1417,14 +1452,17 @@ import (
 
 func main() {
 
+	// Create a new HTTP client
+	httpClient := client.New()
+
 	// DELETE request to ReqRes API
-	resp, err := client.Delete("https://reqres.in/api/users/2")
+	resp, err := httpClient.Delete("https://reqres.in/api/users/2")
 	if err != nil {
 		log.Fatal("Error making request:", err)
 	}
 
 	// Print the HTTP status to confirm deletion
-	fmt.Println("HTTP Status Code:", resp.StatusCode)
+	fmt.Println("Status Code:", resp.StatusCode)
 
 	// Since DELETE usually returns no content, we check if it's empty
 	if len(resp.Body) > 0 {
@@ -1434,7 +1472,11 @@ func main() {
 	}
 }
 ```
-
+📌 Response
+```bash
+Status Code: 204
+Response Body is empty (expected for 204 No Content)
+```
 ---
 
 # Qtest - HTTP Testing Utility for Quick
