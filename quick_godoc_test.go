@@ -14,6 +14,7 @@ package quick
 import (
 	"net/http"
 	"reflect"
+	"runtime"
 	"testing"
 	"time"
 
@@ -146,11 +147,17 @@ func TestExampleOptions(t *testing.T) {
 func TestExampleGetDefaultConfig(t *testing.T) {
 	// Expected default configuration values
 	expected := Config{
-		BodyLimit:      2097152, // 2MB
-		MaxBodySize:    2097152, // 2MB
-		MaxHeaderBytes: 1048576, // 1MB
-		RouteCapacity:  1000,    // Maximum number of routes
-		MoreRequests:   290,     // Max concurrent requests allowed
+		BodyLimit:      2 * 1024 * 1024, // 2MB
+		MaxBodySize:    2 * 1024 * 1024, // 2MB
+		MaxHeaderBytes: 1 * 1024 * 1024, // 1MB
+
+		GOMAXPROCS:      runtime.NumCPU(),
+		GCHeapThreshold: 1 << 30, // 1GB
+		BufferPoolSize:  32768,
+
+		RouteCapacity: 1000,  // Initial capacity of 1000 routes.
+		MoreRequests:  290,   // default GC value equilibrium value
+		NoBanner:      false, // Display Quick banner by default.
 	}
 
 	// Get actual configuration

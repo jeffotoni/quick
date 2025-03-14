@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -99,6 +100,10 @@ func TestDefaultConfig(t *testing.T) {
 		IdleTimeout:       0,
 		ReadHeaderTimeout: 0,
 		NoBanner:          false,
+
+		GOMAXPROCS:      runtime.NumCPU(),
+		GCHeapThreshold: 1 << 30, // 1GB
+		BufferPoolSize:  32768,
 	}
 
 	if defaultConfig != expectedConfig {
