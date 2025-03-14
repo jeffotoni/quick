@@ -875,26 +875,27 @@ $ curl -i -X GET http://localhost:8080/api/v1/users/123
 }
 ```
 
-### 🔑 Basic Authentication
+## 🔑 Basic Authentication
 
-Basic Authentication (Basic Auth) is a simple authentication mechanism defined in RFC 7617. It is commonly used for HTTP-based authentication, allowing clients to provide credentials (username and password) in the request header.
+**Basic Authentication (Basic Auth)** is a simple authentication mechanism defined in **RFC 7617**.  
+It is commonly used for **HTTP-based authentication**, allowing clients to provide **credentials (username and password)** in the request header.
 
-**🔹 How it Works**
 
-1. The client encodes the username and password in Base64 (username:password → dXNlcm5hbWU6cGFzc3dvcmQ=).
-2. The encoded credentials are sent in the Authorization header:
+### 🔹 **How It Works**
+1️⃣ The **client encodes** the username and password in Base64: 
 
+2️⃣ The **encoded credentials** are sent in the `Authorization` header:  
 ```bash
 Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
 ```
+3️⃣ The server decodes and verifies the credentials before granting access.
 
-3. The server decodes the credentials and verifies them before granting access.
+---
 
-**⚠️ Security Considerations**
-• Not encrypted: Basic Auth only encodes credentials in Base64, but does not encrypt them.
-• Use over HTTPS: Always use Basic Auth with TLS/SSL (HTTPS) to prevent credentials from being exposed.
-• Alternative authentication methods: For higher security, consider OAuth2, JWT, or API keys.
-
+### **⚠️ Security Considerations**
+- 🔒 Not encrypted – Basic Auth only encodes credentials in Base64, but does not encrypt them.
+- 🔐 Use over HTTPS – Always use Basic Auth with TLS/SSL (HTTPS) to prevent credentials from being exposed.
+- 🔑 Consider alternatives – For stronger security, prefer OAuth2, JWT, or API keys.
 Basic Auth is suitable for simple use cases, but for production applications, stronger authentication mechanisms are recommended. 🚀
 
 #### Basic Auth environment variables
@@ -925,7 +926,7 @@ var (
 
 func main() {
 
-		// Create a new Quick server instance
+	// Initialize a new Quick instance
 	q := quick.New()
 
 	// Apply Basic Authentication middleware
@@ -1119,28 +1120,42 @@ You have accessed a protected route!
 
 ---
 
-### 📂 STATIC FILES
+## 📂 **STATIC FILES**
 
-A Static File Server is a fundamental feature in web frameworks, allowing the efficient serving of static content such as HTML, CSS, JavaScript, images, and other assets. It is useful for hosting front-end applications, providing downloadable files, or serving resources directly from the backend.
+A **Static File Server** is an essential feature in web frameworks, enabling the efficient serving of static content such as **HTML, CSS, JavaScript, images, and other assets**.  
 
-### 🔹 How It Works
+It is particularly useful for:  
+- ✅ Hosting front-end applications  
+- ✅ Providing downloadable files  
+- ✅ Serving resources directly from the backend  
 
-1. The server listens for HTTP requests targeting static file paths.
-2. If a requested file exists in the configured directory, the server reads and returns the file as a response.
-3. MIME types are automatically determined based on the file extension.
+---
 
-:zap: Key Features
+### 🔹 **How It Works**
+- 1️⃣ The server **listens** for HTTP requests targeting static file paths.  
+- 2️⃣ If the requested file **exists** in the configured directory, the server reads and returns it as a response.  
+- 3️⃣ **MIME types** are automatically determined based on the file extension for correct rendering.  
 
-- Efficient handling: Serves files directly without additional processing.
-- MIME type detection: Automatically identifies file types for proper rendering.
-- Caching support: Can be configured to improve performance via HTTP headers.
-- Directory listing: (Optional) Allows browsing available static files.
+---
 
-:warning: Security Considerations
+### ⚡ **Key Features**
+- 🚀 **Efficient Handling** – Serves files directly without additional processing.  
+- 🎯 **MIME Type Detection** – Automatically identifies file types for proper rendering.  
+- ⚡ **Caching Support** – Can be configured to improve performance via HTTP headers.  
+- 📂 **Optional Directory Listing** – Allows browsing available static files (if enabled).  
 
-- Restrict access to sensitive files (.env, .git, etc.).
-- Configure CORS policies when necessary.
-- Use a Content Security Policy (CSP) to mitigate XSS risks.
+---
+
+### ⚠️ **Security Considerations**
+- 🔒 **Restrict Access** – Prevent exposure of sensitive files like `.env`, `.git`, or configuration files.  
+- 🌐 **CORS Policies** – Configure **Cross-Origin Resource Sharing (CORS)** to control file access.  
+- 🛡 **Content Security Policy (CSP)** – Helps mitigate **XSS (Cross-Site Scripting)** risks.  
+
+---
+
+By properly configuring your static file server, you can ensure **fast, efficient, and secure delivery of resources**! 🚀🔥
+
+---
 
 ### Serving Static Files with Quick Framework
 
@@ -1184,11 +1199,13 @@ File Server Go example html
 2. The application **serves these files from memory**, eliminating the need to access the disk.
 3. This **removes external dependencies**, making the deployment simpler and more efficient.
 
+---
 ### ⚡ Advantages of using embedded files:
 - ✅ **Portability** - The binary contains everything you need, no extra files.  
 - ✅ **Performance** - File access is faster because files are already loaded in memory.  
 - ✅ **Security** - Reduces exposure to attacks because the file system does not need to be accessible.  
 
+---
 ### 🚀 How does Quick simplify this process?
 The function `q. Static()` already handles the complexity of serving embedded files. Just call it with `embed.FS`.
 
@@ -1245,16 +1262,42 @@ quick-example
 
 ## 🌍 HTTP Client
 
-The HTTP Client package in Quick provides a simple and flexible way to make HTTP requests, supporting GET, POST, PUT, and DELETE operations. It is designed to handle different types of request bodies and parse responses easily.
+The **HTTP Client** package in **Quick** provides a **simple and flexible** way to make HTTP requests, supporting **GET, POST, PUT, and DELETE** operations. 🚀
 
-This client abstracts low-level HTTP handling and offers:
+It is designed to handle different types of request bodies and parse responses easily.
 
-- Convenience functions (Get, Post, Put, Delete) for making quick requests using a default client.
-- Customizable requests with support for headers, authentication, and transport settings.
-- Flexible body parsing, allowing users to send JSON, plain text, or custom io.Reader types.
-- Automatic JSON marshaling and unmarshaling, simplifying interaction with APIs.
+###  🎯 Why Use Quick's HTTP Client?
+- ✅ Easy-to-Use – Simplified functions for common HTTP requests.
+- ✅ Highly Customizable – Supports headers, authentication, and transport settings.
+- ✅ Flexible Body Parsing – Works with JSON, plain text, and custom io.Reader types.
+- ✅ Automatic JSON Handling – No need to manually marshal/unmarshal JSON.
 
-#### GET Request Example
+
+### ⚡ Key Features
+
+- 🔹 **Convenience Functions** – Use `Get`, `Post`, `Put`, and `Delete` to make quick requests with a default client.
+- 🔹 **Customizable Requests** – Easily add headers, authentication, and request settings.
+- 🔹 **Automatic JSON Processing** – Seamless encoding and decoding of JSON data.
+- 🔹 **Flexible Request Body** – Send data as **JSON**, **plain text**, or any `io.Reader`.
+
+---
+### 📌 **Client Structure**
+The `Client` struct represents a configurable HTTP client with advanced features:
+
+```go
+type Client struct {
+	Ctx          context.Context   
+	ClientHTTP   httpGoClient      
+	Headers      map[string]string 
+	EnableLogger bool              
+	Logger       *slog.Logger      
+	headersLock  sync.RWMutex     
+}
+```
+Check out the code below:
+
+### GET Request Example
+A GET request is used to retrieve data from a server.
 
 ```go
 package main
@@ -1267,7 +1310,10 @@ import (
 )
 
 func main() {
-	// Use the default client
+	// Create a new HTTP client
+	client := client.New()
+
+	// Making a GET request to fetch a list of users
 	resp, err := client.Get("https://reqres.in/api/users")
 	if err != nil {
 		log.Fatal(err)
@@ -1275,6 +1321,13 @@ func main() {
 	fmt.Println("GET response:", string(resp.Body))
 }
 ```
+### 📌 cURL
+```bash
+$ curl -i -XGET -H "Content-Type: application/json" \
+"https://reqres.in/api/users"
+```
+🔗 See the full API response **[here](https://reqres.in/api/users)**.
+
 
 #### POST Request Example (Using a Struct)
 
