@@ -1338,7 +1338,7 @@ func main() {
 	fmt.Printf("Avatar: %v\n", firstUser["avatar"])
 }
 ```
-📌 Response
+### 📌 Response
 ```bash
 Id: 1
 Name: George Bluth
@@ -1391,7 +1391,7 @@ func main() {
 	fmt.Println("Created_At:", result["createdAt"])
 }
 ```
-📌 Response
+### 📌 Response
 ```bash
 Id: 322
 Created_At: 2025-03-14T14:48:24.305Z
@@ -1441,7 +1441,7 @@ func main() {
 	fmt.Println("Updated_At:", result["updatedAt"])
 }
 ```
-📌 Response
+### 📌 Response
 ```bash
 Updated_At: 2025-03-14T14:56:35.202Z
 ```
@@ -1480,7 +1480,7 @@ func main() {
 	}
 }
 ```
-📌 Response
+### 📌 Response
 ```bash
 Status Code: 204
 Response Body is empty (expected for 204 No Content)
@@ -1670,6 +1670,7 @@ func main() {
 	fmt.Println("GET Response:", string(resp.Body))
 }
 ```
+### 📌 Response
 ```bash
 {"time":"2025-03-14T14:27:02.069237664-03:00","level":"WARN","msg":"Retrying request","url":"https://httpbin_error.org/get","method":"GET","attempt":1,"failover":1}
 {"time":"2025-03-14T14:27:13.076907091-03:00","level":"WARN","msg":"Retrying request","url":"http://backup1.com/resource","method":"GET","attempt":2,"failover":2}
@@ -1813,7 +1814,7 @@ func main() {
 
 }
 ```
-📌 Response
+### 📌 Response
 ```bash
 POST Response:
 {
@@ -1830,23 +1831,23 @@ POST Response:
 ```
 ---
 
-### 🌐 Transport Configuration
+## 🌐 Transport Configuration in HTTP Client
 
-The `Transport` setting in the Quick HTTP Client is essential for managing the network layer of HTTP communications. It allows detailed customization of how HTTP requests and responses are handled, optimizing performance, security, and reliability.
+The `Transport` setting in the Quick HTTP Client **manages the network layer**, ensuring efficient, secure, and reliable HTTP communications.
+It provides **fine-grained** control over **connection management, security settings, and protocol optimizations** for both **development and production environments**.
 
-### ✅ Key Features of Transport Configuration
+### ✅ Key Features of Transport Configuration  
 
-| Setting                   | Description                                                                                                                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Proxy Settings**        | Manages how HTTP requests handle proxy servers, using system environment settings for automatic configuration.                                                                      |
-| **TLS Configuration**     | Controls aspects of security, such as TLS version and certificate verification. `InsecureSkipVerify` is available for development to bypass SSL certificate verification.           |
-| **Connection Management** | Includes settings like `MaxIdleConns`, `MaxConnsPerHost`, and `MaxIdleConnsPerHost`, managing the number and state of connections to optimize resource use and improve scalability. |
-| **DisableKeepAlives**     | Determines whether to use persistent connections, improving performance by reducing connection setup times.                                                                         |
-| **HTTP/2 Support**        | Enables HTTP/2 for supported servers, enhancing communication efficiency and performance.                                                                                           |
+| ⚙️ **Setting**              | 🔍 **Description**  |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------|
+| **🛠 Proxy Settings**       | Handles **proxy servers** using system environment settings for automatic configuration.  |
+| **🔒 TLS Configuration**    | Controls **security settings**, such as **TLS version** and **certificate verification**. `InsecureSkipVerify` can be enabled for development to bypass SSL verification.  |
+| **📡 Connection Management** | Optimizes resource usage with settings like `MaxIdleConns`, `MaxConnsPerHost`, and `MaxIdleConnsPerHost`, improving **scalability**.  |
+| **🚀 Persistent Connections** | Enables or disables **Keep-Alives**, reducing connection setup time and improving performance. |
+| **⚡ HTTP/2 Support**        | Enables **HTTP/2** for faster, more efficient communication when supported by the server. |
+ 
 
-This configuration ensures optimal performance and security customization, making it suitable for both development and production environments.
-
-#### 🔹 Advanced HTTP client configuration with failover mechanism
+#### Advanced HTTP client configuration with failover mechanism
 
 This code example showcases the setup of an HTTP client capable of handling network interruptions and server failures gracefully. It features custom transport configurations, including enhanced security settings, connection management, and a robust failover mechanism. Such a setup ensures that the application remains resilient and responsive under various network conditions.
 
@@ -1870,7 +1871,7 @@ func main() {
 		// Uses system proxy settings if available.
 		Proxy: http.ProxyFromEnvironment,
 		TLSClientConfig: &tls.Config{
-			// Allows insecure TLS connections (not recommended for production).
+			// Allows insecure TLS connections .
 			InsecureSkipVerify: true,
 			// Enforces a minimum TLS version for security.
 			MinVersion:         tls.VersionTLS12,
@@ -1912,13 +1913,13 @@ func main() {
 				Delay:        1 * time.Second,
 				UseBackoff:   true,
 				Statuses:     []int{500},
-				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/get"},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
 				EnableLog:    true,
 			}),
 	)
 
 	// call client to POST
-	resp, err := cClient.Post("http://localhost:3000/v1/user", map[string]string{"message": "Hello Post!!"})
+	resp, err := cClient.Post("https://httpbin_error.org/post", map[string]string{"message": "Quick in action"})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1926,12 +1927,36 @@ func main() {
 	// show resp
 	fmt.Println("POST response:\n", string(resp.Body))
 }
-
 ```
-
+### 📌 Response
+```bash
+{"time":"2025-03-14T15:31:11.027180616-03:00","level":"WARN","msg":"Retrying request","url":"https://httpbin_error.org/post","method":"POST","attempt":1,"failover":1}
+{"time":"2025-03-14T15:31:12.028294877-03:00","level":"WARN","msg":"Retrying request","url":"http://hosterror","method":"POST","attempt":2,"failover":2}
+POST response:
+ {
+  "args": {}, 
+  "data": "{\"message\":\"Quick in action\"}", 
+  "files": {}, 
+  "form": {}, 
+  "headers": {
+    "Accept-Encoding": "gzip", 
+    "Authorization": "Bearer YOUR_ACCESS_TOKEN", 
+    "Content-Length": "29", 
+    "Content-Type": "application/json", 
+    "Host": "httpbin_error.org", 
+    "User-Agent": "Go-http-client/1.1", 
+    "X-Amzn-Trace-Id": "Root=1-67d475f2-713b9e4c2fff65d413fcd097"
+  }, 
+  "json": {
+    "message": "Quick in action"
+  }, 
+  "origin": "179.216.110.129", 
+  "url": "https://httpbin_error.org/post"
+}
+```
 ---
 
-#### 🔹 HTTP Client with Advanced Transport and Failover Capabilities
+#### HTTP Client with Advanced Transport and Failover Capabilities
 
 Explore how to set up an HTTP client that not only adheres to security best practices with TLS configurations but also ensures your application remains operational through network issues. This example includes detailed setups for handling HTTP client retries and switching to failover URLs when typical requests fail. Ideal for systems requiring high reliability and fault tolerance.
 
@@ -2011,10 +2036,35 @@ func main() {
 	fmt.Println("POST response:", string(resp.Body))
 }
 ```
+### 📌 Response
+```bash
+{"time":"2025-03-14T15:37:43.481220287-03:00","level":"WARN","msg":"Retrying request","url":"https://httpbin_error.org/post","method":"POST","attempt":1,"failover":1}
+{"time":"2025-03-14T15:37:44.482388761-03:00","level":"WARN","msg":"Retrying request","url":"http://hosterror","method":"POST","attempt":2,"failover":2}
+POST response: {
+  "args": {}, 
+  "data": "{\"name\":\"jeffotoni\"}", 
+  "files": {}, 
+  "form": {}, 
+  "headers": {
+    "Accept-Encoding": "gzip", 
+    "Authorization": "Bearer YOUR_ACCESS_TOKEN", 
+    "Content-Length": "20", 
+    "Content-Type": "application/json", 
+    "Host": "httpbin_error.org", 
+    "User-Agent": "Go-http-client/1.1", 
+    "X-Amzn-Trace-Id": "Root=1-67d4777b-50d494284d3d242224dc62c0"
+  }, 
+  "json": {
+    "name": "jeffotoni"
+  }, 
+  "origin": "179.216.110.129", 
+  "url": "https://httpbin_error.org/post"
+}
+```
 
 ---
 
-### 🔹Configuring HTTP Client with Retry and Failover Mechanisms
+### Configuring HTTP Client with Retry and Failover Mechanisms
 
 Discover how to build an HTTP client capable of dealing with network instabilities and server failures. This setup includes detailed retry configurations and introduces failover URLs to ensure that your application can maintain communication under adverse conditions. The example demonstrates using exponential backoff for retries and provides multiple endpoints to guarantee the availability of services.
 
@@ -2082,10 +2132,34 @@ func main() {
 }
 
 ```
+### 📌 Response
+```bash
+{"time":"2025-03-14T15:40:30.617507958-03:00","level":"WARN","msg":"Retrying request","url":"https://httpbin_error.org/post","method":"POST","attempt":1,"failover":1}
+{"time":"2025-03-14T15:40:31.618144855-03:00","level":"WARN","msg":"Retrying request","url":"http://hosterror","method":"POST","attempt":2,"failover":2}
+POST Form Response: {
+  "args": {}, 
+  "data": "{\"name\":\"jeffotoni in action with Quick!!!\"}", 
+  "files": {}, 
+  "form": {}, 
+  "headers": {
+    "Accept-Encoding": "gzip", 
+    "Content-Length": "44", 
+    "Content-Type": "application/json", 
+    "Host": "httpbin_error.org", 
+    "User-Agent": "Go-http-client/1.1", 
+    "X-Amzn-Trace-Id": "Root=1-67d47822-5c80648f5a30c75c6a500470"
+  }, 
+  "json": {
+    "name": "jeffotoni in action with Quick!!!"
+  }, 
+  "origin": "179.216.110.129", 
+  "url": "https://httpbin_error.org/post"
+}
+```
 
 ---
 
-### 🔹Advanced HTTP Client Configuration with Transport and Retry Settings
+### Advanced HTTP Client Configuration with Transport and Retry Settings
 
 Explore the configuration of an HTTP client designed for high reliability and security in network communications. This example includes sophisticated transport settings, featuring TLS configurations for enhanced security, and a robust retry mechanism to handle request failures gracefully. These settings are essential for applications requiring reliable data exchange with external APIs, especially in environments where network stability might be a concern.
 
@@ -2154,25 +2228,52 @@ func main() {
 }
 
 ```
+### 📌 Response
+```bash
+POST Form Response: {
+  "args": {}, 
+  "data": "{\"name\":\"jeffotoni\"}", 
+  "files": {}, 
+  "form": {}, 
+  "headers": {
+    "Accept-Encoding": "gzip", 
+    "Content-Length": "20", 
+    "Content-Type": "application/json", 
+    "Host": "httpbin.org", 
+    "User-Agent": "Go-http-client/2.0", 
+    "X-Amzn-Trace-Id": "Root=1-67d4786f-61ddc079287866e673f4f584"
+  }, 
+  "json": {
+    "name": "jeffotoni"
+  }, 
+  "origin": "179.216.110.129", 
+  "url": "https://httpbin.org/post"
+}
+```
 
 ---
 
-## 📌 TLS
+## 🔐 TLS (Transport Layer Security) in Quick HTTP Server
 
-`TLS (Transport Layer Security)` is a cryptographic protocol that provides **secure communication** over a network. It is widely used to encrypt data transmitted between clients and servers, ensuring **confidentiality, integrity, and authentication**. TLS is the successor to SSL (Secure Sockets Layer) and is used in HTTPS, email security, and many other applications.
-
-### 🔹 TLS Features
-
-| Feature               | Description                                                                   |
-| --------------------- | ----------------------------------------------------------------------------- |
-| 🔐 **Encryption**     | Protects data from being intercepted during transmission.                     |
-| 🔑 **Authentication** | Ensures the server (and optionally the client) is legitimate.                 |
-| 🔄 **Data Integrity** | Prevents data from being modified or tampered with in transit.                |
-| 🚀 **Performance**    | Modern TLS versions (1.2, 1.3) provide strong security with minimal overhead. |
+`TLS (Transport Layer Security)` is a cryptographic protocol that provides **secure communication** over a network.
+It is widely used to encrypt data transmitted between clients and servers, ensuring **confidentiality, integrity, and authentication**. 
+TLS is the **successor to SSL (Secure Sockets Layer)** and is used in **HTTPS, email security, and many other applications**.
 
 ---
 
-### 🔹 Running a Secure HTTPS Server with Quick and TLS
+### 🚀 Key TLS Features
+
+| 🔹 **Feature**        | 🔍 **Description**  |
+|----------------------|--------------------------------------------------------------|
+| 🔐 **Encryption**     | Protects data from being intercepted during transmission. |
+| 🔑 **Authentication** | Ensures the server (and optionally the client) is legitimate. |
+| 🔄 **Data Integrity** | Prevents data from being modified or tampered with in transit. |
+| ⚡ **Performance**    | Modern TLS versions (1.2, 1.3) offer strong security with minimal overhead. |
+
+---
+
+### 🌍 Running a Secure HTTPS Server with Quick and TLS
+This example demonstrates how to set up an HTTPS server using Quick with TLS encryption, ensuring secure communication between clients and the server.
 
 ```go
 package main
@@ -2194,7 +2295,7 @@ func main() {
 	// - The server will listen on port 8443 (non-privileged port)
 	// - cert.pem: SSL/TLS certificate file
 	// - key.pem: Private key file for SSL/TLS encryption
-	err := q.ListenTLS(":8443", "cert.pem", "key.pem")
+	err := q.ListenTLS(":8443", "cert.pem", "key.pem", false)
 	if err != nil {
 		// Log an error message if the server fails to start
 		fmt.Printf("Error when trying to connect with TLS: %v\n", err)
@@ -2202,7 +2303,7 @@ func main() {
 }
 ```
 
-### ⚠️ **Note on Ports and Permissions**
+### ⚠️ Ports & Permissions Considerations
 
 This example **uses port 8443** so that it runs on **any operating system without requiring extra permissions**.
 
