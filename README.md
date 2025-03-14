@@ -1318,6 +1318,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Alternative:
+	//fmt.Println("GET response:", string(resp.Body))
+
 	// Parse JSON response
 	var result map[string]interface{}
 	if err := json.Unmarshal(resp.Body, &result); err != nil {
@@ -1341,10 +1344,9 @@ Id: 1
 Name: George Bluth
 Email: george.bluth@reqres.in
 Avatar: https://reqres.in/img/faces/1-image.jpg
-
 ```
 
-#### POST Request Example (Using a Struct)
+### POST Request Example (Using a Struct)
 A POST request is used to send data to a server, often for creating new resources.
 
 ```go
@@ -1381,6 +1383,9 @@ func main() {
 		log.Fatal("Error decoding response:", err)
 	}
 
+	// Alternative:
+	//fmt.Println("POST response:", result)
+
 	// Print formatted response
 	fmt.Println("Id:", result["id"])
 	fmt.Println("Created_At:", result["createdAt"])
@@ -1392,7 +1397,7 @@ Id: 322
 Created_At: 2025-03-14T14:48:24.305Z
 ```
 
-#### PUT Request Example (Using a String)
+### PUT Request Example (Using a String)
 A PUT request is used to update an existing resource.
 ```go
 package main
@@ -1428,6 +1433,10 @@ func main() {
 		log.Fatal("Error decoding response:", err)
 	}
 
+	// Alternative: Print the HTTP status and response body
+	// fmt.Println("HTTP Status Code:", resp.StatusCode)
+	// fmt.Println("Raw Response Body:", string(resp.Body))
+
 	// Print formatted response
 	fmt.Println("Updated_At:", result["updatedAt"])
 }
@@ -1437,7 +1446,7 @@ func main() {
 Updated_At: 2025-03-14T14:56:35.202Z
 ```
 
-#### DELETE Request Example
+### DELETE Request Example
 A DELETE request is used to remove a resource from the server.
 ```go
 package main
@@ -1478,16 +1487,16 @@ Response Body is empty (expected for 204 No Content)
 ```
 ---
 
-# Qtest - HTTP Testing Utility for Quick
+## 🚀 Qtest - HTTP Testing Utility for Quick
 
 Qtest is an **advanced HTTP testing function** designed to simplify route validation within the **Quick** framework. It enables seamless testing of simulated HTTP requests using `httptest`, supporting:
 
 - **Custom HTTP methods** (`GET`, `POST`, `PUT`, `DELETE`, etc.).
-- **Custom headers**.
-- **Query parameters**.
-- **Request body**.
-- **Cookies**.
-- **Built-in validation methods** for status codes, headers, and response bodies.
+- ✅ **Custom headers**.
+- ✅ **Query parameters**.
+- ✅ **Request body**.
+- ✅ **Cookies**.
+- ✅ **Built-in validation methods** for status codes, headers, and response bodies.
 
 ## 📌 Overview
 
@@ -1542,8 +1551,18 @@ func TestQTest_Options_POST(t *testing.T) {
     }
 }
 ```
+### 📌 Usage Reference
 
-🚀 **More details here [Qtest - Quick](https://github.com/jeffotoni/quick/tree/main/quickTest)**
+| Function                        | Description                          |
+|---------------------------------|--------------------------------------|
+| `Qtest(opts QuickTestOptions)`  | Executes an HTTP test request       |
+| `AssertStatus(expected int)`    | Asserts expected HTTP status code   |
+| `AssertHeader(key, value string)` | Checks response header value        |
+| `AssertBodyContains(substr string)` | Verifies if body contains a string |
+
+
+### 📖 More Details
+🔗 **Check out the full documentation:** [Qtest - Quick](https://github.com/jeffotoni/quick/tree/main/quickTest)
 
 ---
 
@@ -1551,30 +1570,37 @@ func TestQTest_Options_POST(t *testing.T) {
 
 The **Quick HTTP Client** now includes **built-in retry and failover support**, allowing for more resilient and reliable HTTP requests. These features are essential for handling **transient failures**, **network instability**, and **service downtime** efficiently.
 
-## 🚀 Key Features
+### 🚀 Key Features
 
-- **Automatic Retries**: Retries failed requests based on configurable rules.
-- **Exponential Backoff**: Gradually increases the delay between retry attempts.
-- **Status-Based Retries**: Retries only on specified HTTP status codes (e.g., `500`, `502`, `503`).
-- **Failover Mechanism**: Switches to predefined backup URLs if the primary request fails.
-- **Logging Support**: Enables detailed logs for debugging retry behavior.
+- 🔄 **Automatic Retries**: Retries failed requests based on configurable rules.
+- ⏳ **Exponential Backoff**: Gradually increases the delay between retry attempts.
+- 📡 **Status-Based Retries**: Retries only on specified HTTP status codes (e.g., `500`, `502`, `503`).
+- 🌍 **Failover Mechanism**: Switches to predefined backup URLs if the primary request fails.
+- 📑 **Logging Support**: Enables detailed logs for debugging retry behavior.
 
 ---
 
-## 🔹 How Retry & Failover Work
+### 🔹 How Retry & Failover Work
 
-The retry mechanism works by **automatically resending the request** if it fails, with options to **limit retries**, **introduce backoff delays**, and **retry only for specific response statuses**. The failover system ensures **high availability** by redirecting failed requests to alternate URLs.
+The **retry mechanism** automatically **resends requests** when they fail, with configurable options to:
 
-### ✅ Configuration Options:
+- **Limit the number of retries** to avoid excessive attempts.
+- **Introduce backoff delays** to prevent overwhelming the server.
+- **Retry only on specific HTTP status codes** (e.g., `500`, `502`, `503`).
 
-| Option           | Description                                                    |
-| ---------------- | -------------------------------------------------------------- |
-| **MaxRetries**   | Defines the number of retry attempts.                          |
-| **Delay**        | Specifies the delay before each retry.                         |
-| **UseBackoff**   | Enables exponential backoff to increase delay dynamically.     |
-| **Statuses**     | List of HTTP status codes that trigger a retry.                |
-| **FailoverURLs** | List of backup URLs for failover in case of repeated failures. |
-| **EnableLog**    | Enables logging for debugging retry attempts.                  |
+The **failover system** ensures **high availability** by redirecting failed requests to **predefined backup URLs**, reducing downtime and improving system resilience.
+
+### ⚙️ Configuration Options
+These options allow fine-grained control over retry and failover behavior:
+
+| Option          | Description 🚀 |
+|----------------|----------------------------------------------------------------|
+| **MaxRetries**  | Sets the **maximum number of retry attempts** before failure. |
+| **Delay**       | Defines the **initial delay** before retrying a request. |
+| **UseBackoff**  | Enables **exponential backoff**, increasing delay dynamically after each retry. |
+| **Statuses**    | List of **HTTP status codes** (e.g., `500`, `502`, `503`) that trigger a retry. |
+| **FailoverURLs** | List of **backup URLs** used if the primary request repeatedly fails. |
+| **EnableLog**   | Enables **detailed logging** for debugging retry behavior. |
 
 ---
 
