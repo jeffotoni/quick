@@ -1619,7 +1619,7 @@ The **Quick HTTP Client** provides built-in support for **retrying failed reques
 
 You can configure these behaviors using the **`WithRetry`** option, which accepts a `RetryConfig` struct.
 
-### **🛠 Example: Creating a Custom Client with Retries**
+### **🛠 Creating a Custom Client with Retries**
 The following example shows how to create a Quick client with **retry and failover mechanisms**.
 
 ```go
@@ -2331,14 +2331,24 @@ $ sudo go run main.go
 
 ## 📚| More Examples
 
-This directory contains practical examples of the Quick Framework, a fast and lightweight web framework developed in Go. The examples are organized in separate folders, each containing a complete example of using the framework in a simple web application. If you have some interesting example of using the Quick Framework, feel free to send a pull request with your contribution. The Quick Framework example repository can be found at [here](https://github.com/jeffotoni/quick/tree/main/example).
+This directory contains **practical examples** of the **Quick Framework**, a **fast and lightweight web framework** developed in Go. 
 
-## 🤝| Contributions
+The examples are organized in **separate folders**, each containing a complete example of using the framework in a simple web application.
+
+### 📌 Want to contribute?
+If you have some interesting example of using the **Quick Framework**, feel free to send a **Pull Request(PR)** with your contribution. 
+
+### 👉 Check out the official example repository: 
+🔗 [Quick Framework Examples](https://github.com/jeffotoni/quick/tree/main/example)
+
+
+
+### 🤝| Contributions & Community Support
 
 We already have several examples, and we can already test and play 😁. Of course, we are at the beginning, still has much to do.
 Feel free to do **PR** (at risk of winning a Go t-shirt ❤️ and of course recognition as a professional Go 😍 in the labor market).
 
-## 🚀 **Quick Project Supporters** 🙏
+### 🚀 **Quick Project Supporters** 🙏
 
 The Quick Project aims to develop and provide quality software for the developer community. 💻 To continue improving our tools, we rely on the support of our sponsors in Patreon. 🤝
 
@@ -2346,9 +2356,11 @@ We thank all our supporters! 🙌 If you also believe in our work and want to co
 
 Together we can continue to build amazing tools! 🚀
 
-| Avatar                                                                                                                      | User                                                           | Donation |
-| --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------- |
-| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height=20>                                              | [@jeffotoni](https://github.com/jeffotoni)                     | x 10     |
-| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height=20> | [@Crow3442](https://github.com/Crow3442)                       | x 5      |
-| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height=20>                                                  | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | x 5      |
-| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height=20>                                                  | [@jaquelineabreu](https://github.com/jaquelineabreu)           | x 1      |
+
+
+| 👤 **Avatar**                                                                                                         | 🔥 **User**                                                   | 💰 **Donation** |
+|----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|----------------|
+| <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height="40">                                     | [@jeffotoni](https://github.com/jeffotoni)                     | ⭐ x 10       |
+| <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height="40"> | [@Crow3442](https://github.com/Crow3442)                       | ⭐ x 5        |
+| <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height="40">                                         | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | ⭐ x 5        |
+| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 1        |
