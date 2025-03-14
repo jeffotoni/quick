@@ -268,10 +268,11 @@ func TestListenWithShutdown_Cover(t *testing.T) {
 // TestListenWithShutdown tests if the server starts and shuts down with PRINT_SERVER=true
 // The result will TestListenWithShutdown(expected any) error
 func TestListenWithShutdown(t *testing.T) {
-	t.Run("Starts and shuts down server with PRINT_SERVER=true", func(t *testing.T) {
-		t.Setenv("PRINT_SERVER", "true")
+	t.Run("Starts and shuts down server with NoBanner", func(t *testing.T) {
+		q := New(Config{
+			NoBanner: false,
+		})
 
-		q := New()
 		server, shutdown, err := q.ListenWithShutdown(":0")
 		if err != nil {
 			t.Fatalf("Failed to start server: %v", err)

@@ -19,21 +19,17 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"os/signal"
 	"regexp"
 	"runtime"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/jeffotoni/quick/internal/concat"
 )
-
-// show in console
-// Run Server Quick:0.0.0.0:<PORT>
-var PRINT_SERVER = os.Getenv("PRINT_SERVER")
 
 const SO_REUSEPORT = 0x0F // Manual definition for Linux
 
@@ -68,29 +64,39 @@ type ctxServeHttp struct {
 }
 
 type Config struct {
-	BodyLimit         int64
-	MaxBodySize       int64
-	MaxHeaderBytes    int
-	RouteCapacity     int
-	MoreRequests      int // 0 a 1000
-	ReadTimeout       time.Duration
-	WriteTimeout      time.Duration
-	IdleTimeout       time.Duration
-	ReadHeaderTimeout time.Duration
-	GCPercent         int         // Renamed to be more descriptive (0-1000)
-	TLSConfig         *tls.Config // Integrated TLS configuration
-	CorsConfig        *CorsConfig // Specific type for CORS
+	BodyLimit      int64 // Deprecated: Use MaxBodySize instead
+	MaxBodySize    int64 // Maximum request body size allowed.
+	MaxHeaderBytes int   // Maximum number of bytes allowed in the HTTP headers.
 
-	NoBanner bool
+	GOMAXPROCS      int   // defines the maximum number of CPU cores
+	GCHeapThreshold int64 // GCHeapThreshold sets the memory threshold (in bytes)
+	BufferPoolSize  int   // BufferPoolSize determines the size (in bytes)
+
+	RouteCapacity     int           // Initial capacity of the route slice.
+	MoreRequests      int           // Value to set GCPercent. influences the garbage collector performance. 0-1000
+	ReadTimeout       time.Duration // Maximum duration for reading the entire request.
+	WriteTimeout      time.Duration // Maximum duration before timing out writes of the response.
+	IdleTimeout       time.Duration // Maximum amount of time to wait for the next request when keep-alives are enabled.
+	ReadHeaderTimeout time.Duration // Amount of time allowed to read request headers.
+	GCPercent         int           // Renamed to be more descriptive (0-1000) - influences the garbage collector performance.
+	TLSConfig         *tls.Config   // Integrated TLS configuration
+	CorsConfig        *CorsConfig   // Specific type for CORS
+
+	NoBanner bool // Flag to disable the Quick startup Display.
 }
 
 var defaultConfig = Config{
-	BodyLimit:      2 * 1024 * 1024,
-	MaxBodySize:    2 * 1024 * 1024,
-	MaxHeaderBytes: 1 * 1024 * 1024,
-	RouteCapacity:  1000,
-	MoreRequests:   290,   // equilibrium value
-	NoBanner:       false, // Display Quick
+	BodyLimit:      2 * 1024 * 1024, // 2MB
+	MaxBodySize:    2 * 1024 * 1024, // 2MB
+	MaxHeaderBytes: 1 * 1024 * 1024, // 1MB
+
+	GOMAXPROCS:      runtime.NumCPU(),
+	GCHeapThreshold: 1 << 30, // 1GB
+	BufferPoolSize:  32768,
+
+	RouteCapacity: 1000,  // Initial capacity of 1000 routes.
+	MoreRequests:  290,   // default GC value equilibrium value
+	NoBanner:      false, // Display Quick banner by default.
 }
 
 type Zeroth int
@@ -100,25 +106,29 @@ const (
 )
 
 type CorsConfig struct {
-	Enabled  bool
-	Options  map[string]string
-	AllowAll bool
+	Enabled  bool              // Enable cors
+	Options  map[string]string // Add custom options
+	AllowAll bool              // Enable all access
 }
 
+// Quick is the main structure of the framework, holding routes and configurations.
 type Quick struct {
-	config        Config
-	Cors          bool
-	groups        []Group
-	handler       http.Handler
-	mux           *http.ServeMux
-	routes        []*Route
-	routeCapacity int
-	mws2          []any
-	CorsSet       func(http.Handler) http.Handler
-	CorsOptions   map[string]string
-	// corsConfig    *CorsConfig // Specific type for CORS
-	embedFS embed.FS
-	server  *http.Server
+	config        Config         // Configuration settings.
+	Cors          bool           // Indicates if CORS is enabled.
+	groups        []Group        // List of route groups.
+	handler       http.Handler   // The primary HTTP handler.
+	mux           *http.ServeMux // Multiplexer for routing requests.
+	routes        []*Route       // Registered routes.
+	routeCapacity int            // The maximum number of routes allowed.
+	mws2          []any          // List of registered middlewares.
+
+	CorsSet     func(http.Handler) http.Handler // CORS middleware handler function.
+	CorsOptions map[string]string               // CORS options map
+	// corsConfig    *CorsConfig // Specific type for CORS // Removed unused field
+	embedFS embed.FS     // File system for embedded static files.
+	server  *http.Server // Http server
+
+	bufferPool *sync.Pool
 }
 
 // GetDefaultConfig Function is responsible for returning a default configuration that is pre-defined for the system
@@ -176,20 +186,6 @@ func isCorsMiddleware(mw func(http.Handler) http.Handler) bool {
 	// If the middleware sets Access-Control-Allow-Origin, it's CORS
 	return testResponse.Header().Get("Access-Control-Allow-Origin") != ""
 }
-
-// func (q *Quick) Use(mw any, nf ...string) {
-// 	if len(nf) > 0 {
-// 		if strings.ToLower(nf[0]) == "cors" {
-// 			switch mwc := mw.(type) {
-// 			case func(http.Handler) http.Handler:
-// 				q.Cors = true
-// 				q.CorsSet = mwc
-// 			}
-// 			return
-// 		}
-// 	}
-// 	q.mws2 = append(q.mws2, mw)
-// }
 
 // Responsible for clearing the path to be accepted in
 // Servemux receives something like get#/v1/user/_id:[0-9]+_, without {}
@@ -982,42 +978,21 @@ func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 	}
 }
 
-// ListenWithShutdown starts an HTTP server on the given address and returns both
-// the *http.Server instance and a shutdown function. The server begins listening
-// in a background goroutine, while the caller retains control over the server's
-// lifecycle through the returned function.
+// ListenWithShutdown starts an HTTP server and returns both the server instance and a shutdown function.
 //
-// If q.config.MoreRequests > 0, the function sets the Go garbage collector's
-// percentage via debug.SetGCPercent(q.config.MoreRequests). This can tune how
-// aggressively the garbage collector operates.
-//
-// The returned shutdown function, when called, attempts a graceful shutdown with
-// a 5-second timeout. This allows existing connections to finish processing
-// before the server is closed. It also closes the underlying TCP listener.
+// This method initializes performance tuning settings, creates a TCP listener, and starts the server in a background goroutine.
+// The returned shutdown function allows for a graceful termination of the server.
 //
 // Parameters:
-//   - addr:    The TCP network address to listen on (e.g. ":8080").
-//   - handler: Optional HTTP handlers; if none is provided, the default handler is used.
+//   - addr: The address (host:port) where the server should listen.
+//   - handler: Optional HTTP handlers that can be provided to the server.
 //
 // Returns:
-//   - *http.Server: The configured HTTP server instance.
-//   - func():        A function that triggers graceful shutdown of the server.
-//   - error:         An error if the listener cannot be created.
-//
-// Usage Example:
-//
-//	server, shutdown, err := q.ListenWithShutdown(":8080")
-//	if err != nil {
-//	    log.Fatalf("failed to start server: %v", err)
-//	}
-//	// The server is now running in the background.
-//
-//	// At a later point, we can shut down gracefully:
-//	shutdown()
+//   - *http.Server: A reference to the initialized HTTP server.
+//   - func(): A shutdown function to gracefully stop the server.
+//   - error: Any error encountered during the server setup.
 func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.Server, func(), error) {
-	if q.config.MoreRequests > 0 {
-		debug.SetGCPercent(q.config.MoreRequests)
-	}
+	q.setupPerformanceTuning()
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -1025,8 +1000,9 @@ func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.
 	}
 
 	server := q.httpServer(listener.Addr().String(), handler...)
+	q.server = server
 
-	// This function initiates a graceful shutdown of the server.
+	// Shutdown function to gracefully terminate the server.
 	shutdownFunc := func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -1034,12 +1010,59 @@ func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.
 		listener.Close()
 	}
 
-	// Start the server in the background goroutine.
+	// Start the server in a background goroutine.
 	go func() {
 		server.Serve(listener)
 	}()
 
 	return server, shutdownFunc, nil
+}
+
+// setupPerformanceTuning configures performance settings for the Quick server.
+//
+// This method:
+//   - Tunes garbage collection behavior dynamically if MoreRequests is configured.
+//   - Adjusts the GOMAXPROCS value if specified in the configuration.
+//   - Initializes a buffer pool to optimize memory allocation.
+func (q *Quick) setupPerformanceTuning() {
+	if q.config.MoreRequests > 0 {
+		go q.adaptiveGCTuner()
+	}
+
+	if q.config.GOMAXPROCS > 0 {
+		runtime.GOMAXPROCS(q.config.GOMAXPROCS)
+	}
+
+	q.bufferPool = &sync.Pool{
+		New: func() interface{} {
+			return bytes.NewBuffer(make([]byte, 0, q.config.BufferPoolSize))
+		},
+	}
+}
+
+// adaptiveGCTuner periodically monitors memory usage and triggers garbage collection if necessary.
+//
+// This function runs in a background goroutine and:
+//   - Checks heap memory usage every 15 seconds.
+//   - If the heap usage exceeds a defined threshold, it triggers garbage collection and frees OS memory.
+func (q *Quick) adaptiveGCTuner() {
+	var threshold uint64 = uint64(q.config.GCHeapThreshold)
+	if threshold == 0 {
+		threshold = 1 << 30 // Default threshold: 1GB
+	}
+
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+
+	var m runtime.MemStats
+	for range ticker.C {
+		runtime.ReadMemStats(&m)
+
+		if m.HeapInuse > threshold {
+			debug.FreeOSMemory()
+			runtime.GC()
+		}
+	}
 }
 
 // Listen calls ListenWithShutdown and blocks with select{}
@@ -1053,7 +1076,31 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 
 	q.Display("http", addr)
 	// Locks indefinitely
-	select {}
+	<-make(chan struct{}) // Bloqueio sem consumo de CPU
+	return nil
+}
+
+// Shutdown gracefully shuts down the server without interrupting any active connections
+// The result will (q *Quick) Shutdown() error
+func (q *Quick) Shutdown() error {
+	// Create a context with a timeout to control the shutdown process
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel() // Ensure the context is cancelled to free resources
+
+	// Check if the server is initialized before attempting to shut it down
+	if q.server != nil {
+		q.server.SetKeepAlivesEnabled(false)
+		err := q.server.Shutdown(ctx)
+		q.releaseResources()
+		return err // Attempt to shutdown the server gracefully
+	}
+	return nil // Return nil if there is no server to shutdown
+}
+
+func (q *Quick) releaseResources() {
+	// System settings reset
+	debug.SetGCPercent(100) // Return to default GC
+	runtime.GOMAXPROCS(0)   // Reset to automatic thread configuration
 }
 
 // ListenTLS starts an HTTPS server on the specified address using the provided
@@ -1196,18 +1243,4 @@ func (q *Quick) startServerWithGracefulShutdown(listener net.Listener, certFile,
 		// If an unrecoverable error occurred in ServeTLS, return it here.
 		return err
 	}
-}
-
-// Shutdown gracefully shuts down the server without interrupting any active connections
-// The result will (q *Quick) Shutdown() error
-func (q *Quick) Shutdown() error {
-	// Create a context with a timeout to control the shutdown process
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel() // Ensure the context is cancelled to free resources
-
-	// Check if the server is initialized before attempting to shut it down
-	if q.server != nil {
-		return q.server.Shutdown(ctx) // Attempt to shutdown the server gracefully
-	}
-	return nil // Return nil if there is no server to shutdown
 }
