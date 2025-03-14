@@ -82,100 +82,108 @@ To access the documentation for each **Quick Framework** package, click on the l
 | 🌎 Site                                        | yes | 🟡     | 90%        |
 | 📚 Docs                                        | yes | 🟡     | 40%        |
 
-## 🗺️| Development Rodmap
+# 🗺️ Development Roadmap  
+
+## ✅ Completed Tasks  
 
 | Task                                                                      | Progress |
 | ------------------------------------------------------------------------- | -------- |
-| Develop MaxBodySize method Post                                           | 100%     |
-| Develop MaxBodySize method Put                                            | 100%     |
-| Develop Config in New(Config{}) not required                              | 100%     |
-| Create print function to not use fmt too much                             | 100%     |
-| Creation of own function for Concat String                                | 100%     |
-| Creation of benchmarking between the. Stdout and fmt.Println              | 100%     |
-| Develop Routes GET method                                                 | 100%     |
-| Develop Routes GET method by accepting Query String                       | 100%     |
-| Develop Routes GET method accepting Parameters                            | 100%     |
-| Develop Routes GET method accepting Query String and Parameters           | 100%     |
-| Develop Routes GET method accepting regular expression                    | 100%     |
-| Develop Routes Method POST                                                | 100%     |
-| Develop Routes POST method accepting JSON                                 | 100%     |
-| Develop for METHOD POST the parse JSON                                    | 100%     |
-| Develop for the POST METHOD functions to access byte or string from Parse | 100%     |
-| Develop for PUT METHOD                                                    | 100%     |
-| Develop for the PUT METHOD the JSON parse                                 | 100%     |
-| Develop for the PUT METHOD the JSON parse                                 | 100%     |
-| Develop for METHOD PUT functions to access byte or string from the Parse  | 100%     |
-| Develop for DELETE METHOD                                                 | 100%     |
-| Develop method for ListenAndServe                                         | 100%     |
-| Develop ServeHTTP support                                                 | 100%     |
-| Develop middleware support                                                | 100%     |
-| Develop support for middleware compress                                   | 100%     |
-| Develop support for middleware cors                                       | 100%     |
-| Develop logger middleware support                                         | 100%     |
-| Develop support for maxbody middlewares                                   | 100%     |
-| Develop middleware support msgid                                          | 100%     |
-| Develop middleware support msguuid                                        | 100%     |
-| Develop support Cors                                                      | 100%     |
-| Develop Cient Get                                                         | 100%     |
-| Develop Cient Post support                                                | 100%     |
-| Develop Cient Put support                                                 | 100%     |
-| Develop Cient support Delete                                              | 100%     |
+| Develop MaxBodySize method Post                                           | ✅ 100%  |
+| Develop MaxBodySize method Put                                            | ✅ 100%  |
+| Develop Config in New(Config{}) not required                              | ✅ 100%  |
+| Create print function to not use fmt too much                             | ✅ 100%  |
+| Creation of own function for Concat String                                | ✅ 100%  |
+| Creation of benchmarking between the Stdout and fmt.Println               | ✅ 100%  |
+| Develop Routes GET method                                                 | ✅ 100%  |
+| Develop Routes GET method by accepting Query String                       | ✅ 100%  |
+| Develop Routes GET method accepting Parameters                            | ✅ 100%  |
+| Develop Routes GET method accepting Query String and Parameters           | ✅ 100%  |
+| Develop Routes GET method accepting regular expression                    | ✅ 100%  |
+| Develop Routes Method POST                                                | ✅ 100%  |
+| Develop Routes POST method accepting JSON                                 | ✅ 100%  |
+| Develop for METHOD POST the parse JSON                                    | ✅ 100%  |
+| Develop for the POST METHOD functions to access byte or string from Parse | ✅ 100%  |
+| Develop for PUT METHOD                                                    | ✅ 100%  |
+| Develop for the PUT METHOD the JSON parse                                 | ✅ 100%  |
+| Develop for the PUT METHOD the JSON parse                                 | ✅ 100%  |
+| Develop for METHOD PUT functions to access byte or string from the Parse  | ✅ 100%  |
+| Develop for DELETE METHOD                                                 | ✅ 100%  |
+| Develop method for ListenAndServe                                         | ✅ 100%  |
+| Develop ServeHTTP support                                                 | ✅ 100%  |
+| Develop middleware support                                                | ✅ 100%  |
+| Develop support for middleware compress                                   | ✅ 100%  |
+| Develop support for middleware cors                                       | ✅ 100%  |
+| Develop logger middleware support                                         | ✅ 100%  |
+| Develop support for maxbody middlewares                                   | ✅ 100%  |
+| Develop middleware support msgid                                          | ✅ 100%  |
+| Develop middleware support msguuid                                        | ✅ 100%  |
+| Develop support Cors                                                      | ✅ 100%  |
+| Develop Cient Get                                                         | ✅ 100%  |
+| Develop Cient Post support                                                | ✅ 100%  |
+| Develop Cient Put support                                                 | ✅ 100%  |
+| Develop Cient support Delete                                              | ✅ 100%  |
 
-## 🚧| Rodmap in progress
+---
+
+## 🚧 Roadmap in Progress  
 
 | Task                                                     | Progress |
 | -------------------------------------------------------- | -------- |
-| Develop and relate to Listen the Config                  | 42%      |
-| Develops support for Uploads and Uploads Multiples       | 100%     |
-| Develops support for JWT                                 | 10%      |
-| Develop method to Facilitate ResponseWriter handling     | 80%      |
-| Develop method to Facilitate the handling of the Request | 80%      |
-| Develop Standard of Unit Testing                         | 90%      |
+| Develop and relate to Listen the Config                  | ⏳ 42%   |
+| Develops support for Uploads and Uploads Multiples       | ✅ 100%  |
+| Develops support for JWT                                 | ⏳ 10%   |
+| Develop method to Facilitate ResponseWriter handling     | ⏳ 80%   |
+| Develop method to Facilitate the handling of the Request | ⏳ 80%   |
+| Develop Standard of Unit Testing                         | ⏳ 90%   |
 
-## 🚀| Rodmap for development
+---
+
+## 🚀 Roadmap for Development  
 
 | Task                                                                                            | Progress |
 | ----------------------------------------------------------------------------------------------- | -------- |
-| Documentation Tests Examples PKG Go                                                             | 45%      |
-| Test Coverage go test -cover                                                                    | 74.6%    |
-| Regex feature coverage, but possibilities                                                       | 0.%      |
-| Develop for OPTIONS METHOD                                                                      | 100%     |
-| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.%      |
-| Develop method for ListenAndServeTLS (http2)                                                    | 0.%      |
-| Develop Static Files support                                                                    | 100%     |
-| WebSocket Support                                                                               | 0.%      |
-| Rate Limiter Support                                                                            | 0.%      |
-| Template Engines                                                                                | 0.%      |
-| Documentation Tests Examples PKG Go                                                             | 45%      |
-| Test coverage go test -cover                                                                    | 75.5%    |
-| Coverage of Regex resources, but possibilities                                                  | 0.%      |
-| Develop for METHOD OPTIONS                                                                      | 100%     |
-| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 0.%      |
-| Develop method for ListenAndServeTLS (http2)                                                    | 0.%      |
-| Create a CLI (Command Line Interface) Quick.                                                    | 0.%      |
+| Documentation Tests Examples PKG Go                                                             | ⏳ 45%   |
+| Test Coverage go test -cover                                                                    | ⏳ 74.6% |
+| Regex feature coverage, but possibilities                                                       | 🔴 0%    |
+| Develop for OPTIONS METHOD                                                                      | ✅ 100%  |
+| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 🔴 0%    |
+| Develop method for ListenAndServeTLS (http2)                                                    | 🔴 0%    |
+| Develop Static Files support                                                                    | ✅ 100%  |
+| WebSocket Support                                                                               | 🔴 0%    |
+| Rate Limiter Support                                                                            | 🔴 0%    |
+| Template Engines                                                                                | 🔴 0%    |
+| Documentation Tests Examples PKG Go                                                             | ⏳ 45%   |
+| Test coverage go test -cover                                                                    | ⏳ 75.5% |
+| Coverage of Regex resources, but possibilities                                                  | 🔴 0%    |
+| Develop for METHOD OPTIONS                                                                      | ✅ 100%  |
+| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 🔴 0%    |
+| Develop method for ListenAndServeTLS (http2)                                                    | 🔴 0%    |
+| Create a CLI (Command Line Interface) Quick.                                                    | 🔴 0%    |
 
-## 📊| Cover Testing Roadmap
+---
+
+## 📊 Cover Testing Roadmap  
 
 | Archive     | Coverage | Status |
 | ----------- | -------- | ------ |
-| Ctx         | 84.1%    | 🟡     |
-| Group       | 100.0%   | 🟢     |
-| Http Status | 7.8%     | 🔴     |
-| Client      | 83.3%    | 🟢     |
-| Mock        | 100.0%   | 🟢     |
-| Concat      | 100.0%   | 🟢     |
-| Log         | 0.0%     | 🔴     |
-| Print       | 66.7%    | 🟡     |
-| Qos         | 0.0%     | 🔴     |
-| Rand        | 0.0%     | 🔴     |
-| Compressa   | 71,4%    | 🟡     |
-| Cors        | 76.0%    | 🟡     |
-| Logger      | 100.0%   | 🟢     |
-| Maxbody     | 100.0%   | 🟢     |
-| Msgid       | 100.0%   | 🟢     |
-| Msguuid     | 86.4%    | 🟢     |
-| Quick       | 79.5%    | 🟡     |
-| QuickTest   | 100.0%   | 🟢     |
+| Ctx         | 🟡 84.1% | 🟡     |
+| Group       | ✅ 100.0% | 🟢     |
+| Http Status | 🔴 7.8%  | 🔴     |
+| Client      | 🟢 83.3% | 🟢     |
+| Mock        | ✅ 100.0% | 🟢     |
+| Concat      | ✅ 100.0% | 🟢     |
+| Log         | 🔴 0.0%  | 🔴     |
+| Print       | 🟡 66.7% | 🟡     |
+| Qos         | 🔴 0.0%  | 🔴     |
+| Rand        | 🔴 0.0%  | 🔴     |
+| Compressa   | 🟡 71.4% | 🟡     |
+| Cors        | 🟡 76.0% | 🟡     |
+| Logger      | ✅ 100.0% | 🟢     |
+| Maxbody     | ✅ 100.0% | 🟢     |
+| Msgid       | ✅ 100.0% | 🟢     |
+| Msguuid     | 🟢 86.4% | 🟢     |
+| Quick       | 🟡 79.5% | 🟡     |
+| QuickTest   | ✅ 100.0% | 🟢     |
 
 ### Fast quick example
 
@@ -2301,9 +2309,10 @@ func main() {
 		fmt.Printf("Error when trying to connect with TLS: %v\n", err)
 	}
 }
+
 ```
 
-### ⚠️ Ports & Permissions Considerations
+### ⚠️Ports & Permissions Considerations
 
 This example **uses port 8443** so that it runs on **any operating system without requiring extra permissions**.
 
