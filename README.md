@@ -1604,9 +1604,36 @@ These options allow fine-grained control over retry and failover behavior:
 
 ---
 
-### **Retry with Exponential Backoff**
+### ⚙️ **Configuring Retries & Failover in Quick HTTP Client**
 
-This example demonstrates **retrying a request** with an increasing delay (`backoff`) when encountering errors.
+
+The **Quick HTTP Client** provides built-in support for **retrying failed requests** and **switching to failover URLs** when necessary.  
+
+You can configure these behaviors using the **`WithRetry`** option, which accepts a `RetryConfig` struct.
+
+### **🛠 Example: Creating a Custom Client with Retries**
+The following example shows how to create a Quick client with **retry and failover mechanisms**.
+
+```go
+// Creating a Quick client using a custom HTTP client and retry settings.
+cClient := client.New(
+    client.WithCustomHTTPClient(customHTTPClient), 
+    client.WithContext(context.Background()),      
+ 	client.WithHeaders(map[string]string{
+			"Content-Type": "application/json", 
+		}),
+    client.WithRetry(client.RetryConfig{
+        MaxRetries:   3,                      
+        Delay:        2 * time.Second,        
+        UseBackoff:   true,                
+        Statuses:     []int{500, 502, 503, 504}, 
+        FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+        EnableLog:    true,                  
+    }),
+)
+```
+### 🔄 Smart Retries: Exponential Backoff & Failover to Backup URLs
+This example demonstrates retrying a request with an increasing delay (backoff) when encountering errors.
 
 ```go
 package main
@@ -1620,80 +1647,86 @@ import (
 )
 
 func main() {
+	// Create a new Quick HTTP client with retry settings
 	cClient := client.New(
 		client.WithRetry(
 			client.RetryConfig{
-				MaxRetries: 3,       // Maximum number of retries
-				Delay:      1 * time.Second,  // Initial retry delay
-				UseBackoff: true,    // Enables exponential backoff
-				Statuses:   []int{500, 502, 503}, // Retries only on these HTTP status codes
-				EnableLog:  true,    // Enables logging for retries
+				MaxRetries: 3,       
+				Delay:      1 * time.Second,  
+				UseBackoff: true,   
+				Statuses:   []int{500, 502, 503}, 
+				FailoverURLs: []string{"http://backup1.com/resource", "https://httpbin_error.org/get", "https://httpbin.org/get"},
+				EnableLog:  true,   
 			}),
 	)
 
-	resp, err := cClient.Get("http://localhost:3000/v1/resource")
+	// Send a GET request to the specified URL
+	resp, err := cClient.Get("https://httpbin_error.org/get")
 	if err != nil {
 		log.Fatal("GET request failed:", err)
 	}
+
+	// Print the response body
 	fmt.Println("GET Response:", string(resp.Body))
 }
-
 ```
-
-### **Failover to Backup URLs**
-
-This example switches to a backup URL when the primary request fails.
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-	"time"
-
-	"github.com/jeffotoni/quick/http/client"
-)
-
-func main() {
-	cClient := client.New(
-		client.WithRetry(client.RetryConfig{
-			MaxRetries:   2,  // Try the request twice before switching
-			Delay:        2 * time.Second,  // Wait 2 seconds before retrying
-			Statuses:     []int{500, 502, 503}, // Trigger failover on these errors
-			FailoverURLs: []string{"http://backup1.com/resource", "https://reqres.in/api/users", "https://httpbin.org/post"},
-			EnableLog: true, // Enable retry logs
-		}),
-	)
-
-	resp, err := cClient.Get("http://localhost:3000/v1/resource")
-	if err != nil {
-		log.Fatal("Request failed:", err)
-	}
-	fmt.Println("Response:", string(resp.Body))
+```bash
+{"time":"2025-03-14T14:27:02.069237664-03:00","level":"WARN","msg":"Retrying request","url":"https://httpbin_error.org/get","method":"GET","attempt":1,"failover":1}
+{"time":"2025-03-14T14:27:13.076907091-03:00","level":"WARN","msg":"Retrying request","url":"http://backup1.com/resource","method":"GET","attempt":2,"failover":2}
+{"time":"2025-03-14T14:27:15.258544931-03:00","level":"WARN","msg":"Retrying request","url":"https://httpbin_error.org/get","method":"GET","attempt":3,"failover":3}
+GET Response: {
+  "args": {}, 
+  "headers": {
+    "Accept-Encoding": "gzip", 
+    "Host": "httpbin_error.org", 
+    "User-Agent": "Go-http-client/1.1", 
+    "X-Amzn-Trace-Id": "Root=1-67d466f8-1aafed0512167ac32426bc9f"
+  }, 
+  "origin": "179.216.110.129", 
+  "url": "https://httpbin_error.org/get"
 }
-
 ```
 
----
+### 🔥 How Each Feature Works in the Code  
 
-## 📝 Form Submission with PostForm in Quick HTTP Client
+### 🔄 **Retry with Exponential Backoff**  
+- The retry mechanism is triggered because `MaxRetries: 3` allows the request to be retried up to **three times**.  
+- The wait time between attempts **automatically increases** due to `UseBackoff: true`.  
+- A retry **only occurs** if the response contains an HTTP error listed in `Statuses: []int{500, 502, 503}`.  
 
-The Quick HTTP Client now includes built-in support for `PostForm`, enabling seamless handling of application/`x-www-form-urlencoded` form submissions. This feature simplifies interaction with web services and APIs that require form-encoded data, making it ideal for authentication requests, data submissions, and legacy system integrations.
+### 🌍 **Failover to Backup URLs**  
+- If **all retry attempts on the primary URL fail**, the client will try the **alternative URLs** listed in `FailoverURLs`.  
+- In this example, if `https://httpbin.org/status/500` keeps failing, it will switch to `https://httpbin.org/get`.  
 
-## 🔹 Why Use `PostForm`?
 
-| Feature                  | Benefit                                                                     |
-| ------------------------ | --------------------------------------------------------------------------- |
-| **Optimized for Forms**  | Simplifies sending form-encoded data (`application/x-www-form-urlencoded`). |
-| **Automatic Encoding**   | Converts `url.Values` into a valid form submission payload.                 |
-| **Header Management**    | Automatically sets `Content-Type` to `application/x-www-form-urlencoded`.   |
-| **Consistent API**       | Follows the same design as `Post`, `Get`, `Put`, etc.                       |
-| **Better Compatibility** | Works with APIs that do not accept JSON payloads.                           |
 
 ---
 
-## 🔹 How PostForm Works
+## 📝 Form Submission with `PostForm` in Quick HTTP Client  
+
+The **Quick HTTP Client** now supports **`PostForm`**, making it easier to send **form-encoded data (`application/x-www-form-urlencoded`)**.  
+This feature is particularly useful for:  
+
+✅ **Authentication requests**  
+✅ **Submitting data to web services**  
+✅ **Integrations with legacy systems that do not accept JSON**  
+
+---
+
+## 🔹 Why Use `PostForm`?  
+
+| 🚀 **Feature**              | 💡 **Benefit** |
+|-----------------------------|------------------------------------------------|
+| **📑 Optimized for Forms**    | Makes it easy to send form-encoded data (`application/x-www-form-urlencoded`). |
+| **⚙️ Automatic Encoding**    | Converts `url.Values` into a valid form submission format. |
+| **📌 Header Management**     | Automatically sets `Content-Type: application/x-www-form-urlencoded`. |
+| **🔄 Consistent API**        | Follows the same design as `Post`, `Get`, `Put`, ensuring ease of use. |
+| **🌍 Better Compatibility**  | Works seamlessly with APIs that do not accept JSON payloads. |
+
+
+---
+
+### 🔹 How PostForm Works
 
 The PostForm method encodes form parameters, adds necessary headers, and sends an HTTP POST request to the specified URL. It is specifically designed for APIs and web services that do not accept JSON payloads but require form-encoded data.
 
@@ -1716,18 +1749,22 @@ import (
 )
 
 func main() {
+	// Initialize Quick framework
 	q := quick.New()
 
-	// Define a route to process POST form-data
+	// Define a POST route to handle form data submission
 	q.Post("/postform", func(c *quick.Ctx) error {
+		// Retrieve form values from the request
 		form := c.FormValues()
+
+		// Return the received form data as JSON response
 		return c.JSON(map[string]any{
 			"message": "Received form data",
 			"data":    form,
 		})
 	})
 
-	// Start the server in a separate goroutine
+	// Start the Quick server in a separate goroutine
 	go func() {
 		fmt.Println("Quick server running at http://localhost:3000")
 		if err := q.Listen(":3000"); err != nil {
@@ -1735,45 +1772,62 @@ func main() {
 		}
 	}()
 
-	// Creating an HTTP client before calling PostForm
+	time.Sleep(2 * time.Second)
+
+	// Create an HTTP client before calling PostForm
 	cClient := client.New(
-		client.WithTimeout(5*time.Second), // Define um timeout de 5s
+		client.WithTimeout(5*time.Second),
 		client.WithHeaders(map[string]string{
-			"Content-Type": "application/x-www-form-urlencoded", // Correct type for forms
+			"Content-Type": "application/x-www-form-urlencoded",
 		}),
 	)
 
-	// Check if the HTTP client was initialized correctly
-	if cClient == nil {
-		log.Fatal("Erro: cliente HTTP não foi inicializado corretamente")
-	}
-
-	// Declare Values
+	// Declare form data (key-value pairs)
 	formData := url.Values{}
 	formData.Set("username", "quick_user")
 	formData.Set("password", "supersecret")
 
-	// Send a POST request
+	// Send a POST request with form data
 	resp, err := cClient.PostForm("http://localhost:3000/postform", formData)
 	if err != nil {
-		log.Fatalf("PostForm request with retry failed: %v", err)
+		log.Fatalf("PostForm request failed: %v", err)
 	}
 
-	// Check if the response is valid
-	if resp == nil || resp.Body == nil {
-		log.Fatal("Erro: resposta vazia ou inválida")
-	}
-
-	// Unmarshal the JSON response (if applicable)
+	// Unmarshal the JSON response from the server
 	var result map[string]any
 	if err := json.Unmarshal(resp.Body, &result); err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse JSON response:", err)
 	}
-	fmt.Println("POST response:", result)
+
+	// Print the formatted JSON response
+	// Alternative:fmt.Println("POST Response:", result)
+
+	// Print the formatted JSON response
+	formattedResponse, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		log.Fatal("Failed to format JSON response:", err)
+	}
+
+	fmt.Println("POST Response:")
+	fmt.Println(string(formattedResponse))
+
 }
-
 ```
-
+📌 Response
+```bash
+POST Response:
+{
+  "data": {
+    "password": [
+      "supersecret"
+    ],
+    "username": [
+      "quick_user"
+    ]
+  },
+  "message": "Received form data"
+}
+```
 ---
 
 ### 🌐 Transport Configuration
@@ -1858,7 +1912,7 @@ func main() {
 				Delay:        1 * time.Second,
 				UseBackoff:   true,
 				Statuses:     []int{500},
-				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/post"},
+				FailoverURLs: []string{"http://hosterror", "https://httpbin.org/get"},
 				EnableLog:    true,
 			}),
 	)
