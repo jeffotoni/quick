@@ -1009,7 +1009,7 @@ import (
 )
 
 func main() {
-
+	//starting Quick
 	q := quick.New()
 
 	// using group to isolate routes and middlewares
@@ -1062,6 +1062,7 @@ import (
 )
 
 func main() {
+	//starting Quick
 	q := quick.New()
 
 	// implementing middleware directly in Use
@@ -1118,11 +1119,11 @@ You have accessed a protected route!
 
 ---
 
-#### 📂 STATIC FILES
+### 📂 STATIC FILES
 
 A Static File Server is a fundamental feature in web frameworks, allowing the efficient serving of static content such as HTML, CSS, JavaScript, images, and other assets. It is useful for hosting front-end applications, providing downloadable files, or serving resources directly from the backend.
 
-🔹 How It Works
+### 🔹 How It Works
 
 1. The server listens for HTTP requests targeting static file paths.
 2. If a requested file exists in the configured directory, the server reads and returns the file as a response.
@@ -1141,7 +1142,7 @@ A Static File Server is a fundamental feature in web frameworks, allowing the ef
 - Configure CORS policies when necessary.
 - Use a Content Security Policy (CSP) to mitigate XSS risks.
 
-#### Serving Static Files with Quick Framework
+### Serving Static Files with Quick Framework
 
 This example sets up a basic web server that serves static files, such as HTML, CSS, or JavaScript.
 
@@ -1152,23 +1153,19 @@ import "github.com/jeffotoni/quick"
 
 func main() {
 
-    // Create a new Quick server instance
+    //starting Quick
     q := quick.New()
 
     // Static Files Setup
-    // Serves files from the "./static" directory
-    // under the "/static" URL path.
     q.Static("/static", "./static")
 
     // Route Definition
-    // Defines a route to serve the "index.html" file when accessing "/".
     q.Get("/", func(c *quick.Ctx) error {
         c.File("./static/index.html")
         return nil
     })
 
-    // Starting the Server
-    // Starts the server to listen for incoming requests on port 8080.
+    // Start the server on port 8080
     q.Listen("0.0.0.0:8080")
 }
 ```
@@ -1180,25 +1177,22 @@ File Server Go example html
 ```
 ---
 
-#### 📁 EMBED
+### 📁 EMBED - Embedded Static Files
 
-🔹 How Embedded Static Files Work
+### 🔹 How do embedded static files work?
+1. Static assets (HTML, CSS, JS, images, etc.) are **compiled directly into the binary** at compile time, using the Go package `embed`.
+2. The application **serves these files from memory**, eliminating the need to access the disk.
+3. This **removes external dependencies**, making the deployment simpler and more efficient.
 
-1. Static assets are compiled directly into the binary at build time (e.g., using Go’s embed package).
-2. The application serves these files from memory instead of reading from disk.
-3. This eliminates external dependencies, making deployment easier.
+### ⚡ Advantages of using embedded files:
+- ✅ **Portability** - The binary contains everything you need, no extra files.  
+- ✅ **Performance** - File access is faster because files are already loaded in memory.  
+- ✅ **Security** - Reduces exposure to attacks because the file system does not need to be accessible.  
 
-:zap: Advantages of Embedded Files
+### 🚀 How does Quick simplify this process?
+The function `q. Static()` already handles the complexity of serving embedded files. Just call it with `embed.FS`.
 
-- Portability: Single binary distribution without extra files.
-- Performance: Faster access to static assets as they are stored in memory.
-- Security: Reduces exposure to external file system attacks.
-
-### Embedding Files
-
-When embedding static files into a binary executable, the server does not rely on an external file system to serve assets. This approach is useful for standalone applications, CLI tools, and cross-platform deployments where dependencies should be minimized.
-
-This example incorporates static files into the binary using the embed package and serves them using the Quick structure.
+The example shows how to serve static files with Quick and `embed.FS`
 
 ```go
 package main
@@ -1209,30 +1203,42 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-//go:embed static/*
+//go:embed static
 var staticFiles embed.FS
 
 func main() {
 	// Server Initialization
-	// Creates a new instance of the Quick server
 	q := quick.New()
 
-	// Static Files Setup
-	// Defines the directory for serving static files using the embedded files
+	// Static Files Setup (serves files automatically from embed.FS)
 	q.Static("/static", staticFiles)
 
-	// Route Definition
 	// Defines a route that serves the HTML index file
 	q.Get("/", func(c *quick.Ctx) error {
-		c.File("./static/index.html") // Renders the index.html file
+		c.File("./static/index.html") 	
 		return nil
 	})
 
-	// Starting the Server
-	// Starts the server on port 8080, listening on all addresses
+	// Start the server on port 8080
 	q.Listen("0.0.0.0:8080")
 }
 
+```
+### 📌 cURL
+```bash
+$ curl -i -X GET http://localhost:8080/
+
+File Server Go example html
+```
+
+### 📂 Example Project Structure
+```text
+quick-example
+│── main.go
+│── static/
+│   ├── index.html
+│   ├── style.css
+│   ├── script.js
 ```
 
 ---
