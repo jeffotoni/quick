@@ -131,14 +131,37 @@ type Quick struct {
 	bufferPool *sync.Pool
 }
 
-// GetDefaultConfig Function is responsible for returning a default configuration that is pre-defined for the system
-// The result will be GetDefaultConfig() Config
+// GetDefaultConfig returns the default configuration pre-defined for the system.
+//
+// This function provides a standardized configuration setup, ensuring that
+// new instances use a consistent and optimized set of defaults.
+//
+// Returns:
+//   - Config: A struct containing the default system configuration.
+//
+// Example Usage:
+//
+//	// This function is typically used when initializing a new Quick instance
+//	// to ensure it starts with the default settings if no custom config is provided.
 func GetDefaultConfig() Config {
 	return defaultConfig
 }
 
-// New function creates a new instance of the Quick structure to manage HTTP routes and handlers
-// The result will New(c ...Config) *Quick
+// New creates a new instance of the Quick structure to manage HTTP routes and handlers.
+//
+// This function initializes a Quick instance with optional configurations provided
+// through the `Config` parameter. If no configuration is provided, it uses the `defaultConfig`.
+//
+// Parameters:
+//   - c ...Config: (Optional) Configuration settings for customizing the Quick instance.
+//
+// Returns:
+//   - *Quick: A pointer to the initialized Quick instance.
+//
+// Example Usage:
+//
+//	// This function is automatically triggered when initializing a new Quick instance
+//	// to set up HTTP routes and handlers.
 func New(c ...Config) *Quick {
 	var config Config
 	if len(c) > 0 {
@@ -159,9 +182,18 @@ func New(c ...Config) *Quick {
 	}
 }
 
-// Use function adds middleware to the Quick server, with special treatment for CORS
-// Method Used Internally
-// The result will Use(mw any)
+// Use function adds middleware to the Quick server, with special treatment for CORS.
+//
+// This method allows adding custom middleware functions to process requests before they
+// reach the final handler. If a CORS middleware is detected, it is automatically applied.
+//
+// Parameters:
+//   - mw any: Middleware function to be added. It must be of type `func(http.Handler) http.Handler`.
+//
+// Example Usage:
+//
+// This function is automatically executed whenever a middleware is added,
+// ensuring that it processes incoming requests before reaching the final handler.
 func (q *Quick) Use(mw any) {
 	switch mwc := mw.(type) {
 	case func(http.Handler) http.Handler:
@@ -175,7 +207,19 @@ func (q *Quick) Use(mw any) {
 	q.mws2 = append(q.mws2, mw)
 }
 
-// Helper function to automatically detect whether the middleware is CORS
+// isCorsMiddleware checks whether the provided middleware function is a CORS handler.
+//
+// This function detects if a middleware is handling CORS by sending an
+// HTTP OPTIONS request and checking if it sets the `Access-Control-Allow-Origin` header.
+//
+// Parameters:
+//   - mw func(http.Handler) http.Handler: The middleware function to be tested.
+//
+// Returns:
+//   - bool: `true` if the middleware is identified as CORS, `false` otherwise.
+//
+// Example Usage:
+// This function is automatically executed when a middleware is added to detect if it's a CORS handler.
 func isCorsMiddleware(mw func(http.Handler) http.Handler) bool {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	testRequest := httptest.NewRequest("OPTIONS", "/", nil)
@@ -187,10 +231,21 @@ func isCorsMiddleware(mw func(http.Handler) http.Handler) bool {
 	return testResponse.Header().Get("Access-Control-Allow-Origin") != ""
 }
 
-// Responsible for clearing the path to be accepted in
-// Servemux receives something like get#/v1/user/_id:[0-9]+_, without {}
-// Method Used Internally
-// The result will clearRegex(route string) string
+// clearRegex processes a route pattern, removing dynamic path parameters
+// and replacing them with a simplified placeholder.
+//
+// This function is used internally to standardize dynamic routes in
+// ServeMux, converting patterns like `/v1/user/{id:[0-9]+}` into
+// `/v1/user/_id_`, making them easier to process.
+//
+// Parameters:
+//   - route string: The route pattern containing dynamic parameters.
+//
+// Returns:
+//   - string: A cleaned-up version of the route with placeholders instead of regex patterns.
+//
+// Example Usage:
+// This function is automatically triggered internally to normalize route patterns.
 func clearRegex(route string) string {
 	// Here you transform "/v1/user/{id:[0-9]+}"
 	// into something simple, like "/v1/user/_id_"
@@ -205,9 +260,19 @@ func clearRegex(route string) string {
 	})
 }
 
-// registerRoute is a helper function to centralize route registration logic.
-// Method Used Internally
-// The result will registerRoute(method, pattern string, handlerFunc HandleFunc)
+// registerRoute is a helper function that centralizes the logic for registering routes.
+//
+// This function processes and registers an HTTP route, ensuring no duplicate routes
+// are added. It extracts route parameters, formats the route, and associates the
+// appropriate handler function.
+//
+// Parameters:
+//   - method string: The HTTP method (e.g., "GET", "POST").
+//   - pattern string: The route pattern, which may include dynamic parameters.
+//   - handlerFunc HandleFunc: The function that will handle the route.
+//
+// Example Usage:
+// This function is automatically triggered internally when a new route is added.
 func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 	path, params, patternExist := extractParamsPattern(pattern)
 	formattedPath := concat.String(strings.ToLower(method), "#", clearRegex(pattern))
@@ -275,45 +340,120 @@ func (q *Quick) handleOptions(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent) // Returns 204 No Content
 }
 
-// Get function is an HTTP route with the GET method on the Quick server
-// The result will Get(pattern string, handlerFunc HandleFunc)
+// Get registers an HTTP route with the GET method on the Quick server.
+//
+// This function associates a GET request with a specific route pattern and handler function.
+// It ensures that the request is properly processed when received.
+//
+// Parameters:
+//   - pattern string: The route pattern (e.g., "/users/:id").
+//   - handlerFunc HandleFunc: The function that will handle the GET request.
+//
+// Example Usage:
+//
+//	// This function is automatically triggered when defining a GET route in Quick.
 func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 	q.registerRoute(MethodGet, pattern, handlerFunc)
 }
 
-// Post function registers an HTTP route with the POST method on the Quick server
-// The result will Post(pattern string, handlerFunc HandleFunc)
+// Post registers an HTTP route with the POST method on the Quick server.
+//
+// This function associates a POST request with a specific route pattern and handler function.
+// It is typically used for handling form submissions, JSON payloads, or data creation.
+//
+// Parameters:
+//   - pattern string: The route pattern (e.g., "/users").
+//   - handlerFunc HandleFunc: The function that will handle the POST request.
+//
+// Example Usage:
+//
+//	// This function is automatically triggered when defining a POST route in Quick.
 func (q *Quick) Post(pattern string, handlerFunc HandleFunc) {
 	q.registerRoute(MethodPost, pattern, handlerFunc)
 }
 
-// Put function registers an HTTP route with the PUT method on the Quick server.
-// The result will Put(pattern string, handlerFunc HandleFunc)
+// Put registers an HTTP route with the PUT method on the Quick server.
+//
+// This function associates a PUT request with a specific route pattern and handler function.
+// It is typically used for updating existing resources.
+//
+// Parameters:
+//   - pattern string: The route pattern (e.g., "/users/:id").
+//   - handlerFunc HandleFunc: The function that will handle the PUT request.
+//
+// Example Usage:
+//
+//	// This function is automatically triggered when defining a PUT route in Quick.
 func (q *Quick) Put(pattern string, handlerFunc HandleFunc) {
 	q.registerRoute(MethodPut, pattern, handlerFunc)
 }
 
-// Delete function registers an HTTP route with the DELETE method on the Quick server.
-// The result will Delete(pattern string, handlerFunc HandleFunc)
+// Delete registers an HTTP route with the DELETE method on the Quick server.
+//
+// This function associates a DELETE request with a specific route pattern and handler function.
+// It is typically used for deleting existing resources.
+//
+// Parameters:
+//   - pattern string: The route pattern (e.g., "/users/:id").
+//   - handlerFunc HandleFunc: The function that will handle the DELETE request.
+//
+// Example Usage:
+//
+//	// This function is automatically triggered when defining a DELETE route in Quick.
 func (q *Quick) Delete(pattern string, handlerFunc HandleFunc) {
 	q.registerRoute(MethodDelete, pattern, handlerFunc)
 }
 
-// Path function registers an HTTP route with the PATH method on the Quick server.
-// The result will Path(pattern string, handlerFunc HandleFunc)
+// Patch registers an HTTP route with the PATCH method on the Quick server.
+//
+// This function associates a PATCH request with a specific route pattern and handler function.
+// It is typically used for applying partial updates to an existing resource.
+//
+// Parameters:
+//   - pattern string: The route pattern (e.g., "/users/:id").
+//   - handlerFunc HandleFunc: The function that will handle the PATCH request.
+//
+// Example Usage:
+//
+//	// This function is automatically triggered when defining a PATCH route in Quick.
 func (q *Quick) Patch(pattern string, handlerFunc HandleFunc) {
 	q.registerRoute(MethodPatch, pattern, handlerFunc)
 }
 
-// Options function registers an HTTP route with the Options method on the Quick server.
-// The result will Options(pattern string, handlerFunc HandleFunc)
+// Options registers an HTTP route with the OPTIONS method on the Quick server.
+//
+// This function associates an OPTIONS request with a specific route pattern and handler function.
+// OPTIONS requests are typically used to determine the allowed HTTP methods for a resource.
+//
+// Parameters:
+//   - pattern string: The route pattern (e.g., "/users").
+//   - handlerFunc HandleFunc: The function that will handle the OPTIONS request.
+//
+// Example Usage:
+//
+//	// This function is automatically triggered when defining an OPTIONS route in Quick.
 func (q *Quick) Options(pattern string, handlerFunc HandleFunc) {
 	q.registerRoute(MethodOptions, pattern, handlerFunc)
 }
 
-// Generic handler extractor to minimize repeated logic across HTTP methods
-// Method Used Internally
-// The result will extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc
+// extractHandler selects the appropriate handler function for different HTTP methods.
+//
+// This function is responsible for determining which internal request processing function
+// should handle a given HTTP method. It maps the method to the corresponding request parser.
+//
+// Parameters:
+//   - q *Quick: The Quick instance managing the route and request context.
+//   - method string: The HTTP method (e.g., "GET", "POST").
+//   - path string: The route path associated with the request.
+//   - params string: Route parameters extracted from the request URL.
+//   - handlerFunc HandleFunc: The function that will handle the request.
+//
+// Returns:
+//   - http.HandlerFunc: The appropriate handler function based on the HTTP method.
+//
+// Example Usage:
+//
+//	// This function is automatically executed internally when processing an HTTP request.
 func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFunc) http.HandlerFunc {
 	switch method {
 	case MethodGet:
@@ -332,9 +472,22 @@ func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFun
 	return nil
 }
 
-// PATCH is generally used for partial updates, while PUT replaces the entire resource.
-// Method Used Internally
-// However, both methods often handle request parameters and body parsing in the same way.
+// extractParamsPatch processes an HTTP PATCH request by reusing the logic of the PUT method.
+//
+// The PATCH method is typically used for partial updates, while PUT replaces an entire resource.
+// However, both methods often handle request parameters and body parsing in the same way,
+// so this function delegates the processing to `extractParamsPut`.
+//
+// Parameters:
+//   - q *Quick: The Quick instance managing the request context.
+//   - handlerFunc HandleFunc: The function that will handle the PATCH request.
+//
+// Returns:
+//   - http.HandlerFunc: A handler function that processes PATCH requests.
+//
+// Example Usage:
+//
+//	// This function is automatically executed internally when a PATCH request is received.
 func extractParamsPatch(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return extractParamsPut(q, handlerFunc)
 }
@@ -391,9 +544,20 @@ func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc)
 	}
 }
 
-// extractHeaders extracts all headers from an HTTP request and returns them
-// Method Used Internally
-// The result will extractHeaders(req http.Request) map[string][]string
+// extractHeaders extracts all headers from an HTTP request and returns them as a map.
+//
+// This function iterates over all headers in the request and organizes them into a
+// map structure, where each header key is mapped to its corresponding values.
+//
+// Parameters:
+//   - req http.Request: The HTTP request from which headers will be extracted.
+//
+// Returns:
+//   - map[string][]string: A map containing all request headers.
+//
+// Example Usage:
+//
+//	// This function is automatically executed internally when extracting headers from a request.
 func extractHeaders(req http.Request) map[string][]string {
 	headersMap := make(map[string][]string)
 	for key, values := range req.Header {
@@ -405,12 +569,19 @@ func extractHeaders(req http.Request) map[string][]string {
 // extractParamsBind decodes request bodies for JSON/XML payloads using a pooled buffer
 // to minimize memory allocations and garbage collection overhead.
 //
+// This function checks the request's `Content-Type` and processes JSON or XML payloads accordingly.
+// It ensures efficient memory usage by leveraging buffer pools for reading request bodies.
+//
 // Parameters:
-//   - c: The Quick context containing request information.
-//   - v: The target structure to decode the JSON/XML payload.
+//   - c *Ctx: The Quick context containing request information.
+//   - v interface{}: The target structure where the decoded JSON/XML data will be stored.
 //
 // Returns:
-//   - error: Any decoding errors encountered or unsupported content-type errors.
+//   - error: Returns any decoding errors encountered or an error for unsupported content types.
+//
+// Example Usage:
+//
+//	// This function is automatically executed internally when binding request data to a struct.
 func extractParamsBind(c *Ctx, v interface{}) error {
 	contentType := strings.ToLower(c.Request.Header.Get("Content-Type"))
 
@@ -457,9 +628,23 @@ func extractParamsBind(c *Ctx, v interface{}) error {
 	}
 }
 
-// extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern
-// Method Used Internally
-// The result will extractParamsPattern(pattern string) (path, params, partternExist string)
+// extractParamsPattern extracts the fixed path and dynamic parameters from a given route pattern.
+//
+// This function is responsible for identifying and separating static paths from dynamic parameters
+// in a route pattern. It ensures proper extraction of URL path segments and dynamic query parameters.
+//
+// Parameters:
+//   - pattern string: The route pattern that may contain dynamic parameters.
+//
+// Returns:
+//   - path string: The fixed portion of the route without dynamic parameters.
+//   - params string: The extracted dynamic parameters (if any).
+//   - patternExist string: The original pattern before extraction.
+//
+// Example Usage:
+//
+//	// This function is automatically executed internally when registering a dynamic route.
+//	path, params, patternExist := extractParamsPattern("/users/:id")
 func extractParamsPattern(pattern string) (path, params, partternExist string) {
 	path = pattern
 	index := strings.Index(pattern, ":")
@@ -677,9 +862,18 @@ func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	}
 }
 
-// execHandleFunc executes the provided handler function and handles errors if they occur
-// Method Used Internally
-// The result will execHandleFunc(c *Ctx, handleFunc HandleFunc)
+// execHandleFunc executes the provided handler function and handles errors if they occur.
+//
+// This function ensures that the HTTP response is properly handled, including setting the
+// appropriate content type and returning an error message if the handler function fails.
+//
+// Parameters:
+//   - c *Ctx: The Quick context instance containing request and response data.
+//   - handleFunc HandleFunc: The function that processes the HTTP request.
+//
+// Example Usage:
+//
+//	// This function is automatically executed internally after processing a request.
 func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	err := handleFunc(c)
 	if err != nil {
@@ -692,13 +886,20 @@ func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 // extractBodyBytes reads the entire request body into a pooled buffer, then
 // copies the data to a new byte slice before returning it. This ensures that
 // once the buffer is returned to the pool, the returned data remains valid.
-// The function also returns a new io.ReadCloser wrapping that same data,
+//
+// Additionally, this function returns a new `io.ReadCloser` wrapping the same data,
 // allowing it to be re-read if needed.
 //
-// Note: If the request body is very large, the buffer will grow automatically
-// and remain larger when placed back in the pool. If extremely large bodies
-// are expected infrequently, you may want additional logic to discard overly
-// large buffers rather than returning them to the pool.
+// Parameters:
+//   - r io.ReadCloser: The original request body stream.
+//
+// Returns:
+//   - []byte: A byte slice containing the full request body data.
+//   - io.ReadCloser: A new ReadCloser that allows the body to be re-read.
+//
+// Example Usage:
+//
+//	// Read the request body into a byte slice and obtain a new ReadCloser.
 func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
 	// Acquire a reusable buffer from the pool
 	buf := acquireBuffer()
@@ -723,9 +924,21 @@ func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
 	return data, io.NopCloser(bytes.NewReader(data))
 }
 
-// mwWrapper applies all registered middlewares to an HTTP handler
-// Method Used Internally
-// The result will mwWrapper(handler http.Handler) http.Handler
+// mwWrapper applies all registered middlewares to an HTTP handler.
+//
+// This function iterates through the registered middleware stack in reverse order
+// (last added middleware is executed first) and wraps the final HTTP handler
+// with each middleware layer.
+//
+// Parameters:
+//   - handler http.Handler: The final HTTP handler to be wrapped with middlewares.
+//
+// Returns:
+//   - http.Handler: The HTTP handler wrapped with all registered middlewares.
+//
+// Example Usage:
+//
+//	// This function is automatically executed internally before processing requests.
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	for i := len(q.mws2) - 1; i >= 0; i-- {
 		switch mw := q.mws2[i].(type) {
@@ -741,21 +954,51 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	return handler
 }
 
-// appendRoute registers a new route in the Quick router and applies middlewares
-// Method Used Internally
-// The result will appendRoute(route *Route)
+// appendRoute registers a new route in the Quick router and applies middlewares.
+//
+// This function ensures that the given route's handler is wrapped with all registered
+// middlewares before being stored in the router. It optimizes performance by applying
+// middleware only once during route registration instead of at runtime.
+//
+// Parameters:
+//   - route *Route: The route to be registered in the Quick router.
+//
+// Example Usage:
+//
+//	// This function is automatically called when registering a new route.
 func (q *Quick) appendRoute(route *Route) {
 	route.handler = q.mwWrapper(route.handler).ServeHTTP
 	//q.routes = append(q.routes, *route)
 	q.routes = append(q.routes, route)
 }
 
+// Header retrieves the HTTP headers from the response writer.
+//
+// This method allows middleware or handlers to modify response headers
+// before sending them to the client.
+//
+// Returns:
+//   - http.Header: The set of response headers.
+//
+// Example Usage:
+//
+//	// Retrieve headers within a middleware or handler function
 func (rw *pooledResponseWriter) Header() http.Header {
 	return rw.ResponseWriter.Header()
 }
 
-// ServeHTTP processes incoming HTTP requests and matches registered routes.
-// It uses a pooledResponseWriter to reduce memory allocations and improve performance.
+// ServeHTTP processes incoming HTTP requests and matches them to registered routes.
+//
+// This function efficiently routes HTTP requests to the appropriate handler while
+// leveraging a **pooled response writer** and **context pooling** to minimize memory
+// allocations and improve performance.
+//
+// If the request method is `OPTIONS`, it is handled separately via `handleOptions`.
+// If no matching route is found, the function responds with `404 Not Found`.
+//
+// Example Usage:
+// This function is automatically invoked by the `http.Server` when a request reaches
+// the Quick router.
 func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// call options
 	if req.Method == http.MethodOptions {
@@ -805,9 +1048,15 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(rw, req)
 }
 
-// createParamsAndValid create params map and check if the request URI and pattern URI are valid
-// Method Used Internally
-// The result will createParamsAndValid(reqURI, patternURI string) (map[string]string, bool)
+// createParamsAndValid extracts dynamic parameters from a request URI and validates the pattern.
+//
+// This function compares the request URI with the registered pattern and extracts
+// route parameters such as `:id` or `{id:[0-9]+}` dynamically.
+//
+// Example Usage:
+// This function is internally used by `ServeHTTP()` to verify if a request matches a
+// registered route pattern. If it does, it extracts the dynamic parameters and returns
+// them as a map.
 func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	params := make(map[string]string)
 	var builder strings.Builder
@@ -869,19 +1118,48 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 	return params, true
 }
 
-// GetRoute returns all registered routes in the Quick framework
-// The result will GetRoute() []*Route
+// GetRoute retrieves all registered routes in the Quick framework.
+//
+// This function returns a slice containing all the routes that have been
+// registered in the Quick instance. It is useful for debugging, logging,
+// or dynamically inspecting available routes.
+//
+// Example Usage:
+//
+//	routes := q.GetRoute()
+//	for _, route := range routes {
+//	    fmt.Println("Method:", route.Method, "Path:", route.Path)
+//	}
+//
+// Returns:
+//   - []*Route: A slice of pointers to the registered Route instances.
 func (q *Quick) GetRoute() []*Route {
 	return q.routes
 }
 
-// Static server files html, css, js etc
-// Embed.FS allows you to include files directly into
-// the binary during compilation, eliminating the need to load files
-// from the file system at runtime. This means that
-// static files (HTML, CSS, JS, images, etc.)
-// are embedded into the executable.
-// The result will Static(route string, dirOrFS any)
+// Static serves static files (HTML, CSS, JS, images, etc.) from a directory or embedded filesystem.
+//
+// This function allows you to register a static file server in the Quick framework, either using
+// a local directory (`string`) or an embedded filesystem (`embed.FS`). By embedding files,
+// they become part of the binary at compile time, eliminating the need for external file access.
+//
+// Example Usage:
+// This function is useful for serving front-end assets or static resources directly from
+// the Go application. It supports both local directories and embedded files.
+//
+// Parameters:
+//   - route: The base path where static files will be served (e.g., "/static").
+//   - dirOrFS: The source of the static files. It accepts either:
+//   - `string`: A local directory path (e.g., `"./static"`).
+//   - `embed.FS`: An embedded file system for compiled-in assets.
+//
+// Returns:
+//   - None (void function).
+//
+// Notes:
+//   - The function automatically trims trailing slashes from `route`.
+//   - If an invalid parameter is provided, the function panics.
+//   - When using an embedded filesystem, files are served directly from memory.
 func (q *Quick) Static(route string, dirOrFS any) {
 	route = strings.TrimSuffix(route, "/")
 
@@ -901,32 +1179,55 @@ func (q *Quick) Static(route string, dirOrFS any) {
 	q.mux.Handle(concat.String(route, "/"), http.StripPrefix(route, fileServer))
 }
 
-// execHandler wraps an HTTP handler with additional processing
-// Method Used Internally
-// The result will execHandler(next http.Handler) http.Handler
+// execHandler wraps an HTTP handler with additional processing.
+//
+// This function ensures that the provided `http.Handler` is executed properly,
+// allowing for additional middleware wrapping or request pre-processing.
+//
+// Example Usage:
+// This function is automatically applied within Quick's internal request processing pipeline.
+//
+// Parameters:
+//   - next: The next HTTP handler to be executed.
+//
+// Returns:
+//   - http.Handler: A wrapped HTTP handler that ensures correct execution.
 func (q *Quick) execHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
 	})
 }
 
-// corsHandler returns an HTTP handler that applies the configured CORS settings.
-// Internally, it uses q.CorsSet(q) to wrap the Quick router with CORS middleware
-// if the feature is enabled.
+// corsHandler applies the configured CORS middleware to the Quick router.
+//
+// This function checks if CORS is enabled in the Quick instance (`q.Cors`).
+// If enabled, it wraps the request processing with the configured CORS middleware.
+//
+// Example Usage:
+// Automatically used when CORS support is detected within `Use()`.
+//
+// Returns:
+//   - http.Handler: The HTTP handler wrapped with CORS processing.
 func (q *Quick) corsHandler() http.Handler {
 	return q.CorsSet(q)
 }
 
-// httpServerTLS creates and returns an HTTP server instance configured with Quick
-// for TLS/HTTPS usage. This function accepts a tlsConfig for secure connections.
+// httpServerTLS initializes and returns an HTTP server instance configured for TLS/HTTPS.
+//
+// This function sets up a secure server with `TLSConfig` and allows optional
+// custom handlers to be provided. If no custom handler is specified, the default
+// Quick router is used.
+//
+// Example Usage:
+// Used internally by Quick when setting up an HTTPS server via `ListenTLS()`.
 //
 // Parameters:
 //   - addr:      The network address the server should listen on (e.g., ":443").
-//   - tlsConfig: A *tls.Config instance containing certificate and security settings.
-//   - handler:   Optionally, one or more custom HTTP handlers.
+//   - tlsConfig: A `*tls.Config` instance containing certificate and security settings.
+//   - handler:   (Optional) One or more custom HTTP handlers.
 //
-// If no custom handler is provided, the default Quick router is used by default.
-// If q.Cors is enabled, the returned handler includes CORS middleware.
+// Returns:
+//   - *http.Server: A configured HTTPS server instance.
 func (q *Quick) httpServerTLS(addr string, tlsConfig *tls.Config, handler ...http.Handler) *http.Server {
 	var h http.Handler = q
 	if len(handler) > 0 {
@@ -948,15 +1249,20 @@ func (q *Quick) httpServerTLS(addr string, tlsConfig *tls.Config, handler ...htt
 	}
 }
 
-// httpServer creates and returns an HTTP server instance configured with Quick
-// for plain HTTP (non-TLS) usage.
+// httpServer initializes and returns an HTTP server instance configured for plain HTTP.
+//
+// This function sets up a standard HTTP server, allowing optional custom handlers
+// to be specified. If no handler is provided, the default Quick router is used.
+//
+// Example Usage:
+// Used internally when starting an HTTP server via `Listen()`.
 //
 // Parameters:
 //   - addr:    The network address the server should listen on (e.g., ":8080").
-//   - handler: Optionally, one or more custom HTTP handlers.
+//   - handler: (Optional) One or more custom HTTP handlers.
 //
-// If no custom handler is provided, the default Quick router is used by default.
-// If q.Cors is enabled, the returned handler includes CORS middleware.
+// Returns:
+//   - *http.Server: A configured HTTP server instance.
 func (q *Quick) httpServer(addr string, handler ...http.Handler) *http.Server {
 	// Determine the handler to use based on optional arguments and CORS configuration.
 	var h http.Handler = q
@@ -1020,10 +1326,13 @@ func (q *Quick) ListenWithShutdown(addr string, handler ...http.Handler) (*http.
 
 // setupPerformanceTuning configures performance settings for the Quick server.
 //
-// This method:
-//   - Tunes garbage collection behavior dynamically if MoreRequests is configured.
-//   - Adjusts the GOMAXPROCS value if specified in the configuration.
-//   - Initializes a buffer pool to optimize memory allocation.
+// This method optimizes performance by:
+//   - Dynamically tuning garbage collection behavior if `MoreRequests` is configured.
+//   - Adjusting the `GOMAXPROCS` value based on the configuration.
+//   - Initializing a buffer pool to optimize memory allocation.
+//
+// Example Usage:
+// Called automatically when initializing the Quick server.
 func (q *Quick) setupPerformanceTuning() {
 	if q.config.MoreRequests > 0 {
 		go q.adaptiveGCTuner()
@@ -1045,6 +1354,9 @@ func (q *Quick) setupPerformanceTuning() {
 // This function runs in a background goroutine and:
 //   - Checks heap memory usage every 15 seconds.
 //   - If the heap usage exceeds a defined threshold, it triggers garbage collection and frees OS memory.
+//
+// Example Usage:
+// Automatically invoked by `setupPerformanceTuning()` when `MoreRequests` is enabled.
 func (q *Quick) adaptiveGCTuner() {
 	var threshold uint64 = uint64(q.config.GCHeapThreshold)
 	if threshold == 0 {
@@ -1065,8 +1377,20 @@ func (q *Quick) adaptiveGCTuner() {
 	}
 }
 
-// Listen calls ListenWithShutdown and blocks with select{}
-// The result will Listen(addr string, handler ...http.Handler) error
+// Listen starts the Quick server and blocks indefinitely.
+//
+// This function initializes the HTTP server and prevents the application from exiting.
+//
+// Example Usage:
+//
+//	q.Listen(":8080")
+//
+// Parameters:
+//   - addr: The address on which the server should listen (e.g., ":8080").
+//   - handler: (Optional) Custom HTTP handlers.
+//
+// Returns:
+//   - error: Any errors encountered while starting the server.
 func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	_, shutdown, err := q.ListenWithShutdown(addr, handler...)
 	if err != nil {
@@ -1080,8 +1404,17 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 	return nil
 }
 
-// Shutdown gracefully shuts down the server without interrupting any active connections
-// The result will (q *Quick) Shutdown() error
+// Shutdown gracefully shuts down the Quick server without interrupting active connections.
+//
+// This function ensures that all ongoing requests are completed before shutting down,
+// preventing abrupt connection termination.
+//
+// Example Usage:
+//
+//	q.Shutdown()
+//
+// Returns:
+//   - error: Any errors encountered during shutdown.
 func (q *Quick) Shutdown() error {
 	// Create a context with a timeout to control the shutdown process
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -1097,6 +1430,18 @@ func (q *Quick) Shutdown() error {
 	return nil // Return nil if there is no server to shutdown
 }
 
+// releaseResources resets system-level performance settings after server shutdown.
+//
+// This function ensures that system configurations return to their default states
+// after the Quick server is gracefully shut down, preventing excessive resource usage.
+//
+// Example Usage:
+//
+//	q.releaseResources()
+//
+// Actions Performed:
+//   - Resets the garbage collection behavior to the default percentage (100).
+//   - Restores `GOMAXPROCS` to automatic CPU thread allocation.
 func (q *Quick) releaseResources() {
 	// System settings reset
 	debug.SetGCPercent(100) // Return to default GC
