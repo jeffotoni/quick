@@ -4,6 +4,12 @@ testdata/
 **/testdata/
 **/results.bin
 
+# allow only on root
+**/go.mod
+**/go.sum
+!go.mod
+!go.sum
+
 # IDE files
 .vscode
 .DS_Store
