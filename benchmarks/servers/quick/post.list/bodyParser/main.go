@@ -34,7 +34,8 @@ type Option struct {
 // "extra": "some data", "dynamic": {"speed": "200km/h"}}]'
 func main() {
 	q := quick.New(quick.Config{
-		MaxBodySize: 20 * 1024 * 1024,
+		MaxBodySize:  20 * 1024 * 1024,
+		MoreRequests: 500,
 		// ReadTimeout: 40 * time.Second,
 	}) // Initialize Quick framework
 
