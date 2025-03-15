@@ -86,7 +86,7 @@ type Config struct {
 }
 
 var defaultConfig = Config{
-	BodyLimit:      2 * 1024 * 1024, // 2MB
+	BodyLimit:      2 * 1024 * 1024, // 2MB - Deprecated: Use MaxBodySize instead
 	MaxBodySize:    2 * 1024 * 1024, // 2MB
 	MaxHeaderBytes: 1 * 1024 * 1024, // 1MB
 
@@ -111,6 +111,8 @@ type CorsConfig struct {
 	AllowAll bool              // Enable all access
 }
 
+type HandlerFunc func(c *Ctx) error
+
 // Quick is the main structure of the framework, holding routes and configurations.
 type Quick struct {
 	config        Config         // Configuration settings.
@@ -130,6 +132,62 @@ type Quick struct {
 
 	bufferPool *sync.Pool
 }
+
+// indeed to Quick
+type App = Quick
+
+// HandlerFunc adapts a quick.HandlerFunc to a standard http.HandlerFunc.
+// It creates a new Quick context (Ctx) for each HTTP request,
+// allowing Quick handlers to access request and response objects seamlessly.
+//
+// Usage Example:
+//
+//	http.HandleFunc(\"/\", app.HandlerFunc(func(c *quick.Ctx) error {
+//		return c.Status(200).JSON(map[string]string{\"message\": \"Hello, Quick!\"})
+//	}))
+func (q *Quick) HandlerFunc(h HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		c := &Ctx{
+			Response: w,
+			Request:  req,
+			App:      q,
+		}
+
+		if err := h(c); err != nil {
+			http.Error(w, err.Error(), StatusInternalServerError)
+		}
+	}
+}
+
+// Handler returns the main HTTP handler for Quick, allowing integration with standard http.Server and testing frameworks.
+func (q *Quick) Handler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q.ServeHTTP(w, r)
+	})
+}
+
+// MiddlewareFunc defines the signature for middleware functions in Quick.
+// A middleware function receives the next HandlerFunc in the chain and returns a new HandlerFunc.
+// Middleware can perform actions before and/or after calling the next handler.
+//
+// Example:
+//
+//	func LoggingMiddleware() quick.MiddlewareFunc {
+//		return func(next quick.HandlerFunc) quick.HandlerFunc {
+//			return func(c *quick.Ctx) error {
+//				// Before handler logic (e.g., logging request details)
+//				log.Printf("Request received: %s %s", c.Request.Method, c.Request.URL)
+//
+//				err := next(c) // Call the next handler
+//
+//				// After handler logic (e.g., logging response status)
+//				log.Printf("Response sent with status: %d", c.ResponseWriter.Status())
+//
+//				return err
+//			}
+//		}
+//	}
+type MiddlewareFunc func(next HandlerFunc) HandlerFunc
 
 // GetDefaultConfig returns the default configuration pre-defined for the system.
 //
@@ -730,6 +788,7 @@ func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFu
 func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		// Validate body size before processing
+		// req.Body = http.MaxBytesReader(w, req.Body, q.config.MaxBodySize)
 		if req.ContentLength > q.config.MaxBodySize {
 			http.Error(w, "Request body too large", StatusRequestEntityTooLarge)
 			return
@@ -942,14 +1001,23 @@ func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	for i := len(q.mws2) - 1; i >= 0; i-- {
 		switch mw := q.mws2[i].(type) {
+
 		case func(http.Handler) http.Handler:
 			handler = mw(handler)
+
 		case func(http.ResponseWriter, *http.Request, http.Handler):
 			originalHandler := handler // Avoid infinite reassignment
 			handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				mw(w, r, originalHandler)
 			})
 		}
+
+		// we will do it soon
+		// case quick.MiddlewareFunc:
+		// We need to convert http.Handler -> quick.HandlerFunc, and vice versa
+		// This is extra work, since Quick internally routes using http.HandlerFunc
+		// and the chain would become more complex.
+
 	}
 	return handler
 }

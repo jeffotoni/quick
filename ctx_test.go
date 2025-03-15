@@ -829,3 +829,61 @@ func TestCtx_Status(t *testing.T) {
 		})
 	}
 }
+
+// TestCtxMethods validates the methods of the Quick context (Ctx).
+// It tests whether the Ctx abstractions correctly retrieve and parse HTTP request data,
+// such as headers, IP address, HTTP method, URL path, and query parameters.
+//
+// It ensures the following methods work as expected:
+// - Ctx.GetHeader()
+// - Ctx.GetHeaders()
+// - Ctx.RemoteIP()
+// - Ctx.Method()
+// - Ctx.Path()
+// - Ctx.QueryParam()
+func TestCtxMethods(t *testing.T) {
+	// Prepare the test request
+	req := httptest.NewRequest(http.MethodGet, "/testpath?search=golang", nil)
+	req.RemoteAddr = "192.168.1.10:12345"
+	req.Header.Set("User-Agent", "Go-Test-Agent")
+
+	// Create the fake ResponseWriter
+	rec := httptest.NewRecorder()
+
+	// Create the Quick context
+	c := &Ctx{
+		Response: rec,
+		Request:  req,
+	}
+
+	// Test GetHeader
+	if got := c.GetHeader("User-Agent"); got != "Go-Test-Agent" {
+		t.Errorf("GetHeader() = %v, want %v", got, "Go-Test-Agent")
+	}
+
+	// Test GetHeaders
+	headers := c.GetHeaders()
+	if headers.Get("User-Agent") != "Go-Test-Agent" {
+		t.Errorf("GetHeaders().Get(\"User-Agent\") = %v, want %v", headers.Get("User-Agent"), "Go-Test-Agent")
+	}
+
+	// RemoteIP Test
+	if ip := c.RemoteIP(); ip != "192.168.1.10" {
+		t.Errorf("RemoteIP() = %v, want %v", ip, "192.168.1.10")
+	}
+
+	// Test Method
+	if method := c.Method(); method != http.MethodGet {
+		t.Errorf("Method() = %v, want %v", method, http.MethodGet)
+	}
+
+	// Test Path
+	if path := c.Path(); path != "/testpath" {
+		t.Errorf("Path() = %v, want %v", path, "/testpath")
+	}
+
+	// Test Query
+	if q := c.QueryParam("search"); q != "golang" {
+		t.Errorf("Query(\"search\") = %v, want %v", q, "golang")
+	}
+}
