@@ -1,6 +1,7 @@
 package limiter
 
 import (
+	"fmt"
 	"hash/fnv"
 	"net/http"
 	"sync"
@@ -19,7 +20,7 @@ type Config struct {
 	Max          int                     // Maximum requests allowed in the time window
 	Expiration   time.Duration           // Time window for rate limiting
 	KeyGenerator func(*quick.Ctx) string // Function to generate a unique key per client
-	LimitReached func(*quick.Ctx)        // Function executed when rate limit is exceeded
+	LimitReached func(*quick.Ctx) error  // Function executed when rate limit is exceeded
 }
 
 // client tracks individual request data for rate limiting.
@@ -109,7 +110,10 @@ func New(config Config) func(http.Handler) http.Handler {
 			// If the client exceeded the limit, call LimitReached and stop.
 			if cl.requests > rl.config.Max {
 				//fmt.Println("[DEBUG] Limit reached: calling LimitReached")
-				rl.config.LimitReached(c)
+				err := rl.config.LimitReached(c)
+				if err != nil {
+					fmt.Println("[DEBUG] LimitReached error:", err)
+				}
 				return
 			}
 

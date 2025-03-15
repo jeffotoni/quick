@@ -16,9 +16,9 @@ func main() {
 		KeyGenerator: func(c *quick.Ctx) string {
 			return c.RemoteIP()
 		},
-		LimitReached: func(c *quick.Ctx) {
+		LimitReached: func(c *quick.Ctx) error {
 			c.Set("Content-Type", "application/json")
-			c.Status(quick.StatusTooManyRequests).String(`{"error":"Too many requests"}`)
+			return c.Status(quick.StatusTooManyRequests).String(`{"error":"Too many requests"}`)
 		},
 	}))
 
