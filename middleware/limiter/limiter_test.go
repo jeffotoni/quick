@@ -23,9 +23,9 @@ func TestLimiterMiddleware(t *testing.T) {
 			fmt.Println("I'm here KeyGenerator........:", c.RemoteIP())
 			return c.RemoteIP()
 		},
-		LimitReached: func(c *quick.Ctx) {
+		LimitReached: func(c *quick.Ctx) error {
 			fmt.Println("I'm here LimitReached........")
-			c.Status(http.StatusTooManyRequests).SendString(`{"error":"Too many requests"}`)
+			return c.Status(http.StatusTooManyRequests).SendString(`{"error":"Too many requests"}`)
 		},
 	}))
 
