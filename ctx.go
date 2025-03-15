@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,6 +26,7 @@ type Ctx struct {
 	Params         map[string]string
 	Query          map[string]string
 	uploadFileSize int64 // Upload limit in bytes
+	App            *Quick
 }
 
 func (c *Ctx) SetStatus(status int) {
@@ -44,6 +46,40 @@ type FileInfo struct {
 	Size        int64
 	ContentType string
 	Bytes       []byte
+}
+
+// GetHeader retrieves a specific header value from the request.
+func (c *Ctx) GetHeader(key string) string {
+	return c.Request.Header.Get(key)
+}
+
+// GetHeaders returns all request headers.
+func (c *Ctx) GetHeaders() http.Header {
+	return c.Request.Header
+}
+
+// RemoteIP retrieves the client's IP address from the request.
+func (c *Ctx) RemoteIP() string {
+	ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
+	if err != nil {
+		return c.Request.RemoteAddr
+	}
+	return ip
+}
+
+// Method returns the HTTP method of the request.
+func (c *Ctx) Method() string {
+	return c.Request.Method
+}
+
+// Path returns the URL path of the request.
+func (c *Ctx) Path() string {
+	return c.Request.URL.Path
+}
+
+// QueryParam retrieves a query parameter value from the URL.
+func (c *Ctx) QueryParam(key string) string {
+	return c.Request.URL.Query().Get(key)
 }
 
 // GetReqHeadersAll returns all the request headers
