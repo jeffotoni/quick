@@ -48,8 +48,8 @@ type RateLimiter struct {
 //	        // Return IP without port, or a fixed test key.
 //	        return "testKey"
 //	    },
-//	    LimitReached: func(c *quick.Ctx) {
-//	        c.Status(http.StatusTooManyRequests).SendString("Too many requests")
+//	    LimitReached: func(c *quick.Ctx) error {
+//	        return c.Status(http.StatusTooManyRequests).SendString("Too many requests")
 //	    },
 //	}))
 //
