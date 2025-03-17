@@ -35,7 +35,7 @@ func main() {
 
 	// Define a simple GET route
 	q.Get("/", func(c *quick.Ctx) error {
-		return c.Status(200).JSON(map[string]string{"msg": "Hello, Quick!"})
+		return c.Status(200).JSON(map[string]string{"msg": "Quick in action ❤️!"})
 	})
 
 	// Start the server on port 8080
