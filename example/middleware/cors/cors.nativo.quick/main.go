@@ -26,13 +26,6 @@ func main() {
 		Debug:            true,
 	}))
 
-	// q.Options("/v1/user", func(c *quick.Ctx) error {
-	// 	c.Set("Access-Control-Allow-Origin", "*")
-	// 	c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	// 	c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	// 	return c.Status(204).Send(nil)
-	// })
-
 	q.Post("/v1/user", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		type My struct {
