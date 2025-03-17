@@ -2497,8 +2497,139 @@ If an IP makes more than 3 requests within 10 seconds, the response is blocked a
 }
 
 ```
+---
+## 🚀 Benchmarks
+
+**Benchmarking** is a performance evaluation technique that measures response time, resource usage, and processing capacity. It helps developers identify bottlenecks and optimize their code. This approach is widely used in various areas, including software testing and hardware evaluations.
 
 
+## 📊 Why Benchmarking?
+
+| ✅ Benefit   | 🔍 Description |
+|--------------------------------------|-------------|
+| 📏 Measure performance   | Evaluates how a system responds under different workloads. |
+| 🔄 Compare technologies   | Allows you to analyze different frameworks, libraries or implementations. |
+| 🔍 Identify bottlenecks   | Helps detect critical points that need optimization. |
+| 📈 Ensure scalability   | Test system behavior with multiple simultaneous requests. |
+| 🎭 Simulate real-world scenarios   | Reproduces heavy use situations, such as thousands of users accessing a service at the same time. |
+
+
+### 🛠️ Load Testing with Quick and k6
+
+To evaluate the performance of our API, we conducted a benchmark test using the [Quick](https://github.com/jeffotoni/quick) framework along with [k6](https://k6.io/) for load testing.
+
+
+### 🔹 API Code for Benchmarking
+
+The following Go API was used for benchmarking. It provides a POST endpoint at /v1/user, which:
+
+- Accepts large JSON payloads.
+- Parses the incoming JSON into a Go struct.
+- Returns the parsed JSON as a response.
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+)
+
+// Struct representing a user model
+type My struct {
+	ID       string                 `json:"id"`
+	Name     string                 `json:"name"`
+	Year     int                    `json:"year"`
+	Price    float64                `json:"price"`
+	Big      bool                   `json:"big"`
+	Car      bool                   `json:"car"`
+	Tags     []string               `json:"tags"`
+	Metadata map[string]interface{} `json:"metadata"`
+	Options  []Option               `json:"options"`
+	Extra    interface{}            `json:"extra"`
+	Dynamic  map[string]interface{} `json:"dynamic"`
+}
+
+type Option struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func main() {
+	// Initialize Quick framework with a 20MB body limit
+	q := quick.New(quick.Config{
+		MaxBodySize: 20 * 1024 * 1024,
+	})
+
+	// Define a POST route at /v1/user
+	q.Post("/v1/user", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		var users []My // Store incoming user data
+
+		// Parse the request body into the struct
+		err := c.Bind(&users)
+		if err != nil {
+			// If parsing fails, return a 400 Bad Request response
+			return c.Status(400).SendString(err.Error())
+		}
+
+		// Return the parsed JSON data as a response with 200 OK
+		return c.Status(200).JSON(users)
+	})
+
+	// Start the server and listen on port 8080
+	q.Listen("0.0.0.0:8080")
+}
+```
+### 🏆 k6 Load Test Script
+
+```javascript
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+// Load the JSON from the environment variable
+const payloadData = open('./data_1k_list.json');
+
+// K6 configuration
+export let options = {
+    stages: [
+        { duration: '40s', target: 1000 }, // Ramp-up para 500 VUs
+        { duration: '7s', target: 500 },  // Mantém 500 VUs
+        { duration: '5s', target: 0 },   // Ramp-down
+    ],
+ };
+
+
+export default function () {
+let url = 'http://localhost:8080/v1/user';
+
+// Always use the same list for sending
+// let payload = JSON.stringify(payloadData);
+
+let params = {
+headers: { 'Content-Type': 'application/json' },
+};
+
+let res = http.post(url, payloadData, params);
+
+// Check if the response is correct
+check(res, {
+'status is 200 or 201': (r) => r.status === 200 || r.status === 201,
+'response contains JSON': (r) => r.headers['Content-Type'] === 'application/json',
+});
+
+}
+```
+
+### 📈 Running the Tests  
+
+- 1️⃣ Start the Quick API - Run the Quick server:  
+```bash
+$ go run main.go
+```
+- 2️⃣ Execute the Load Test
+```bash
+$ k6 run benchmark.js
+```
 ---
 
 ## 📚| More Examples
