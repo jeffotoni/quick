@@ -69,7 +69,6 @@ Assigns a UUID (Universally Unique Identifier) to each request.
 
 ### 🚧 **Coming soon!**
 - Etag
-- Limiter
 - Pprof
 - Proxy
 - RequestID
