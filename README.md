@@ -2493,9 +2493,9 @@ If an IP makes more than 3 requests within 10 seconds, the response is blocked a
 {
     "error": "Too many requests",
     "message": "You have exceeded the request limit. 
-	Please wait 10 seconds and try again.",    
-	"retry_after": "10s"
+	Please wait 10 seconds and try again.",    "retry_after": "10s"
 }
+
 ```
 
 
