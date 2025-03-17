@@ -10,6 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 )
 
 // This function is named ExampleCtx_GetReqHeadersAll()
@@ -581,4 +583,141 @@ func ExampleCtx_MultipartForm() {
 	}
 
 	// Out put: Form processed successfully: &{...}
+}
+
+// This function is named ExampleCtx_GetHeader()
+// it with the Examples type.
+func ExampleCtx_GetHeader() {
+	q := New()
+
+	q.Get("/header", func(c *Ctx) error {
+		// Retrieve the "User-Agent" header
+		ua := c.GetHeader("User-Agent")
+		fmt.Println(ua) // Expected output: "Go-Test-Agent"
+		return nil
+	})
+
+	// Simulate a GET request with headers
+	res, _ := q.QuickTest("GET", "/header", map[string]string{
+		"User-Agent": "Go-Test-Agent",
+	}, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// Go-Test-Agent
+}
+
+// This function is named ExampleCtx_GetHeaders()
+// it with the Examples type.
+func ExampleCtx_GetHeaders() {
+	q := New()
+
+	q.Get("/headers", func(c *Ctx) error {
+		// Retrieve all request headers
+		headers := c.GetHeaders()
+
+		// Print specific headers for demonstration
+		fmt.Println(headers.Get("Content-Type")) // Expected output: "application/json"
+		fmt.Println(headers.Get("Accept"))       // Expected output: "application/xml"
+		return nil
+	})
+
+	// Simulate a GET request with headers
+	res, _ := q.QuickTest("GET", "/headers", map[string]string{
+		"Content-Type": "application/json",
+		"Accept":       "application/xml",
+	}, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// application/json
+	// application/xml
+}
+
+// This function is named ExampleCtx_RemoteIP()
+// it with the Examples type.
+func ExampleCtx_RemoteIP() {
+	q := New()
+
+	q.Get("/ip", func(c *Ctx) error {
+		// Retrieve the client's IP address
+		clientIP := c.RemoteIP()
+
+		// Print the IP address for demonstration purposes
+		fmt.Println(clientIP)
+		return nil
+	})
+
+	// Simulate a GET request setting a fixed IP in RemoteAddr
+	req := httptest.NewRequest("GET", "/ip", nil)
+	req.RemoteAddr = "192.168.1.100:54321" // Setting a fixed IP for testing
+	rec := httptest.NewRecorder()
+
+	// Serve the request
+	q.ServeHTTP(rec, req)
+
+	// Capture and print the response
+	fmt.Println(strings.TrimSpace(rec.Body.String()))
+
+	// Out put:
+	// 192.168.1.100
+}
+
+// This function is named ExampleCtx_Method()
+// it with the Examples type.
+func ExampleCtx_Method() {
+	q := New()
+
+	q.Post("/method", func(c *Ctx) error {
+		fmt.Println(c.Method()) // Expected output: "POST"
+		return nil
+	})
+
+	// Simulate a POST request
+	res, _ := q.QuickTest("POST", "/method", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// POST
+}
+
+// This function is named ExampleCtx_Path()
+// it with the Examples type.
+func ExampleCtx_Path() {
+	q := New()
+
+	q.Get("/path/to/resource", func(c *Ctx) error {
+		fmt.Println(c.Path()) // Expected output: "/path/to/resource"
+		return nil
+	})
+
+	// Simulate a GET request
+	res, _ := q.QuickTest("GET", "/path/to/resource", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// /path/to/resource
+}
+
+// This function is named ExampleCtx_QueryParam()
+// it with the Examples type.
+func ExampleCtx_QueryParam() {
+	q := New()
+
+	q.Get("/search", func(c *Ctx) error {
+		fmt.Println(c.QueryParam("query")) // Expected output: "quick"
+		return nil
+	})
+
+	// Simulate a GET request with query parameters
+	res, _ := q.QuickTest("GET", "/search?query=quick", nil, nil)
+
+	fmt.Println(res.BodyStr())
+
+	// Out put:
+	// quick
 }
