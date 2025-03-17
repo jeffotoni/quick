@@ -44,24 +44,24 @@ func main() {
 	})
 
 	// Create an API group with rate limit middleware
-	api := q.Group("/api")
+	api := q.Group("/v1")
 	// Apply the rate limiter middleware to the /api group
 	api.Use(limiterMiddleware)
 
 	// Define route /api/users that responds with a list of users
 	api.Get("/users", func(c *quick.Ctx) error {
-		return c.JSON(map[string]string{"msg": "Lista de usuários"})
+		return c.JSON(map[string]string{"msg": "list of users"})
 	})
 
 	// Define route /api/posts that responds with a list of posts
 	api.Get("/posts", func(c *quick.Ctx) error {
-		return c.JSON(map[string]string{"msg": "Lista de posts"})
+		return c.JSON(map[string]string{"msg": "list of posts"})
 	})
 
 	// Define route without rate limit
 	// This route is not affected by the rate limiter
 	q.Get("/", func(c *quick.Ctx) error {
-		return c.JSON(map[string]string{"msg": "Hello, Quick!"})
+		return c.JSON(map[string]string{"msg": "Quick in action ❤️!"})
 	})
 
 	// Start the server on port 8080
@@ -72,8 +72,8 @@ func main() {
 // $ curl --location 'http://localhost:8080/'
 
 // To test with Rate Limiter, use these curl commands:
-// $ curl --location 'http://localhost:8080/api/users'
-// $ curl --location 'http://localhost:8080/api/posts'
+// $ curl --location 'http://localhost:8080/v1/users'
+// $ curl --location 'http://localhost:8080/v1/posts'
 
 //Script
 // async function testRateLimiter() {
@@ -82,7 +82,7 @@ func main() {
 //     }
 
 //     for (let i = 0; i < 10; i++) {
-//         await pm.sendRequest("http://localhost:8080/api/users", function (err, res) {
+//         await pm.sendRequest("http://localhost:8080/v1/users", function (err, res) {
 //             console.log(`Request ${i + 1}: Status - ${res.code} | Body - ${res.text()}`);
 //         });
 //         await delay(200); // Aumente o delay para 200ms para evitar que todas as requisições sejam tratadas ao mesmo tempo

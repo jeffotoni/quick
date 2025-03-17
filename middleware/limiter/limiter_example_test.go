@@ -29,24 +29,87 @@ func ExampleRateLimiter() {
 				"message":     "You have exceeded the request limit. Please wait 10 seconds and try again.",
 				"retry_after": "10s",
 			}
-			// Log for verification
-			log.Println("Rate Limit Exceeded:", response)
-
 			return c.Status(quick.StatusTooManyRequests).JSON(response)
 		},
 	}))
 
-	// Create a simple GET route with rate limiting
+	// Simulate multiple requests to test rate limiting
+	for i := 0; i < 5; i++ { // Enviar mais requisições que o limite (3)
+		res, _ := q.QuickTest("GET", "/", nil)
+		fmt.Println(res.BodyStr())
+	}
+
+	// Out put:
+	// {"msg":"Quick in action ❤️!"}
+	// {"msg":"Quick in action ❤️!"}
+	// {"msg":"Quick in action ❤️!"}
+	// Rate Limit Exceeded: map[error:Too many requests message:You have exceeded the request limit. Please wait 10 seconds and try again. retry_after:10s]
+	// {"error":"Too many requests","message":"You have exceeded the request limit. Please wait 10 seconds and try again.","retry_after":"10s"}
+}
+
+// This function is named ExampleRateLimiter_group()
+// it with the Examples type.
+func ExampleRateLimiter_group() {
+	// Create a new Quick instance
+	q := quick.New()
+
+	// Rate Limiter Middleware
+	limiterMiddleware := New(Config{
+		// Maximum 5 requests allowed per IP address within a 10-second window
+		Max: 5,
+		// The limit resets every 10 seconds
+		Expiration: 10 * time.Second,
+		// Use the client's IP address as the unique key to track rate limits
+		KeyGenerator: func(c *quick.Ctx) string {
+			return c.RemoteIP()
+		},
+		// If the rate limit is exceeded, send an error message and instructions
+		LimitReached: func(c *quick.Ctx) error {
+			// Set content type to JSON
+			c.Set("Content-Type", "application/json")
+			// Set the Retry-After header to indicate how long the client should wait before retrying
+			c.Set("Retry-After", "10") // The client should wait 10 seconds before retrying
+			// Response structure
+			response := map[string]string{
+				"error":       "Too many requests",
+				"message":     "You have exceeded the request limit. Please wait 10 seconds and try again.",
+				"retry_after": "10s",
+			}
+
+			// Log to verify that the rate limit exceeded response is being sent
+			log.Println("Rate Limit Exceeded:", response)
+
+			// Return the response with HTTP status 429 (Too Many Requests)
+			return c.Status(quick.StatusTooManyRequests).JSON(response)
+		},
+	})
+
+	// Create an API group with rate limit middleware
+	api := q.Group("/v1")
+	// Apply the rate limiter middleware to the /api group
+	api.Use(limiterMiddleware)
+
+	// Define route /api/users that responds with a list of users
+	api.Get("/users", func(c *quick.Ctx) error {
+		return c.JSON(map[string]string{"msg": "list of users"})
+	})
+
+	// Define route without rate limit
+	// This route is not affected by the rate limiter
 	q.Get("/", func(c *quick.Ctx) error {
 		return c.JSON(map[string]string{"msg": "Quick in action ❤️!"})
 	})
 
-	// Test the rate limiting using QuickTest (Simulate a request to the defined route for testing)
-	res, _ := q.QuickTest("GET", "/", nil)
-	fmt.Println(res.BodyStr())
+	// Functionality test using QuickTest (simulates a request for the protected route)
+	for i := 0; i < 5; i++ { // Send more requests than the limit (3) to test the block
+		res, _ := q.QuickTest("GET", "/v1/users", nil)
+		fmt.Println(res.BodyStr())
+	}
 
 	// Out put:
-	// Rate Limit Exceeded: map[error:Too many requests message:You have exceeded the request limit.
-	// Please wait 10 seconds and try again. retry_after:10s]
-
+	// {"msg":"list of users"}
+	// {"msg":"list of users"}
+	// {"msg":"list of users"}
+	// Rate Limit Exceeded: map[error:Too many requests message:You have exceeded the request limit. Please wait 10 seconds and try again. retry_after:10s]
+	// {"error":"Too many requests","message":"You have exceeded the request limit. Please wait 10 seconds and try again.","retry_after":"10s"}
 }
