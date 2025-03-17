@@ -2503,7 +2503,7 @@ If an IP makes more than 3 requests within 10 seconds, the response is blocked a
 **Benchmarking** is a performance evaluation technique that measures response time, resource usage, and processing capacity. It helps developers identify bottlenecks and optimize their code. This approach is widely used in various areas, including software testing and hardware evaluations.
 
 
-## 📊 Why Benchmarking?
+### 📊 Why Benchmarking?
 
 | ✅ Benefit   | 🔍 Description |
 |--------------------------------------|-------------|
