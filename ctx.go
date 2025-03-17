@@ -1,3 +1,20 @@
+// Ctx represents the context of an HTTP request and response.
+//
+// It provides access to the request, response, headers, query parameters,
+// body, and other necessary attributes for handling HTTP requests.
+//
+// Fields:
+//   - Response: The HTTP response writer.
+//   - Request: The HTTP request object.
+//   - resStatus: The HTTP response status code.
+//   - MoreRequests: Counter for additional requests in a batch processing scenario.
+//   - bodyByte: The raw body content as a byte slice.
+//   - JsonStr: The raw body content as a string.
+//   - Headers: A map containing all request headers.
+//   - Params: A map containing URL parameters (e.g., /users/:id → id).
+//   - Query: A map containing query parameters (e.g., ?name=John).
+//   - uploadFileSize: The maximum allowed upload file size in bytes.
+//   - App: A reference to the Quick application instance.
 package quick
 
 import (
@@ -29,18 +46,37 @@ type Ctx struct {
 	App            *Quick
 }
 
+// SetStatus sets the HTTP response status code.
+//
+// Parameters:
+//   - status: The HTTP status code to be set.
+//
+// Example:
+//
+//	c.SetStatus(http.StatusOK)
 func (c *Ctx) SetStatus(status int) {
 	c.resStatus = status
 }
 
 // UploadedFile holds details of an uploaded file.
+//
+// Fields:
+//   - File: The uploaded file as a multipart.File.
+//   - Multipart: The file header containing metadata about the uploaded file.
+//   - Info: Additional information about the file, including filename, size, and content type.
 type UploadedFile struct {
 	File      multipart.File
 	Multipart *multipart.FileHeader
 	Info      FileInfo
 }
 
-// FileInfo contains metadata of the uploaded file.
+// FileInfo contains metadata about an uploaded file.
+//
+// Fields:
+//   - Filename: The original name of the uploaded file.
+//   - Size: The file size in bytes.
+//   - ContentType: The MIME type of the file (e.g., "image/png").
+//   - Bytes: The raw file content as a byte slice.
 type FileInfo struct {
 	Filename    string
 	Size        int64
@@ -49,16 +85,28 @@ type FileInfo struct {
 }
 
 // GetHeader retrieves a specific header value from the request.
+//
+// Parameters:
+//   - key: The name of the header to retrieve.
+//
+// Returns:
+//   - string: The value of the specified header, or an empty string if not found.
 func (c *Ctx) GetHeader(key string) string {
 	return c.Request.Header.Get(key)
 }
 
 // GetHeaders returns all request headers.
+//
+// Returns:
+//   - http.Header: A map containing all request headers.
 func (c *Ctx) GetHeaders() http.Header {
 	return c.Request.Header
 }
 
 // RemoteIP retrieves the client's IP address from the request.
+//
+// Returns:
+//   - string: The client's IP address. If extraction fails, it returns the original RemoteAddr.
 func (c *Ctx) RemoteIP() string {
 	ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
 	if err != nil {
@@ -68,34 +116,61 @@ func (c *Ctx) RemoteIP() string {
 }
 
 // Method returns the HTTP method of the request.
+//
+// Returns:
+//   - string: The HTTP method (e.g., "GET", "POST").
 func (c *Ctx) Method() string {
 	return c.Request.Method
 }
 
 // Path returns the URL path of the request.
+//
+// Returns:
+//   - string: The path component of the request URL.
 func (c *Ctx) Path() string {
 	return c.Request.URL.Path
 }
 
 // QueryParam retrieves a query parameter value from the URL.
+//
+// Parameters:
+//   - key: The name of the query parameter to retrieve.
+//
+// Returns:
+//   - string: The value of the specified query parameter, or an empty string if not found.
 func (c *Ctx) QueryParam(key string) string {
 	return c.Request.URL.Query().Get(key)
 }
 
-// GetReqHeadersAll returns all the request headers
-// The result will GetReqHeadersAll() map[string][]string
+// QueryParam retrieves a query parameter value from the URL.
+//
+// Parameters:
+//   - key: The name of the query parameter to retrieve.
+//
+// Returns:
+//   - string: The value of the specified query parameter, or an empty string if not found.
 func (c *Ctx) GetReqHeadersAll() map[string][]string {
 	return c.Headers
 }
 
-// GetHeadersAll returns all HTTP response headers stored in the context
-// The result will GetHeadersAll() map[string][]string
+// GetHeadersAll returns all HTTP response headers stored in the context.
+//
+// Returns:
+//   - map[string][]string: A map containing all response headers with their values.
 func (c *Ctx) GetHeadersAll() map[string][]string {
 	return c.Headers
 }
 
-// Http serveFile send specific file
-// The result will File(filePath string)
+// File serves a specific file to the client.
+//
+// This function trims any trailing "/*" from the provided file path, checks if it is a directory,
+// and serves "index.html" if applicable. If the file exists, it is sent as the response.
+//
+// Parameters:
+//   - filePath: The path to the file to be served.
+//
+// Returns:
+//   - error: Always returns nil, as `http.ServeFile` handles errors internally.
 func (c *Ctx) File(filePath string) error {
 	filePath = strings.TrimSuffix(filePath, "/*")
 
@@ -106,8 +181,16 @@ func (c *Ctx) File(filePath string) error {
 	return nil
 }
 
-// Bind analyzes and links the request body to a Go structure
-// The result will Bind(v interface{}) (err error)
+// Bind parses and binds the request body to a Go struct.
+//
+// This function extracts and maps the request body content to the given struct (v).
+// It supports various content types and ensures proper deserialization.
+//
+// Parameters:
+//   - v: A pointer to the structure where the request body will be bound.
+//
+// Returns:
+//   - error: An error if parsing fails or if the structure is incompatible with the request body.
 func (c *Ctx) Bind(v interface{}) (err error) {
 	return extractParamsBind(c, v)
 }
@@ -139,8 +222,16 @@ func (c *Ctx) BodyParser(v interface{}) error {
 	}
 }
 
-// Param returns the value of the URL parameter corresponding to the given key
-// The result will Param(key string) string
+// Param retrieves the value of a URL parameter corresponding to the given key.
+//
+// This function searches for a parameter in the request's URL path and returns its value.
+// If the parameter is not found, an empty string is returned.
+//
+// Parameters:
+//   - key: The name of the URL parameter to retrieve.
+//
+// Returns:
+//   - string: The value of the requested parameter or an empty string if not found.
 func (c *Ctx) Param(key string) string {
 	val, ok := c.Params[key]
 	if ok {
@@ -149,14 +240,22 @@ func (c *Ctx) Param(key string) string {
 	return ""
 }
 
-// Body returns the request body as a byte slice ([]byte)
-// The result will Body() []byte
+// Body retrieves the request body as a byte slice.
+//
+// This function returns the raw request body as a slice of bytes ([]byte).
+//
+// Returns:
+//   - []byte: The request body in its raw byte form.
 func (c *Ctx) Body() []byte {
 	return c.bodyByte
 }
 
-// BodyString returns the request body as a string
-// The result will BodyString() string
+// BodyString retrieves the request body as a string.
+//
+// This function converts the request body from a byte slice into a string format.
+//
+// Returns:
+//   - string: The request body as a string.
 func (c *Ctx) BodyString() string {
 	return string(c.bodyByte)
 }
@@ -283,58 +382,117 @@ func (c *Ctx) writeResponse(b []byte) error {
 	return err
 }
 
-// Byte writes an array of bytes to the HTTP response, using writeResponse()
-// The result will Byte(b []byte) (err error)
+// Byte writes a byte slice to the HTTP response.
+//
+// This function writes raw bytes to the response body using writeResponse().
+//
+// Parameters:
+//   - b: The byte slice to be written.
+//
+// Returns:
+//   - error: An error if the response write operation fails.
 func (c *Ctx) Byte(b []byte) (err error) {
 	return c.writeResponse(b)
 }
 
-// Send writes a byte array to the HTTP response, using writeResponse()
-// The result will Send(b []byte) (err error)
+// Send writes a byte slice to the HTTP response.
+//
+// This function writes raw bytes to the response body using writeResponse().
+//
+// Parameters:
+//   - b: The byte slice to be written.
+//
+// Returns:
+//   - error: An error if the response write operation fails.
 func (c *Ctx) Send(b []byte) (err error) {
 	return c.writeResponse(b)
 }
 
-// SendString writes a string in the HTTP response, converting it to an array of bytes and using writeResponse()
-// The result will SendString(s string) error
+// SendString writes a string to the HTTP response.
+//
+// This function converts the given string into a byte slice and writes it to the response body.
+//
+// Parameters:
+//   - s: The string to be written.
+//
+// Returns:
+//   - error: An error if the response write operation fails.
 func (c *Ctx) SendString(s string) error {
 	return c.writeResponse([]byte(s))
 }
 
-// String escreve uma string na resposta HTTP, convertendo-a para um array de bytes e utilizando writeResponse()
-// The result will String(s string) error
+// String writes a string to the HTTP response.
+//
+// This function converts the given string into a byte slice and writes it to the response body.
+//
+// Parameters:
+//   - s: The string to be written.
+//
+// Returns:
+//   - error: An error if the response write operation fails.
 func (c *Ctx) String(s string) error {
 	return c.writeResponse([]byte(s))
 }
 
-// SendFile writes a file in the HTTP response as an array of bytes
-// The result will SendFile(file []byte) error
+// SendFile writes a file to the HTTP response as a byte slice.
+//
+// This function writes the provided byte slice (representing a file) to the response body.
+//
+// Parameters:
+//   - file: The file content as a byte slice.
+//
+// Returns:
+//   - error: An error if the response write operation fails.
 func (c *Ctx) SendFile(file []byte) error {
 	_, err := c.Response.Write(file)
 	return err
 }
 
-// Set defines an HTTP header in the response
-// The result will Set(key, value string)
+// Set defines an HTTP header in the response.
+//
+// This function sets the specified HTTP response header to the provided value.
+//
+// Parameters:
+//   - key: The name of the HTTP header to set.
+//   - value: The value to assign to the header.
 func (c *Ctx) Set(key, value string) {
 	c.Response.Header().Set(key, value)
 }
 
-// Append adds a value to the HTTP header specified in the response
-// The result will Append(key, value string)
+// Append adds a value to an HTTP response header.
+//
+// This function appends a new value to an existing HTTP response header.
+//
+// Parameters:
+//   - key: The name of the HTTP header.
+//   - value: The value to append to the header.
 func (c *Ctx) Append(key, value string) {
 	c.Response.Header().Add(key, value)
 }
 
-// Accepts defines the HTTP header "Accept" in the response
-// The result will Accepts(acceptType string) *Ctx
+// Accepts sets the "Accept" header in the HTTP response.
+//
+// This function assigns a specific accept type to the HTTP response header "Accept."
+//
+// Parameters:
+//   - acceptType: The MIME type to set in the "Accept" header.
+//
+// Returns:
+//   - *Ctx: The current context instance for method chaining.
 func (c *Ctx) Accepts(acceptType string) *Ctx {
 	c.Response.Header().Set("Accept", acceptType)
 	return c
 }
 
-// Status defines the HTTP status code of the response
-// The result will Status(status int) *Ctx
+// Status sets the HTTP status code of the response.
+//
+// This function assigns a specific HTTP status code to the response.
+//
+// Parameters:
+//   - status: The HTTP status code to set.
+//
+// Returns:
+//   - *Ctx: The current context instance for method chaining.
 func (c *Ctx) Status(status int) *Ctx {
 	c.resStatus = status
 	return c
@@ -343,6 +501,14 @@ func (c *Ctx) Status(status int) *Ctx {
 //MultipartForm
 
 // FormFileLimit sets the maximum allowed upload size.
+//
+// This function configures the maximum file upload size for multipart form-data requests.
+//
+// Parameters:
+//   - limit: A string representing the maximum file size (e.g., "10MB").
+//
+// Returns:
+//   - error: An error if the limit value is invalid.
 func (c *Ctx) FormFileLimit(limit string) error {
 	size, err := parseSize(limit)
 	if err != nil {
@@ -353,7 +519,15 @@ func (c *Ctx) FormFileLimit(limit string) error {
 }
 
 // FormFile processes an uploaded file and returns its details.
-// The result will FormFile(fieldName string) (*UploadedFile, error)
+//
+// This function retrieves the first uploaded file for the specified form field.
+//
+// Parameters:
+//   - fieldName: The name of the form field containing the uploaded file.
+//
+// Returns:
+//   - *UploadedFile: A struct containing the uploaded file details.
+//   - error: An error if no file is found or the retrieval fails.
 func (c *Ctx) FormFile(fieldName string) (*UploadedFile, error) {
 	files, err := c.FormFiles(fieldName)
 	if err != nil {
@@ -367,21 +541,38 @@ func (c *Ctx) FormFile(fieldName string) (*UploadedFile, error) {
 	return files[0], nil // Return the first file if multiple are uploaded
 }
 
-// fileWrapper, which wraps a bytes.Reader and adds the Close() method,
-// allowing it to be treated as an io.ReadCloser.
-// We ensure that the file can be read multiple times without losing data.
-// fileWrapper supports multipart.File.
+// fileWrapper wraps a bytes.Reader and adds a Close() method.
+//
+// This struct implements io.ReadCloser, allowing it to be used as a multipart.File.
+// It ensures that the file can be read multiple times without losing data.
+//
+// Fields:
+//   - *bytes.Reader: A reader that holds the file content in memory.
 type fileWrapper struct {
 	*bytes.Reader
 }
 
-// There is nothing to close as we are reading from memory
+// Close satisfies the io.ReadCloser interface.
+//
+// This function does nothing since the file is stored in memory
+// and does not require explicit closing.
+//
+// Returns:
+//   - error: Always returns nil.
 func (fw *fileWrapper) Close() error {
 	return nil
 }
 
-// FormFiles processes an uploaded file and returns its details.
-// The result will FormFiles(fieldName string) (*UploadedFile, error)
+// FormFiles retrieves all uploaded files for the given field name.
+//
+// This function extracts all files uploaded in a multipart form request.
+//
+// Parameters:
+//   - fieldName: The name of the form field containing the uploaded files.
+//
+// Returns:
+//   - []*UploadedFile: A slice containing details of the uploaded files.
+//   - error: An error if no files are found or the retrieval fails.
 func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
 	if c.uploadFileSize == 0 {
 		c.uploadFileSize = 1 << 20 // set default 1MB
@@ -459,8 +650,13 @@ func (c *Ctx) FormFiles(fieldName string) ([]*UploadedFile, error) {
 	return uploadedFiles, nil
 }
 
-// MultipartForm allows access to the raw multipart form data (for advanced users)
-// The result will MultipartForm() (*multipart.Form, error)
+// MultipartForm provides access to the raw multipart form data.
+//
+// This function parses and retrieves the multipart form from the request.
+//
+// Returns:
+//   - *multipart.Form: A pointer to the multipart form data.
+//   - error: An error if parsing fails.
 func (c *Ctx) MultipartForm() (*multipart.Form, error) {
 	if err := c.Request.ParseMultipartForm(c.uploadFileSize); err != nil {
 		return nil, err
@@ -468,9 +664,15 @@ func (c *Ctx) MultipartForm() (*multipart.Form, error) {
 	return c.Request.MultipartForm, nil
 }
 
-// FormValue retrieves a form value by key.
-// It automatically calls ParseForm() before accessing the value.
-// The result will FormValue(key string) string
+// FormValue retrieves a form value by its key.
+//
+// This function parses the form data and returns the value of the specified field.
+//
+// Parameters:
+//   - key: The name of the form field.
+//
+// Returns:
+//   - string: The value of the requested field, or an empty string if not found.
 func (c *Ctx) FormValue(key string) string {
 	// Checks if the Content-Type is multipart
 	if c.Request.Header.Get("Content-Type") == "multipart/form-data" {
@@ -481,9 +683,12 @@ func (c *Ctx) FormValue(key string) string {
 	return c.Request.FormValue(key)
 }
 
-// FormValues returns all form values as a map.
-// It automatically calls ParseForm() before accessing the values.
-// The result will FormValues() map[string][]string
+// FormValues retrieves all form values as a map.
+//
+// This function parses the form data and returns all form values.
+//
+// Returns:
+//   - map[string][]string: A map of form field names to their corresponding values.
 func (c *Ctx) FormValues() map[string][]string {
 	// Checks if the Content-Type is multipart
 	if c.Request.Header.Get("Content-Type") == "multipart/form-data" {
