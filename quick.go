@@ -31,38 +31,44 @@ import (
 	"github.com/jeffotoni/quick/internal/concat"
 )
 
-const SO_REUSEPORT = 0x0F // Manual definition for Linux
+// SO_REUSEPORT is a constant manually defined for Linux systems
+const SO_REUSEPORT = 0x0F
 
+// Content-Type constants used for response headers
 const (
 	ContentTypeAppJSON = `application/json`
 	ContentTypeAppXML  = `application/xml`
 	ContentTypeTextXML = `text/xml`
 )
 
+// contextKey is a custom type used for storing values in context
 type contextKey int
 
+// myContextKey is a predefined key used for context storage
 const myContextKey contextKey = 0
 
+// HandleFunc represents a function signature for route handlers in Quick
 type HandleFunc func(*Ctx) error
 
 // Route represents a registered HTTP route in the Quick framework
 type Route struct {
-	//Pattern *regexp.Regexp
-	Group   string
-	Pattern string
-	Path    string
-	Params  string
-	Method  string
-	handler http.HandlerFunc
+	Group   string           // Route group for organization
+	Pattern string           // URL pattern associated with the route
+	Path    string           // The registered path for the route
+	Params  string           // Parameters extracted from the URL
+	Method  string           // HTTP method associated with the route (GET, POST, etc.)
+	handler http.HandlerFunc // Handler function for processing the request
 }
 
+// ctxServeHttp represents the structure for handling HTTP requests
 type ctxServeHttp struct {
-	Path      string
-	Params    string
-	Method    string
-	ParamsMap map[string]string
+	Path      string            // Requested URL path
+	Params    string            // Query parameters from the request
+	Method    string            // HTTP method of the request
+	ParamsMap map[string]string // Parsed parameters mapped as key-value pairs
 }
 
+// Config defines various configuration options for the Quick server
 type Config struct {
 	BodyLimit      int64 // Deprecated: Use MaxBodySize instead
 	MaxBodySize    int64 // Maximum request body size allowed.
@@ -85,32 +91,36 @@ type Config struct {
 	NoBanner bool // Flag to disable the Quick startup Display.
 }
 
+// defaultConfig defines the default values for the Quick server configuration
 var defaultConfig = Config{
-	BodyLimit:      2 * 1024 * 1024, // 2MB - Deprecated: Use MaxBodySize instead
-	MaxBodySize:    2 * 1024 * 1024, // 2MB
-	MaxHeaderBytes: 1 * 1024 * 1024, // 1MB
+	MaxBodySize:    2 * 1024 * 1024, // 2MB max request body size
+	MaxHeaderBytes: 1 * 1024 * 1024, // 1MB max header size
 
-	GOMAXPROCS:      runtime.NumCPU(),
-	GCHeapThreshold: 1 << 30, // 1GB
-	BufferPoolSize:  32768,
+	GOMAXPROCS:      runtime.NumCPU(), // Use all available CPU cores
+	GCHeapThreshold: 1 << 30,          // 1GB memory threshold for GC
+	BufferPoolSize:  32768,            // Buffer pool size
 
-	RouteCapacity: 1000,  // Initial capacity of 1000 routes.
-	MoreRequests:  290,   // default GC value equilibrium value
-	NoBanner:      false, // Display Quick banner by default.
+	RouteCapacity: 1000,  // Default initial route capacity
+	MoreRequests:  290,   // Default GC value
+	NoBanner:      false, // Show Quick banner by default
 }
 
+// Zeroth is a custom type for zero-value constants
 type Zeroth int
 
+// Zero is a predefined constant of type Zeroth
 const (
 	Zero Zeroth = 0
 )
 
+// CorsConfig defines the CORS settings for Quick
 type CorsConfig struct {
-	Enabled  bool              // Enable cors
-	Options  map[string]string // Add custom options
-	AllowAll bool              // Enable all access
+	Enabled  bool              // If true, enables CORS support
+	Options  map[string]string // Custom CORS options
+	AllowAll bool              // If true, allows all origins
 }
 
+// HandlerFunc defines the function signature for request handlers in Quick
 type HandlerFunc func(c *Ctx) error
 
 // Quick is the main structure of the framework, holding routes and configurations.
@@ -218,8 +228,6 @@ func GetDefaultConfig() Config {
 //
 // Example Usage:
 //
-//	// This function is automatically triggered when initializing a new Quick instance
-//	// to set up HTTP routes and handlers.
 //	// Basic usage - Create a default Quick instance
 //	q := quick.New()
 //
@@ -228,7 +236,6 @@ func GetDefaultConfig() Config {
 //		RouteCapacity: 500,
 //	})
 //
-//	// Define routes and start the server
 //	q.Get("/", func(c quick.Ctx) error {
 //		return c.SendString("Hello, Quick!")
 //	})
@@ -266,18 +273,25 @@ func New(c ...Config) *Quick {
 //
 // Example Usage:
 //
-// This function is automatically executed whenever a middleware is added,
-// ensuring that it processes incoming requests before reaching the final handler.
+//	q := quick.New()
+//
+//	q.Use(maxbody.New(50000))
+//
+//	q.Post("/v1/user/maxbody/any", func(c *quick.Ctx) error {
+//	    c.Set("Content-Type", "application/json")//
+//	    return c.Status(200).Send(c.Body())
+//	})
 func (q *Quick) Use(mw any) {
 	switch mwc := mw.(type) {
 	case func(http.Handler) http.Handler:
-		// Automatically detects if it is CORS
+		// Detect if the middleware is related to CORS and apply it separately
 		if isCorsMiddleware(mwc) {
 			q.Cors = true
 			q.CorsSet = mwc
 			return
 		}
 	}
+	// Append middleware to the list of registered middlewares
 	q.mws2 = append(q.mws2, mw)
 }
 
