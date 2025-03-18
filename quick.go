@@ -93,6 +93,7 @@ type Config struct {
 
 // defaultConfig defines the default values for the Quick server configuration
 var defaultConfig = Config{
+	BodyLimit:      2 * 1024 * 1024, // Deprecated: Use MaxBodySize instead
 	MaxBodySize:    2 * 1024 * 1024, // 2MB max request body size
 	MaxHeaderBytes: 1 * 1024 * 1024, // 1MB max header size
 
