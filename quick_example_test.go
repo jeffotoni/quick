@@ -301,3 +301,37 @@ func ExampleQuick_Static() {
 
 	// Out put: Status: 200
 }
+
+// This function is named ExampleQuick_Shutdown()
+//
+//	it with the Examples type.
+func ExampleQuick_Shutdown() {
+	// Create a new Quick instance
+	q := New()
+
+	// Define a GET route with a handler function
+	q.Get("/", func(c *Ctx) error {
+		// Return a simple text response
+		return c.SendString("Server is running!")
+	})
+
+	// Simulate a GET request to the route and capture the response
+	resp, _ := q.QuickTest("GET", "/", nil)
+
+	// Print only the response body to match GoDoc expectations
+	fmt.Println(resp.BodyStr())
+
+	// Simulate server shutdown immediately after starting
+	err := q.Shutdown()
+
+	// Print the shutdown status
+	if err == nil {
+		fmt.Println("Server shut down successfully.")
+	} else {
+		fmt.Println("Error shutting down server:", err)
+	}
+
+	// Out put:
+	// Server is running!
+	// Server shut down gracefully.
+}
