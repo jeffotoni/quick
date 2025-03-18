@@ -220,17 +220,33 @@ func GetDefaultConfig() Config {
 //
 //	// This function is automatically triggered when initializing a new Quick instance
 //	// to set up HTTP routes and handlers.
+//	// Basic usage - Create a default Quick instance
+//	q := quick.New()
+//
+//	// Custom usage - Create a Quick instance with specific configurations
+//	q := quick.New(quick.Config{
+//		RouteCapacity: 500,
+//	})
+//
+//	// Define routes and start the server
+//	q.Get("/", func(c quick.Ctx) error {
+//		return c.SendString("Hello, Quick!")
+//	})
 func New(c ...Config) *Quick {
 	var config Config
+	// Check if a custom configuration is provided
 	if len(c) > 0 {
-		config = c[0]
+		config = c[0] // Use the provided configuration
 	} else {
-		config = defaultConfig
+		config = defaultConfig // Use the default configuration
 	}
+
+	// Ensure a minimum route capacity if not set
 	if config.RouteCapacity == 0 {
 		config.RouteCapacity = 1000
 	}
 
+	// Initialize and return the Quick instance
 	return &Quick{
 		routes:        make([]*Route, 0, config.RouteCapacity),
 		routeCapacity: config.RouteCapacity,
