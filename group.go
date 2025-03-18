@@ -39,29 +39,52 @@ type Group struct {
 	quick       *Quick
 }
 
-// Use adds middlewares to the group.
+// Use adds middleware to the group.
+//
+// This function allows adding middleware to a specific group of routes.
+// Middleware functions are executed **before** the route handlers,
+// allowing for request modifications, logging, authentication, etc.
 //
 // Parameters:
 //   - mw: A middleware function that modifies the HTTP handler.
 //
-// Example:
+// Example Usage:
 //
-//	g.Use(loggingMiddleware)
+//		q := quick.New()
+//
+//	 group := q.Group("/v1")
+//
+//		group.Get("/user", func(c *quick.Ctx) error {
+//			return c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
+//		})
 func (g *Group) Use(mw func(http.Handler) http.Handler) {
 	g.middlewares = append(g.middlewares, mw)
 }
 
 // Group creates a new route group with a shared prefix.
 //
+// This function allows organizing routes under a common prefix, making it easier
+// to manage related endpoints (e.g., `/api`, `/v1`, `/admin`).
+// All routes registered within this group will automatically inherit the specified prefix.
+//
+// Grouping routes is useful for:
+//   - API versioning (`/v1`, `/v2`).
+//   - Organizing authentication-protected routes (`/auth`, `/admin`).
+//   - Applying shared middlewares to a set of routes.
+//
 // Parameters:
 //   - prefix: The common prefix for all routes in this group.
 //
 // Returns:
-//   - *Group: A new Group instance.
+//   - *Group: A new Group instance that can be used to define related routes.
 //
-// Example:
+// Example Usage:
 //
-//	api := q.Group("/api")
+//	group := q.Group("/api")
+//
+//	group.Get("/user", func(c *quick.Ctx) error {
+//		return c.Status(200).SendString("[GET] [GROUP] /v1/user ok!!!")
+//	})
 func (q *Quick) Group(prefix string) *Group {
 	g := &Group{
 		prefix: prefix,
