@@ -1509,7 +1509,13 @@ func (q *Quick) Listen(addr string, handler ...http.Handler) error {
 //
 // Example Usage:
 //
-//	q.Shutdown()
+//		q := quick.New()
+//
+//	    q.Get("/", func(c *quick.Ctx) error {
+//	        return c.SendString("Server is running!")
+//	    })
+//
+//		q.Shutdown()
 //
 // Returns:
 //   - error: Any errors encountered during shutdown.
