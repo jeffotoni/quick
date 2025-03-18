@@ -32,28 +32,25 @@ import (
 	"strings"
 )
 
+// Ctx represents the context of an HTTP request and response.
 type Ctx struct {
-	Response       http.ResponseWriter
-	Request        *http.Request
-	resStatus      int
-	MoreRequests   int
-	bodyByte       []byte
-	JsonStr        string
-	Headers        map[string][]string
-	Params         map[string]string
-	Query          map[string]string
-	uploadFileSize int64 // Upload limit in bytes
-	App            *Quick
+	Response       http.ResponseWriter // HTTP response writer to send responses
+	Request        *http.Request       // Incoming HTTP request object
+	resStatus      int                 // HTTP response status code
+	MoreRequests   int                 // Counter for batch processing requests
+	bodyByte       []byte              // Raw request body as byte slice
+	JsonStr        string              // Request body as a string (for JSON handling)
+	Headers        map[string][]string // Map of request headers
+	Params         map[string]string   // Map of URL parameters
+	Query          map[string]string   // Map of query parameters
+	uploadFileSize int64               // Maximum allowed file upload size (bytes)
+	App            *Quick              // Reference to the Quick application instance
 }
 
 // SetStatus sets the HTTP response status code.
 //
 // Parameters:
 //   - status: The HTTP status code to be set.
-//
-// Example:
-//
-//	c.SetStatus(http.StatusOK)
 func (c *Ctx) SetStatus(status int) {
 	c.resStatus = status
 }
