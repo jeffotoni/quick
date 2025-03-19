@@ -11,10 +11,10 @@ func main() {
 
 	// Apply the logger middleware with custom configuration
 	q.Use(logger.New(logger.Config{
-		Format:  "text",                                                                        // Logging format: "text", "json", or "slog"
-		Pattern: "[${level}] ${ip} ${method} - ${latency} user_id=${user_id} trace=${trace}\n", // Custom log pattern
-		Level:   "DEBUG",                                                                       // Logging level: "DEBUG", "INFO", "WARN", or "ERROR"
-		CustomFields: map[string]string{ // Custom fields to include in logs
+		Format:  "text", // Could it be "text", "json", "slog"
+		Pattern: "[${level}] ${time} ${ip} ${method} ${status} - ${latency} user_id=${user_id} trace=${trace}\n",
+		Level:   "DEBUG", // Could it be "DEBUG", "INFO", "WARN", "ERROR"
+		CustomFields: map[string]string{
 			"user_id": "12345",
 			"trace":   "xyz",
 		},
