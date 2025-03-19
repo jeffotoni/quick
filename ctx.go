@@ -92,7 +92,17 @@ func (c *Ctx) GetHeader(key string) string {
 	return c.Request.Header.Get(key)
 }
 
-// GetHeaders returns all request headers.
+// GetHeaders retrieves all headers from the incoming HTTP request.
+//
+// This method provides direct access to the request headers, allowing
+// middleware and handlers to inspect and modify header values.
+//
+// Example Usage:
+//
+//	q.Get("/", func(c *quick.Ctx) error {
+//	    headers := c.GetHeaders()
+//	    return c.Status(200).JSON(headers)
+//	})
 //
 // Returns:
 //   - http.Header: A map containing all request headers.
@@ -100,10 +110,20 @@ func (c *Ctx) GetHeaders() http.Header {
 	return c.Request.Header
 }
 
-// RemoteIP retrieves the client's IP address from the request.
+// RemoteIP extracts the client's IP address from the request.
+//
+// If the request's `RemoteAddr` contains a port (e.g., "192.168.1.100:54321"),
+// this method extracts only the IP part. If extraction fails, it returns
+// the full `RemoteAddr` as a fallback.
+//
+// Example Usage:
+//
+//	q.Get("/", func(c *quick.Ctx) error {
+//	    return c.Status(200).SendString("Client IP: " + c.RemoteIP())
+//	})
 //
 // Returns:
-//   - string: The client's IP address. If extraction fails, it returns the original RemoteAddr.
+//   - string: The client's IP address. If extraction fails, returns `RemoteAddr`.
 func (c *Ctx) RemoteIP() string {
 	ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
 	if err != nil {
@@ -112,20 +132,63 @@ func (c *Ctx) RemoteIP() string {
 	return ip
 }
 
-// Method returns the HTTP method of the request.
+// Method retrieves the HTTP method of the current request.
+//
+// This method returns the HTTP method as a string, such as "GET", "POST", "PUT",
+// "DELETE", etc. It is useful for middleware and route handlers to differentiate
+// between request types.
+//
+// Example Usage:
+//
+//	q.Use(func(c *quick.Ctx) error {
+//	    if c.Method() == "POST" {
+//	        return c.Status(403).SendString("POST requests are not allowed")
+//	    }
+//	    return c.Next()
+//	})
 //
 // Returns:
-//   - string: The HTTP method (e.g., "GET", "POST").
+//   - string: The HTTP method (e.g., "GET", "POST", "PUT").
 func (c *Ctx) Method() string {
 	return c.Request.Method
 }
 
-// Path returns the URL path of the request.
+// Path retrieves the URL path of the incoming HTTP request.
+//
+// This method extracts the path component from the request URL, which
+// is useful for routing and request handling.
+//
+// Example Usage:
+//
+//	q.Get("/info", func(c *quick.Ctx) error {
+//	    return c.Status(200).SendString("Requested Path: " + c.Path())
+//	})
 //
 // Returns:
-//   - string: The path component of the request URL.
+//   - string: The path component of the request URL (e.g., "/v1/user").
 func (c *Ctx) Path() string {
 	return c.Request.URL.Path
+}
+
+// Host returns the host name from the HTTP request.
+//
+// This method extracts the host from `c.Request.Host`. If the request includes
+// a port number (e.g., "localhost:3000"), it returns the full host including
+// the port.
+//
+// Example Usage:
+//
+//	q.Get("/", func(c *quick.Ctx) error {
+//	    return c.Status(200).SendString("Host: " + c.Host())
+//	})
+//
+// Returns:
+//   - string: The host name from the request.
+func (c *Ctx) Host() string {
+	if c.Request == nil {
+		return ""
+	}
+	return c.Request.Host
 }
 
 // QueryParam retrieves a query parameter value from the URL.
@@ -445,6 +508,10 @@ func (c *Ctx) SendFile(file []byte) error {
 	return err
 }
 
+func (c *Ctx) Del(key string) {
+	c.Response.Header().Del(key)
+}
+
 // Set defines an HTTP header in the response.
 //
 // This function sets the specified HTTP response header to the provided value.
@@ -454,6 +521,17 @@ func (c *Ctx) SendFile(file []byte) error {
 //   - value: The value to assign to the header.
 func (c *Ctx) Set(key, value string) {
 	c.Response.Header().Set(key, value)
+}
+
+// Add defines an HTTP header in the response.
+//
+// This function sets the specified HTTP response header to the provided value.
+//
+// Parameters:
+//   - key: The name of the HTTP header to set.
+//   - value: The value to assign to the header.
+func (c *Ctx) Add(key, value string) {
+	c.Response.Header().Add(key, value)
 }
 
 // Append adds a value to an HTTP response header.
