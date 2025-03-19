@@ -1,3 +1,16 @@
+// Package logger provides a middleware for structured logging in Quick.
+//
+// This middleware captures request details such as HTTP method, path, status, response time,
+// and additional metadata. It supports multiple logging formats, including:
+// - "text": Standard text-based logs with customizable patterns.
+// - "json": Structured JSON logs, ideal for log aggregation systems.
+// - "slog": Uses Go's structured logging library (slog) with enhanced output styling.
+//
+// Features:
+// - Supports different log formats (text, json, slog).
+// - Customizable logging patterns with placeholders.
+// - Captures request latency, status, user agent, and more.
+// - Supports adding custom fields to logs.
 package logger
 
 import (

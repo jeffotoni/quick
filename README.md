@@ -2787,13 +2787,13 @@ func main() {
 Request within limit (Valid request)
 
 ```bash
-curl -X POST http://0.0.0.0:8080/v1/user/maxbody/any \
+$ curl -X POST http://0.0.0.0:8080/v1/user/maxbody/any \
      -H "Content-Type: application/json" \
      --data-binary @<(head -c 48000 </dev/zero | tr '\0' 'A')
 ```
 Request exceeding limit (Should return 413)
 ```bash
-curl -X POST http://0.0.0.0:8080/v1/user/maxbody/any \
+$ curl -X POST http://0.0.0.0:8080/v1/user/maxbody/any \
      -H "Content-Type: application/json" \
      --data-binary @<(head -c 51000 </dev/zero | tr '\0' 'A')
 ```
@@ -2842,12 +2842,12 @@ func main() {
 
 Request within limit (Valid request)
 ```bash
-curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
+$ curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
      -H "Content-Type: application/json" \
      --data-binary @<(head -c 800 </dev/zero | tr '\0' 'A')
 ```
 
-Request exceeding limit (Should return 413)
+$ Request exceeding limit (Should return 413)
 ```bash
 curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
      -H "Content-Type: application/json" \
@@ -2855,16 +2855,163 @@ curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
 ```
 ---
 
-## 📌 Key Differences Between `maxbody.New()` and `MaxBytesReader()`
+### 📌 Key Differences Between `maxbody.New()` and `MaxBytesReader()`
 
 | Implementation      | Description                                      |
 |--------------------|--------------------------------------------------|
 | `maxbody.New()`    | Enforces a **global** request body size limit **before processing** the request. |
 | `MaxBytesReader()` | Adds **extra validation inside the request handler**, restricting only specific endpoints. |
 
-
 ---
 
+## 📜 Logger (Request Logging)
+The `logger` middleware captures HTTP request details, helping with monitoring, debugging, and analytics.
+
+#### 🚀 Key Features:
+- ✅ Logs request method, path, response time, and status code.
+- ✅ Supports multiple formats: text, json, and slog (structured logging).
+- ✅ Helps track API usage and debugging.
+- ✅ Customizable log patterns and additional fields.
+
+#### 📝 Default Logging (Text Format)
+This example applies logging in text format with custom log fields.
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/logger"
+)
+
+func main() {
+
+	q := quick.New()
+
+	// Apply the logger middleware with custom configuration
+	q.Use(logger.New(logger.Config{
+		Format:  "text", // Available formats: "text", "json", "slog"
+		Pattern: "[${level}] ${ip} ${method} - ${latency} user_id=${user_id} trace=${trace}\n",
+		Level:   "DEBUG", // Logging level: "DEBUG", "INFO", "WARN", "ERROR"
+		CustomFields: map[string]string{ // Custom fields included in logs
+			"user_id": "12345",
+			"trace":   "xyz",
+		},
+	}))
+
+	// Define a route that logs request details
+	q.Get("/v1/logger", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		// Return a JSON response
+		return c.Status(200).JSON(quick.M{
+			"msg": "Quick ❤️",
+		})
+	})
+
+	// Start the server
+	q.Listen("0.0.0.0:8080")
+}
+```
+### 📌 cURL 
+
+Text Logging
+```bash
+$ curl -i -XGET http://localhost:8080/v1/logger
+```
+
+---
+### 🛠️ Structured Logging (Slog Format)
+
+This example uses structured logging (slog) for better log parsing.
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/logger"
+)
+
+func main() {
+
+	q := quick.New()
+
+	// Apply logger middleware with structured logging (slog)
+	q.Use(logger.New(logger.Config{
+		Format: "slog",
+		Level:  "DEBUG",
+		Pattern: "[${level}] ${ip} ${method} ${path} - ${latency} " +
+			"user=${user_id} trace=${trace}\n",
+		CustomFields: map[string]string{
+			"user_id": "99999",
+			"trace":   "abcdef",
+		},
+	}))
+
+	// Define a route with structured logging
+	q.Get("/v1/logger/slog", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		return c.Status(200).JSON(quick.M{
+			"msg": "Structured logging with slog",
+		})
+	})
+
+	// Start the server
+	q.Listen("0.0.0.0:8080")
+}
+```
+### 📌 cURL 
+
+ Structured Logging (Slog)
+```bash
+$ curl -i -XGET http://localhost:8080/v1/logger/slog
+```
+---
+### 📦 JSON Logging (Machine-Readable)
+
+Ideal for log aggregation systems, this example logs in JSON format.
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/logger"
+)
+
+func main() {
+
+	q := quick.New()
+
+	// Apply logger with JSON format for structured logging
+	q.Use(logger.New(logger.Config{
+		Format: "json",
+		Level:  "INFO",
+	}))
+
+	// Define a logging route
+	q.Get("/v1/logger/json", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		return c.Status(200).JSON(quick.M{
+			"msg": "JSON logging example",
+		})
+	})
+
+	// Start the server
+	q.Listen("0.0.0.0:8080")
+}
+```
+### 📌 cURL 
+
+JSON Logging
+```bash
+$ curl -i -XGET http://localhost:8080/v1/logger/json
+```
+
+---
 ## 📚| More Examples
 
 This directory contains **practical examples** of the **Quick Framework**, a **fast and lightweight web framework** developed in Go. 
