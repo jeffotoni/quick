@@ -25,7 +25,25 @@ import (
 	"strings"
 )
 
-// QtestReturn represents the response and additional functionality for validation.
+// QtestReturn defines an interface for validating HTTP test responses.
+//
+// This interface provides methods to retrieve response details such as body, status code,
+// headers, and to perform assertions for testing HTTP responses.
+//
+// Example Usage:
+//
+//	resp, err := q.Qtest(quick.QuickTestOptions{
+//	    Method: quick.MethodGet,
+//	    URI:    "/test",
+//	})
+//
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//
+//	if err := resp.AssertStatus(200); err != nil {
+//	    log.Fatal(err)
+//	}
 type QtestReturn interface {
 	Body() []byte
 	BodyStr() string
@@ -36,6 +54,7 @@ type QtestReturn interface {
 	AssertBodyContains(expected any) error
 }
 
+// QTestPlus implements QtestReturn, encapsulating HTTP response details for testing.
 type QTestPlus struct {
 	body       []byte
 	bodyStr    string
@@ -43,34 +62,65 @@ type QTestPlus struct {
 	response   *http.Response
 }
 
-// QuickTestOptions holds all parameters for the enhanced Qtest function.
+// QuickTestOptions defines configuration options for executing an HTTP test request.
+//
+// Example Usage:
+//
+//	opts := quick.QuickTestOptions{
+//	    Method:      quick.MethodPost,
+//	    URI:         "/submit",
+//	    Headers:     map[string]string{"Content-Type": "application/json"},
+//	    QueryParams: map[string]string{"id": "123"},
+//	    Body:        []byte(`{"name":"John Doe"}`),
+//	}
+//
+//	resp, err := q.Qtest(opts)
 type QuickTestOptions struct {
-	Method      string
-	URI         string
-	Headers     map[string]string
-	QueryParams map[string]string
-	Body        []byte
-	Cookies     []*http.Cookie
-	LogDetails  bool // Enables request/response logging
+	Method      string            // HTTP method (e.g., "GET", "POST")
+	URI         string            // Target URI for the request
+	Headers     map[string]string // Request headers
+	QueryParams map[string]string // Query parameters to append to the URI
+	Body        []byte            // Request body payload
+	Cookies     []*http.Cookie    // Cookies to include in the request
+	LogDetails  bool              // Enable logging of request and response details
 }
 
-// Qtest performs HTTP tests with query params, cookies, and validation options.
-// The result will Qtest(opts QuickTestOptions) (QtestReturn, error)
+// Qtest performs an HTTP request using QuickTestOptions and returns a response handler.
+//
+// This method executes a test HTTP request within the Quick framework, allowing validation
+// of the response status, headers, and body.
+//
+// Example Usage:
+//
+//	resp, err := q.Qtest(quick.QuickTestOptions{
+//	    Method: quick.MethodGet,
+//	    URI:    "/test",
+//	})
+//
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//
+//	if err := resp.AssertStatus(200); err != nil {
+//	    log.Fatal(err)
+//	}
+//
+// Returns:
+//   - QtestReturn: An interface for response validation
+//   - error: Error encountered during request execution, if any.
 func (q Quick) Qtest(opts QuickTestOptions) (QtestReturn, error) {
-	// Build query string
 	uriWithParams, err := attachQueryParams(opts.URI, opts.QueryParams)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create HTTP request
 	reqBody := bytes.NewBuffer(opts.Body)
 	req, err := http.NewRequest(opts.Method, uriWithParams, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	// Add headers
+	// Set headers
 	for key, value := range opts.Headers {
 		req.Header.Set(key, value)
 	}
@@ -80,20 +130,17 @@ func (q Quick) Qtest(opts QuickTestOptions) (QtestReturn, error) {
 		req.AddCookie(cookie)
 	}
 
-	// Simulate HTTP request
+	// Simulate HTTP request execution
 	rec := httptest.NewRecorder()
-	q.ServeHTTP(rec, req) // Calls the handler
+	q.ServeHTTP(rec, req)
 
 	// Capture response
 	resp := rec.Result()
-
-	// Read response body safely
 	respBody, err := readResponseBodyV2(resp)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
 
-	// Log details if enabled
 	if opts.LogDetails {
 		logRequestResponseDetails(opts, resp, respBody)
 	}
@@ -106,8 +153,15 @@ func (q Quick) Qtest(opts QuickTestOptions) (QtestReturn, error) {
 	}, nil
 }
 
-// attachQueryParams builds URL with query parameters.
-// The result will attachQueryParams(uri string, params map[string]string) (string, error)
+// attachQueryParams appends query parameters to a URI.
+//
+// Example Usage:
+//
+//	newURI, err := attachQueryParams("/search", map[string]string{"q": "golang"})
+//
+// Returns:
+//   - string: The URI with query parameters appended
+//   - error: Returns an error if the URI parsing fails.
 func attachQueryParams(uri string, params map[string]string) (string, error) {
 	if len(params) == 0 {
 		return uri, nil
@@ -124,8 +178,14 @@ func attachQueryParams(uri string, params map[string]string) (string, error) {
 	return u.String(), nil
 }
 
-// logRequestResponseDetails logs detailed request and response information.
-// The result will logRequestResponseDetails(opts QuickTestOptions, resp *http.Response, body []byte)
+// logRequestResponseDetails logs request and response information for debugging.
+//
+// If LogDetails is enabled in QuickTestOptions, this function prints the details
+// of the HTTP request and response to the console.
+//
+// Example Usage:
+//
+//	logRequestResponseDetails(opts, response, responseBody)
 func logRequestResponseDetails(opts QuickTestOptions, resp *http.Response, body []byte) {
 	fmt.Println("========================================")
 	fmt.Printf("Request: %s %s\n", opts.Method, opts.URI)
@@ -137,8 +197,15 @@ func logRequestResponseDetails(opts QuickTestOptions, resp *http.Response, body 
 	fmt.Println("========================================")
 }
 
-// readResponseBodyV2 reads response body safely and resets it for reuse.
-// The result will readResponseBodyV2(resp *http.Response) ([]byte, error)
+// readResponseBodyV2 safely reads and resets the response body for reuse.
+//
+// Example Usage:
+//
+//	body, err := readResponseBodyV2(response)
+//
+// Returns:
+//   - []byte: The response body as a byte slice
+//   - error: Returns an error if body reading fails.
 func readResponseBodyV2(resp *http.Response) ([]byte, error) {
 	if resp.Body == nil {
 		return nil, nil
@@ -148,36 +215,53 @@ func readResponseBodyV2(resp *http.Response) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Reset response body so it can be read again
-	resp.Body = io.NopCloser(bytes.NewReader(body))
+	resp.Body = io.NopCloser(bytes.NewReader(body)) // Reset response body for reuse
 	return body, nil
 }
 
-// Implement QtestReturn interface methods
-///
-
-// The result will Body() []byte
+// Body returns the response body as a byte slice.
+//
+// Returns:
+//   - []byte: The response body.
 func (qt *QTestPlus) Body() []byte {
 	return qt.body
 }
 
-// The result will BodyStr() string
+// BodyStr returns the response body as a string.
+//
+// Returns:
+//   - string: The response body as a string.
 func (qt *QTestPlus) BodyStr() string {
 	return qt.bodyStr
 }
 
-// The result will StatusCode() int
+// StatusCode retrieves the HTTP status code of the response.
+//
+// Returns:
+//   - int: The HTTP status code.
 func (qt *QTestPlus) StatusCode() int {
 	return qt.statusCode
 }
 
-// The result will Response() *http.Response
+// Response returns the raw *http.Response for advanced validation.
+//
+// Returns:
+//   - *http.Response: The full HTTP response object.
 func (qt *QTestPlus) Response() *http.Response {
 	return qt.response
 }
 
-// AssertStatus checks if the response status matches the expected.
-// The result will AssertStatus(expected int) error
+// AssertStatus verifies if the response status matches the expected status.
+//
+// Example Usage:
+//
+//	err := resp.AssertStatus(200)
+//	if err != nil {
+//	    t.Errorf("Unexpected status: %v", err)
+//	}
+//
+// Returns:
+//   - error: Returns an error if the expected status does not match the actual status.
 func (qt *QTestPlus) AssertStatus(expected int) error {
 	if qt.statusCode != expected {
 		return fmt.Errorf("expected status %d but got %d", expected, qt.statusCode)
@@ -185,8 +269,14 @@ func (qt *QTestPlus) AssertStatus(expected int) error {
 	return nil
 }
 
-// AssertHeader checks if a header has the expected value.
-// The result will AssertHeader(key, expectedValue string) error
+// AssertHeader verifies if the specified header has the expected value.
+//
+// Example Usage:
+//
+//	err := resp.AssertHeader("Content-Type", "application/json")
+//
+// Returns:
+//   - error: Returns an error if the header does not match the expected value.
 func (qt *QTestPlus) AssertHeader(key, expectedValue string) error {
 	value := qt.response.Header.Get(key)
 	if value != expectedValue {
@@ -195,17 +285,21 @@ func (qt *QTestPlus) AssertHeader(key, expectedValue string) error {
 	return nil
 }
 
-// AssertBodyContains checks if the response body contains a specific substring.
-// The result will AssertBodyContains(expected any) error
+// AssertBodyContains checks if the response body contains the expected content.
+//
+// Example Usage:
+//
+//	err := resp.AssertBodyContains("Success")
+//
+// Returns:
+//   - error: Returns an error if the expected content is not found in the body.
 func (qt *QTestPlus) AssertBodyContains(expected any) error {
 	var expectedStr string
 
-	// Convert expected to string (if it's not already a string)
 	switch v := expected.(type) {
 	case string:
 		expectedStr = v
 	default:
-		// Convert to JSON string
 		jsonBytes, err := json.Marshal(v)
 		if err != nil {
 			return fmt.Errorf("failed to convert expected value to JSON: %w", err)
@@ -213,7 +307,6 @@ func (qt *QTestPlus) AssertBodyContains(expected any) error {
 		expectedStr = string(jsonBytes)
 	}
 
-	// Perform assertion
 	if !strings.Contains(qt.bodyStr, expectedStr) {
 		return fmt.Errorf("expected body to contain '%s' but got '%s'", expectedStr, qt.bodyStr)
 	}

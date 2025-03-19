@@ -47,8 +47,73 @@ type contextKey int
 // myContextKey is a predefined key used for context storage
 const myContextKey contextKey = 0
 
-// HandleFunc represents a function signature for route handlers in Quick
+// HandleFunc represents a function signature for route handlers in Quick.
+//
+// This function type is used for defining request handlers within Quick's
+// routing system. It receives a pointer to `Ctx`, which encapsulates
+// request and response data.
+//
+// Example Usage:
+//
+//	q.Get("/example", func(c *quick.Ctx) error {
+//	    return c.Status(quick.StatusOK).SendString("Hello, Quick!")
+//	})
 type HandleFunc func(*Ctx) error
+
+// HandlerFunc defines the function signature for request handlers in Quick.
+//
+// This type provides a way to implement request handlers as standalone
+// functions while still conforming to the `Handler` interface. It allows
+// functions of type `HandlerFunc` to be passed as middleware or endpoint handlers.
+//
+// Example Usage:
+//
+//	func myHandler(c *quick.Ctx) error {
+//	    return c.Status(quick.StatusOK).SendString("HandlerFunc example")
+//	}
+//
+//	q.Use(quick.HandlerFunc(myHandler))
+type HandlerFunc func(c *Ctx) error
+
+// Handler defines an interface that wraps the ServeQuick method.
+//
+// Any type implementing `ServeQuick(*Ctx) error` can be used as a request
+// handler in Quick. This abstraction allows for more flexible middleware
+// and handler implementations, including struct-based handlers.
+//
+// Example Usage:
+//
+//	type MyHandler struct{}
+//
+//	func (h MyHandler) ServeQuick(c *quick.Ctx) error {
+//	    return c.Status(quick.StatusOK).SendString("Struct-based handler")
+//	}
+//
+//	q.Use(MyHandler{})
+type Handler interface {
+	// ServeQuick processes an HTTP request in the Quick framework.
+	//
+	// Parameters:
+	//   - c *Ctx: The request context containing request and response details.
+	//
+	// Returns:
+	//   - error: Any error encountered while processing the request.
+	ServeQuick(*Ctx) error
+}
+
+// ServeQuick allows a HandlerFunc to satisfy the Handler interface.
+//
+// This method enables `HandlerFunc` to be used wherever a `Handler`
+// is required by implementing the `ServeQuick` method.
+//
+// Example Usage:
+//
+//	q.Use(quick.HandlerFunc(func(c *quick.Ctx) error {
+//	    return c.Status(quick.StatusOK).SendString("Hello from HandlerFunc!")
+//	}))
+func (h HandlerFunc) ServeQuick(c *Ctx) error {
+	return h(c)
+}
 
 // Route represents a registered HTTP route in the Quick framework
 type Route struct {
@@ -120,9 +185,6 @@ type CorsConfig struct {
 	Options  map[string]string // Custom CORS options
 	AllowAll bool              // If true, allows all origins
 }
-
-// HandlerFunc defines the function signature for request handlers in Quick
-type HandlerFunc func(c *Ctx) error
 
 // Quick is the main structure of the framework, holding routes and configurations.
 type Quick struct {
@@ -291,9 +353,15 @@ func (q *Quick) Use(mw any) {
 			q.CorsSet = mwc
 			return
 		}
+
+	case func(HandleFunc) HandleFunc:
+		q.mws2 = append(q.mws2, mwc)
+
 	}
+
 	// Append middleware to the list of registered middlewares
 	q.mws2 = append(q.mws2, mw)
+
 }
 
 // isCorsMiddleware checks whether the provided middleware function is a CORS handler.
@@ -1029,29 +1097,135 @@ func extractBodyBytes(r io.ReadCloser) ([]byte, io.ReadCloser) {
 // Example Usage:
 //
 //	// This function is automatically executed internally before processing requests.
+//
+// mwWrapper applies all registered middlewares to an HTTP handler.
+//
+// This function iterates through the middleware stack in reverse order
+// (last added middleware is executed first) and wraps the final HTTP handler
+// with each middleware layer.
+//
+// It supports multiple middleware function signatures:
+//   - `func(http.Handler) http.Handler`: Standard net/http middleware.
+//   - `func(http.ResponseWriter, *http.Request, http.Handler)`: Middleware that
+//     directly manipulates the response and request.
+//   - `func(HandlerFunc) HandlerFunc`: Quick-specific middleware format.
+//   - `func(Handler) Handler`: Another Quick middleware format.
+//
+// Parameters:
+//   - handler http.Handler: The final HTTP handler to be wrapped.
+//
+// Returns:
+//   - http.Handler: The HTTP handler wrapped with all registered middlewares.
 func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 	for i := len(q.mws2) - 1; i >= 0; i-- {
 		switch mw := q.mws2[i].(type) {
 
 		case func(http.Handler) http.Handler:
+			// Apply standard net/http middleware
 			handler = mw(handler)
 
 		case func(http.ResponseWriter, *http.Request, http.Handler):
+			// Apply middleware that takes ResponseWriter, Request, and the next handler
 			originalHandler := handler // Avoid infinite reassignment
 			handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				mw(w, r, originalHandler)
 			})
+
+		case func(HandlerFunc) HandlerFunc:
+			// Convert net/http.Handler to Quick.HandlerFunc
+			quickHandler := convertToQuickHandler(handler)
+			// Apply Quick middleware
+			quickHandler = mw(quickHandler)
+
+			// Convert back to http.Handler
+			handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				c := &Ctx{
+					Response: w,
+					Request:  r,
+					App:      q,
+				}
+				quickHandler(c)
+			})
+
+		case func(Handler) Handler:
+			// Convert net/http.Handler to Quick.Handler
+			qh := convertHttpToQuickHandler(handler)
+			// Apply Quick middleware
+			qh = mw(qh)
+			// Convert back to http.Handler
+			handler = convertQuickToHttpHandler(qh)
 		}
-
-		// we will do it soon
-		// case quick.MiddlewareFunc:
-		// We need to convert http.Handler -> quick.HandlerFunc, and vice versa
-		// This is extra work, since Quick internally routes using http.HandlerFunc
-		// and the chain would become more complex.
-
 	}
 	return handler
 }
+
+// convertHttpToQuickHandler adapts a net/http.Handler to a Quick.Handler.
+//
+// This function allows standard HTTP handlers to be wrapped within Quick's middleware
+// system by transforming them into the Quick.Handler interface.
+//
+// Parameters:
+//   - h http.Handler: The standard HTTP handler to convert.
+//
+// Returns:
+//   - Handler: The Quick-compatible handler.
+func convertHttpToQuickHandler(h http.Handler) Handler {
+	return HandlerFunc(func(c *Ctx) error {
+		h.ServeHTTP(c.Response, c.Request)
+		return nil
+	})
+}
+
+// convertQuickToHttpHandler adapts a Quick.Handler to a net/http.Handler.
+//
+// This function wraps Quick handlers into a standard HTTP handler so they can
+// be used within net/http's ecosystem.
+//
+// Parameters:
+//   - h Handler: The Quick handler to convert.
+//
+// Returns:
+//   - http.Handler: The net/http-compatible handler.
+func convertQuickToHttpHandler(h Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c := &Ctx{Response: w, Request: r}
+		if err := h.ServeQuick(c); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+}
+
+// convertToQuickHandler adapts a net/http.Handler to a Quick.HandlerFunc.
+//
+// This function allows standard HTTP handlers to be used within Quick's middleware
+// system by transforming them into Quick.HandlerFunc.
+//
+// Parameters:
+//   - h http.Handler: The standard HTTP handler to convert.
+//
+// Returns:
+//   - HandlerFunc: The Quick-compatible handler function.
+func convertToQuickHandler(h http.Handler) HandlerFunc {
+	return func(c *Ctx) error {
+		h.ServeHTTP(c.Response, c.Request)
+		return nil
+	}
+}
+
+// func convertToQuickMiddleware(mw func(http.Handler) http.Handler) func(Handler) Handler {
+// 	return func(next Handler) Handler {
+// 		return HandlerFunc(func(c *Ctx) error {
+// 			adaptedHandler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 				c.Response = w
+// 				c.Request = r
+// 				next(c)
+// 			}))
+
+// 			adaptedHandler.ServeHTTP(c.Response, c.Request)
+// 			return nil
+// 		})
+// 	}
+// }
 
 // appendRoute registers a new route in the Quick router and applies middlewares.
 //

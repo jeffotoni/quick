@@ -15,7 +15,20 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-// TestNew checks if the logger middleware correctly processes HTTP requests
+// TestNew validates the Logger middleware by simulating various HTTP requests.
+//
+// This test suite verifies that the middleware correctly processes requests, logs expected
+// information, and does not interfere with the normal request flow. It includes tests for:
+//   - Standard GET requests
+//   - POST requests with body data
+//   - Requests with an invalid RemoteAddr (ensuring middleware resilience)
+//
+// Each test case ensures that:
+//   - The response status is correctly returned.
+//   - The response body remains unchanged after middleware execution.
+//
+// Example Usage:
+//   - Run `go test -v` to execute this test suite.
 func TestNew(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -105,6 +118,13 @@ func TestNew(t *testing.T) {
 
 // TestLoggerMiddleware500 ensures that a request with an invalid remote address
 // does not crash the application and correctly returns an HTTP 500.
+//
+// The middleware should handle incorrect RemoteAddr formats gracefully and log errors
+// instead of failing unexpectedly.
+//
+// Assertions:
+//   - The response must have an HTTP 500 status code.
+//   - The response body should contain "Internal Server Error".
 func TestLoggerMiddleware500(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -139,7 +159,17 @@ func TestLoggerMiddleware500(t *testing.T) {
 	}
 }
 
-// captureOutput captures stdout and returns its output as a string
+// captureOutput captures stdout and returns its output as a string.
+//
+// This function redirects os.Stdout, runs the given function, and then
+// captures anything written to stdout for later assertions.
+//
+// Example Usage:
+//
+//	output := captureOutput(func() {
+//	    log.Println("Test log message")
+//	})
+//	fmt.Println("Captured output:", output)
 func captureOutput(f func()) string {
 	r, w, _ := os.Pipe()
 	old := os.Stdout
@@ -159,7 +189,9 @@ func captureOutput(f func()) string {
 	return <-out
 }
 
-// TestLoggerMiddleware verifies the logger middleware in Quick
+// TestLoggerMiddleware validates the Logger middleware with a text-based format.
+//
+// This test ensures that logs are correctly formatted and contain expected fields.
 func TestLoggerMiddleware(t *testing.T) {
 	q := quick.New()
 
@@ -183,7 +215,6 @@ func TestLoggerMiddleware(t *testing.T) {
 
 	client := ts.Client()
 
-	// Capture logger output
 	output := captureOutput(func() {
 		resp, err := client.Get(ts.URL + "/logger")
 		if err != nil {
@@ -192,13 +223,12 @@ func TestLoggerMiddleware(t *testing.T) {
 		defer resp.Body.Close()
 	})
 
-	// Validate log output
-	if !strings.Contains(output, "INFO") { // <-- Ajuste aqui
+	if !strings.Contains(output, "INFO") {
 		t.Errorf("Expected 'INFO' log message, but got: %s", output)
 	}
 }
 
-// TestLoggerMiddlewareJSON verifies the JSON format in Quick
+// TestLoggerMiddlewareJSON ensures JSON-formatted logging works as expected.
 func TestLoggerMiddlewareJSON(t *testing.T) {
 	q := quick.New()
 
@@ -216,7 +246,6 @@ func TestLoggerMiddlewareJSON(t *testing.T) {
 
 	client := ts.Client()
 
-	// Capture logger output
 	output := captureOutput(func() {
 		resp, err := client.Get(ts.URL + "/logger-json")
 		if err != nil {
@@ -225,7 +254,6 @@ func TestLoggerMiddlewareJSON(t *testing.T) {
 		defer resp.Body.Close()
 	})
 
-	// Validate JSON output
 	var jsonOutput map[string]interface{}
 	err := json.Unmarshal([]byte(output), &jsonOutput)
 	if err != nil {
@@ -237,7 +265,7 @@ func TestLoggerMiddlewareJSON(t *testing.T) {
 	}
 }
 
-// TestLoggerMiddlewareDebug ensures DEBUG messages are logged in Quick
+// TestLoggerMiddlewareDebug ensures DEBUG messages are logged when the log level is set to DEBUG.
 func TestLoggerMiddlewareDebug(t *testing.T) {
 	q := quick.New()
 
@@ -256,7 +284,6 @@ func TestLoggerMiddlewareDebug(t *testing.T) {
 
 	client := ts.Client()
 
-	// Capture logger output
 	output := captureOutput(func() {
 		resp, err := client.Get(ts.URL + "/logger-debug")
 		if err != nil {
@@ -271,7 +298,6 @@ func TestLoggerMiddlewareDebug(t *testing.T) {
 		testLogger.Debug("Test debug message")
 	})
 
-	// Validate DEBUG log output
 	if !strings.Contains(output, "DEBUG") {
 		t.Errorf("Expected '[DEBUG]' log message, but got: %s", output)
 	}

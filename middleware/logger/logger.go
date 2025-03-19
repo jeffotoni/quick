@@ -16,49 +16,61 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-// ANSI color codes
+// ANSI color codes used for log output styling
 const (
-	ColorReset   = "\033[0m"
-	ColorTime    = "\033[36m" // Cyan
-	ColorLevel   = "\033[32m" // Green
-	ColorMethod  = "\033[34m" // Blue
-	ColorPath    = "\033[35m" // Magenta
-	ColorStatus  = "\033[33m" // Yellow
-	ColorLatency = "\033[31m" // Red
+	ColorReset   = "\033[0m"  // Reset color to default
+	ColorTime    = "\033[36m" // Cyan: Timestamp
+	ColorLevel   = "\033[32m" // Green: Log level
+	ColorMethod  = "\033[34m" // Blue: HTTP method
+	ColorPath    = "\033[35m" // Magenta: Request path
+	ColorStatus  = "\033[33m" // Yellow: HTTP status code
+	ColorLatency = "\033[31m" // Red: Request latency
 )
 
-// Config allows customization of the logger middleware
+// Config defines the configuration for the logging middleware.
+//
+// Fields:
+//   - Format: Log output format. Supported values: "text", "slog", "json".
+//   - Pattern: The log format pattern for "text" and "slog" formats.
+//   - Level: The log level threshold. Supported values: "DEBUG", "INFO", "WARN", "ERROR".
+//   - CustomFields: Additional fields that will be included in log output.
 type Config struct {
-	Format       string            // "text", "slog", "json"
-	Pattern      string            // Log format pattern
-	Level        string            // "DEBUG", "INFO", "WARN", "ERROR"
-	CustomFields map[string]string // Custom fields for logging
+	Format       string            // Log format ("text", "slog", "json")
+	Pattern      string            // Logging pattern
+	Level        string            // Log level threshold
+	CustomFields map[string]string // Additional custom fields for logging
 }
 
-// Default configuration
+// ConfigDefault provides the default logging configuration.
+//
+// Default values:
+//   - Format: "text"
+//   - Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency}\n"
 var ConfigDefault = Config{
 	Format:  "text",
 	Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency}\n",
 }
 
+// ColorHandler is a slog.Handler that adds ANSI color to log output.
 type ColorHandler struct {
 	slog.Handler
-	w io.Writer
+	w io.Writer // Output writer for logging
 }
 
+// Handle processes the log record and applies ANSI colors based on log level.
 func (h *ColorHandler) Handle(ctx context.Context, r slog.Record) error {
 	var levelColor string
 	switch r.Level {
 	case slog.LevelDebug:
-		levelColor = "\033[37m" // Gray
+		levelColor = "\033[37m" // Gray for Debug
 	case slog.LevelInfo:
-		levelColor = "\033[32m" // Green
+		levelColor = "\033[32m" // Green for Info
 	case slog.LevelWarn:
-		levelColor = "\033[33m" // Yellow
+		levelColor = "\033[33m" // Yellow for Warning
 	case slog.LevelError:
-		levelColor = "\033[31m" // Red
+		levelColor = "\033[31m" // Red for Error
 	default:
-		levelColor = "\033[0m"
+		levelColor = "\033[0m" // Default reset
 	}
 	reset := "\033[0m"
 
@@ -70,13 +82,18 @@ func (h *ColorHandler) Handle(ctx context.Context, r slog.Record) error {
 	return err
 }
 
-// loggerRespWriter captures response status and size
+// loggerRespWriter is a ResponseWriter wrapper that captures the response status and size.
+//
+// Fields:
+//   - status: HTTP response status code
+//   - size: Total bytes written to response
 type loggerRespWriter struct {
 	http.ResponseWriter
 	status int
 	size   int
 }
 
+// Write captures the response size while writing to the underlying ResponseWriter.
 func (w *loggerRespWriter) Write(b []byte) (int, error) {
 	if w.status == 0 {
 		w.status = http.StatusOK
@@ -86,12 +103,30 @@ func (w *loggerRespWriter) Write(b []byte) (int, error) {
 	return size, err
 }
 
+// WriteHeader captures the HTTP response status.
 func (w *loggerRespWriter) WriteHeader(status int) {
 	w.status = status
 	w.ResponseWriter.WriteHeader(status)
 }
 
-// New creates a logging middleware with a configurable output format
+// New initializes the Logger middleware for request logging.
+//
+// It supports different log formats including text, JSON, and slog.
+//
+// Parameters:
+//   - config (optional): Custom logger configuration.
+//
+// Returns:
+//   - Middleware function that wraps an HTTP handler.
+//
+// Example Usage:
+//
+//	q := quick.New()
+//	q.Use(logger.New(logger.Config{
+//	    Format: "text",
+//	    Level: "INFO",
+//	    Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency}",
+//	}))
 func New(config ...Config) func(http.Handler) http.Handler {
 	cfg := ConfigDefault
 	if len(config) > 0 {
@@ -103,6 +138,7 @@ func New(config ...Config) func(http.Handler) http.Handler {
 		Level: slog.LevelDebug,
 	}
 
+	// Select the appropriate logging format
 	switch cfg.Format {
 	case "slog":
 		logger = slog.New(&ColorHandler{
@@ -112,8 +148,9 @@ func New(config ...Config) func(http.Handler) http.Handler {
 
 	case "json":
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, handlerOpts))
+
 	default:
-		logger = slog.New(slog.NewTextHandler(os.Stdout, handlerOpts)) // Fallback to text
+		logger = slog.New(slog.NewTextHandler(os.Stdout, handlerOpts)) // Default to text format
 	}
 
 	return func(next http.Handler) http.Handler {
@@ -123,12 +160,14 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			}
 			start := time.Now()
 
+			// Extract client IP and port from RemoteAddr
 			ip, port, err := net.SplitHostPort(req.RemoteAddr)
 			if err != nil {
 				ip = req.RemoteAddr
 				port = "?"
 			}
 
+			// Capture request body size
 			var bodySize int64
 			if req.Body != nil {
 				body, err := io.ReadAll(req.Body)
@@ -138,11 +177,13 @@ func New(config ...Config) func(http.Handler) http.Handler {
 				}
 			}
 
+			// Wrap the response writer to capture status and size
 			lrw := &loggerRespWriter{ResponseWriter: w}
 			next.ServeHTTP(lrw, req)
 
 			elapsed := time.Since(start)
 
+			// Log data structure
 			logData := map[string]interface{}{
 				"level":         strings.ToUpper(cfg.Level),
 				"time":          time.Now().Format(time.RFC3339),
@@ -159,7 +200,7 @@ func New(config ...Config) func(http.Handler) http.Handler {
 				"query":         req.URL.RawQuery,
 			}
 
-			// Apply colors only in text mode
+			// Apply ANSI colors to log output in text mode
 			colorLogData := map[string]string{
 				"time":    ColorTime + logData["time"].(string) + ColorReset,
 				"level":   ColorLevel + logData["level"].(string) + ColorReset,
@@ -178,6 +219,7 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			colorLogData["referer"] = fmt.Sprintf("%v", logData["referer"])
 			colorLogData["query"] = fmt.Sprintf("%v", logData["query"])
 
+			// Include custom fields
 			for k, v := range cfg.CustomFields {
 				logData[k] = v
 				colorLogData[k] = v
@@ -186,11 +228,9 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			switch cfg.Format {
 			case "json":
 				jsonData, _ := json.Marshal(logData)
-				//logger.Info(string(jsonData))
-				fmt.Println(string(jsonData))
+				fmt.Println(string(jsonData)) // Log JSON format
 
 			case "slog":
-				// Apply pattern replacements
 				pattern := cfg.Pattern
 				for k, v := range colorLogData {
 					pattern = strings.ReplaceAll(pattern, fmt.Sprintf("${%s}", k), fmt.Sprintf("%v", v))
@@ -212,7 +252,7 @@ func New(config ...Config) func(http.Handler) http.Handler {
 				for k, v := range colorLogData {
 					pattern = strings.ReplaceAll(pattern, fmt.Sprintf("${%s}", k), fmt.Sprintf("%v", v))
 				}
-				fmt.Println(pattern)
+				fmt.Println(pattern) // Log text format
 			}
 		})
 	}
