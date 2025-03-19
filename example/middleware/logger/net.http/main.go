@@ -7,14 +7,11 @@ import (
 )
 
 func main() {
-	// Default: Logger in text mode (colored output for terminal)
 	loggerMiddleware := logger.New()
-
-	// Logger in JSON mode (structured logs for production)
 	jsonLoggerMiddleware := logger.New(logger.Config{Format: "json"})
 
-	// Using middleware in an HTTP server
 	mux := http.NewServeMux()
+
 	mux.Handle("/v1/user", loggerMiddleware(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Hello, Quick 💕!"))
