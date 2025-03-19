@@ -38,4 +38,4 @@ func main() {
 	log.Fatal(q.Listen("0.0.0.0:8080"))
 }
 
-//$ curl -X GET http://localhost:8080/v1/compress -H "Accept-Encoding: gzip" --compressed -i
+// $ curl -X GET http://localhost:8080/v1/compress -H "Accept-Encoding: gzip" --compressed -i
