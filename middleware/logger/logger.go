@@ -141,14 +141,24 @@ func (w *loggerRespWriter) WriteHeader(status int) {
 //	    Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency}",
 //	}))
 func New(config ...Config) func(http.Handler) http.Handler {
-	cfg := ConfigDefault
+	cfg := ConfigDefault // set default value logger
 	if len(config) > 0 {
 		cfg = config[0]
 	}
 
-	var logger *slog.Logger
+	var logger *slog.Logger // initialize logger
 	var handlerOpts = &slog.HandlerOptions{
 		Level: slog.LevelDebug,
+	}
+
+	// set default value
+	if len(cfg.Pattern) == 0 {
+		cfg.Pattern = ConfigDefault.Pattern
+	}
+
+	// set default value
+	if len(cfg.Level) == 0 {
+		cfg.Level = "INFO"
 	}
 
 	// Select the appropriate logging format
@@ -241,7 +251,7 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			switch cfg.Format {
 			case "json":
 				jsonData, _ := json.Marshal(logData)
-				fmt.Println(string(jsonData)) // Log JSON format
+				fmt.Printf("%s\n", string(jsonData)) // Log JSON format
 
 			case "slog":
 				pattern := cfg.Pattern
@@ -265,7 +275,7 @@ func New(config ...Config) func(http.Handler) http.Handler {
 				for k, v := range colorLogData {
 					pattern = strings.ReplaceAll(pattern, fmt.Sprintf("${%s}", k), fmt.Sprintf("%v", v))
 				}
-				fmt.Println(pattern) // Log text format
+				fmt.Printf("%s", pattern) // Log text format
 			}
 		})
 	}
