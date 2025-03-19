@@ -7,7 +7,6 @@ import (
 	"github.com/jeffotoni/quick/middleware/maxbody"
 )
 
-// curl -i -XPOST http://0.0.0.0:8080/v1/user/maxbody -d '{"data":"quick is awesome!"}'
 func main() {
 	q := quick.New()
 
@@ -22,3 +21,5 @@ func main() {
 
 	log.Fatal(q.Listen("0.0.0.0:8080"))
 }
+
+// $ curl -i -XPOST http://0.0.0.0:8080/v1/user/maxbody -d '{"data":"quick is awesome!"}'

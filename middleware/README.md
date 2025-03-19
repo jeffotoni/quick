@@ -12,7 +12,7 @@ Middlewares are functions that intercept HTTP requests before they reach the fin
 
 ---
 
-### 📜 Middlewares Available
+## 📜 Middlewares Available
 
 🔐 BasicAuth
 Provides HTTP Basic Authentication, requiring a username and password to access protected routes.
@@ -23,18 +23,18 @@ Provides HTTP Basic Authentication, requiring a username and password to access 
 
 ---
 
-### 📦 Compress
+## 📦 Compress
 The Compress Middleware in Quick provides automatic GZIP compression for HTTP responses, reducing response sizes and improving performance.
 
-#### 📌 Features:
+### 📌 Features:
 
 - ✅ Automatic compression detection (Accept-Encoding: gzip)
 - ✅ Transparent response compression without modifying business logic
 - ✅ Bandwidth efficiency improvement
-#### 🚀 Middleware Implementations in Quick
+### 🚀 Middleware Implementations in Quick
 The Quick framework supports multiple styles of middleware implementation for GZIP compression:
 
-#### 1️⃣ Native Quick Implementation (quick.Handler)
+### 1️⃣ Native Quick Implementation (quick.Handler)
 This is the standard and recommended approach in Quick. It follows the framework’s native middleware pattern using quick.Handler.
 ```go
 func Gzip() func(next quick.Handler) quick.Handler {
@@ -67,10 +67,10 @@ func Gzip() func(next quick.Handler) quick.Handler {
 	}
 }
 ```
-📌 ✅ This is the default implementation used in Quick.
+#### 📌 ✅ This is the default implementation used in Quick.
 
 ---
-#### 2️⃣ Alternative Syntax: quick.HandlerFunc
+### 2️⃣ Alternative Syntax: quick.HandlerFunc
 Quick also supports quick.HandlerFunc, which allows a function-based syntax instead of using the Handler interface.
 
 ```go
@@ -106,7 +106,7 @@ func Gzip() func(next quick.HandlerFunc) quick.HandlerFunc {
 #### 📌 ✅ This is functionally equivalent to the default version but follows a different syntax.
 ---
 
-#### 3️⃣ Pure net/http Middleware Support
+### 3️⃣ Pure net/http Middleware Support
 Quick also supports native `net/http` middleware, making it compatible with standard Go HTTP handlers.
 
 ```go
@@ -145,11 +145,12 @@ func Gzip() func(h http.Handler) http.Handler {
 	}
 }
 ```
-📌 ✅ Useful when integrating Quick with net/http-based applications.
+#### 📌 ✅ Useful when integrating Quick with net/http-based applications.
+---
 
 ### Middleware Implementation
 
-#### 🔹 Using Quick Default Middleware (quick.Handler)
+### 🔹 Using Quick Default Middleware (quick.Handler)
 ```go
 package main
 
@@ -186,7 +187,8 @@ func main() {
 }
 
 ```
-#### 🔹 Using Quick HandlerFunc Middleware (quick.HandlerFunc)
+---
+### 🔹 Using Quick HandlerFunc Middleware (quick.HandlerFunc)
 ```go
 package main
 
@@ -220,7 +222,8 @@ func main() {
 	log.Fatal(q.Listen(":8080"))
 }
 ```
-#### 🔹 Using Pure net/http Middleware
+---
+### 🔹 Using Pure net/http Middleware
 ```go
 package main
 
@@ -246,7 +249,7 @@ func main() {
 ```
 ---
 
-#### 🌐 CORS (Cross-Origin Resource Sharing)
+## 🌐 CORS (Cross-Origin Resource Sharing)
 Controls how your API can be accessed from different domains.
 
 - Restricts which domains, methods, and headers are allowed.
@@ -255,7 +258,7 @@ Controls how your API can be accessed from different domains.
 
 ---
 
-#### 📜 Logger (Request Logging)
+## 📜 Logger (Request Logging)
 Logs incoming HTTP requests, helping in monitoring and debugging.
 
 - Logs request method, path, response time, and status code.
@@ -264,16 +267,98 @@ Logs incoming HTTP requests, helping in monitoring and debugging.
 
 ---
 
-#### 📏 Maxbody (Request Size Limiter)
+## 📏 Maxbody (Request Size Limiter)
 Restricts the maximum request body size to prevent clients from sending excessively large payloads.
 
-- Avoids excessive memory usage.
-- Can prevent attacks such as DoS (Denial-of-Service).
-- Returns a 413 Payload Too Large error when exceeded.
+- ✅ Avoids excessive memory usage.
+- ✅ Can prevent attacks such as DoS (Denial-of-Service).
+- ✅ Returns a 413 Payload Too Large error when exceeded.
+
+### 🔹 Simple Example (Using maxbody.New)
+This example limits the request body size using maxbody.New(), which applies the restriction globally.
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/maxbody"
+)
+
+func main() {
+	q := quick.New()
+
+	// Middleware to enforce a 50KB request body limit
+	q.Use(maxbody.New(50000)) // 50KB
+
+	// Define a route that accepts a request body
+	q.Post("/v1/user/maxbody/any", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		log.Printf("Body received: %s", c.BodyString())
+		return c.Status(200).Send(c.Body())
+	})
+
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+---
+### 🔹 Advanced Example (Using MaxBytesReader)
+
+This example applies MaxBytesReader for additional security by enforcing the body size limit at the request handling level.
+
+```go
+package main
+
+import (
+	"io"
+	"log"
+	"net/http"
+
+	"github.com/jeffotoni/quick"
+)
+
+const maxBodySize = 1024 // 1KB
+
+func main() {
+	q := quick.New()
+
+	// Define a route that applies MaxBytesReader for additional protection
+	q.Post("/v1/user/maxbody/max", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		// Limit request body size to 1KB
+		c.Request.Body = quick.MaxBytesReader(c.Response, c.Request.Body, maxBodySize)
+
+		// Read the request body safely
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Printf("Error reading request body: %v", err)
+			return c.Status(http.StatusRequestEntityTooLarge).String("Request body too large")
+		}
+		return c.Status(http.StatusOK).Send(body)
+	})
+
+	log.Println("Server running at http://0.0.0.0:8080")
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+
+```
+---
+
+### 📌 Key Differences
+
+| Implementation      | Description                                      |
+|--------------------|--------------------------------------------------|
+| `maxbody.New()`    | Enforces a global request body size limit.       |
+| `MaxBytesReader()` | Adds an extra validation layer inside the request handler. |
+
 
 ---
 
-#### 🔄 MsgUUID
+## 🔄 MsgUUID
 Assigns a UUID (Universally Unique Identifier) to each request.
 
 - Allows easy tracking of requests in logs.
@@ -282,7 +367,7 @@ Assigns a UUID (Universally Unique Identifier) to each request.
 
 ---
 
-### 🚧 **Coming soon!**
+## 🚧 **Coming soon!**
 - Etag
 - Pprof
 - Proxy

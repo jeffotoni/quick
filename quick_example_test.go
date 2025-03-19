@@ -6,6 +6,9 @@ package quick
 
 import (
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 
 	"github.com/jeffotoni/quick/middleware/cors"
 )
@@ -334,4 +337,53 @@ func ExampleQuick_Shutdown() {
 	// Out put:
 	// Server is running!
 	// Server shut down gracefully.
+}
+
+// This function is named ExampleMaxBytesReader()
+//
+//	it with the Examples type.
+func ExampleMaxBytesReader() {
+	// Start Quick framework instance
+	q := New()
+
+	// Set max request body size to 1KB (1024 bytes)
+	const maxBodySize = 1024
+
+	// Simulate a request using Quick's test utility with a payload exceeding 1KB
+	oversizedBody := make([]byte, 2048) // 2KB of data to exceed the limit
+	for i := range oversizedBody {
+		oversizedBody[i] = 'A'
+	}
+
+	// Define a route with MaxBytesReader for extra validation
+	q.Post("/v1/user/maxbody/max", func(c *Ctx) error {
+		c.Set("Content-Type", "application/json")
+		// Apply MaxBytesReader for additional size enforcement
+		c.Request.Body = MaxBytesReader(c.Response, c.Request.Body, maxBodySize)
+
+		// Read request body
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Printf("Error reading request body: %v", err)
+			return c.Status(http.StatusRequestEntityTooLarge).String("Request body too large")
+		}
+
+		return c.Status(http.StatusOK).Send(body)
+	})
+
+	// Simulate a request using Quick's test utility
+	res, _ := q.Qtest(QuickTestOptions{
+		Method:  MethodPost,
+		URI:     "/v1/user/maxbody/max",
+		Headers: map[string]string{"Content-Type": "application/json"},
+		Body:    oversizedBody, // Convert string to []byte
+	})
+
+	// Print response status and body for verification
+	fmt.Println(res.StatusCode()) // Expecting: 413 (Payload too large)
+	fmt.Println(res.BodyStr())    // Expecting: "Request body too large"
+
+	// Out put:
+	// 413
+	// Request body too large
 }
