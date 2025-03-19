@@ -1,98 +1,104 @@
 package maxbody
 
 import (
-	"fmt"
+	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
+
+	"github.com/jeffotoni/quick"
 )
 
-func int2prt(x int64) *int64 {
-	return &x
-}
+const defaultMaxBytesTest int64 = 10 // 10 bytes
 
-// go test -v -failfast -count=1 -run ^TestNew$
-// go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestNew$; go tool cover -html=coverage.out
-func TestNew(t *testing.T) {
+// TestBodySizeMiddleware validates the middleware's ability to enforce request body size limits.
+//
+// This test suite evaluates various scenarios, including requests:
+// 1. Within the allowed size limit.
+// 2. Exceeding the allowed size limit.
+// 3. Exactly at the allowed size limit.
+// 4. With an empty body.
+//
+// Each test ensures the middleware correctly handles HTTP request bodies and returns the expected status codes.
+func TestBodySizeMiddleware(t *testing.T) {
+	q := quick.New()
+	q.Use(New(defaultMaxBytesTest))
 
-	tests := []struct {
-		name         string
-		testMaxBody  testMaxBody
-		maxBodyValue *int64
-		wantErr      bool
-	}{
-		{
-			name:         "success_default",
-			testMaxBody:  testMaxBodySuccess,
-			maxBodyValue: nil,
-			wantErr:      false,
-		},
-		{
-			name:         "success_custom",
-			testMaxBody:  testMaxBodySuccess,
-			maxBodyValue: int2prt(100000000),
-			wantErr:      false,
-		},
-		{
-			name:         "error_403",
-			testMaxBody:  testMaxBodyFail,
-			maxBodyValue: int2prt(defaultMaxBytes),
-			wantErr:      true,
-		},
-	}
+	// Define a test endpoint to validate request handling
+	q.Post("/v1/upload", func(c *quick.Ctx) error {
+		// Ensure the request body is fully read or discarded to trigger middleware validation
+		_, _ = io.Copy(io.Discard, c.Request.Body)
 
-	for _, ti := range tests {
-		t.Run(ti.name, func(tt *testing.T) {
-			t.Logf("==== TEST %s ====", ti.name)
-			var h func(http.Handler) http.Handler
-			if ti.maxBodyValue != nil {
-				h = New(*ti.maxBodyValue)
-			} else {
-				h = New()
-			}
-
-			a := h(ti.testMaxBody.HandlerFunc)
-			rec := httptest.NewRecorder()
-			a.ServeHTTP(rec, ti.testMaxBody.Request)
-			resp := rec.Result()
-
-			if resp.StatusCode != 200 && (!ti.wantErr) {
-				tt.Errorf("length is not right")
-			}
-		})
-	}
-}
-
-// go test -bench=. -benchtime=1s -benchmem
-func BenchmarkNew(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		New()
-	}
-}
-
-func BenchmarkWriteFprint(b *testing.B) {
-	w := httptest.NewRecorder()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		w.WriteHeader(http.StatusRequestEntityTooLarge)
-		fmt.Fprint(w, "Request body too large")
-	}
-}
-
-func BenchmarkHttpError(b *testing.B) {
-	w := httptest.NewRecorder()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
-	}
-}
-
-func TestMain(m *testing.M) {
-	http.DefaultServeMux = http.NewServeMux()
-	http.DefaultServeMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusRequestEntityTooLarge)
-		fmt.Fprint(w, "Request body too large")
+		c.Set("Content-Type", "text/plain")
+		return c.Status(http.StatusOK).String("Upload successful")
 	})
-	httptest.NewServer(http.DefaultServeMux)
-	m.Run()
+
+	// Scenario 1: Request within the allowed size limit
+	// Expected: HTTP 200 OK
+	t.Run("Allow request within limit", func(t *testing.T) {
+		resp, err := q.Qtest(quick.QuickTestOptions{
+			Method:     quick.MethodPost,
+			URI:        "/v1/upload",
+			Body:       []byte("123456"), // 6 bytes, within the 10-byte limit
+			LogDetails: true,
+		})
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if err := resp.AssertStatus(http.StatusOK); err != nil {
+			t.Error(err)
+		}
+	})
+
+	// Scenario 2: Request exceeding the allowed size limit
+	// Expected: HTTP 413 Request Entity Too Large
+	t.Run("Reject request exceeding limit", func(t *testing.T) {
+		resp, err := q.Qtest(quick.QuickTestOptions{
+			Method: quick.MethodPost,
+			URI:    "/v1/upload",
+			Body:   []byte("123456789023"), // 12 bytes, exceeding the 10-byte limit
+		})
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if err := resp.AssertStatus(http.StatusRequestEntityTooLarge); err != nil {
+			t.Error(err)
+		}
+	})
+
+	// Scenario 3: Request exactly at the allowed size limit
+	// Expected: HTTP 200 OK
+	t.Run("Allow request at exact limit", func(t *testing.T) {
+		resp, err := q.Qtest(quick.QuickTestOptions{
+			Method:     quick.MethodPost,
+			URI:        "/v1/upload",
+			Body:       []byte("1234567890"), // Exactly 10 bytes, matching the limit
+			LogDetails: true,
+		})
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		// Expecting HTTP 200 OK since the request body is exactly at the limit
+		if err := resp.AssertStatus(http.StatusOK); err != nil {
+			t.Error(err)
+		}
+	})
+
+	// Scenario 4: Request with no body
+	// Expected: HTTP 200 OK (Empty body should be accepted)
+	t.Run("Allow request with no body", func(t *testing.T) {
+		resp, err := q.Qtest(quick.QuickTestOptions{
+			Method: quick.MethodPost,
+			URI:    "/v1/upload",
+		})
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if err := resp.AssertStatus(http.StatusOK); err != nil {
+			t.Error(err)
+		}
+	})
 }
