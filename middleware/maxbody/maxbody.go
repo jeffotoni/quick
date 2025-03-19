@@ -1,8 +1,6 @@
 package maxbody
 
 import (
-	"fmt"
-
 	"github.com/jeffotoni/quick"
 )
 
@@ -25,11 +23,8 @@ func New(maxBytes ...int64) func(next quick.Handler) quick.Handler {
 
 	return func(next quick.Handler) quick.Handler {
 		return quick.HandlerFunc(func(c *quick.Ctx) error {
+
 			// Check Content-Length before reading the body
-
-			fmt.Println("maxSize:::", maxSize)
-			fmt.Println("ContentLength:::", c.Request.ContentLength)
-
 			if c.Request.ContentLength >= 0 && c.Request.ContentLength > maxSize {
 				return c.Status(quick.StatusRequestEntityTooLarge).String("Request body too large")
 			}
