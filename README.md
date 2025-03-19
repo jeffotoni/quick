@@ -2734,6 +2734,133 @@ $ curl -X GET http://localhost:8080/v1/compress -H
    }
 }
 ```
+---
+
+## 📏 Maxbody (Request Size Limiter)
+
+The maxbody middleware restricts the maximum request body size to prevent clients from sending excessively large payloads. This helps optimize memory usage, enhance security, and avoid unnecessary processing of oversized requests.
+
+### 🔹 Why Use maxbody?
+- ✅ Prevents excessive memory usage and improves performance.
+- ✅ Mitigates DoS (Denial-of-Service) attacks by limiting large payloads.
+- ✅ Automatically returns 413 Payload Too Large when the limit is exceeded.
+
+---
+### 🚀 Ways to Use maxbody
+There are two primary ways to enforce request body size limits in Quick:
+
+**maxbody.New()** – Enforces a global request body size limit across all middleware layers.
+
+**MaxBytesReader()** – Adds an extra layer of validation inside a specific request handler
+
+### 🔹 Using maxbody.New()
+This example applies a global request body limit of 50KB for all incoming requests.
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/maxbody"
+)
+
+func main() {
+	q := quick.New()
+
+	// Middleware to enforce a 50KB request body limit globally
+	q.Use(maxbody.New(50 * 1024)) // 50KB
+
+	// Define a route that accepts a request body
+	q.Post("/v1/user/maxbody/any", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		log.Printf("Body received: %s", c.BodyString())
+		return c.Status(200).Send(c.Body())
+	})
+
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+### 📌 cURL
+Request within limit (Valid request)
+
+```bash
+curl -X POST http://0.0.0.0:8080/v1/user/maxbody/any \
+     -H "Content-Type: application/json" \
+     --data-binary @<(head -c 48000 </dev/zero | tr '\0' 'A')
+```
+Request exceeding limit (Should return 413)
+```bash
+curl -X POST http://0.0.0.0:8080/v1/user/maxbody/any \
+     -H "Content-Type: application/json" \
+     --data-binary @<(head -c 51000 </dev/zero | tr '\0' 'A')
+```
+---
+### 🔹 Using MaxBytesReader()
+
+This example adds extra protection by applying MaxBytesReader() inside the request handler, ensuring an enforced limit at the application layer.
+
+```go
+package main
+
+import (
+	"io"
+	"log"
+	"net/http"
+
+	"github.com/jeffotoni/quick"
+)
+
+const maxBodySize = 1024 // 1KB
+
+func main() {
+	q := quick.New()
+
+	// Define a route with additional MaxBytesReader validation
+	q.Post("/v1/user/maxbody/max", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		// Limit request body size to 1KB
+		c.Request.Body = quick.MaxBytesReader(c.Response, c.Request.Body, maxBodySize)
+
+		// Securely read the request body
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Printf("Error reading request body: %v", err)
+			return c.Status(http.StatusRequestEntityTooLarge).String("Request body too large")
+		}
+		return c.Status(http.StatusOK).Send(body)
+	})
+
+	log.Println("Server running at http://0.0.0.0:8080")
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+### 📌 cURL 
+
+Request within limit (Valid request)
+```bash
+curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
+     -H "Content-Type: application/json" \
+     --data-binary @<(head -c 800 </dev/zero | tr '\0' 'A')
+```
+
+Request exceeding limit (Should return 413)
+```bash
+curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
+     -H "Content-Type: application/json" \
+     --data-binary @<(head -c 2048 </dev/zero | tr '\0' 'A')
+```
+---
+
+## 📌 Key Differences Between `maxbody.New()` and `MaxBytesReader()`
+
+| Implementation      | Description                                      |
+|--------------------|--------------------------------------------------|
+| `maxbody.New()`    | Enforces a **global** request body size limit **before processing** the request. |
+| `MaxBytesReader()` | Adds **extra validation inside the request handler**, restricting only specific endpoints. |
 
 
 ---
