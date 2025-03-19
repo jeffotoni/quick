@@ -12,7 +12,7 @@ func main() {
 
 	q.Use(logger.New(logger.Config{
 		Format:  "text", // Could it be "text", "json", "slog"
-		Pattern: "[${level}] ${ip} ${method} - ${latency} user_id=${user_id} trace=${trace}\n",
+		Pattern: "[${level}] ${time} ${ip} ${method} ${status} - ${latency} user_id=${user_id} trace=${trace}\n",
 		Level:   "DEBUG", // Could it be "DEBUG", "INFO", "WARN", "ERROR"
 		CustomFields: map[string]string{
 			"user_id": "12345",
