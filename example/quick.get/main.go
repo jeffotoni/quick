@@ -15,15 +15,23 @@ func main() {
 
 	// Route to greet a user by name (dynamic route parameter)
 	q.Get("/v1/user/:name", func(c *quick.Ctx) error {
-		name := c.Param("name")                              // Retrieve the 'name' parameter from the URL
-		c.Set("Content-Type", "text/plain")                  // Set response content type as plain text
-		return c.Status(200).SendString("Olá " + name + "!") // Return greeting message
+		name := c.Param("name")                             // Retrieve the 'name' parameter from the URL
+		c.Set("Content-Type", "text/plain")                 // Set response content type as plain text
+		return c.Status(200).SendString("Hi " + name + "!") // Return greeting message
 	})
 
 	// Simple route returning a static message
 	q.Get("/v2/user", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")            // Set response content type as JSON
-		return c.Status(200).SendString("Opa, funcionando!") // Return confirmation message
+		c.Set("Content-Type", "application/json")      // Set response content type as JSON
+		return c.Status(200).SendString("It's Works!") // Return confirmation message
+	})
+
+	// Simple route returning a static message
+	q.Get("/v2/user", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json") // Set response content type as JSON
+		return c.Status(200).JSON(quick.M{
+			"msg": "It's Works!",
+		})
 	})
 
 	// Route to return an ID from the URL

@@ -47,6 +47,9 @@ type contextKey int
 // myContextKey is a predefined key used for context storage
 const myContextKey contextKey = 0
 
+// Alias M => is a shortcut for map[string]interface{}, allowing `quick.M{}`
+type M map[string]interface{}
+
 // HandleFunc represents a function signature for route handlers in Quick.
 //
 // This function type is used for defining request handlers within Quick's
