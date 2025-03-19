@@ -2631,6 +2631,112 @@ $ go run main.go
 $ k6 run benchmark.js
 ```
 ---
+## 📦 Compression Middleware (compress)
+The compress middleware in Quick enables automatic GZIP compression for HTTP responses, reducing the size of data transferred over the network. This improves performance and bandwidth efficiency, especially for text-based content like JSON, HTML, and CSS.
+
+### 🚀 Benefits of Compression
+- ✅ Reduced response size – improves loading speed.
+- ✅ Bandwidth savings – ideal for mobile or limited connections.
+- ✅ Seamless integration – works automatically for compatible clients.
+- ✅ Better user experience – faster response times.
+
+🔹 Ways to Use
+Quick provides three different ways to enable GZIP compression:
+
+### 🌟 Available Usage Methods
+
+Quick provides three different ways to enable GZIP compression:
+
+- Using quick.Handler (Default) – Follows Quick’s native syntax.
+- Using quick.HandlerFunc – Alternative method for direct function-based handlers.
+- Using net/http standard implementation – For applications using Go’s native HTTP package.
+
+#### For more details on using compress, check the documentation:
+
+<h4 align="left"> 
+	<p> 
+		<a href="middleware/README.md">
+			<strong>📖 Compress Documentation</strong>
+		</a>
+	</p> 
+</h4>
+
+### 🚀 Usage Example (Default)
+Here is a practical example of enabling the GZIP middleware in Quick using the default approach (quick.Handler)
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/compress"
+)
+
+func main() {
+	q := quick.New()
+
+	// Enable Gzip middleware
+	q.Use(compress.Gzip())
+
+	// Define a route that returns a compressed JSON response
+	q.Get("/v1/compress", func(c *quick.Ctx) error {
+		// Setting response headers
+		c.Set("Content-Type", "application/json")
+		// Enabling Gzip compression
+		c.Set("Accept-Encoding", "gzip") 
+		// Defining the response structure
+		type response struct {
+			Msg     string              `json:"msg"`
+			Headers map[string][]string `json:"headers"`
+		}
+
+		// Returning a JSON response with headers
+		return c.Status(200).JSON(&response{
+			Msg:     "Quick ❤️",
+			Headers: c.Headers,
+		})
+	})
+
+	// Start the HTTP server on port 8080
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+### 📌 cURL
+```bash
+$ curl -X GET http://localhost:8080/v1/compress -H 
+"Accept-Encoding: gzip" --compressed -i
+```
+### 📌 Response
+```bash
+{
+   "msg":"Quick ❤️",
+   "headers":{
+      "Accept":[
+         "*/*"
+      ],
+      "Accept-Encoding":[
+         "gzip"
+      ],
+      "Cache-Control":[
+         "no-cache"
+      ],
+      "Connection":[
+         "keep-alive"
+      ],
+      "Postman-Token":[
+         "e0b65cfe-9516-4803-96df-d443d7e6a95a"
+      ],
+      "User-Agent":[
+         "PostmanRuntime/7.43.2"
+      ]
+   }
+}
+```
+
+
+---
 
 ## 📚| More Examples
 
