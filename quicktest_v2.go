@@ -120,6 +120,10 @@ func (q Quick) Qtest(opts QuickTestOptions) (QtestReturn, error) {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
+	if len(opts.Body) > 0 {
+		req.ContentLength = int64(len(opts.Body))
+	}
+
 	// Set headers
 	for key, value := range opts.Headers {
 		req.Header.Set(key, value)
@@ -215,6 +219,7 @@ func readResponseBodyV2(resp *http.Response) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	resp.Body = io.NopCloser(bytes.NewReader(body)) // Reset response body for reuse
 	return body, nil
 }

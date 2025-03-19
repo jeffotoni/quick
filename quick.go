@@ -115,6 +115,22 @@ func (h HandlerFunc) ServeQuick(c *Ctx) error {
 	return h(c)
 }
 
+// MaxBytesReader is a thin wrapper around http.MaxBytesReader to limit the
+// size of the request body in Quick applications.
+//
+// It returns an io.ReadCloser that reads from r but stops with an error
+// after n bytes.  The sink just sees an io.EOF.
+//
+// This is useful to protect against large request bodies.
+//
+// Example usage:
+//
+//	c.Request.Body = quick.MaxBytesReader(c.Response, c.Request.Body, 10_000) // 10KB
+func MaxBytesReader(w http.ResponseWriter, r io.ReadCloser, n int64) io.ReadCloser {
+	// Internally, just call the standard library function.
+	return http.MaxBytesReader(w, r, n)
+}
+
 // Route represents a registered HTTP route in the Quick framework
 type Route struct {
 	Group   string           // Route group for organization
