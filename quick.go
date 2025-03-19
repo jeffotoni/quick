@@ -75,6 +75,9 @@ type HandleFunc func(*Ctx) error
 //	q.Use(quick.HandlerFunc(myHandler))
 type HandlerFunc func(c *Ctx) error
 
+// M is a shortcut for map[string]interface{}, allowing `c.M{}`
+type M map[string]interface{}
+
 // Handler defines an interface that wraps the ServeQuick method.
 //
 // Any type implementing `ServeQuick(*Ctx) error` can be used as a request
