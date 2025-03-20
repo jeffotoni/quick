@@ -1,3 +1,14 @@
+// Package msgid provides middleware for automatically generating and assigning
+// a unique Message ID (MsgID) to incoming HTTP requests.
+//
+// This middleware ensures that every request has a unique identifier, which is useful
+// for request tracking, debugging, logging, and tracing in distributed systems.
+//
+// Features:
+// - Automatically generates a MsgID if the request does not already have one.
+// - Allows customization of the MsgID format using a user-defined algorithm.
+// - Adds the MsgID to both the request and response headers for tracking.
+// - Supports configuring the MsgID name, range, and generation strategy.
 package msgid
 
 import (
