@@ -2,6 +2,7 @@ package quick
 
 import (
 	"fmt"
+	"strings"
 )
 
 // ANSI color definition
@@ -17,11 +18,17 @@ const (
 // Quick version
 const QuickVersion = "v0.0.1"
 
-func (q *Quick) Display(scheme, port string) {
+func (q *Quick) Display(scheme, addr string) {
 	if !q.config.NoBanner {
 
 		// Counts the number of registered routes
 		routeCount := len(q.GetRoute())
+
+		// Extract port from addr
+		var port string
+		if strings.Contains(addr, ":") {
+			port = strings.Split(addr, ":")[1]
+		}
 
 		// Display the styled banner
 		fmt.Println()
