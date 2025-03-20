@@ -55,7 +55,7 @@ func ExampleNew() {
 	fmt.Println(res.StatusCode()) // Expected: 413 (Payload Too Large)
 	fmt.Println(res.BodyStr())    // Expected: "Request body too large"
 
-	// Output:
+	// Out put:
 	// 413
 	// Request body too large
 }

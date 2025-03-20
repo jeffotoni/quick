@@ -1,3 +1,11 @@
+// Package msguuid provides a middleware for assigning a UUID to incoming HTTP requests.
+//
+// This middleware ensures that each request contains a unique identifier in the header.
+// If a request already has a UUID in the specified header, it remains unchanged.
+// Otherwise, a new UUID is generated and assigned based on the configured version (1 to 4).
+//
+// The UUID can be retrieved from the request and response headers using the configured key.
+// This is useful for tracking requests across services, logging, and debugging.
 package msguuid
 
 import (
@@ -18,20 +26,39 @@ const (
 	KeyMsgUUID = "MsgUUID"
 )
 
+// Config defines the configuration for the MsgUUID middleware.
+//
+// Fields:
+//   - Version (int): Specifies the UUID version to use (1 to 4).
+//   - Name (string): Header key name where the UUID will be stored.
+//   - KeyString (string): Custom key string for UUID parsing. Defaults to an empty string.
 type Config struct {
-	Version   int // this define the version you desire of your UUID (you can choose between 1 and 4)
+	Version   int
 	Name      string
-	KeyString string // this is a key string to parse value of its bytes to a uuid value
+	KeyString string
 }
 
+// DefaultConfig provides a default configuration for the MsgUUID middleware.
+//
+// Defaults:
+//   - Version: UUID v4
+//   - Name: "MsgUUID"
+//   - KeyString: ""
 var DefaultConfig = Config{
-	Version: UUID_VERSION_4,
-	Name:    KeyMsgUUID,
-	// KeyString will be come as default "" to generate a new uuid, but always use something with this length
-	// 00000000-0000-0000-0000-000000000000 to work properly
+	Version:   UUID_VERSION_4,
+	Name:      KeyMsgUUID,
 	KeyString: "",
 }
 
+// New creates a middleware that assigns a UUID to requests.
+//
+// If a request does not contain a UUID header, this middleware generates one based on the specified version.
+//
+// Parameters:
+//   - config ...Config (optional): Custom configuration. If not provided, DefaultConfig is used.
+//
+// Returns:
+//   - A middleware function that wraps an http.Handler, ensuring each request has a UUID in the header.
 func New(config ...Config) func(http.Handler) http.Handler {
 	cfd := DefaultConfig
 	if len(config) > 0 {
@@ -51,6 +78,13 @@ func New(config ...Config) func(http.Handler) http.Handler {
 	}
 }
 
+// generateDefaultUUID generates a UUID based on the provided configuration.
+//
+// Parameters:
+//   - uidCfg (Config): The configuration specifying the UUID version and optional KeyString.
+//
+// Returns:
+//   - A UUID string based on the chosen version.
 func generateDefaultUUID(uidCfg Config) string {
 	switch uidCfg.Version {
 	case UUID_VERSION_1:
