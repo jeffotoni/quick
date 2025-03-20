@@ -1,4 +1,4 @@
-package msguuid
+package msgid
 
 import (
 	"fmt"
@@ -19,14 +19,13 @@ func ExampleNew() {
 	q.Get("/v1/msguuid/default", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
-		// Retrieve the MsgUUID from the request headers
-		msgId := c.Request.Header.Get("Msguuid")
+		msgId := c.Request.Header.Get("Msgid")
 
-		// Return the MsgUUID in the JSON response
-		return c.Status(200).JSON(map[string]string{"msguuid": msgId})
+		// Return 200 OK status
+		return c.Status(200).JSON(map[string]string{"msgid": msgId})
 	})
 
-	// Send test request using Quick's built-in test utility
+	// Send a test request using Quick's built-in test utility
 	resp, err := q.Qtest(quick.QuickTestOptions{
 		Method:  quick.MethodGet,
 		URI:     "/v1/msguuid/default",
@@ -39,9 +38,9 @@ func ExampleNew() {
 		return
 	}
 
-	// Print response body to verify the MsgUUID
-	fmt.Println("Response Body:", string(resp.Body()))
+	// Print the response body for verification
+	fmt.Println("Response:", string(resp.Body()))
 
 	// Out put:
-	// Response Body: "msguuid":"f299b00d-875e-4502-966e-22e16767eb13"
+	// Response: {"msgid":"f299b00d-875e-4502-966e-22e16767eb13"}
 }
