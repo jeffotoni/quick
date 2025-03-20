@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	app := quick.New()
+	q := quick.New()
 
 	// Apply MsgUUID Middleware globally
-	app.Use(msguuid.New())
+	q.Use(msguuid.New())
 
 	// Define an endpoint that responds with a UUID
-	app.Get("/v1/msguuid/default", func(c *quick.Ctx) error {
+	q.Get("/v1/msguuid/default", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
 		// Log headers to validate UUID presence
@@ -25,7 +25,7 @@ func main() {
 		return c.Status(200).JSON(nil)
 	})
 
-	log.Fatal(app.Listen("0.0.0.0:8080"))
+	log.Fatal(q.Listen("0.0.0.0:8080"))
 }
 
 //curl --location 'http://localhost:8080/v1/msguuid/default'
