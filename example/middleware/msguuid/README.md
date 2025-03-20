@@ -27,9 +27,7 @@ The MsgUUID Middleware works by:
 
 ---
 
-### 🔹Attaching a UUID to responses
-This example ensures that all responses from the /v1/msguuid/default route contain a unique **UUID.**
-
+This example generates a unique request identifier with the MsgUUUID middleware.
 
 ```go
 package main
@@ -43,56 +41,13 @@ import (
 )
 
 func main() {
-	app := quick.New()
-
-	// Enable MsgUUID Middleware
-	app.Use(msguuid.New())
-
-	// Define an endpoint that includes MsgUUID
-	app.Get("/v1/user", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-
-		// Log the response headers to check the UUID
-		fmt.Println("Headers:", c.Response.Header())
-
-		// Return a 200 OK status with no body
-		return c.Status(200).JSON(nil)
-	})
-
-	log.Fatal(app.Listen("0.0.0.0:8080"))
-}
-
-```
-
-### 📌 Testing with cURL
-
-#### 🔹Sending a GET request
-```bash
-$ curl -i -X GET http://localhost:8080/v1/user
-```
----
-
-### 🔹Default MsgUUID Usage
-The following example demonstrates how MsgUUID automatically attaches a **UUID** to every response.
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/msguuid"
-)
-
-func main() {
-	app := quick.New()
+	q := quick.New()
 
 	// Apply MsgUUID Middleware globally
-	app.Use(msguuid.New())
+	q.Use(msguuid.New())
 
 	// Define an endpoint that responds with a UUID
-	app.Get("/v1/msguuid/default", func(c *quick.Ctx) error {
+	q.Get("/v1/msguuid/default", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
 		// Log headers to validate UUID presence
@@ -102,17 +57,20 @@ func main() {
 		return c.Status(200).JSON(nil)
 	})
 
-	log.Fatal(app.Listen("0.0.0.0:8080"))
+	log.Fatal(q.Listen("0.0.0.0:8080"))
 }
-
 ```
-
-### 📌 Testing with cURL
-
-#### 🔹Sending a GET request to the default MsgUUID route
+### 📌 cURL 
 
 ```bash
-$ curl -i -X GET http://localhost:8080/v1/msguuid/default
+$ curl -i -XGET http://localhost:8080/v1/msguuid/default
+```
+### 📌 Response 
+```bash
+"Headers":"map"[
+   "Content-Type":["application/json"],
+   "Msguuid":[5f49cf4d-b62e-4d81-b46e-5125b52058a6]
+]
 ```
 ---
 
@@ -122,7 +80,6 @@ $ curl -i -X GET http://localhost:8080/v1/msguuid/default
 - ✅ How It Works: Breakdown of request interception and UUID assignment.
 - ✅ Code Examples: How to apply MsgUUID to endpoints.
 - ✅ Testing with cURL: Examples of expected response headers.
-- ✅ Advantages Table: Summary of benefits.
 
 ---
 

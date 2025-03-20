@@ -41,133 +41,12 @@ Controls how your API can be accessed from different domains.
 ---
 
 ## 📜 Logger (Request Logging)
-The `logger` middleware captures HTTP request details, helping with monitoring, debugging, and analytics.
+The logger middleware captures HTTP request details, helping with monitoring, debugging, and analytics.
 
-#### 🚀 Key Features:
-- ✅ Logs request method, path, response time, and status code.
-- ✅ Supports multiple formats: text, json, and slog (structured logging).
-- ✅ Helps track API usage and debugging.
-- ✅ Customizable log patterns and additional fields.
-
-#### 📝 Default Logging (Text Format)
-This example applies logging in text format with custom log fields.
-
-```go
-package main
-
-import (
-	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/logger"
-)
-
-func main() {
-
-	q := quick.New()
-
-	// Apply the logger middleware with custom configuration
-	q.Use(logger.New(logger.Config{
-		Format:  "text", // Available formats: "text", "json", "slog"
-		Pattern: "[${level}] ${ip} ${method} - ${latency} user_id=${user_id} trace=${trace}\n",
-		Level:   "DEBUG", // Logging level: "DEBUG", "INFO", "WARN", "ERROR"
-		CustomFields: map[string]string{ // Custom fields included in logs
-			"user_id": "12345",
-			"trace":   "xyz",
-		},
-	}))
-
-	// Define a route that logs request details
-	q.Get("/v1/logger", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-
-		// Return a JSON response
-		return c.Status(200).JSON(quick.M{
-			"msg": "Quick ❤️",
-		})
-	})
-
-	// Start the server
-	q.Listen("0.0.0.0:8080")
-}
-```
----
-### 🛠️ Structured Logging (Slog Format)
-
-This example uses structured logging (slog) for better log parsing.
-
-```go
-package main
-
-import (
-	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/logger"
-)
-
-func main() {
-
-	q := quick.New()
-
-	// Apply logger middleware with structured logging (slog)
-	q.Use(logger.New(logger.Config{
-		Format: "slog",
-		Level:  "DEBUG",
-		Pattern: "[${level}] ${ip} ${method} ${path} - ${latency} " +
-			"user=${user_id} trace=${trace}\n",
-		CustomFields: map[string]string{
-			"user_id": "99999",
-			"trace":   "abcdef",
-		},
-	}))
-
-	// Define a route with structured logging
-	q.Get("/v1/logger/slog", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-
-		return c.Status(200).JSON(quick.M{
-			"msg": "Structured logging with slog",
-		})
-	})
-
-	// Start the server
-	q.Listen("0.0.0.0:8080")
-}
-```
----
-### 📦 JSON Logging (Machine-Readable)
-
-Ideal for log aggregation systems, this example logs in JSON format.
-
-```go
-package main
-
-import (
-	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/logger"
-)
-
-func main() {
-
-	q := quick.New()
-
-	// Apply logger with JSON format for structured logging
-	q.Use(logger.New(logger.Config{
-		Format: "json",
-		Level:  "INFO",
-	}))
-
-	// Define a logging route
-	q.Get("/v1/logger/json", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-
-		return c.Status(200).JSON(quick.M{
-			"msg": "JSON logging example",
-		})
-	})
-
-	// Start the server
-	q.Listen("0.0.0.0:8080")
-}
-
-```
+- Logs request method, path, response time, and status code.
+- Supports multiple formats: text, json, and slog (structured logging).
+- Helps track API usage and debugging.
+- Customizable log patterns and additional fields.
 
 ---
 
@@ -180,7 +59,7 @@ Restricts the maximum request body size to prevent clients from sending excessiv
 
 ---
 
-## 🔄 MsgUUID
+## 🆔 MsgUUID
 Assigns a UUID (Universally Unique Identifier) to each request.
 
 - Allows easy tracking of requests in logs.
