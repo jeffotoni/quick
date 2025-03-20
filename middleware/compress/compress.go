@@ -1,4 +1,13 @@
 // Package compress provides middleware for compressing HTTP responses using gzip.
+//
+// This middleware enhances performance by reducing response payload sizes, leading to
+// faster page loads and reduced bandwidth consumption.
+//
+// Features:
+// - Automatically compresses responses if the client supports gzip encoding.
+// - Uses a sync.Pool to efficiently reuse gzip writers and reduce memory allocations.
+// - Removes Content-Length headers to prevent mismatches caused by compression.
+// - Supports Quick framework’s middleware structure.
 package compress
 
 import (
