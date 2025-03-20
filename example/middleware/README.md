@@ -73,6 +73,16 @@ Assigns a UUID (Universally Unique Identifier) to each request.
 
 ---
 
+## 📩 MsgID
+Assigns a unique MsgID (Message Identifier) to each request.
+
+- Enables easy request tracking across logs and services.
+- Improves debugging by attaching a unique identifier to each request.
+- Essential for distributed systems, ensuring request correlation.
+- Automatically generates and appends a MsgID to every request and response.
+
+---
+
 ## 🚧 **Coming soon!**
 - Etag
 - Pprof
