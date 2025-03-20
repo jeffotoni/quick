@@ -11,6 +11,14 @@ func main() {
 	q := quick.New()
 	q.Use(logger.New())
 
+	q.Use(logger.New(logger.Config{
+		Level: "DEGUB",
+	}))
+
+	q.Use(logger.New(logger.Config{
+		Level: "WARN",
+	}))
+
 	q.Get("/v1/logger", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 

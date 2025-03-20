@@ -17,7 +17,31 @@ func main() {
 			"user=${user_id} trace=${trace}\n",
 		CustomFields: map[string]string{
 			"user_id": "99999",
-			"trace":   "abcdef",
+			"trace":   "trace-debug",
+		},
+	}))
+
+	// Apply the logger middleware with structured logging (slog)
+	q.Use(logger.New(logger.Config{
+		Format: "slog",
+		Level:  "INFO",
+		Pattern: "[${level}] ${ip} ${method} ${path} - ${latency} " +
+			"user=${user_id} trace=${trace}\n",
+		CustomFields: map[string]string{
+			"user_id": "99999",
+			"trace":   "trace-info",
+		},
+	}))
+
+	// Apply the logger middleware with structured logging (slog)
+	q.Use(logger.New(logger.Config{
+		Format: "slog",
+		Level:  "WARN",
+		Pattern: "[${level}] ${ip} ${method} ${path} - ${latency} " +
+			"user=${user_id} trace=${trace}\n",
+		CustomFields: map[string]string{
+			"user_id": "99999",
+			"trace":   "trace-warn",
 		},
 	}))
 
