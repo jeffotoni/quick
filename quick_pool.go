@@ -1,3 +1,14 @@
+// Package quick provides a high-performance, lightweight web framework for building
+// modern HTTP applications in Go. It is designed for speed, efficiency, and simplicity.
+//
+// Features:
+// - Middleware support for request/response processing.
+// - Optimized routing with low overhead.
+// - Built-in support for JSON, XML, and form parsing.
+// - Efficient request handling using sync.Pool for memory optimization.
+// - Customizable response handling with structured output.
+//
+// Quick is ideal for building RESTful APIs, microservices, and high-performance web applications.
 package quick
 
 import (

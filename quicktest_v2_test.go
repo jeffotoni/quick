@@ -1,3 +1,5 @@
+// Package quick provides a fast and flexible web framework with built-in
+// HTTP testing utilities.
 package quick
 
 import (
