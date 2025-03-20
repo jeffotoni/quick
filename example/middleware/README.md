@@ -49,6 +49,11 @@ The logger middleware captures HTTP request details, helping with monitoring, de
 - Customizable log patterns and additional fields.
 
 ---
+## 🚦 Rate Limiter 
+
+The Rate Limiter is a middleware for the Quick framework that controls the number of requests allowed in a given time period. It helps prevent API abuse and improves system stability by preventing server overload.
+
+---
 
 ## 📏 Maxbody (Request Size Limiter)
 Restricts the maximum request body size to prevent clients from sending excessively large payloads.
