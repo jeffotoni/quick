@@ -1,3 +1,13 @@
+// Package maxbody provides middleware to enforce request body size limits.
+//
+// This middleware prevents excessively large request bodies from being processed,
+// improving security and performance. It is useful for preventing DoS attacks and
+// accidental large payloads.
+//
+// Features:
+// - Configurable maximum request body size.
+// - Returns `413 Payload Too Large` for requests exceeding the limit.
+// - Supports customization of the maximum allowed size per route.
 package maxbody
 
 import (

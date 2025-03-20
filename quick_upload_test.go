@@ -1,5 +1,11 @@
-// running various tests, such as fuzz, table driver and in the traditional way
-// $ go test -run=^$ -fuzz=FuzzTestFormFile -fuzztime=5s
+// Package quick provides a fast and flexible web framework with built-in
+// HTTP testing utilities. This file contains various tests, including
+// fuzz testing, table-driven testing, and traditional unit tests.
+//
+// Run tests using:
+// - Traditional test: go test -v -run ^TestFunctionName
+// - Table-driven test: go test -v -run ^TestFunctionName
+// - Fuzz test: go test -run=^$ -fuzz=FuzzFunctionName -fuzztime=5s
 package quick
 
 import (
@@ -26,10 +32,14 @@ type UploadedFileJSON struct {
 	} `json:"Info"`
 }
 
-// TestFormFile simulates a file upload request and validates the response.
-// This function is named TestFormFile
-// The result will TestFormFile(t *testing.T)
-// go test -v -run ^TestFormFile
+// TestFormFile verifies that a file can be uploaded successfully.
+//
+// This test performs a POST request to "/upload" with a text file and checks if:
+// - The file is correctly received and processed.
+// - The filename, size, and content type are correct.
+// - The file content matches the expected value.
+//
+// Run: go test -v -run ^TestFormFile
 func TestFormFile(t *testing.T) {
 
 	// start Quick
@@ -83,10 +93,14 @@ func TestFormFile(t *testing.T) {
 	}
 }
 
-// TestFormFileTableDriven simulates a file upload request and validates the response.
-// This function is named TestFormFileTableDriven
-// The result will TestFormFileTableDriven(t *testing.T)
-// go test -v -run ^TestFormFileTableDriven
+// TestFormFileTableDriven verifies file uploads using a table-driven approach.
+//
+// This test iterates over multiple cases, including:
+// - A valid text file upload.
+// - An empty file upload (which should fail).
+// - Ensuring correct file properties like filename, content type, and size.
+//
+// Run: go test -v -run ^TestFormFileTableDriven
 func TestFormFileTableDriven(t *testing.T) {
 	// Start Quick server
 	q := New()
@@ -213,10 +227,12 @@ func TestFormFileTableDriven(t *testing.T) {
 	}
 }
 
-// FuzzTestFormFile simulates a file upload request and validates the response.
-// This function is named FuzzTestFormFile
-// The result will FuzzTestFormFile(t *testing.T)
-// $ go test -fuzz=FuzzTestFormFile -fuzztime=5s
+// FuzzTestFormFile performs fuzz testing on file uploads.
+//
+// This test dynamically generates test cases with varying filenames and content
+// to identify edge cases or unexpected behavior.
+//
+// Run: go test -fuzz=FuzzTestFormFile -fuzztime=5s
 func FuzzTestFormFile(f *testing.F) {
 	// Seed initial test cases
 	f.Add("testfile1.txt", "Hello, Quick!")
@@ -331,9 +347,14 @@ func sendMultipartRequest(t *testing.T, tsURL, fileName, fileContent string) ([]
 	return respBytes, nil
 }
 
-// test ensures that we can read the file multiple times without losing the original data.
-// The result will TestQuick_UploadFileReset(t *testing.T)
-// go test -v -run ^TestQuick_UploadFileReset
+// TestQuick_UploadFileReset ensures a file can be read multiple times after being uploaded.
+//
+// This test verifies:
+// - The file is successfully uploaded and stored.
+// - It can be re-read without losing data.
+// - The reset mechanism works correctly.
+//
+// Run: go test -v -run ^TestQuick_UploadFileReset
 func TestQuick_UploadFileReset(t *testing.T) {
 	q := New()
 
@@ -405,8 +426,13 @@ func TestQuick_UploadFileReset(t *testing.T) {
 	}
 }
 
-// TestFormFileLimit verifies that the FormFileLimit function correctly  processes file sizes.
-// go test -v -run ^TestFormFileLimit
+// TestFormFileLimit verifies that the FormFileLimit function correctly processes file sizes.
+//
+// This test ensures:
+// - Valid limits (e.g., 10MB, 2GB) are correctly parsed.
+// - Invalid values (e.g., missing number, unknown unit) return errors.
+//
+// Run: go test -v -run ^TestFormFileLimit
 func TestFormFileLimit(t *testing.T) {
 
 	// We create a dummy context for the test
@@ -454,7 +480,15 @@ func TestFormFileLimit(t *testing.T) {
 	})
 }
 
-// go test -v -run ^TestFormFile_Cover
+// TestFormFile_Cover validates the FormFile function under different edge cases.
+//
+// This test includes:
+// - Error handling when FormFiles is called with a nil request.
+// - Handling requests with no uploaded files.
+// - Successful file uploads with correct filename and content validation.
+// - Retrieving form data from a multipart request.
+//
+// Run: go test -v -run ^TestFormFile_Cover
 func TestFormFile_Cover(t *testing.T) {
 	t.Run("Error calling FormFiles", func(t *testing.T) {
 		// Create a fake context that simulates an error in FormFiles
@@ -615,7 +649,15 @@ func TestFormFile_Cover(t *testing.T) {
 	})
 }
 
-// go test -v -run ^TestUploadedFileMethods
+// TestUploadedFileMethods validates methods related to uploaded file properties.
+//
+// This test checks:
+// - Filename retrieval.
+// - File size validation.
+// - MIME type correctness.
+// - Byte data integrity.
+//
+// Run: go test -v -run ^TestUploadedFileMethods
 func TestUploadedFileMethods(t *testing.T) {
 	mockFile := &UploadedFile{
 		Info: FileInfo{
@@ -652,7 +694,14 @@ func TestUploadedFileMethods(t *testing.T) {
 	})
 }
 
-// go test -v -run ^TestUploadedFileSave
+// TestUploadedFileSave ensures that files are correctly saved to disk.
+//
+// This test verifies:
+// - A file is saved with the correct content.
+// - Empty files cannot be saved.
+// - Invalid directories return errors.
+//
+// Run: go test -v -run ^TestUploadedFileSave
 func TestUploadedFileSave(t *testing.T) {
 	t.Run("Save saves the file correctly", func(t *testing.T) {
 		mockFile := &UploadedFile{
@@ -711,7 +760,13 @@ func TestUploadedFileSave(t *testing.T) {
 	})
 }
 
-// go test -v -run ^TestSaveAll
+// TestSaveAll verifies that multiple uploaded files can be saved successfully.
+//
+// This test ensures:
+// - Multiple files are written to disk correctly.
+// - Errors are handled properly when saving fails.
+//
+// Run: go test -v -run ^TestSaveAll
 func TestSaveAll(t *testing.T) {
 	t.Run("SaveAll saves multiple files correctly", func(t *testing.T) {
 		mockFiles := []*UploadedFile{

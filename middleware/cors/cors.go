@@ -1,3 +1,17 @@
+// Package cors provides middleware for handling Cross-Origin Resource Sharing (CORS)
+// in HTTP servers. It allows fine-grained control over cross-origin requests,
+// defining which origins, headers, and methods are permitted.
+//
+// CORS is a security mechanism implemented by browsers to restrict
+// how resources on a web page can be requested from another domain.
+// This middleware helps manage CORS policies efficiently.
+//
+// Features:
+// - Configurable allowed origins, headers, and methods.
+// - Supports credentials (cookies, authentication).
+// - Handles CORS preflight (`OPTIONS`) requests automatically.
+// - Allows wildcard (`*`) for flexible domain matching.
+// - Provides private network access support.
 package cors
 
 import (
@@ -52,6 +66,7 @@ type Config struct {
 	Debug bool
 }
 
+// ConfigDefault is the default CORS configuration.
 var ConfigDefault = Config{
 	AllowedOrigins:   []string{"*"},
 	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -62,6 +77,15 @@ var ConfigDefault = Config{
 	Debug:            false,
 }
 
+// New creates a new CORS middleware with the given configuration.
+//
+// If no configuration is provided, it defaults to `ConfigDefault`.
+//
+// Parameters:
+//   - config ...Config (optional): Custom configuration. If not provided, `ConfigDefault` is used.
+//
+// Returns:
+//   - A middleware function that wraps an `http.Handler`, ensuring CORS rules are applied.
 func New(config ...Config) func(http.Handler) http.Handler {
 	c := ConfigDefault
 	if len(config) > 0 {
@@ -166,6 +190,7 @@ func applyCORSHeaders(c Config, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// contains checks if a slice contains a specific value.
 func contains(list []string, val string) bool {
 	for _, v := range list {
 		if v == val {
@@ -175,6 +200,9 @@ func contains(list []string, val string) bool {
 	return false
 }
 
+// Default returns the default CORS configuration.
+//
+// If a custom configuration is provided, it overrides `ConfigDefault`.
 func Default(config ...Config) Config {
 	cfd := ConfigDefault
 	if len(config) > 0 {
@@ -183,6 +211,10 @@ func Default(config ...Config) Config {
 	return cfd
 }
 
+// Handler applies CORS rules to the given `http.Handler`.
+//
+// This function ensures that CORS policies are applied before passing
+// the request to the next handler.
 func (c Config) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// aply rules CORS

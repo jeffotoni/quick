@@ -1,6 +1,6 @@
-// Package quick fornece uma estrutura web rápida e flexível com built-in
-// recursos de teste HTTP. Este arquivo contém várias funções de exemplo
-// demonstrando o uso dos utilitários de teste do Quick.
+// Package quick provides a fast and flexible web framework with built-in
+// HTTP testing utilities. This file contains example functions demonstrating
+// how to use Quick's testing utilities.
 package quick
 
 import (
@@ -8,8 +8,9 @@ import (
 	"net/http"
 )
 
-// This function is named ExampleQuick_Qtest()
-// it with the Examples type.
+// ExampleQuick_Qtest demonstrates how to use Qtest to test a simple GET route.
+//
+// The "/hello" route returns a response with status 200 and body "Hello, Quick!".
 func ExampleQuick_Qtest() {
 	// Creating a Quick instance
 	q := New()
@@ -42,8 +43,9 @@ func ExampleQuick_Qtest() {
 	// Body: Hello, Quick!
 }
 
-// This function is named Example_qTestPlus_AssertStatus()
-// it with the Examples type.
+// ExampleQTestPlus_AssertStatus demonstrates how to verify the response status code.
+//
+// The "/notfound" route returns a 404 status, which is validated in the assertion.
 func ExampleQTestPlus_AssertStatus() {
 	// Creating a Quick instance
 	q := New()
@@ -76,8 +78,9 @@ func ExampleQTestPlus_AssertStatus() {
 	// Out put: Status code is correct
 }
 
-// This function is named Example_qTestPlus_AssertHeader()
-// it with the Examples type.
+// ExampleQTestPlus_AssertHeader demonstrates how to validate an HTTP response header.
+//
+// The "/header" route sets an "X-Custom-Header", which is then validated.
 func ExampleQTestPlus_AssertHeader() {
 	// Creating a Quick instance
 	q := New()
@@ -111,8 +114,9 @@ func ExampleQTestPlus_AssertHeader() {
 	// Out put: Header is correct
 }
 
-// This function is named Example_qTestPlus_AssertBodyContains()
-// it with the Examples type.
+// ExampleQTestPlus_AssertBodyContains demonstrates how to validate the response body.
+//
+// The "/json" route returns a JSON response, and the test verifies the presence of the "message" key.
 func ExampleQTestPlus_AssertBodyContains() {
 	// Creating a Quick instance
 	q := New()
@@ -146,8 +150,9 @@ func ExampleQTestPlus_AssertBodyContains() {
 	// Out put: Body contains expected content
 }
 
-// This function is named ExampleQTestPlus_Body()
-// it with the Examples type.
+// ExampleQTestPlus_Body demonstrates how to retrieve the response body as a byte slice.
+//
+// The simulated response object contains "Hello, Quick!" as its body content.
 func ExampleQTestPlus_Body() {
 	// Simulating a response object with a predefined body
 	res := &QTestPlus{
@@ -160,8 +165,9 @@ func ExampleQTestPlus_Body() {
 	// Out put: Hello, Quick!
 }
 
-// This function is named ExampleQTestPlus_BodyStr()
-// it with the Examples type.
+// ExampleQTestPlus_BodyStr demonstrates how to retrieve the response body as a string.
+//
+// The simulated response object contains "Hello, Quick!" as its body content.
 func ExampleQTestPlus_BodyStr() {
 	// Simulating a response object with a predefined body
 	res := &QTestPlus{
@@ -174,10 +180,10 @@ func ExampleQTestPlus_BodyStr() {
 	// Out put: Hello, Quick!
 }
 
-// This function is named ExampleQTestPlus_StatusCode()
-// it with the Examples type.
+// ExampleQTestPlus_StatusCode demonstrates how to retrieve the response status code.
+//
+// The simulated response object contains a status code of 200.
 func ExampleQTestPlus_StatusCode() {
-	// Simulating a response object with a predefined status code
 	res := &QTestPlus{
 		statusCode: 200,
 	}
@@ -188,8 +194,9 @@ func ExampleQTestPlus_StatusCode() {
 	// Out put: Status Code: 200
 }
 
-// This function is named ExampleQTestPlus_Response()
-// it with the Examples type.
+// ExampleQTestPlus_Response demonstrates how to retrieve the complete HTTP response object.
+//
+// The simulated HTTP response object contains a status of "200 OK".
 func ExampleQTestPlus_Response() {
 	// Simulating an HTTP response object
 	httpResponse := &http.Response{

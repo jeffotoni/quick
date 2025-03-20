@@ -1,3 +1,15 @@
+// Package limiter provides middleware for rate limiting HTTP requests in Quick.
+//
+// This middleware controls the number of requests a client can make within a specified time window,
+// helping to prevent abuse, protect APIs from excessive traffic, and improve overall system stability.
+//
+// Features:
+// - Configurable maximum requests per time window.
+// - Customizable key generator (e.g., per-IP, per-user, etc.).
+// - Flexible expiration time for rate-limited requests.
+// - Custom handler when the request limit is exceeded.
+// - Uses sharded maps for efficient concurrency handling.
+// - Periodic cleanup of expired request records to optimize memory usage.
 package limiter
 
 import (
