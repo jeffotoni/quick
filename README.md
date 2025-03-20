@@ -2847,12 +2847,13 @@ $ curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
      --data-binary @<(head -c 800 </dev/zero | tr '\0' 'A')
 ```
 
-$ Request exceeding limit (Should return 413)
+Request exceeding limit (Should return 413)
 ```bash
-curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
+$ curl -X POST http://0.0.0.0:8080/v1/user/maxbody/max \
      -H "Content-Type: application/json" \
      --data-binary @<(head -c 2048 </dev/zero | tr '\0' 'A')
 ```
+
 ---
 
 ### 📌 Key Differences Between `maxbody.New()` and `MaxBytesReader()`
@@ -2873,7 +2874,54 @@ The `logger` middleware captures HTTP request details, helping with monitoring, 
 - ✅ Helps track API usage and debugging.
 - ✅ Customizable log patterns and additional fields.
 
-#### 📝 Default Logging (Text Format)
+#### 📝 Default Logging 
+This example applies simple logging.
+
+```go
+package main
+
+import (
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/logger"
+)
+
+func main() {
+
+	q := quick.New()
+	q.Use(logger.New())
+
+	q.Use(logger.New(logger.Config{
+		Level: "DEGUB",
+	}))
+
+	q.Use(logger.New(logger.Config{
+		Level: "WARN",
+	}))
+
+	q.Get("/v1/logger", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		return c.Status(200).JSON(quick.M{
+			"msg": "Quick ❤️",
+		})
+	})
+
+	q.Listen("0.0.0.0:8080")
+}
+```
+
+### 📌 cURL 
+
+Text Logging
+```bash
+$ curl -i -XGET http://localhost:8080/v1/logger
+```
+#### Console:
+![Quick Logger Example](readmeLogs/log.simple.png)
+
+---
+
+#### 📝 Structured Logging(Text Format)
 This example applies logging in text format with custom log fields.
 
 ```go
@@ -2888,30 +2936,50 @@ func main() {
 
 	q := quick.New()
 
-	// Apply the logger middleware with custom configuration
 	q.Use(logger.New(logger.Config{
-		Format:  "text", // Available formats: "text", "json", "slog"
-		Pattern: "[${level}] ${ip} ${method} - ${latency} user_id=${user_id} trace=${trace}\n",
-		Level:   "DEBUG", // Logging level: "DEBUG", "INFO", "WARN", "ERROR"
-		CustomFields: map[string]string{ // Custom fields included in logs
-			"user_id": "12345",
-			"trace":   "xyz",
+		Format:  "text",
+		Pattern: "[${level}] ${time} ${ip} ${method} ${status} - ${latency} user_id=${user_id} trace=${trace}\n",
+		Level:   "DEBUG",
+		CustomFields: map[string]string{
+			"user_id": "usr-001",
+			"trace":   "trace-debug",
 		},
 	}))
 
-	// Define a route that logs request details
+	q.Use(logger.New(logger.Config{
+		Format:  "text",
+		Pattern: "[${level}] ${time} ${ip} ${method} ${status} - ${latency} user_id=${user_id} trace=${trace}\n",
+		Level:   "INFO",
+		CustomFields: map[string]string{
+			"user_id": "usr-002",
+			"trace":   "trace-info",
+		},
+	}))
+
+	q.Use(logger.New(logger.Config{
+		Format:  "text",
+		Pattern: "[${level}] ${time} ${ip} ${method} ${status} - ${latency} user_id=${user_id} trace=${trace}\n",
+		Level:   "WARN",
+		CustomFields: map[string]string{
+			"user_id": "usr-003",
+			"trace":   "trace-warn",
+		},
+	}))
+
+	// Definir rota GET para gerar logs
 	q.Get("/v1/logger", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
-		// Return a JSON response
+		// Retornar resposta JSON
 		return c.Status(200).JSON(quick.M{
 			"msg": "Quick ❤️",
 		})
 	})
 
-	// Start the server
+	// Iniciar o servidor na porta 8080
 	q.Listen("0.0.0.0:8080")
 }
+
 ```
 ### 📌 cURL 
 
@@ -2919,6 +2987,8 @@ Text Logging
 ```bash
 $ curl -i -XGET http://localhost:8080/v1/logger
 ```
+#### Console:
+![Quick Logger Example](readmeLogs/log.format.text.png)
 
 ---
 ### 🛠️ Structured Logging (Slog Format)
@@ -2933,11 +3003,12 @@ import (
 	"github.com/jeffotoni/quick/middleware/logger"
 )
 
+
 func main() {
 
 	q := quick.New()
 
-	// Apply logger middleware with structured logging (slog)
+	// Apply the logger middleware with structured logging (slog)
 	q.Use(logger.New(logger.Config{
 		Format: "slog",
 		Level:  "DEBUG",
@@ -2945,11 +3016,35 @@ func main() {
 			"user=${user_id} trace=${trace}\n",
 		CustomFields: map[string]string{
 			"user_id": "99999",
-			"trace":   "abcdef",
+			"trace":   "trace-debug",
 		},
 	}))
 
-	// Define a route with structured logging
+	// Apply the logger middleware with structured logging (slog)
+	q.Use(logger.New(logger.Config{
+		Format: "slog",
+		Level:  "INFO",
+		Pattern: "[${level}] ${ip} ${method} ${path} - ${latency} " +
+			"user=${user_id} trace=${trace}\n",
+		CustomFields: map[string]string{
+			"user_id": "99999",
+			"trace":   "trace-info",
+		},
+	}))
+
+	// Apply the logger middleware with structured logging (slog)
+	q.Use(logger.New(logger.Config{
+		Format: "slog",
+		Level:  "WARN",
+		Pattern: "[${level}] ${ip} ${method} ${path} - ${latency} " +
+			"user=${user_id} trace=${trace}\n",
+		CustomFields: map[string]string{
+			"user_id": "99999",
+			"trace":   "trace-warn",
+		},
+	}))
+
+	// Define a test route
 	q.Get("/v1/logger/slog", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
@@ -2961,6 +3056,7 @@ func main() {
 	// Start the server
 	q.Listen("0.0.0.0:8080")
 }
+
 ```
 ### 📌 cURL 
 
@@ -2968,6 +3064,9 @@ func main() {
 ```bash
 $ curl -i -XGET http://localhost:8080/v1/logger/slog
 ```
+#### Console:
+![Quick Logger Example](readmeLogs/log.format.slog.png)
+
 ---
 ### 📦 JSON Logging (Machine-Readable)
 
@@ -2985,13 +3084,35 @@ func main() {
 
 	q := quick.New()
 
-	// Apply logger with JSON format for structured logging
+	// Apply logger with JSON format
 	q.Use(logger.New(logger.Config{
 		Format: "json",
 		Level:  "INFO",
 	}))
 
-	// Define a logging route
+	q.Use(logger.New(logger.Config{
+		Format:  "json",
+		Pattern: "[${level}] ${time} ${ip} ${method} ${status} - ${latency} user_id=${user_id} trace=${trace}\n",
+		Level:   "DEBUG",
+		CustomFields: map[string]string{
+			"user_id": "usr-001",
+			"trace":   "trace-debug",
+		},
+	}))
+
+	// Apply the logger middleware with structured logging (slog)
+	q.Use(logger.New(logger.Config{
+		Format: "json",
+		Level:  "WARN",
+		Pattern: "[${level}] ${ip} ${method} ${path} - ${latency} " +
+			"user=${user_id} trace=${trace}\n",
+		CustomFields: map[string]string{
+			"user_id": "usr-001",
+			"trace":   "trace-warn",
+		},
+	}))
+
+	// Define an endpoint that triggers logging
 	q.Get("/v1/logger/json", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
@@ -3010,6 +3131,9 @@ JSON Logging
 ```bash
 $ curl -i -XGET http://localhost:8080/v1/logger/json
 ```
+#### Console:
+![Quick Logger Example](readmeLogs/log.format.json.png)
+
 
 ---
 ## 📚| More Examples
