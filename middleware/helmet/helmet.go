@@ -6,72 +6,59 @@ import (
 
 // Options defines the configuration options for the helmet middleware.
 type Options struct {
-	PoweredBy      bool // Enable or disable X-Powered-By and Server headers
-	CSP            bool // Content Security Policy
-	ReferrerPolicy bool // Referrer Policy
-	XFrameOptions  bool // X-Frame-Options
-	MIMESniffing   bool // MIME Sniffing
-	XSSProtection  bool // X-XSS-Protection
-	STSetting      bool // Strict Transport Security
-	CacheControl   bool // Cache-Control
+	PoweredBy      bool   // Remove X-Powered-By and Server headers
+	CSP            string // Content Security Policy
+	ReferrerPolicy string // Referrer Policy
+	XFrameOptions  string // X-Frame-Options
+	MIMESniffing   bool   // MIME Sniffing protection
+	STSetting      string // Strict Transport Security
+	CacheControl   string // Cache-Control
 }
 
-// Helmet helps to secure HTTP responses by adding security headers.
-//
-// /Parameters:
-//   - options: Optional slice of `Options` containing custom security header settings.
-//
-// /Return:
-//   - func(http.Handler) http.Handler: A middleware function that applies security headers to the response.
+// Helmet secures HTTP responses by adding security headers.
 func Helmet(option ...Options) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 			// Default options
 			opt := defaultOptions()
 			if len(option) > 0 {
 				opt = option[0]
 			}
 
-			// PoweredBy removes X-Powered-By and Server headers
+			// Remove sensitive headers
 			if opt.PoweredBy {
 				deleteHeader(w, "X-Powered-By")
 				deleteHeader(w, "Server")
 			}
 
-			// MIME Sniffing used to protect against MIME sniffing vulnerabilities.
+			// MIME Sniffing protection
 			if opt.MIMESniffing {
 				addHeader(w, "X-Content-Type-Options", "nosniff")
 			}
 
-			// X-XSS-Protection used to prevent cross-site scripting attacks
-			if opt.XSSProtection {
-				addHeader(w, "X-XSS-Protection", "1; mode=block")
+			// X-Frame-Options to prevent clickjacking
+			if opt.XFrameOptions != "" {
+				addHeader(w, "X-Frame-Options", opt.XFrameOptions)
 			}
 
-			// X-Frame-Options used to prevent clickjacking attacks
-			if opt.XFrameOptions {
-				addHeader(w, "X-Frame-Options", "DENY")
+			// Referrer Policy
+			if opt.ReferrerPolicy != "" {
+				addHeader(w, "Referrer-Policy", opt.ReferrerPolicy)
 			}
 
-			// Referrer Policy used to prevent referrer information disclosure
-			if opt.ReferrerPolicy {
-				addHeader(w, "Referrer-Policy", "strict-origin-when-cross-origin")
+			// Content Security Policy
+			if opt.CSP != "" {
+				addHeader(w, "Content-Security-Policy", opt.CSP)
 			}
 
-			// Content Security Policy instructs to load only those contents that are mentioned in the policy
-			if opt.CSP {
-				addHeader(w, "Content-Security-Policy", "default-src 'self'")
+			// Strict Transport Security
+			if opt.STSetting != "" {
+				addHeader(w, "Strict-Transport-Security", opt.STSetting)
 			}
 
-			// Strict Transport Security force HTTPS to prevent man-in-the-middle attacks
-			if opt.STSetting {
-				addHeader(w, "Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
-			}
-
-			// Cache-Control remove cache to prevent caching
-			if opt.CacheControl {
-				addHeader(w, "Cache-Control", "no-cache, no-store, must-revalidate")
+			// Cache-Control
+			if opt.CacheControl != "" {
+				addHeader(w, "Cache-Control", opt.CacheControl)
 			}
 
 			next.ServeHTTP(w, r)
@@ -84,12 +71,11 @@ func defaultOptions() Options {
 	return Options{
 		PoweredBy:      true,
 		MIMESniffing:   true,
-		XFrameOptions:  true,
-		XSSProtection:  false,
-		ReferrerPolicy: true,
-		CSP:            true,
-		STSetting:      true,
-		CacheControl:   true,
+		XFrameOptions:  "DENY",
+		ReferrerPolicy: "strict-origin-when-cross-origin",
+		CSP:            "default-src 'self'",
+		STSetting:      "max-age=31536000; includeSubDomains; preload",
+		CacheControl:   "no-cache, no-store, must-revalidate",
 	}
 }
 
@@ -101,8 +87,7 @@ func deleteHeader(w http.ResponseWriter, header string) {
 }
 
 // addHeader adds a header to the response.
-// If the header already exists, it will be overwritten.
-func addHeader(w http.ResponseWriter, header string, value string) {
+func addHeader(w http.ResponseWriter, header, value string) {
 	if value == "" {
 		return
 	}
