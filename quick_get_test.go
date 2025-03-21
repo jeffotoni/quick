@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -8,17 +17,12 @@ import (
 	"testing"
 )
 
-/*
-+==============================================================================================================================+
-#     To test the entire package and check the coverage you can run those commands below:                                      #
-#                                                                                                                              #
-#     coverage     -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out ./...                                    #
-#     coverageHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out ./...; go tool cover -html=coverage.out  #
-+==============================================================================================================================+
-*/
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestRouteGET$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestRouteGET$; go tool cover -html=coverage.out
-
+// TestRouteGET tests whether a GET route returns the expected response.
+// The status is expected to be 200 and the response body is "Hello, GET!".
+//
+// Usage:
+//
+//	go test -v -run TestRouteGET
 func TestRouteGET(t *testing.T) {
 	q := New()
 
@@ -41,8 +45,12 @@ func TestRouteGET(t *testing.T) {
 	}
 }
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^TestQuick_Get$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Get$; go tool cover -html=coverage.out
+// TestQuick_Get tests multiple GET route scenarios with and without parameters, query strings and error cases.
+// Valid routes are expected to return status 200 with expected JSON and invalid routes return error.
+//
+// Usage:
+//
+//	go test -v -run TestQuick_Get
 func TestQuick_Get(t *testing.T) {
 	type args struct {
 		route       string
@@ -183,8 +191,12 @@ func TestQuick_Get(t *testing.T) {
 	}
 }
 
-// cover     ->  go test -v -count=1 -cover -failfast -run ^Test_extractParamsGet$
-// coverHTML ->  go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsGet$; go tool cover -html=coverage.out
+// Test_extractParamsGet tests the function extractParamsGet responsible for extracting route parameters for GET methods.
+// It has not yet implemented cases.
+//
+// Use:
+//
+//	go test -v -run Test_extractParamsGet
 func Test_extractParamsGet(t *testing.T) {
 	type args struct {
 		quick       Quick
@@ -208,8 +220,13 @@ func Test_extractParamsGet(t *testing.T) {
 	}
 }
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_UseCors$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_UseCors$; go tool cover -html=coverage.out
+// TestQuick_UseCors tests the CORS middleware application in the Quick framework (commented).
+// The test simulates routes that should return JSON with middleware applied.
+// It is currently commented, but when activated status 200 is expected and JSON expected.
+//
+// Use:
+//
+//  go test -v -run TestQuick_UseCors
 // func TestQuick_UseCors(t *testing.T) {
 // 	type args struct {
 // 		route       string
