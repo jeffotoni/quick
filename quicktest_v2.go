@@ -55,6 +55,9 @@ type QtestReturn interface {
 	AssertNoHeader(key string) error
 	AssertString(expected string) error
 	AssertBodyContains(expected any) error
+	AssertHeaderHasValueInSet(key string, allowed []string) error
+	AssertHeaderHasPrefix(key, prefix string) error
+	AssertHeaderContains(key, substring string) error
 }
 
 // QTestPlus implements QtestReturn, encapsulating HTTP response details for testing.
@@ -324,7 +327,6 @@ func (qt *QTestPlus) AssertNoHeader(key string) error {
 // Returns:
 //   - error: Returns an error if the header does not match the expected value.
 func (qt *QTestPlus) AssertString(expected string) error {
-
 	body := string(qt.bodyStr)
 	if body != expected {
 		return fmt.Errorf("expected body %q, but got %q", expected, body)
@@ -358,4 +360,63 @@ func (qt *QTestPlus) AssertBodyContains(expected any) error {
 		return fmt.Errorf("expected body to contain '%s' but got '%s'", expectedStr, qt.bodyStr)
 	}
 	return nil
+}
+
+// AssertHeaderContains checks if the specified header contains the expected substring.
+//
+// Example Usage:
+//
+//	err := resp.AssertHeaderContains("Powered","ered")
+//
+// Returns:
+//   - error: Returns an error if the header does not match the expected value.
+func (qt *QTestPlus) AssertHeaderContains(key, substring string) error {
+	value := qt.response.Header.Get(key)
+	if value == "" {
+		return fmt.Errorf("header %q not found", key)
+	}
+	if !strings.Contains(value, substring) {
+		return fmt.Errorf("expected header %q to contain %q, but got: %q", key, substring, value)
+	}
+	return nil
+}
+
+// AssertHeaderHasPrefix checks if the specified header starts with the expected prefix.
+//
+// Example Usage:
+//
+//	err := resp.AssertHeaderHasPrefix("Powered")
+//
+// Returns:
+//   - error: Returns an error if the header does not match the expected value.
+func (qt *QTestPlus) AssertHeaderHasPrefix(key, prefix string) error {
+	value := qt.response.Header.Get(key)
+	if value == "" {
+		return fmt.Errorf("header %q not found", key)
+	}
+	if !strings.HasPrefix(value, prefix) {
+		return fmt.Errorf("expected header %q to have prefix %q, but got: %q", key, prefix, value)
+	}
+	return nil
+}
+
+// AssertHeaderHasValueInSet checks if the specified header value is one of the allowed values.
+//
+// Example Usage:
+//
+//	err := resp.AssertHeaderHasValueInSet("Powered",[]string{""})
+//
+// Returns:
+//   - error: Returns an error if the header does not match the expected value.
+func (qt *QTestPlus) AssertHeaderHasValueInSet(key string, allowed []string) error {
+	value := qt.response.Header.Get(key)
+	if value == "" {
+		return fmt.Errorf("header %q not found", key)
+	}
+	for _, v := range allowed {
+		if value == v {
+			return nil
+		}
+	}
+	return fmt.Errorf("header %q has value %q, which is not in allowed set %v", key, value, allowed)
 }
