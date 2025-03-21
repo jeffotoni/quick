@@ -31,6 +31,10 @@ func (q *Quick) Display(scheme, addr string) {
 			return
 		}
 
+		if len(host) == 0 {
+			host = "//127.0.0.1"
+		}
+
 		// Display the styled banner
 		fmt.Println()
 		fmt.Printf("%s%s   ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗%s\n", Bold, Blue, Reset)

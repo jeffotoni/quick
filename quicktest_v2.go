@@ -16,6 +16,7 @@ package quick
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,6 +52,8 @@ type QtestReturn interface {
 	Response() *http.Response
 	AssertStatus(expected int) error
 	AssertHeader(key, expectedValue string) error
+	AssertNoHeader(key string) error
+	AssertString(expected string) error
 	AssertBodyContains(expected any) error
 }
 
@@ -83,6 +86,7 @@ type QuickTestOptions struct {
 	Body        []byte            // Request body payload
 	Cookies     []*http.Cookie    // Cookies to include in the request
 	LogDetails  bool              // Enable logging of request and response details
+	TLS         bool              // Enable tls connects
 }
 
 // Qtest performs an HTTP request using QuickTestOptions and returns a response handler.
@@ -118,6 +122,11 @@ func (q Quick) Qtest(opts QuickTestOptions) (QtestReturn, error) {
 	req, err := http.NewRequest(opts.Method, uriWithParams, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	// Simulate TLS if requested
+	if opts.TLS {
+		req.TLS = &tls.ConnectionState{}
 	}
 
 	if len(opts.Body) > 0 {
@@ -286,6 +295,39 @@ func (qt *QTestPlus) AssertHeader(key, expectedValue string) error {
 	value := qt.response.Header.Get(key)
 	if value != expectedValue {
 		return fmt.Errorf("expected header '%s' to be '%s' but got '%s'", key, expectedValue, value)
+	}
+	return nil
+}
+
+// AssertNoHeader checks if the specified header is not present or empty.
+//
+// Example Usage:
+//
+//	err := resp.AssertNoHeader("X-Powered-By")
+//
+// Returns:
+//   - error: Returns an error if the header does not match the expected value.
+func (qt *QTestPlus) AssertNoHeader(key string) error {
+	value := qt.response.Header.Get(key)
+	if value != "" {
+		return fmt.Errorf("expected no header %q, but got: %q", key, value)
+	}
+	return nil
+}
+
+// AssertString compares the response body to the expected string.
+//
+// Example Usage:
+//
+//	err := resp.AssertString("pong")
+//
+// Returns:
+//   - error: Returns an error if the header does not match the expected value.
+func (qt *QTestPlus) AssertString(expected string) error {
+
+	body := string(qt.bodyStr)
+	if body != expected {
+		return fmt.Errorf("expected body %q, but got %q", expected, body)
 	}
 	return nil
 }
