@@ -14,6 +14,7 @@ func main() {
 		CSPReportOnly:         true,
 		HSTSMaxAge:            86400,
 		HSTSExcludeSubdomains: true,
+		HidePoweredBy:         true,
 		PermissionsPolicy:     "geolocation=(), microphone=()",
 		Next: func(c *quick.Ctx) bool {
 			return c.Path() == "/public"
