@@ -26,3 +26,5 @@ func main() {
 
 	q.Listen(":8080")
 }
+
+// $ curl -X GET 'http://localhost:8080/v1/user'
