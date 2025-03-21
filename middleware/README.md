@@ -1086,26 +1086,33 @@ $ curl -i -X GET http://localhost:8080/v1/msguuid/default
 - Supports skipping middleware per request
 
 ---
-
 ### 🛡️ Default Headers
 
-By default, the middleware sets the following headers:
-
-- X-XSS-Protection
-- X-Content-Type-Options
-- X-Frame-Options
-- Content-Security-Policy
-- Referrer-Policy
-- Permissions-Policy
-- Cross-Origin-Embedder-Policy
-- Cross-Origin-Opener-Policy
-- Cross-Origin-Resource-Policy
-- Origin-Agent-Cluster
-- X-DNS-Prefetch-Control
-- X-Download-Options
-- X-Permitted-Cross-Domain-Policies
-- Strict-Transport-Security (only for HTTPS requests)
-- Cache-Control
+| Feature                                             | Status | Notes / Observations                                 |
+|-----------------------------------------------------|:------:|------------------------------------------------------|
+| `X-XSS-Protection` header                           |   ✅   | Legacy protection, still included                    |
+| `X-Content-Type-Options: nosniff` header            |   ✅   | Prevents MIME sniffing attacks                       |
+| `X-Frame-Options` header                            |   ✅   | Helps prevent clickjacking                           |
+| `Content-Security-Policy` header                    |   ✅   | Defaults to `default-src 'self'`                     |
+| `CSPReportOnly` support                             |   ✅   | Optional report-only mode for CSP                    |
+| `Referrer-Policy` header                            |   ✅   | Defaults to `no-referrer`                            |
+| `Permissions-Policy` header                         |   ✅   | Controls browser features like camera, mic, etc.     |
+| `Strict-Transport-Security (HSTS)` support          |   ✅   | Adds HSTS for HTTPS requests                         |
+| HSTS options: `maxAge`, `includeSubDomains`, `preload` | ✅   | Fully customizable                                  |
+| `Cache-Control` header                              |   ✅   | Defaults to no-cache, improves response integrity    |
+| `Cross-Origin-Embedder-Policy` header               |   ✅   | Required for certain advanced browser APIs           |
+| `Cross-Origin-Opener-Policy` header                 |   ✅   | Isolates browsing contexts                           |
+| `Cross-Origin-Resource-Policy` header               |   ✅   | Restricts resource access                            |
+| `Origin-Agent-Cluster` header                       |   ✅   | Enables memory isolation in browsers                 |
+| `X-DNS-Prefetch-Control` header                     |   ✅   | Controls browser DNS prefetching                     |
+| `X-Download-Options` header                         |   ✅   | Prevents automatic downloads (IE-specific)           |
+| `X-Permitted-Cross-Domain-Policies` header          |   ✅   | Blocks Flash and Silverlight legacy access           |
+| `Next func(c)` to skip middleware dynamically       |   ✅   | Allows conditional header injection per route        |
+| Secure defaults applied when no options are provided|   ✅   | Based on OWASP and best practices                    |
+| Option naming compatible with Fiber                 |   ✅   | Enables easier migration from Fiber to Quick         |
+| Built-in TLS simulation support in `Qtest`          |   ✅   | Enables full testing of HTTPS-only behavior          |
+| Full HTTP method coverage in `Qtest`                |   ✅   | GET, POST, PUT, PATCH, DELETE, OPTIONS supported     |
+| Extended Qtest assertions (headers, body, etc.)     |   ✅   | Includes `AssertString`, `AssertNoHeader`, and more  |
 
 ---
 
