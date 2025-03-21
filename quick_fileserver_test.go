@@ -11,13 +11,14 @@ import (
 	"testing"
 )
 
-// traditional test
-///
-
-// TestQuickStatic Tests if the static/* server functionality redirects correctly to index.html
-// The will test TestQuickStatic(t *testing.T)
+// TestQuickStatic verifies that the static file server correctly serves content from the local file system.
 //
-//	$ go test -v -run ^TestQuickStatic
+// It sets up a GET route that attempts to serve "static/index.html" and checks if the file is served successfully.
+// This test ensures that static file serving via the local file system works as expected.
+//
+// Run with:
+//
+//	go test -v -run ^TestQuickStatic
 func TestQuickStatic(t *testing.T) {
 	q := New()
 
@@ -65,10 +66,14 @@ func TestQuickStatic(t *testing.T) {
 //go:embed static/*
 var staticFiles embed.FS
 
-// TestQuickStaticDriven Tests if the static/* server functionality redirects correctly to index.html
-// The will test TestQuickStaticDriven(t *testing.T)
+// TestQuickStaticDriven performs table-driven tests to validate static file serving functionality.
 //
-//	$ go test -v -run ^TestQuickStaticDriven
+// It tests both local file system and embedded files (embed.FS) for routes like "/" and "/static/index.html".
+// Each test case checks the expected status code and whether the expected content is present in the response body.
+//
+// Run with:
+//
+//	go test -v -run ^TestQuickStaticDriven
 func TestQuickStaticDriven(t *testing.T) {
 	tests := []struct {
 		name       string // Test case description
@@ -132,12 +137,19 @@ func TestQuickStaticDriven(t *testing.T) {
 	}
 }
 
-// ExampleServeStaticIndex demonstrates how to start the Quick server and serve static files correctly.
-// The will return func ExampleServeStaticIndex()
+// ExampleServeStaticIndex demonstrates how to use the Quick framework to serve static files.
 //
-// Run:
+// This example shows how to configure static file handling using either the local file system or embed.FS.
+// It also demonstrates how to serve a specific file like "index.html" when hitting the root route.
 //
-//	$ go run main.go
+// Example usage:
+//
+//	q := quick.New()
+//	q.Static("/static", "./static")
+//	q.Get("/", func(c *quick.Ctx) error {
+//		c.File("./static/index.html")
+//		return nil
+//	})
 // func ExampleQuick_Static() {
 // 	//Quick Start
 // 	q := New()
