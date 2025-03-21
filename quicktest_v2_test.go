@@ -227,3 +227,57 @@ func TestQTest_Options_OPTIONS(t *testing.T) {
 		t.Errorf("Status assertion failed: %v", err)
 	}
 }
+
+// TestQTest_AdvancedAssertions validates new Qtest assertion helpers and TLS simulation.
+func TestQTest_AdvancedAssertions(t *testing.T) {
+	q := New()
+
+	q.Get("/v1/debug", func(c *Ctx) error {
+		c.Set("X-Debug-Header", "trace-id:abc123")
+		c.Set("X-Powered-By", "QuickTestEngine")
+		c.Set("X-Env", "prod")
+		return c.Status(StatusOK).String("Debug Mode Enabled")
+	})
+
+	opts := QuickTestOptions{
+		Method:     "GET",
+		URI:        "/v1/debug",
+		LogDetails: true,
+		TLS:        true, // Simulate HTTPS request
+	}
+
+	result, err := q.Qtest(opts)
+	if err != nil {
+		t.Fatalf("Error in Qtest: %v", err)
+	}
+
+	// Assert exact response body
+	if err := result.AssertString("Debug Mode Enabled"); err != nil {
+		t.Errorf("AssertString failed: %v", err)
+	}
+
+	// Assert header exists with specific value
+	if err := result.AssertHeader("X-Env", "prod"); err != nil {
+		t.Errorf("AssertHeader failed: %v", err)
+	}
+
+	// Assert that this header does not exist
+	if err := result.AssertNoHeader("X-Missing-Header"); err != nil {
+		t.Errorf("AssertNoHeader failed: %v", err)
+	}
+
+	// Assert header contains substring
+	if err := result.AssertHeaderContains("X-Debug-Header", "trace-id"); err != nil {
+		t.Errorf("AssertHeaderContains failed: %v", err)
+	}
+
+	// Assert header has expected prefix
+	if err := result.AssertHeaderHasPrefix("X-Debug-Header", "trace-id:"); err != nil {
+		t.Errorf("AssertHeaderHasPrefix failed: %v", err)
+	}
+
+	// Assert header is within allowed set
+	if err := result.AssertHeaderHasValueInSet("X-Env", []string{"dev", "stage", "prod"}); err != nil {
+		t.Errorf("AssertHeaderHasValueInSet failed: %v", err)
+	}
+}
