@@ -3385,6 +3385,65 @@ $ curl -X GET 'http://localhost:8080/v1/user'
 }
 ```
 
+## ✨ Using `M` as an Alias for `map[string]interface{}`
+
+The M type is a convenient alias for `map[string]interface{}` in Quick, making JSON response creation cleaner and more readable.
+
+
+### 🔹 In traditional Go code, you would use a `map[string]interface{}` explicitly when returning JSON responses:
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// Define a GET route at "/ping"
+	q.Get("/ping", func(c *quick.Ctx) error {
+		c.Status(200) // Set the HTTP status code
+		return c.JSON(map[string]interface{}{
+			"message": "pong", // JSON response message
+		})
+	})
+
+	// Start the Quick server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+### 🔹 Using `quick.M`, you can simplify the JSON response declaration:
+
+```go
+package main
+
+import (
+    "github.com/jeffotoni/quick"
+)
+
+func main() {
+    app := quick.New()
+
+    app.Get("/ping", func(c *quick.Context) {
+        c.JSON(200, quick.M{
+            "message": "pong",
+        })
+    })
+
+    app.Run()
+}
+
+```
+### 📌 Why Use M?
+
+- Less Boilerplate: Eliminates repetitive map[string]interface{} syntax.
+- Readability: Improves code readability, making JSON responses more intuitive.
+- Convenience: Makes it easier to return JSON responses in handlers.
+
 ---
 ## 📚| More Examples
 
