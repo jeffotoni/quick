@@ -60,6 +60,15 @@ type Options struct {
 
 	// CacheControl sets Cache-Control header
 	CacheControl string
+
+	// HidePoweredBy sets the X-Powered-By header
+	HidePoweredBy bool
+
+	// PoweredBy sets the X-Powered-By header
+	PoweredBy string
+
+	// ServerHeader sets the Server header
+	ServerHeader string
 }
 
 // Helmet returns a Quick-compatible middleware that adds security headers to the response
@@ -145,6 +154,22 @@ func Helmet(opt ...Options) func(next quick.Handler) quick.Handler {
 				c.Set("Cache-Control", options.CacheControl)
 			}
 
+			// remove X-Powered-By and Server headers
+			if options.HidePoweredBy {
+				c.Del("X-Powered-By")
+				c.Del("Server")
+			}
+
+			// X-Powered-By
+			if options.PoweredBy != "" {
+				c.Set("X-Powered-By", options.PoweredBy)
+			}
+
+			// Server
+			if options.ServerHeader != "" {
+				c.Set("Server", options.ServerHeader)
+			}
+
 			return next.ServeQuick(c)
 		})
 	}
@@ -170,6 +195,9 @@ func defaultOptions() Options {
 		HSTSMaxAge:                31536000,
 		HSTSPreloadEnabled:        true,
 		CacheControl:              "no-cache, no-store, must-revalidate",
+		HidePoweredBy:             true,
+		PoweredBy:                 "",
+		ServerHeader:              "",
 	}
 }
 
