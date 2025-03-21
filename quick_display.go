@@ -32,7 +32,7 @@ func (q *Quick) Display(scheme, addr string) {
 		}
 
 		if len(host) == 0 {
-			host = "//127.0.0.1"
+			host = "127.0.0.1"
 		}
 
 		// Display the styled banner
@@ -46,7 +46,7 @@ func (q *Quick) Display(scheme, addr string) {
 		fmt.Println()
 		fmt.Printf("%s%s Quick %s %s🚀 Fast & Minimal Web Framework%s\n", Bold, Cyan, QuickVersion, Yellow, Reset)
 		fmt.Println("─────────────────── ───────────────────────────────")
-		fmt.Printf("%s 🌎 Host : %s%s:%s%s\n", Yellow, Green, scheme, host, Reset)
+		fmt.Printf("%s 🌎 Host : %s%s://%s%s\n", Yellow, Green, scheme, host, Reset)
 		fmt.Printf("%s 📌 Port : %s%s%s\n", Yellow, Green, port, Reset)
 		fmt.Printf("%s 🔀 Routes: %s%d%s\n", Yellow, Green, routeCount, Reset)
 		fmt.Println("─────────────────── ───────────────────────────────")
