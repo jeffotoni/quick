@@ -1,3 +1,27 @@
+// Package helmet provides middleware for the Quick framework that sets various
+// HTTP headers to help secure your application.
+//
+// Inspired by Helmet in the Node.js ecosystem, this package includes protections
+// against well-known web vulnerabilities by configuring headers such as:
+//
+//   - X-XSS-Protection
+//   - X-Content-Type-Options
+//   - X-Frame-Options
+//   - Content-Security-Policy
+//   - Referrer-Policy
+//   - Permissions-Policy
+//   - Cross-Origin-Embedder-Policy
+//   - Cross-Origin-Opener-Policy
+//   - Cross-Origin-Resource-Policy
+//   - Origin-Agent-Cluster
+//   - X-DNS-Prefetch-Control
+//   - X-Download-Options
+//   - X-Permitted-Cross-Domain-Policies
+//   - Strict-Transport-Security
+//   - Cache-Control
+//
+// It provides secure defaults, but allows customization via the Options struct.
+// You can skip the middleware for specific requests by providing a Next function.
 package helmet
 
 import (
@@ -6,7 +30,9 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-// Options defines the configuration for Helmet middleware, using the same field names as Fiber
+// Options defines the configuration for the Helmet middleware.
+// All fields map to specific HTTP headers that enhance security.
+// These options can override the default behavior provided by the middleware.
 type Options struct {
 	// Next defines a function to skip the middleware
 	Next func(c *quick.Ctx) bool
@@ -62,7 +88,55 @@ type Options struct {
 	CacheControl string
 }
 
-// Helmet returns a Quick-compatible middleware that adds security headers to the response
+// Helmet returns a Quick-compatible middleware that adds security-related HTTP headers.
+//
+// Usage:
+//
+//	q.Use(helmet.Helmet(helmet.Options{
+//	    XSSProtection:         "1; mode=block",
+//	    ContentTypeNosniff:    "nosniff",
+//	    XFrameOptions:         "DENY",
+//	    ContentSecurityPolicy: "default-src 'self';",
+//	    HSTSMaxAge:            63072000,
+//	    HSTSPreloadEnabled:    true,
+//	}))
+//
+// The middleware adds the following headers (depending on the configuration):
+//   - X-XSS-Protection
+//   - X-Content-Type-Options
+//   - X-Frame-Options
+//   - Content-Security-Policy / Content-Security-Policy-Report-Only
+//   - Referrer-Policy
+//   - Permissions-Policy
+//   - Cross-Origin-Embedder-Policy
+//   - Cross-Origin-Opener-Policy
+//   - Cross-Origin-Resource-Policy
+//   - Origin-Agent-Cluster
+//   - X-DNS-Prefetch-Control
+//   - X-Download-Options
+//   - X-Permitted-Cross-Domain-Policies
+//   - Strict-Transport-Security (only for HTTPS requests)
+//   - Cache-Control
+//
+// You can override default values by passing a custom Options struct.
+// Usage Example:
+//
+//	func secureApp() {
+//	    q := quick.New()
+//	    q.Use(helmet.Helmet()) // Use with defaults
+//
+//	    // Or customize:
+//	    q.Use(helmet.Helmet(helmet.Options{
+//	        XFrameOptions: "DENY",
+//	        HSTSMaxAge:    31536000,
+//	    }))
+//
+//	    q.Get("/", func(c *quick.Ctx) error {
+//	        return c.SendString("Hello, secure world!")
+//	    })
+//	}
+//
+// If the Next function is defined and returns true, the middleware is skipped.
 func Helmet(opt ...Options) func(next quick.Handler) quick.Handler {
 	return func(next quick.Handler) quick.Handler {
 		// Apply default options
@@ -150,7 +224,8 @@ func Helmet(opt ...Options) func(next quick.Handler) quick.Handler {
 	}
 }
 
-// defaultOptions provides secure default values
+// defaultOptions returns a set of secure default values for the Helmet middleware.
+// These defaults aim to provide sensible protection out-of-the-box.
 func defaultOptions() Options {
 	return Options{
 		XSSProtection:             "0",
@@ -173,7 +248,8 @@ func defaultOptions() Options {
 	}
 }
 
-// setIfNotEmpty sets header only if the value is not empty
+// setIfNotEmpty sets a response header only if the provided value is not empty.
+// It's used internally to avoid setting headers with blank values.
 func setIfNotEmpty(c *quick.Ctx, key, value string) {
 	if value != "" {
 		c.Set(key, value)

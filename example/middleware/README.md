@@ -82,6 +82,16 @@ Assigns a unique MsgID (Message Identifier) to each request.
 - Automatically generates and appends a MsgID to every request and response.
 
 ---
+## 🛡️ Helmet
+
+Provides sensible security defaults while allowing full customization.
+
+- Sets common security-related HTTP headers
+- Provides secure defaults
+- Easily customizable via `Options` struct
+- Supports skipping middleware per request
+
+---
 
 ## 🚧 **Coming soon!**
 - Etag
