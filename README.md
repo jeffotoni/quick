@@ -3284,7 +3284,7 @@ $ curl -i -X GET http://localhost:8080/v1/msguuid/default
 }
 ```
 ---
-## 🛡️ Helmet Middleware in Quick ![Quick Logo](/quick.png)
+## 🛡️ Helmet 
 
 **Helmet** is a middleware this package provides sensible security defaults while allowing full customization.
 
