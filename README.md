@@ -5,12 +5,6 @@
 
 <!-- [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) -->
 
-<h2 align="center">
-    <p>
-         <a href="README.md">English</a> |
-          <a href="README.pt-br.md">Рortuguês</a>
-    </p> 
-</h2>
 
 ```bash
    ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗
