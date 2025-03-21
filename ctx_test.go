@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -9,9 +18,15 @@ import (
 	"testing"
 )
 
-// TestCtx_Bind tests if the Bind function correctly binds request data to a struct
-// The will test func TestCtx_Bind(t *testing.T)
-// go test -v -run ^TestCtx_Bind$
+// TestCtx_Bind validates whether the Ctx.Bind() function properly binds the request body into a given struct.
+//
+// This test ensures that:
+//   - JSON payloads are correctly unmarshaled into the target structure.
+//   - Errors are properly returned when the binding fails.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Bind$
 func TestCtx_Bind(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -53,9 +68,14 @@ func TestCtx_Bind(t *testing.T) {
 	}
 }
 
-// TestCtx_BodyParser tests whether BodyParser correctly parses the request body
-// The will test func TestCtx_BodyParser(t *testing.T)
-// go test -v -run ^TestCtx_BodyParser$
+// TestCtx_BodyParser checks if the Ctx.BodyParser method correctly parses the request body
+// and maps it to the given struct.
+//
+// It ensures that BodyParser correctly handles JSON decoding.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_BodyParser$
 func TestCtx_BodyParser(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -97,9 +117,14 @@ func TestCtx_BodyParser(t *testing.T) {
 	}
 }
 
-// TestCtx_Param checks if Param retrieves the correct value for a given parameter key
-// The will test func TestCtx_Param(t *testing.T)
-// go test -v -run ^TestCtx_Param$
+// TestCtx_Param ensures that the Ctx.Param method retrieves the correct route parameter
+// based on the provided key.
+//
+// Useful for validating route variable extraction.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Param$
 func TestCtx_Param(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -141,9 +166,12 @@ func TestCtx_Param(t *testing.T) {
 	}
 }
 
-// TestCtx_Body verifies that Body() returns the expected request body content
-// The will test func TestCtx_Body(t *testing.T)
-// go test -v -run ^TestCtx_Body$
+// TestCtx_Body verifies whether Ctx.Body returns the expected byte slice representing
+// the raw request body content.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Body$
 func TestCtx_Body(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -181,9 +209,13 @@ func TestCtx_Body(t *testing.T) {
 	}
 }
 
-// TestCtx_BodyString verifies that BodyString() correctly returns the body as a string
-// The will test func TestCtx_BodyString(t *testing.T)
-// go test -v -run ^TestCtx_BodyString$
+// TestCtx_BodyString verifies whether Ctx.BodyString returns the request body content as a string.
+//
+// It is helpful to check if text content can be retrieved from request payloads.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_BodyString$
 func TestCtx_BodyString(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -221,9 +253,15 @@ func TestCtx_BodyString(t *testing.T) {
 	}
 }
 
-// TestCtx_Methods_JSON verifies that JSON responses are properly returned
-// The will test func TestCtx_Methods_JSON(t *testing.T)
-// go test -v -run ^TestCtx_Methods_JSON$
+// TestCtx_Methods_JSON ensures that JSON responses are properly serialized and returned by the Ctx.JSON() method.
+//
+// It registers a POST route and sends a request using QuickTest to validate:
+//   - The response status code is HTTP 200 OK.
+//   - The response body is correctly formatted as a JSON string.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Methods_JSON$
 func TestCtx_Methods_JSON(t *testing.T) {
 
 	q := New()
@@ -249,9 +287,12 @@ func TestCtx_Methods_JSON(t *testing.T) {
 	}
 }
 
-// TestCtx_JSON verifies that the JSON function correctly encodes the response body
-// The will test func TestCtx_JSON(t *testing.T)
-// go test -v -run ^TestCtx_JSON$
+// TestCtx_JSON ensures that Ctx.JSON serializes the given struct or map and writes it
+// as a JSON response with the appropriate headers.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_JSON$
 func TestCtx_JSON(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -293,9 +334,12 @@ func TestCtx_JSON(t *testing.T) {
 	}
 }
 
-// TestCtx_XML ensures that XML responses are properly returned
-// The will test func TestCtx_XML(t *testing.T)
-// go test -v -run ^TestCtx_XML$
+// TestCtx_XML checks that the Ctx.XML method serializes the input struct and returns
+// an XML response.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_XML$
 func TestCtx_XML(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -337,9 +381,12 @@ func TestCtx_XML(t *testing.T) {
 	}
 }
 
-// TestCtx_writeResponse tests the function that writes raw response bytes
-// The will test func TestCtx_writeResponse(t *testing.T)
-// go test -v -run ^TestCtx_writeResponse$
+// TestCtx_writeResponse verifies that the internal method writeResponse writes the raw byte
+// data to the response correctly.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_writeResponse$
 func TestCtx_writeResponse(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -381,9 +428,12 @@ func TestCtx_writeResponse(t *testing.T) {
 	}
 }
 
-// TestCtx_Byte checks if byte responses are correctly sent
-// The will test func TestCtx_Byte(t *testing.T)
-// go test -v -failfast -count=1 -run ^TestCtx_Byte$
+// TestCtx_Byte verifies that the Byte method correctly writes raw bytes
+// to the response body.
+//
+// To run:
+//
+//	$ go test -v -failfast -count=1 -run ^TestCtx_Byte$
 func TestCtx_Byte(t *testing.T) {
 	type args struct {
 		response string
@@ -429,9 +479,12 @@ func TestCtx_Byte(t *testing.T) {
 	}
 }
 
-// TestCtx_Send verifies the function that sends raw byte responses
-// The will test func TestCtx_Send(t *testing.T)
-// go test -v -failfast -count=1 -run ^TestCtx_Send$
+// TestCtx_Send checks if the Send method sends raw byte responses correctly,
+// without modifying or formatting them.
+//
+// To run:
+//
+//	$ go test -v -failfast -count=1 -run ^TestCtx_Send$
 func TestCtx_Send(t *testing.T) {
 	type args struct {
 		response string
@@ -477,9 +530,11 @@ func TestCtx_Send(t *testing.T) {
 	}
 }
 
-// TestCtx_SendString verifies that the SendString function correctly sends string responses
-// The will test func TestCtx_SendString(t *testing.T)
-// go test -v -run ^TestCtx_SendString$
+// TestCtx_SendString tests if the Ctx.SendString method sends the correct string response.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_SendString$
 func TestCtx_SendString(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -521,9 +576,12 @@ func TestCtx_SendString(t *testing.T) {
 	}
 }
 
-// TestCtx_String ensures that the String function correctly formats string responses
-// The will test func TestCtx_String(t *testing.T)
-// go test -v -failfast -count=1 -run ^TestCtx_String$
+// TestCtx_String ensures that the String method sends plain string content
+// as the response body.
+//
+// To run:
+//
+//	$ go test -v -failfast -count=1 -run ^TestCtx_String$
 func TestCtx_String(t *testing.T) {
 	type args struct {
 		response string
@@ -569,9 +627,12 @@ func TestCtx_String(t *testing.T) {
 	}
 }
 
-// TestCtx_SendFile verifies that files are properly sent using SendFile
-// The will test func TestCtx_SendFile(t *testing.T)
-// go test -v -run ^TestCtx_SendFile$
+// TestCtx_SendFile tests whether Ctx.SendFile writes the given byte slice as file content
+// in the response body.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_SendFile$
 func TestCtx_SendFile(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -613,9 +674,12 @@ func TestCtx_SendFile(t *testing.T) {
 	}
 }
 
-// TestCtx_Set ensures that headers can be correctly set using Set
-// The will test func TestCtx_Set(t *testing.T)
-// go test -v -run ^TestCtx_Set$
+// TestCtx_Send checks if the Send method sends raw byte responses correctly,
+// without modifying or formatting them.
+//
+// To run:
+//
+//	$ go test -v -failfast -count=1 -run ^TestCtx_Send$
 func TestCtx_Set(t *testing.T) {
 	type fields struct {
 		Response http.ResponseWriter
@@ -674,9 +738,12 @@ func TestCtx_Set(t *testing.T) {
 	}
 }
 
-// TestCtx_Append verifies that new header values can be appended correctly
-// The will test func TestCtx_Append(t *testing.T)
-// go test -v -run ^TestCtx_Append$
+// TestCtx_Append ensures that the Append method correctly adds headers,
+// even when the header key already exists (appending instead of replacing).
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Append$
 func TestCtx_Append(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -742,9 +809,12 @@ func TestCtx_Append(t *testing.T) {
 	}
 }
 
-// TestCtx_Accepts checks whether content types are correctly validated
-// The will test func TestCtx_Accepts(t *testing.T)
-// go test -v -run ^TestCtx_Accepts$
+// TestCtx_Accepts ensures that Ctx.Accepts correctly evaluates the Accept header
+// to determine if the content type is acceptable.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Accepts$
 func TestCtx_Accepts(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -786,9 +856,11 @@ func TestCtx_Accepts(t *testing.T) {
 	}
 }
 
-// TestCtx_Status ensures that status codes are properly set
-// The will test func TestCtx_Status(t *testing.T)
-// go test -v -run ^TestCtx_Status$
+// TestCtx_Status validates that calling Ctx.Status sets the correct status code for the response.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Status$
 func TestCtx_Status(t *testing.T) {
 	type fields struct {
 		Response  http.ResponseWriter
@@ -830,17 +902,21 @@ func TestCtx_Status(t *testing.T) {
 	}
 }
 
-// TestCtxMethods validates the methods of the Quick context (Ctx).
-// It tests whether the Ctx abstractions correctly retrieve and parse HTTP request data,
-// such as headers, IP address, HTTP method, URL path, and query parameters.
+// TestCtxMethods validates multiple Ctx methods for extracting request data.
 //
-// It ensures the following methods work as expected:
-// - Ctx.GetHeader()
-// - Ctx.GetHeaders()
-// - Ctx.RemoteIP()
-// - Ctx.Method()
-// - Ctx.Path()
-// - Ctx.QueryParam()
+// It checks if headers, IP address, method, path, and query parameters are correctly retrieved.
+//
+// Check:
+//   - Ctx.GetHeader()
+//   - Ctx.GetHeaders()
+//   - Ctx.RemoteIP()
+//   - Ctx.Method()
+//   - Ctx.Path()
+//   - Ctx.QueryParam()
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtxMethods$
 func TestCtxMethods(t *testing.T) {
 	// Prepare the test request
 	req := httptest.NewRequest(http.MethodGet, "/testpath?search=golang", nil)

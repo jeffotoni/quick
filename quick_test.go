@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -16,8 +25,10 @@ import (
 	"time"
 )
 
-// TestNew ensures that creating a new Quick instance returns a valid object
-// The result will TestNew(expected any) error
+// TestNew verifies the behavior of creating a new Quick instance using default and custom configuration.
+//
+// The first subtest ensures that a default Quick instance is not nil.
+// The second subtest checks if the custom configuration is correctly applied.
 func TestNew(t *testing.T) {
 	t.Run("New instance with default config", func(t *testing.T) {
 		q := New()
@@ -35,8 +46,9 @@ func TestNew(t *testing.T) {
 	})
 }
 
-// TestExtractHandler test if an unknown HTTP method returns nil
-// The result will TestExtractHandler(expected any) error
+// TestExtractHandler verifies that extractHandler returns nil when an unknown HTTP method is provided.
+//
+// It ensures that routes with unsupported methods are not registered.
 func TestExtractHandler(t *testing.T) {
 	t.Run("Returns nil for unknown method", func(t *testing.T) {
 		handler := extractHandler(New(), "UNKNOWN", "/path", "", func(c *Ctx) error { return nil })
@@ -46,8 +58,9 @@ func TestExtractHandler(t *testing.T) {
 	})
 }
 
-// TestExtractParamsPattern test if extracting parameters from a route works correctly
-// The result will TestExtractParamsPattern(expected any) error
+// TestExtractParamsPattern verifies the behavior of extractParamsPattern when parsing route patterns.
+//
+// It ensures that when the route pattern has only one parameter (index == 1), the returned base path is "/".
 func TestExtractParamsPattern(t *testing.T) {
 	t.Run("Index == 1 case", func(t *testing.T) {
 		path, _, _ := extractParamsPattern("/:id")
@@ -57,8 +70,9 @@ func TestExtractParamsPattern(t *testing.T) {
 	})
 }
 
-// TestExtractParamsGet Test handling of a GET request with nil context
-// The result will TestExtractParamsGet(expected any) error
+// TestExtractParamsGet verifies the behavior of extractParamsGet when handling a GET request with a nil context.
+//
+// It ensures that when no matching route context is found, the response returns a 404 status code.
 func TestExtractParamsGet(t *testing.T) {
 	t.Run("Handles nil context value", func(t *testing.T) {
 		q := New()
@@ -74,8 +88,10 @@ func TestExtractParamsGet(t *testing.T) {
 	})
 }
 
-// TestExtractParamsPost test handling of a POST request with oversized body
-// The result will TestExtractParamsPost(expected any) error
+// TestExtractParamsPost verifies the behavior of extractParamsPost when handling POST requests.
+//
+// It ensures that requests with nil context return 404, and that requests with a body exceeding MaxBodySize
+// are rejected with a 413 Request Entity Too Large status.
 func TestExtractParamsPost(t *testing.T) {
 	t.Run("Handles nil context value", func(t *testing.T) {
 		q := New()
@@ -105,8 +121,11 @@ func TestExtractParamsPost(t *testing.T) {
 	})
 }
 
-// TestExtractParamsOptions test handling of an OPTIONS request with an error in the handler
-// The result will TestExtractParamsOptions(expected any) error
+// TestExtractParamsOptions verifies the behavior of extractParamsOptions for handling OPTIONS requests.
+//
+// It tests two scenarios:
+//  1. If the handler function returns an error, the response should have status 500 Internal Server Error.
+//  2. If no handler is provided, the response should return status 204 No Content.
 func TestExtractParamsOptions(t *testing.T) {
 	t.Run("Handles error in handler function", func(t *testing.T) {
 		q := New()
@@ -137,8 +156,11 @@ func TestExtractParamsOptions(t *testing.T) {
 	})
 }
 
-// TestExtractParamsPut test if a PUT request rejects an oversized body.
-// The result will TestExtractParamsPut(expected any) error
+// TestExtractParamsPut validates the behavior of extractParamsPut for PUT requests.
+//
+// It covers two cases:
+//  1. When the request context is nil, it should respond with 404 Not Found.
+//  2. When the request body exceeds MaxBodySize, it should respond with 413 Request Entity Too Large.
 func TestExtractParamsPut(t *testing.T) {
 	t.Run("Handles nil context value", func(t *testing.T) {
 		q := New()
@@ -168,8 +190,10 @@ func TestExtractParamsPut(t *testing.T) {
 	})
 }
 
-// TestExtractParamsDelete test if a DELETE request with nil context is handled properly.
-// The result will TestExtractParamsDelete(expected any) error
+// TestExtractParamsDelete validates the behavior of extractParamsDelete for DELETE requests.
+//
+// It ensures that when the request context is nil or does not match any route,
+// the server responds with a 404 Not Found status code.
 func TestExtractParamsDelete(t *testing.T) {
 	t.Run("Handles nil context value", func(t *testing.T) {
 		q := New()
@@ -185,8 +209,10 @@ func TestExtractParamsDelete(t *testing.T) {
 	})
 }
 
-// TestExecHandleFunc test if a TLS server starts and responds correctly.
-// The result will TestExecHandleFunc(expected any) error
+// TestExecHandleFunc validates the execution of a handler function using execHandleFunc.
+//
+// It ensures that the response is correctly set to 200 OK when the handler succeeds,
+// and 500 Internal Server Error when the handler returns an error.
 func TestExecHandleFunc(t *testing.T) {
 	t.Run("Executes handler function successfully", func(t *testing.T) {
 		c := &Ctx{Response: httptest.NewRecorder()}
@@ -210,8 +236,9 @@ func TestExecHandleFunc(t *testing.T) {
 	})
 }
 
-// TestStatic tests if invalid parameters cause a panic
-// The result will TestStatic(expected any) error
+// TestStatic ensures that passing an invalid parameter to Static triggers a panic.
+//
+// It verifies that calling Static with a non-string or non-struct path parameter causes a controlled panic.
 func TestStatic(t *testing.T) {
 	t.Run("Panic on invalid parameter", func(t *testing.T) {
 		defer func() {
@@ -224,8 +251,9 @@ func TestStatic(t *testing.T) {
 	})
 }
 
-// TestMWWrapper_Cover tests if middleware is correctly applied
-// The result will TestMWWrapper_Cover(expected any) error
+// TestMWWrapper_Cover checks if a middleware function is properly wrapped and applied.
+//
+// It validates that a middleware can add a custom header and that the header is present in the final response.
 func TestMWWrapper_Cover(t *testing.T) {
 	t.Run("Applies middleware", func(t *testing.T) {
 		q := New()
@@ -248,8 +276,9 @@ func TestMWWrapper_Cover(t *testing.T) {
 	})
 }
 
-// TestListenWithShutdown_Cover tests if the server starts and shuts down correctly
-// The result will TestListenWithShutdown_Cover(expected any) error
+// TestListenWithShutdown_Cover verifies that the server starts and shuts down without errors.
+//
+// It checks that ListenWithShutdown returns a valid server instance and allows graceful termination.
 func TestListenWithShutdown_Cover(t *testing.T) {
 	t.Run("Starts and shuts down server", func(t *testing.T) {
 		q := New()
@@ -265,8 +294,9 @@ func TestListenWithShutdown_Cover(t *testing.T) {
 	})
 }
 
-// TestListenWithShutdown tests if the server starts and shuts down with PRINT_SERVER=true
-// The result will TestListenWithShutdown(expected any) error
+// TestListenWithShutdown checks server behavior when NoBanner config is set.
+//
+// It ensures the server starts and shuts down correctly when configured with NoBanner.
 func TestListenWithShutdown(t *testing.T) {
 	t.Run("Starts and shuts down server with NoBanner", func(t *testing.T) {
 		q := New(Config{
@@ -285,8 +315,9 @@ func TestListenWithShutdown(t *testing.T) {
 	})
 }
 
-// TestExecHandler tests if a wrapped handler executes successfully
-// The result will TestExecHandler(expected any) error
+// TestExecHandler confirms that the execHandler properly executes the wrapped handler.
+//
+// It ensures the final HTTP response is correctly returned with status 200 OK.
 func TestExecHandler(t *testing.T) {
 	t.Run("Executes wrapped handler", func(t *testing.T) {
 		q := New()
@@ -304,8 +335,9 @@ func TestExecHandler(t *testing.T) {
 	})
 }
 
-// TestCorsHandler tests if the CORS middleware is applied correctly
-// The result will TestCorsHandler(expected any) error
+// TestCorsHandler ensures that a CORS middleware is correctly applied.
+//
+// It validates that the "Access-Control-Allow-Origin" header is included in the response.
 func TestCorsHandler(t *testing.T) {
 	t.Run("Applies CORS middleware", func(t *testing.T) {
 		q := New()
@@ -328,8 +360,9 @@ func TestCorsHandler(t *testing.T) {
 	})
 }
 
-// TestHttpServer tests if the server is correctly created with the expected handler
-// The result will TestHttpServer(expected any) error
+// TestHttpServer verifies the correct creation of the internal HTTP server.
+//
+// It ensures the handler is set when execHandler or CORS handler is used based on config.
 func TestHttpServer(t *testing.T) {
 	t.Run("Creates server with execHandler", func(t *testing.T) {
 		q := New()
@@ -354,8 +387,10 @@ func TestHttpServer(t *testing.T) {
 	})
 }
 
-// TestCreateParamsAndValid tests if regex parameters are correctly extracted from URLs
-// The result will TestCreateParamsAndValid(expected any) error
+// TestCreateParamsAndValid ensures that parameters using regex patterns are correctly extracted from URLs.
+//
+// It validates that when the route contains a pattern like "/users/{id:[0-9]+}",
+// a matching request like "/users/123" correctly extracts "123" as the "id" parameter.
 func TestCreateParamsAndValid(t *testing.T) {
 	t.Run("Handles regex parameter", func(t *testing.T) {
 		params, valid := createParamsAndValid("/users/123", "/users/{id:[0-9]+}")
@@ -371,12 +406,14 @@ func TestCreateParamsAndValid(t *testing.T) {
 // errorReader is an io.Reader that always returns an error.
 type errorReader struct{}
 
+// Read implements the io.Reader interface and always returns an error.
 func (errorReader) Read([]byte) (int, error) {
 	return 0, errors.New("test error")
 }
 
-// TestMWWrapper tests if a middleware function is correctly applied
-// The result will TestMWWrapper(expected any) error
+// TestMWWrapper checks whether middleware functions are properly applied.
+//
+// It validates that middleware can inject headers into the response before passing control to the handler.
 func TestMWWrapper(t *testing.T) {
 	t.Run("Applies middleware function", func(t *testing.T) {
 		q := New()
@@ -399,8 +436,9 @@ func TestMWWrapper(t *testing.T) {
 	})
 }
 
-// TestExtractBodyBytes tests if an error is handled correctly when reading the request body
-// The result will TestExtractBodyBytes(expected any) error
+// TestExtractBodyBytes ensures that reading from a request body handles I/O errors gracefully.
+//
+// It uses a simulated reader that always fails to validate error handling logic.
 func TestExtractBodyBytes(t *testing.T) {
 	t.Run("Handles error reading body", func(t *testing.T) {
 		// Force read error
@@ -414,8 +452,9 @@ func TestExtractBodyBytes(t *testing.T) {
 	})
 }
 
-// TestListen verifies if the server starts and runs successfully
-// The result will TestListen(expected any) error
+// TestListen verifies if the Quick server starts without panics or errors.
+//
+// It launches a server on an ephemeral port and ensures it runs for a short duration.
 func TestListen(t *testing.T) {
 	t.Run("Listen starts and runs", func(t *testing.T) {
 		q := New()
@@ -427,8 +466,9 @@ func TestListen(t *testing.T) {
 	})
 }
 
-// TestCreateParamsAndValid_RegexScenarios tests various regex matching cases for URL parameters
-// The result will TestCreateParamsAndValid_RegexScenarios(expected any) error
+// TestCreateParamsAndValid_RegexScenarios tests various regex route patterns for parameter extraction.
+//
+// It covers cases such as alphabetic, numeric, uppercase mismatch, and invalid parameter names.
 func TestCreateParamsAndValid_RegexScenarios(t *testing.T) {
 	t.Run("Fails on non-matching numeric regex", func(t *testing.T) {
 		// It should fail because 'abc' does not match [0-9]+
@@ -482,8 +522,9 @@ func TestCreateParamsAndValid_RegexScenarios(t *testing.T) {
 	})
 }
 
-// TestMWWrapper_CustomMiddleware tests if a custom middleware function is correctly applied
-// The result will TestMWWrapper_CustomMiddleware(expected any) error
+// TestMWWrapper_CustomMiddleware checks if custom middleware using a 3-argument function signature is applied correctly.
+//
+// It verifies that the middleware adds a header and allows the handler to respond successfully.
 func TestMWWrapper_CustomMiddleware(t *testing.T) {
 	q := New()
 
@@ -517,8 +558,9 @@ func TestMWWrapper_CustomMiddleware(t *testing.T) {
 	}
 }
 
-// TestListen_ErrorCase tests if an error is returned when trying to listen on an occupied port
-// The result will TestListen_ErrorCase(expected any) error
+// TestListen_ErrorCase ensures that the server returns an error when attempting to listen on a port that is already in use.
+//
+// It pre-binds the port using net.Listen to simulate the conflict.
 func TestListen_ErrorCase(t *testing.T) {
 	q := New()
 
@@ -533,8 +575,10 @@ func TestListen_ErrorCase(t *testing.T) {
 	}
 }
 
-// TestCreateParamsAndValid_NoMatch tests if non-matching routes return nil and false
-// The result will TestCreateParamsAndValid_NoMatch(expected any) error
+// TestCreateParamsAndValid_NoMatch ensures that non-matching routes return nil parameters and false validity.
+//
+// It verifies that if the actual request path does not match the route pattern,
+// the parameter map is nil and the match is considered invalid.
 func TestCreateParamsAndValid_NoMatch(t *testing.T) {
 	t.Run("Returns nil and false for non-matching routes", func(t *testing.T) {
 		params, valid := createParamsAndValid("/wrong/path", "/expected/{id:[0-9]+}")
@@ -548,8 +592,9 @@ func TestCreateParamsAndValid_NoMatch(t *testing.T) {
 	})
 }
 
-// TestCreateParamsAndValid_EmptyParamName tests if an empty param name returns nil and false
-// The result will TestCreateParamsAndValid_EmptyParamName(expected any) error
+// TestCreateParamsAndValid_EmptyParamName ensures that an empty parameter name in the route pattern results in an invalid match.
+//
+// It checks that route patterns like "/users/:" are not accepted and return nil parameters and false validity.
 func TestCreateParamsAndValid_EmptyParamName(t *testing.T) {
 	t.Run("Returns nil and false for empty param name", func(t *testing.T) {
 		params, valid := createParamsAndValid("/users/123", "/users/:")
@@ -563,8 +608,9 @@ func TestCreateParamsAndValid_EmptyParamName(t *testing.T) {
 	})
 }
 
-// TestCreateParamsAndValid_BuilderMismatch tests if mismatched reconstructed paths return nil and false
-// The result will TestCreateParamsAndValid_BuilderMismatch(expected any) error
+// TestCreateParamsAndValid_BuilderMismatch verifies that mismatched reconstructed paths fail to validate.
+//
+// It simulates a case where the requested path and route pattern lead to a different reconstructed path.
 func TestCreateParamsAndValid_BuilderMismatch(t *testing.T) {
 	t.Run("Returns nil and false if reconstructed path does not match", func(t *testing.T) {
 		params, valid := createParamsAndValid("/users/123", "/users/456")
@@ -578,8 +624,9 @@ func TestCreateParamsAndValid_BuilderMismatch(t *testing.T) {
 	})
 }
 
-// TestCreateParamsAndValid_PathMismatch tests if mismatched paths return nil and false
-// The result will TestCreateParamsAndValid_PathMismatch(expected any) error
+// TestCreateParamsAndValid_PathMismatch ensures that paths with structural differences fail to match.
+//
+// For example, "/users/123/profile" should not match "/users/:id/settings".
 func TestCreateParamsAndValid_PathMismatch(t *testing.T) {
 	t.Run("Returns nil and false when the reconstructed path does not match the request URI", func(t *testing.T) {
 		params, valid := createParamsAndValid("/users/123/profile", "/users/:id/settings")
@@ -593,8 +640,9 @@ func TestCreateParamsAndValid_PathMismatch(t *testing.T) {
 	})
 }
 
-// TestRegisterRoute_WithRegexParamPanic tests if the server correctly registers a route with regex parameters
-// The result will TestRegisterRoute_WithRegexParamPanic(expected any) error
+// TestRegisterRoute_WithRegexParamPanic validates that a route with a regex parameter is registered and matched correctly.
+//
+// It tests the case "/v1/user/{id:[0-9]+}" and ensures the route executes and responds as expected.
 func TestRegisterRoute_WithRegexParamPanic(t *testing.T) {
 	q := New()
 
@@ -621,10 +669,12 @@ func TestRegisterRoute_WithRegexParamPanic(t *testing.T) {
 	}
 }
 
+// TestListenTLS starts a TLS server using cert/key files and verifies successful response.
+//
+// It simulates a request to a secure endpoint and expects an HTTP 200 OK status.
+//
 // $ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"
 // $ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
-// TestListenTLS tests if a TLS server starts and responds correctly
-// The result will TestListenTLS(expected any) error
 func TestListenTLS(t *testing.T) {
 	q := New()
 
@@ -664,10 +714,12 @@ func TestListenTLS(t *testing.T) {
 	_ = q.Shutdown()
 }
 
-// TestListenTLSH2 tests if a TLS server starts and responds correctly
+// TestListenTLSH2 starts a TLS server with HTTP/2 support and ensures it responds correctly.
+//
+// It uses a client to make a secure request and verifies the status and response.
+//
 // $ curl -i -X GET -H "Content-Type: application/json" --http2 -v https://localhost:443/v1/user
 // $ curl -i -X GET -H "Content-Type: application/json" --http2 -k https://localhost:443/v1/user
-// The result will TestListenTLS(expected any) error
 func TestListenTLSH2(t *testing.T) {
 	q := New()
 
@@ -707,7 +759,9 @@ func TestListenTLSH2(t *testing.T) {
 	_ = q.Shutdown()
 }
 
-// The result will TestResponseWriterPool
+// TestResponseWriterPool validates the behavior of the response writer pooling system.
+//
+// It ensures the buffer is initialized, reused, and reset between uses.
 func TestResponseWriterPool(t *testing.T) {
 	w := httptest.NewRecorder()
 
@@ -734,7 +788,9 @@ func TestResponseWriterPool(t *testing.T) {
 	releaseResponseWriter(rw2)
 }
 
-// The result will TestHttpServerTLS
+// TestHttpServerTLS confirms that a server with TLS configuration is created correctly.
+//
+// It verifies that the handler is set and ready to serve.
 func TestHttpServerTLS(t *testing.T) {
 	q := New()
 	q.Cors = true
@@ -749,7 +805,9 @@ func TestHttpServerTLS(t *testing.T) {
 	}
 }
 
-// The result will TestQuick_ListenTLS_GCPercent
+// TestQuick_ListenTLS_GCPercent ensures that the GC percent configuration is applied before starting the server.
+//
+// It compares the configured value against the runtime value.
 func TestQuick_ListenTLS_GCPercent(t *testing.T) {
 	q := New()
 	q.config.GCPercent = 100
@@ -768,7 +826,9 @@ func TestQuick_ListenTLS_GCPercent(t *testing.T) {
 	}
 }
 
-// The result will TestQuick_StartServerWithGracefulShutdown
+// TestQuick_StartServerWithGracefulShutdown verifies that the server can shut down gracefully when receiving a signal.
+//
+// It simulates an interrupt signal and expects no errors during shutdown.
 func TestQuick_StartServerWithGracefulShutdown(t *testing.T) {
 	listener, _ := net.Listen("tcp", "localhost:0")
 	defer listener.Close()
@@ -788,7 +848,9 @@ func TestQuick_StartServerWithGracefulShutdown(t *testing.T) {
 	}
 }
 
-// The result will TestQuick_Shutdown
+// TestQuick_Shutdown validates that the Shutdown method completes successfully without error.
+//
+// It is a basic check to ensure cleanup operations don't fail.
 func TestQuick_Shutdown(t *testing.T) {
 	q := New()
 	err := q.Shutdown()
@@ -797,7 +859,9 @@ func TestQuick_Shutdown(t *testing.T) {
 	}
 }
 
-// The result will TestExtractParamsBind_UnsupportedContentType
+// TestExtractParamsBind_UnsupportedContentType ensures that unsupported content types return an error.
+//
+// It simulates a request with an invalid content-type like "text/plain" and expects a failure.
 func TestExtractParamsBind_UnsupportedContentType(t *testing.T) {
 	// Prepare the request with an unsupported content-type
 	req := httptest.NewRequest("POST", "/", strings.NewReader(`{"name":"Quick"}`))
@@ -820,7 +884,9 @@ func TestExtractParamsBind_UnsupportedContentType(t *testing.T) {
 	}
 }
 
-// The result will TestExtractParamsBind_InvalidXMLContent
+// TestExtractParamsBind_InvalidXMLContent ensures that invalid XML data results in a parsing error.
+//
+// It provides malformed XML and checks that the system returns an appropriate error.
 func TestExtractParamsBind_InvalidXMLContent(t *testing.T) {
 	// Prepare the request with invalid XML content
 	body := strings.NewReader("<invalid><xml>")
@@ -840,12 +906,14 @@ func TestExtractParamsBind_InvalidXMLContent(t *testing.T) {
 
 type errReader struct{}
 
-// The result will Read(p []byte) (n int, err error)
+// Read implements the io.Reader interface and always returns an error.
 func (e *errReader) Read(p []byte) (n int, err error) {
 	return 0, errors.New("simulated read error")
 }
 
-// The result will TestExtractParamsBind_BodyReadError
+// TestExtractParamsBind_BodyReadError simulates a read error when binding a request body.
+//
+// It ensures that such failures are detected and reported properly.
 func TestExtractParamsBind_BodyReadError(t *testing.T) {
 	errReadCloser := ioutil.NopCloser(&errReader{})
 	req := httptest.NewRequest("POST", "/", errReadCloser)

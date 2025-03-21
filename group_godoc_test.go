@@ -12,10 +12,16 @@ import (
 	"testing"
 )
 
-// TestQuick_Group verifies if a route group is correctly created with the expected prefix.
-// The will test TestQuick_Group(t *testing.T)
+// TestQuick_GroupPost tests POST request handling in grouped routes and individual routes,
+// ensuring that parsing, binding, and responses behave as expected.
 //
-//	$ go test -v -run ^TestQuick_Group
+// Run with:
+//
+//	$ go test -v -count=1 -cover -failfast -run ^TestQuick_GroupPost
+//
+// Generate HTML coverage:
+//
+//	$ go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_GroupPost; go tool cover -html=coverage.out
 func TestQuick_Group(t *testing.T) {
 	q := New()
 
@@ -42,7 +48,8 @@ func TestQuick_Group(t *testing.T) {
 }
 
 // TestGroup_Get verifies if a GET request to a route within a group returns the expected response.
-// The will test TestGroup_Get(t *testing.T)
+//
+// Run with:
 //
 //	$ go test -v -run ^TestGroup_Get
 func TestGroup_Get(t *testing.T) {
@@ -75,9 +82,10 @@ func TestGroup_Get(t *testing.T) {
 }
 
 // TestGroup_Post verifies if a POST request creates a resource and returns the expected response.
-// The will test TestGroup_Post(t *testing.T)
 //
-// $ go test -v -run ^TestGroup_Post
+// Run with:
+//
+//	$ go test -v -run ^TestGroup_Post
 func TestGroup_Post(t *testing.T) {
 	q := New()
 
@@ -108,7 +116,8 @@ func TestGroup_Post(t *testing.T) {
 }
 
 // TestGroup_Put verifies if a PUT request updates a resource and returns the expected response.
-// The will test TestGroup_Put(t *testing.T)
+//
+// Run with:
 //
 //	$ go test -v -run ^TestGroup_Put
 func TestGroup_Put(t *testing.T) {
@@ -141,7 +150,8 @@ func TestGroup_Put(t *testing.T) {
 }
 
 // TestGroup_Delete verifies if a DELETE request removes a resource and returns the expected response.
-// The will test TestGroup_Delete(t *testing.T)
+//
+// Run with:
 //
 //	$ go test -v -run ^TestGroup_Delete
 func TestGroup_Delete(t *testing.T) {

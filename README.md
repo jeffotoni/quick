@@ -5,12 +5,6 @@
 
 <!-- [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) -->
 
-<h2 align="center">
-    <p>
-         <a href="README.md">English</a> |
-          <a href="README.pt-br.md">Рortuguês</a>
-    </p> 
-</h2>
 
 ```bash
    ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗
@@ -3385,6 +3379,65 @@ $ curl -X GET 'http://localhost:8080/v1/user'
 }
 ```
 
+## ✨ Using `M` as an Alias for `map[string]interface{}`
+
+The M type is a convenient alias for `map[string]interface{}` in Quick, making JSON response creation cleaner and more readable.
+
+
+### 🔹 In traditional Go code, you would use a `map[string]interface{}` explicitly when returning JSON responses:
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// Define a GET route at "/ping"
+	q.Get("/ping", func(c *quick.Ctx) error {
+		c.Status(200) // Set the HTTP status code
+		return c.JSON(map[string]interface{}{
+			"message": "pong", // JSON response message
+		})
+	})
+
+	// Start the Quick server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+### 🔹 Using `quick.M`, you can simplify the JSON response declaration:
+
+```go
+package main
+
+import (
+    "github.com/jeffotoni/quick"
+)
+
+func main() {
+    app := quick.New()
+
+    app.Get("/ping", func(c *quick.Context) {
+        c.JSON(200, quick.M{
+            "message": "pong",
+        })
+    })
+
+    app.Run()
+}
+
+```
+### 📌 Why Use M?
+
+- Less Boilerplate: Eliminates repetitive map[string]interface{} syntax.
+- Readability: Improves code readability, making JSON responses more intuitive.
+- Convenience: Makes it easier to return JSON responses in handlers.
+
 ---
 ## 📚| More Examples
 
@@ -3420,4 +3473,7 @@ Together we can continue to build amazing tools! 🚀
 | <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height="40">                                     | [@jeffotoni](https://github.com/jeffotoni)                     | ⭐ x 10       |
 | <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height="40"> | [@Crow3442](https://github.com/Crow3442)                       | ⭐ x 5        |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height="40">                                         | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | ⭐ x 5        |
-| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 1        |
+| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 5        |
+| <img src="https://avatars.githubusercontent.com/u/38386200?v=4" height="40">                                         | [@emmadal](https://github.com/emmadal)           | ⭐ x 1        |
+ 
+ 

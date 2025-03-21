@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -5,8 +14,15 @@ import (
 	"testing"
 )
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_DeleteGroup$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_DeleteGroup$; go tool cover -html=coverage.out
+// TestQuick_DeleteGroup ensures that DELETE requests to grouped and standalone routes
+// return the correct status codes and response bodies.
+//
+//	Coverage:
+//
+// To measure test coverage and open it in HTML:
+//
+//	go test -v -count=1 -cover -failfast -run ^TestQuick_DeleteGroup$
+//	go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_DeleteGroup$; go tool cover -html=coverage.out
 func TestQuick_DeleteGroup(t *testing.T) {
 	type args struct {
 		route       string

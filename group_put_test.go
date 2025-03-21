@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -7,8 +16,21 @@ import (
 	"github.com/jeffotoni/quick/internal/concat"
 )
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_PutGroup$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_PutGroup$; go tool cover -html=coverage.out
+// TestQuick_PutGroup tests the PUT method functionality for grouped and non-grouped routes.
+//
+// It verifies whether the server correctly handles:
+//   - Basic PUT routes
+//   - Grouped routes using .Group()
+//   - Routes with parameters
+//   - Body content passed through the request
+//
+// Run with coverage:
+//
+//	$ go test -v -count=1 -cover -failfast -run ^TestQuick_PutGroup
+//
+// Generate HTML coverage:
+//
+//	$ go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_PutGroup; go tool cover -html=coverage.out
 func TestQuick_PutGroup(t *testing.T) {
 	type args struct {
 		route       string

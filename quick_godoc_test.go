@@ -21,15 +21,18 @@ import (
 	"github.com/jeffotoni/quick/middleware/cors"
 )
 
-// TestExamplePath verifies that a PATCH route returns the expected response
-// The test simulates a partial update functionality.
-// The will test TestExamplePath(t *testing.T)
+// TestExamplePath tests whether a PATCH route returns the expected response.
+// Simulates a partial feature update.
 //
-//	$ go test -v -run ^TestExamplePath
+// Expected result: status 200 and body "Feature partially updated!".
+//
+// Use:
+//
+//	go test -v -run TestExamplePath
 func TestExamplePath(t *testing.T) {
 	q := New()
 
-	// Define uma rota PATCH para atualizar parcialmente um recurso
+	// Sets a PATCH route to partially update a feature
 	q.Patch("/update-partial", func(c *Ctx) error {
 		c.Set("Content-Type", "text/plain")
 		return c.Status(200).String("Feature partially updated!")
@@ -42,23 +45,26 @@ func TestExamplePath(t *testing.T) {
 		return
 	}
 
-	// Verifica se o código de status HTTP retornado está correto
+	// Checks if the returned HTTP status code is correct
 	if data.StatusCode() != 200 {
 		t.Errorf("Expected status 200 but got %d", data.StatusCode())
 	}
 
-	// Verifica se o corpo da resposta contém a mensagem esperada
+	// Check if the response body contains the expected message
 	expectedBody := "Feature partially updated!"
 	if data.BodyStr() != expectedBody {
 		t.Errorf("Expected body '%s' but got '%s'", expectedBody, data.BodyStr())
 	}
 }
 
-// TestExampleOptions verifies that the OPTIONS route properly returns the allowed methods.
-// The test simulates a partial update functionality.
-// The will test TestExampleOptions(t *testing.T)
+// TestExampleOptions tests if the OPTIONS path returns the allowed methods correctly.
+// Simulates the definition of Allow headers with supported HTTP methods.
 //
-//	$ go test -v -run ^TestExampleOptions
+// Expected result: status 204 with Allow header.
+//
+// Use:
+//
+//	go test -v -run TestExampleOptions
 func TestExampleOptions(t *testing.T) {
 	q := New()
 
@@ -140,10 +146,12 @@ func TestExampleOptions(t *testing.T) {
 	}
 }
 
-// TestExampleGetDefaultConfig verifies if GetDefaultConfig() returns the expected default configuration values.
-// The will test TestExampleGetDefaultConfig(t *testing.T)
+// TestExampleGetDefaultConfig verifies that GetDefaultConfig returns the correct default values.
+// Compares the returned values with the expected default setting.
 //
-//	$ go test -v -run ^TestExampleGetDefaultConfig
+// Use:
+//
+//	go test -v -run TestExampleGetDefaultConfig
 func TestExampleGetDefaultConfig(t *testing.T) {
 	// Expected default configuration values
 	expected := Config{
@@ -169,10 +177,12 @@ func TestExampleGetDefaultConfig(t *testing.T) {
 	}
 }
 
-// TestExampleNew verifies if a simple GET route returns the expected response.
-// The will test TestExampleNew(t *testing.T)
+// TestExampleNew tests whether a simple GET route returns the expected response.
+// Expect status 200 and the message "Quick in action ❤️!".
 //
-//	$ go test -v -run ^TestExampleNew
+// Usage:
+//
+// go test -v -run TestExampleNew
 func TestExampleNew(t *testing.T) {
 	q := New()
 
@@ -203,10 +213,12 @@ func TestExampleNew(t *testing.T) {
 	}
 }
 
-// TestExampleUse verifies if a middleware (CORS) is correctly applied to the route.
-// The will test TestExampleUse(t *testing.T)
+// TestExampleUse checks if middleware (e.g. CORS) is applied correctly to the route.
+// Expect status 200 and the body "Quick in action with middleware ❤️!".
 //
-//	$ go test -v -run ^TestExampleUse
+// Use:
+//
+// go test -v -run ^TestExampleUse
 func TestExampleUse(t *testing.T) {
 	q := New()
 
@@ -240,10 +252,12 @@ func TestExampleUse(t *testing.T) {
 	}
 }
 
-// TestExampleGet verifies if a GET request returns the expected response.
-// The will test TestExampleGet(t *testing.T)
+// TestExampleGet tests a simple GET request.
+// Status 200 and "Hello world" body are expected.
 //
-//	$ go test -v -run ^TestExampleGet
+// Use:
+//
+//	go test -v -run TestExampleGet
 func TestExampleGet(t *testing.T) {
 	q := New()
 
@@ -274,10 +288,12 @@ func TestExampleGet(t *testing.T) {
 	}
 }
 
-// TestExamplePost verifies if a POST request returns the expected response.
-// The will test TestExamplePost(t *testing.T)
+// TestExamplePost tests a POST route that returns a success response.
+// Expected status 201 and body "Resource created!".
 //
-//	$ go test -v -run ^TestExamplePost
+// Use:
+//
+//	go test -v -run TestExamplePost
 func TestExamplePost(t *testing.T) {
 	q := New()
 
@@ -308,10 +324,12 @@ func TestExamplePost(t *testing.T) {
 	}
 }
 
-// TestExamplePut verifies if a PUT request updates the resource and returns the expected response.
-// The will test TestExamplePut(t *testing.T)
+// TestExamplePut tests a PUT route that updates a resource.
+// Expected status 200 and body "Resource updated!".
 //
-//	$ go test -v -run ^TestExamplePut
+// Use:
+//
+//	go test -v -run TestExamplePut
 func TestExamplePut(t *testing.T) {
 	q := New()
 
@@ -339,10 +357,12 @@ func TestExamplePut(t *testing.T) {
 	}
 }
 
-// TestExampleDelete verifies if a DELETE request correctly deletes a resource and returns the expected response.
-// The will test TestExampleDelete(t *testing.T)
+// TestExampleDelete tests a DELETE route that deletes a resource.
+// Expected status 200 and body "Feature deleted!".
 //
-//	$ go test -v -run ^TestExampleDelete
+// Use:
+//
+//	go test -v -run TestExampleDelete
 func TestExampleDelete(t *testing.T) {
 	q := New()
 
@@ -370,10 +390,12 @@ func TestExampleDelete(t *testing.T) {
 	}
 }
 
-// TestServeHTTP verifies if dynamic route parameters are correctly handled in a GET request.
-// The will test TestServeHTTP(t *testing.T)
+// TestServeHTTP tests if dynamic parameters are extracted correctly in the route.
+// Response is expected with the ID provided in the URL.
 //
-//	$ go test -v -run ^TestServeHTTP
+// Use:
+//
+//	go test -v -run TestServeHTTP
 func TestServeHTTP(t *testing.T) {
 	q := New()
 
@@ -401,10 +423,12 @@ func TestServeHTTP(t *testing.T) {
 	}
 }
 
-// TestGetRoute verifies if the registered routes are correctly retrieved.
-// The will test TestGetRoute(t *testing.T)
+// TestGetRoute tests whether the recorded routes are correctly returned by GetRoute().
+// Checks if the routes and methods are correct.
 //
-//	$ go test -v -run ^TestGetRoute
+// Use:
+//
+//	go test -v -run TestGetRoute
 func TestGetRoute(t *testing.T) {
 	q := New()
 
@@ -447,10 +471,12 @@ func TestGetRoute(t *testing.T) {
 	}
 }
 
-// TestQuick_ExampleListen verifies if the Quick server starts correctly and serves responses.
-// The will test TestQuick_ExampleListen(t *testing.T)
+// TestQuick_ExampleListen tests if the Quick server starts and responds correctly.
+// Uses ListenWithShutdown on dynamic port and performs GET request.
 //
-//	$ go test -v -run ^TestQuick_ExampleListen
+// Use:
+//
+//	go test -v -run TestQuick_ExampleListen
 func TestQuick_ExampleListen(t *testing.T) {
 
 	// start Quick

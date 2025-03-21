@@ -1,7 +1,8 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
+// Package quick provides a high-performance, minimalistic web framework for building web applications in Go.
+//
+// This file defines constants for HTTP methods and status codes, as well as a utility function
+// to return human-readable descriptions for status codes.
+// These definitions ensure consistent use of HTTP standards throughout the framework.
 package quick
 
 const (

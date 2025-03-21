@@ -1,3 +1,6 @@
+// Package quick provides a lightweight and high-performance web framework for building web applications in Go.
+// This file is responsible for displaying the Quick framework banner and startup configuration details.
+
 package quick
 
 import (
@@ -5,7 +8,7 @@ import (
 	"net"
 )
 
-// ANSI color definition
+// ANSI terminal color codes used for banner styling
 const (
 	Reset  = "\033[0m"
 	Blue   = "\033[34m"
@@ -15,9 +18,21 @@ const (
 	Bold   = "\033[1m"
 )
 
-// Quick version
+// QuickVersion represents the current version of the Quick framework.
 const QuickVersion = "v0.0.1"
 
+// Display prints a styled startup banner to the console showing essential information about the Quick server.
+//
+// It includes the following details:
+//   - The current version of Quick
+//   - Host and port where the server is running
+//   - The total number of registered routes
+//
+// The banner is only printed if the `NoBanner` option is set to false in the configuration.
+//
+// Parameters:
+//   - scheme: The protocol used by the server (e.g., "http" or "https").
+//   - addr: The address the server is bound to (in the format "host:port").
 func (q *Quick) Display(scheme, addr string) {
 	if !q.config.NoBanner {
 

@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -10,9 +19,10 @@ import (
 	"time"
 )
 
-// TestQuick_Listen this example tests whether the server can be started
-// correctly and prevents multiple instances on the same port.
-// The will test TestQuick_Listen(t *testing.T)
+// TestQuick_Listen verifies that the server can be started correctly
+// and prevents launching multiple instances on the same port.
+//
+// To run:
 //
 //	$ go test -v -run ^TestQuick_Listen
 func TestQuick_Listen(t *testing.T) {
@@ -37,8 +47,10 @@ func TestQuick_Listen(t *testing.T) {
 	})
 }
 
-// TestQuick_ServeHTTP  Ensure that a recorded route responds correctly.
-// The will test TestQuick_ServeHTTP(t *testing.T)
+// TestQuick_ServeHTTP ensures that registered routes respond correctly,
+// and unregistered routes return a 404 Not Found.
+//
+// To run:
 //
 //	$ go test -v -run ^TestQuick_ServeHTTP
 func TestQuick_ServeHTTP(t *testing.T) {
@@ -83,9 +95,10 @@ func TestQuick_ServeHTTP(t *testing.T) {
 	})
 }
 
-// TestDefaultConfig verify that the default configuration of
-// Quick is being initialized correctly with the expected values.
-// The will test TestDefaultConfig(t *testing.T)
+// TestDefaultConfig verifies that the default configuration values
+// are initialized correctly when no custom config is passed.
+//
+// To run:
 //
 //	$ go test -v -run ^TestDefaultConfig
 func TestDefaultConfig(t *testing.T) {
@@ -111,8 +124,10 @@ func TestDefaultConfig(t *testing.T) {
 	}
 }
 
-// TestQuickInitializationWithCustomConfig  Ensure that Quick can be booted with custom settings.
-// The will test TestQuickInitializationWithCustomConfig(t *testing.T)
+// TestQuickInitializationWithCustomConfig verifies that custom configuration
+// values are correctly applied when initializing the Quick instance.
+//
+// To run:
 //
 //	$ go test -v -run ^TestQuickInitializationWithCustomConfig
 func TestQuickInitializationWithCustomConfig(t *testing.T) {
@@ -135,11 +150,12 @@ func TestQuickInitializationWithCustomConfig(t *testing.T) {
 	}
 }
 
-// TestQuickInitializationWithCustomConfig ensure that default values are applied
-// correctly when creating an instance without explicit configuration.
-// The will test func TestQuickInitializationDefaults(t *testing.T)
+// TestQuickInitializationDefaults checks whether default configuration
+// values are correctly applied when using New() without arguments.
 //
-//	$ go test -v -run ^func TestQuickInitializationDefaults(t *testing.T)
+// To run:
+//
+//	$ go test -v -run ^TestQuickInitializationDefaults
 func TestQuickInitializationDefaults(t *testing.T) {
 	q := New()
 
@@ -154,11 +170,12 @@ func TestQuickInitializationDefaults(t *testing.T) {
 	}
 }
 
-// TestQuickInitializationWithCustomConfig ensure that default values are applied
-// correctly when creating an instance without explicit configuration.
-// The will test func TestQuickInitializationDefaults(t *testing.T)
+// TestQuickInitializationWithZeroValues ensures fallback defaults
+// are used when passing an empty Config struct.
 //
-//	$ go test -v -run ^func TestQuickInitializationDefaults(t *testing.T)
+// To run:
+//
+//	$ go test -v -run ^TestQuickInitializationWithZeroValues
 func TestQuickInitializationWithZeroValues(t *testing.T) {
 	zeroConfig := Config{}
 	q := New(zeroConfig)
@@ -168,11 +185,12 @@ func TestQuickInitializationWithZeroValues(t *testing.T) {
 	}
 }
 
-// TestQuick_GetRoute ensure that routes are correctly recorded and retrieved
-// correctly when creating an instance without explicit configuration.
-// The will test func TestQuick_GetRoute(t *testing.T)
+// TestQuick_GetRoute verifies that routes are stored and returned properly
+// after being registered in the Quick instance.
 //
-//	$ go test -v -run ^func TestQuick_GetRoute(t *testing.T)
+// To run:
+//
+//	$ go test -v -run ^TestQuick_GetRoute
 func TestQuick_GetRoute(t *testing.T) {
 	q := New()
 
