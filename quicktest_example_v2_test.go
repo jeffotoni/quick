@@ -214,3 +214,137 @@ func ExampleQTestPlus_Response() {
 
 	// Out put: Response Status: 200 OK
 }
+
+// ExampleQTestPlus_AssertNoHeader demonstrates how to check that a header is not present in the response.
+//
+// The simulated HTTP response does not include the "X-Powered-By" header.
+func ExampleQTestPlus_AssertNoHeader() {
+	q := New()
+
+	q.Get("/no-header", func(c *Ctx) error {
+		return c.String("No custom header here.")
+	})
+
+	res, err := q.Qtest(QuickTestOptions{
+		Method: "GET",
+		URI:    "/no-header",
+	})
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	err = res.AssertNoHeader("X-Powered-By")
+	if err != nil {
+		fmt.Println("Assertion failed:", err)
+	} else {
+		fmt.Println("Header is not present as expected")
+	}
+
+	// Out put: Header is not present as expected
+}
+
+// ExampleQTestPlus_AssertString demonstrates how to compare the response body with an expected string.
+//
+// The simulated HTTP response body contains "pong".
+func ExampleQTestPlus_AssertString() {
+
+	q := New()
+
+	q.Get("/ping", func(c *Ctx) error {
+		return c.String("pong")
+	})
+
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: "GET",
+		URI:    "/ping",
+	})
+
+	err := res.AssertString("pong")
+	if err != nil {
+		fmt.Println("Assertion failed:", err)
+	} else {
+		fmt.Println("Body matches expected string")
+	}
+
+	// Out put: Body matches expected string
+}
+
+// ExampleQTestPlus_AssertHeaderHasPrefix demonstrates how to verify if a header starts with a prefix.
+//
+// The simulated HTTP response includes "X-Version" header with value "v1.2.3".
+func ExampleQTestPlus_AssertHeaderHasPrefix() {
+	q := New()
+
+	q.Get("/prefix", func(c *Ctx) error {
+		c.Set("X-Version", "v1.2.3")
+		return c.String("OK")
+	})
+
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: "GET",
+		URI:    "/prefix",
+	})
+
+	err := res.AssertHeaderHasPrefix("X-Version", "v1")
+	if err != nil {
+		fmt.Println("Assertion failed:", err)
+	} else {
+		fmt.Println("Header has expected prefix")
+	}
+
+	// Out put: Header has expected prefix
+}
+
+// ExampleQTestPlus_AssertHeaderHasValueInSet demonstrates how to verify if a header value matches one of the allowed values.
+//
+// The simulated HTTP response includes "X-Env" header with value "staging".
+func ExampleQTestPlus_AssertHeaderHasValueInSet() {
+
+	q := New()
+
+	q.Get("/variant", func(c *Ctx) error {
+		c.Set("X-Env", "staging")
+		return c.String("OK")
+	})
+
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: "GET",
+		URI:    "/variant",
+	})
+
+	err := res.AssertHeaderHasValueInSet("X-Env", []string{"dev", "staging", "prod"})
+	if err != nil {
+		fmt.Println("Assertion failed:", err)
+	} else {
+		fmt.Println("Header value is in allowed set")
+	}
+
+	// Out put: Header value is in allowed set
+}
+
+// ExampleQTestPlus_AssertHeaderContains demonstrates how to verify if a header contains a substring.
+//
+// The simulated HTTP response includes "X-Custom" header with value "PoweredByQuick".
+func ExampleQTestPlus_AssertHeaderContains() {
+	q := New()
+
+	q.Get("/header", func(c *Ctx) error {
+		c.Set("X-Custom", "PoweredByQuick")
+		return c.String("OK")
+	})
+
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: "GET",
+		URI:    "/header",
+	})
+
+	err := res.AssertHeaderContains("X-Custom", "Quick")
+	if err != nil {
+		fmt.Println("Assertion failed:", err)
+	} else {
+		fmt.Println("Header contains expected substring")
+	}
+
+	// Out put: Header contains expected substring
+}
