@@ -44,6 +44,8 @@ func TestHelmet(t *testing.T) {
 	resp.AssertHeader("X-DNS-Prefetch-Control", "off")
 	resp.AssertHeader("X-Download-Options", "noopen")
 	resp.AssertHeader("X-Permitted-Cross-Domain-Policies", "none")
+	resp.AssertHeader("X-Powered-By", "")
+	resp.AssertHeader("Server", "")
 }
 
 // TestHelmetWithoutMiddleware confirms that no security headers are set when Helmet is not used.
@@ -144,4 +146,27 @@ func TestHelmetWithNextFunc(t *testing.T) {
 
 	resp.AssertNoHeader("Content-Security-Policy")
 	resp.AssertString("skipped")
+}
+
+// TestHelmetWithHidePoweredBy ensures that X-Powered-By and Server headers are hidden.
+func TestHelmetWithHidePoweredBy(t *testing.T) {
+	q := quick.New()
+	q.Use(Helmet(Options{
+		HidePoweredBy: true,
+	}))
+
+	q.Get("/", func(c *quick.Ctx) error {
+		return c.String("ok")
+	})
+
+	resp, err := q.Qtest(quick.QuickTestOptions{
+		Method: quick.MethodGet,
+		URI:    "/",
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	resp.AssertNoHeader("X-Powered-By")
+	resp.AssertNoHeader("Server")
 }
