@@ -3479,4 +3479,7 @@ Together we can continue to build amazing tools! 🚀
 | <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height="40">                                     | [@jeffotoni](https://github.com/jeffotoni)                     | ⭐ x 10       |
 | <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height="40"> | [@Crow3442](https://github.com/Crow3442)                       | ⭐ x 5        |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height="40">                                         | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | ⭐ x 5        |
-| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 1        |
+| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 5        |
+| <img src="https://avatars.githubusercontent.com/u/38386200?v=4" height="40">                                         | [@emmadal](https://github.com/emmadal)           | ⭐ x 1        |
+ 
+ 
