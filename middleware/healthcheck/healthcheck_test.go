@@ -81,23 +81,23 @@ func TestHealthcheckProbeFalse(t *testing.T) {
 }
 
 // TestHealthcheckMethodNotAllowed tests when method is not GET.
-// func TestHealthcheckMethodNotAllowed(t *testing.T) {
-// 	q := quick.New()
-// 	q.Use(New(Options{
-// 		App: q,
-// 	}))
+func TestHealthcheckMethodNotAllowed(t *testing.T) {
+	q := quick.New()
+	q.Use(New(Options{
+		App: q,
+	}))
 
-// 	resp, err := q.Qtest(quick.QuickTestOptions{
-// 		Method: quick.MethodPost, // POST instead of GET
-// 		URI:    "/healthcheck",
-// 	})
-// 	if err != nil {
-// 		t.Fatalf("Unexpected error: %v", err)
-// 	}
-// 	if err := resp.AssertStatus(quick.StatusMethodNotAllowed); err != nil {
-// 		t.Error(err)
-// 	}
-// }
+	resp, err := q.Qtest(quick.QuickTestOptions{
+		Method: quick.MethodPost, // POST instead of GET
+		URI:    "/healthcheck",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if err := resp.AssertStatus(quick.StatusMethodNotAllowed); err != nil {
+		t.Error(err)
+	}
+}
 
 // TestHealthcheckWithNextSkipping tests when Next() returns true (skips route logic).
 func TestHealthcheckWithNextSkipping(t *testing.T) {

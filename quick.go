@@ -118,6 +118,39 @@ func (h HandlerFunc) ServeQuick(c *Ctx) error {
 	return h(c)
 }
 
+// allMethods lists all supported HTTP methods used by the Any method.
+var allMethods = []string{
+	MethodGet,
+	MethodPost,
+	MethodPut,
+	MethodPatch,
+	MethodDelete,
+	MethodOptions,
+	MethodHead,
+}
+
+// Any registers the same handlerFunc for all standard HTTP methods (GET, POST, PUT, etc.).
+//
+// This is useful when you want to attach a single handler to a path regardless of the HTTP method,
+// and handle method-based logic inside the handler itself (e.g., returning 405 if not GET).
+//
+// Example:
+//
+//	app := quick.New()
+//	app.Any("/health", func(c *quick.Ctx) error {
+//		if c.Method() != quick.MethodGet {
+//			return c.Status(quick.StatusMethodNotAllowed).SendString("Method Not Allowed")
+//		}
+//		return c.Status(quick.StatusOK).SendString("OK")
+//	})
+//
+// Note: The handlerFunc will be registered individually for each method listed in allMethods.
+func (q *Quick) Any(path string, handlerFunc HandleFunc) {
+	for _, method := range allMethods {
+		q.registerRoute(method, path, handlerFunc)
+	}
+}
+
 // MaxBytesReader is a thin wrapper around http.MaxBytesReader to limit the
 // size of the request body in Quick applications.
 //

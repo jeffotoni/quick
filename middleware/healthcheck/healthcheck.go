@@ -44,7 +44,7 @@ func New(opt ...Options) func(next quick.Handler) quick.Handler {
 	option := defaultOptions(opt...)
 
 	// Register the healthcheck route once, during app setup
-	option.App.Get(option.Endpoint, func(c *quick.Ctx) error {
+	option.App.Any(option.Endpoint, func(c *quick.Ctx) error {
 		// Skip route logic if Next returns true
 		if option.Next != nil && option.Next(c) {
 			return c.Status(http.StatusNotFound).SendString("Not Found")
