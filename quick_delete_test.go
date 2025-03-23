@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -6,8 +15,21 @@ import (
 	"testing"
 )
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_Delete$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Delete$; go tool cover -html=coverage.out
+// TestQuick_Delete verifies the behavior of the DELETE method handler in the Quick framework.
+//
+// It tests different scenarios including:
+// - DELETE requests to static routes
+// - DELETE requests with and without body
+// - DELETE requests to parameterized routes
+// - DELETE requests to non-existent routes
+//
+// To run only this test:
+//
+//	go test -v -count=1 -cover -failfast -run ^TestQuick_Delete$
+//
+// To generate HTML coverage:
+//
+//	go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Delete$; go tool cover -html=coverage.out
 func TestQuick_Delete(t *testing.T) {
 	type args struct {
 		route       string
@@ -118,6 +140,18 @@ func TestQuick_Delete(t *testing.T) {
 	}
 }
 
+// Test_extractParamsDelete tests the extractParamsDelete function, which binds
+// route parameters to the request context in a DELETE route.
+//
+// This is a placeholder for future detailed test cases.
+//
+// To run only this test:
+//
+//	go test -v -count=1 -cover -failfast -run ^Test_extractParamsDelete$
+//
+// To generate HTML coverage:
+//
+//	go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsDelete$; go tool cover -html=coverage.out
 func Test_extractParamsDelete(t *testing.T) {
 	type args struct {
 		quick       Quick

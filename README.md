@@ -5,12 +5,6 @@
 
 <!-- [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) -->
 
-<h2 align="center">
-    <p>
-         <a href="README.md">English</a> |
-          <a href="README.pt-br.md">Рortuguês</a>
-    </p> 
-</h2>
 
 ```bash
    ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗
@@ -3284,7 +3278,7 @@ $ curl -i -X GET http://localhost:8080/v1/msguuid/default
 }
 ```
 ---
-## 🛡️ Helmet Middleware in Quick ![Quick Logo](/quick.png)
+## 🛡️ Helmet 
 
 **Helmet** is a middleware this package provides sensible security defaults while allowing full customization.
 
@@ -3301,23 +3295,31 @@ $ curl -i -X GET http://localhost:8080/v1/msguuid/default
 
 ### 🛡️ Default Headers
 
-By default, the middleware sets the following headers:
-
-- X-XSS-Protection
-- X-Content-Type-Options
-- X-Frame-Options
-- Content-Security-Policy
-- Referrer-Policy
-- Permissions-Policy
-- Cross-Origin-Embedder-Policy
-- Cross-Origin-Opener-Policy
-- Cross-Origin-Resource-Policy
-- Origin-Agent-Cluster
-- X-DNS-Prefetch-Control
-- X-Download-Options
-- X-Permitted-Cross-Domain-Policies
-- Strict-Transport-Security (only for HTTPS requests)
-- Cache-Control
+| Feature                                             | Status | Notes / Observations                                 |
+|-----------------------------------------------------|:------:|------------------------------------------------------|
+| `X-XSS-Protection` header                           |   ✅   | Legacy protection, still included                    |
+| `X-Content-Type-Options: nosniff` header            |   ✅   | Prevents MIME sniffing attacks                       |
+| `X-Frame-Options` header                            |   ✅   | Helps prevent clickjacking                           |
+| `Content-Security-Policy` header                    |   ✅   | Defaults to `default-src 'self'`                     |
+| `CSPReportOnly` support                             |   ✅   | Optional report-only mode for CSP                    |
+| `Referrer-Policy` header                            |   ✅   | Defaults to `no-referrer`                            |
+| `Permissions-Policy` header                         |   ✅   | Controls browser features like camera, mic, etc.     |
+| `Strict-Transport-Security (HSTS)` support          |   ✅   | Adds HSTS for HTTPS requests                         |
+| HSTS options: `maxAge`, `includeSubDomains`, `preload` | ✅   | Fully customizable                                  |
+| `Cache-Control` header                              |   ✅   | Defaults to no-cache, improves response integrity    |
+| `Cross-Origin-Embedder-Policy` header               |   ✅   | Required for certain advanced browser APIs           |
+| `Cross-Origin-Opener-Policy` header                 |   ✅   | Isolates browsing contexts                           |
+| `Cross-Origin-Resource-Policy` header               |   ✅   | Restricts resource access                            |
+| `Origin-Agent-Cluster` header                       |   ✅   | Enables memory isolation in browsers                 |
+| `X-DNS-Prefetch-Control` header                     |   ✅   | Controls browser DNS prefetching                     |
+| `X-Download-Options` header                         |   ✅   | Prevents automatic downloads (IE-specific)           |
+| `X-Permitted-Cross-Domain-Policies` header          |   ✅   | Blocks Flash and Silverlight legacy access           |
+| `Next func(c)` to skip middleware dynamically       |   ✅   | Allows conditional header injection per route        |
+| Secure defaults applied when no options are provided|   ✅   | Based on OWASP and best practices                    |
+| Option naming compatible with Fiber                 |   ✅   | Enables easier migration from Fiber to Quick         |
+| Built-in TLS simulation support in `Qtest`          |   ✅   | Enables full testing of HTTPS-only behavior          |
+| Full HTTP method coverage in `Qtest`                |   ✅   | GET, POST, PUT, PATCH, DELETE, OPTIONS supported     |
+| Extended Qtest assertions (headers, body, etc.)     |   ✅   | Includes `AssertString`, `AssertNoHeader`, and more  |
 
 ---
 
@@ -3377,6 +3379,65 @@ $ curl -X GET 'http://localhost:8080/v1/user'
 }
 ```
 
+## ✨ Using `M` as an Alias for `map[string]interface{}`
+
+The M type is a convenient alias for `map[string]interface{}` in Quick, making JSON response creation cleaner and more readable.
+
+
+### 🔹 In traditional Go code, you would use a `map[string]interface{}` explicitly when returning JSON responses:
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+)
+
+func main() {
+	q := quick.New()
+
+	// Define a GET route at "/ping"
+	q.Get("/ping", func(c *quick.Ctx) error {
+		c.Status(200) // Set the HTTP status code
+		return c.JSON(map[string]interface{}{
+			"message": "pong", // JSON response message
+		})
+	})
+
+	// Start the Quick server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+### 🔹 Using `quick.M`, you can simplify the JSON response declaration:
+
+```go
+package main
+
+import (
+    "github.com/jeffotoni/quick"
+)
+
+func main() {
+    app := quick.New()
+
+    app.Get("/ping", func(c *quick.Context) {
+        c.JSON(200, quick.M{
+            "message": "pong",
+        })
+    })
+
+    app.Run()
+}
+
+```
+### 📌 Why Use M?
+
+- Less Boilerplate: Eliminates repetitive map[string]interface{} syntax.
+- Readability: Improves code readability, making JSON responses more intuitive.
+- Convenience: Makes it easier to return JSON responses in handlers.
+
 ---
 ## 📚| More Examples
 
@@ -3412,4 +3473,7 @@ Together we can continue to build amazing tools! 🚀
 | <img src="https://avatars.githubusercontent.com/u/1092879?s=96&v=4" height="40">                                     | [@jeffotoni](https://github.com/jeffotoni)                     | ⭐ x 10       |
 | <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height="40"> | [@Crow3442](https://github.com/Crow3442)                       | ⭐ x 5        |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height="40">                                         | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | ⭐ x 5        |
-| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 1        |
+| <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 5        |
+| <img src="https://avatars.githubusercontent.com/u/38386200?v=4" height="40">                                         | [@emmadal](https://github.com/emmadal)           | ⭐ x 1        |
+ 
+ 

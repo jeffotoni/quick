@@ -12,7 +12,11 @@ import (
 	"testing"
 )
 
-// go test -v -run ^TestCtx_GetReqHeadersAll
+// TestCtx_GetReqHeadersAll ensures GetReqHeadersAll returns all request headers.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_GetReqHeadersAll$
 func TestCtx_GetReqHeadersAll(t *testing.T) {
 	ctx := &Ctx{
 		Headers: map[string][]string{
@@ -32,7 +36,11 @@ func TestCtx_GetReqHeadersAll(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_GetHeadersAll
+// TestCtx_GetHeadersAll ensures GetHeadersAll returns all headers from the context.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_GetHeadersAll$
 func TestCtx_GetHeadersAll(t *testing.T) {
 	ctx := &Ctx{
 		Headers: map[string][]string{
@@ -52,7 +60,11 @@ func TestCtx_GetHeadersAll(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleBind
+// TestCtx_ExampleBind verifies that Bind correctly binds JSON body to a struct.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleBind$
 func TestCtx_ExampleBind(t *testing.T) {
 	q := New()
 
@@ -90,7 +102,11 @@ func TestCtx_ExampleBind(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleBodyParser
+// TestCtx_ExampleBodyParser checks if BodyParser parses the request body into a struct.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleBodyParser$
 func TestCtx_ExampleBodyParser(t *testing.T) {
 	q := New()
 
@@ -126,7 +142,11 @@ func TestCtx_ExampleBodyParser(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleParam
+// TestCtx_ExampleParam checks if Param correctly retrieves path parameters.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleParam$
 func TestCtx_ExampleParam(t *testing.T) {
 	q := New()
 
@@ -146,7 +166,11 @@ func TestCtx_ExampleParam(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleBody
+// TestCtx_ExampleBody ensures Body returns the correct raw request body.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleBody$
 func TestCtx_ExampleBody(t *testing.T) {
 	expectedBody := `{"name": "Quick", "age": 28}`
 
@@ -161,7 +185,11 @@ func TestCtx_ExampleBody(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleBodyString
+// TestCtx_ExampleBodyString ensures BodyString returns the body as a string.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleBodyString$
 func TestCtx_ExampleBodyString(t *testing.T) {
 	expectedBody := `{"name": "Quick", "age": 28}`
 
@@ -176,7 +204,11 @@ func TestCtx_ExampleBodyString(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleJSON
+// TestCtx_ExampleJSON validates JSON response generation.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleJSON$
 func TestCtx_ExampleJSON(t *testing.T) {
 	q := New()
 
@@ -205,7 +237,11 @@ func TestCtx_ExampleJSON(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleJSONIN
+// TestCtx_ExampleJSONIN ensures JSONIN returns correct JSON with header set.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleJSONIN$
 func TestCtx_ExampleJSONIN(t *testing.T) {
 	q := New()
 
@@ -238,7 +274,11 @@ type XMLMessage struct {
 	Message string   `xml:",chardata"`
 }
 
-// go test -v -run ^TestCtx_ExampleXML
+// TestCtx_ExampleXML verifies that XML responses are returned properly.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleXML$
 func TestCtx_ExampleXML(t *testing.T) {
 	q := New()
 
@@ -267,7 +307,11 @@ func TestCtx_ExampleXML(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExamplewriteResponse
+// TestCtx_ExamplewriteResponse validates raw byte response writing.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExamplewriteResponse$
 func TestCtx_ExamplewriteResponse(t *testing.T) {
 	q := New()
 
@@ -292,7 +336,11 @@ func TestCtx_ExamplewriteResponse(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleByte
+// TestCtx_ExampleByte checks that Byte correctly writes raw bytes.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleByte$
 func TestCtx_ExampleByte(t *testing.T) {
 	q := New()
 
@@ -317,7 +365,11 @@ func TestCtx_ExampleByte(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleSend
+// TestCtx_ExampleSend validates that Send writes the correct byte response.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleSend$
 func TestCtx_ExampleSend(t *testing.T) {
 	q := New()
 
@@ -342,7 +394,11 @@ func TestCtx_ExampleSend(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleSendString
+// TestCtx_ExampleSendString checks that SendString writes a plain text response.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleSendString$
 func TestCtx_ExampleSendString(t *testing.T) {
 	q := New()
 
@@ -367,7 +423,11 @@ func TestCtx_ExampleSendString(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleSendFile
+// TestCtx_ExampleSendFile ensures that SendFile correctly sends file content.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleSendFile$
 func TestCtx_ExampleSendFile(t *testing.T) {
 	q := New()
 
@@ -393,7 +453,11 @@ func TestCtx_ExampleSendFile(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleSet
+// TestCtx_ExampleSet verifies that Set adds headers correctly.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleSet$
 func TestCtx_ExampleSet(t *testing.T) {
 	q := New()
 
@@ -420,7 +484,11 @@ func TestCtx_ExampleSet(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleAppend
+// TestCtx_ExampleAppend ensures that headers can be appended properly.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleAppend$
 func TestCtx_ExampleAppend(t *testing.T) {
 	q := New()
 
@@ -443,7 +511,11 @@ func TestCtx_ExampleAppend(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleAccepts
+// TestCtx_ExampleAccepts checks if the Accepts method sets the correct header.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleAccepts$
 func TestCtx_ExampleAccepts(t *testing.T) {
 	q := New()
 
@@ -465,7 +537,11 @@ func TestCtx_ExampleAccepts(t *testing.T) {
 	}
 }
 
-// go test -v -run ^TestCtx_ExampleStatus
+// TestCtx_ExampleStatus verifies that Status sets the correct HTTP status code.
+//
+// To run:
+//
+// go test -v -run ^TestCtx_ExampleStatus$
 func TestCtx_ExampleStatus(t *testing.T) {
 	q := New()
 

@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -11,8 +20,17 @@ import (
 	"github.com/jeffotoni/quick/internal/concat"
 )
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^TestRoutePOST$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestRoutePOST$; go tool cover -html=coverage.out
+// TestRoutePOST validates a basic POST route using the Quick framework.
+//
+// This test registers a route `/v1/user` and verifies:
+// - If the response status code is 200 (OK)
+// - If the body contains the expected string "Data submitted!"
+//
+// Useful to ensure that POST routes are working with default behaviors and that `QuickTest` handles basic POST requests correctly.
+//
+// Coverage commands:
+//   - cover:     go test -v -count=1 -cover -failfast -run ^TestRoutePOST$
+//   - coverHTML: go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestRoutePOST$; go tool cover -html=coverage.out
 func TestRoutePOST(t *testing.T) {
 	q := New()
 
@@ -35,8 +53,21 @@ func TestRoutePOST(t *testing.T) {
 	}
 }
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_Post$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Post$; go tool cover -html=coverage.out
+// TestQuick_Post validates multiple scenarios for POST requests using the Quick framework.
+//
+// This test uses various handlers to simulate different parsing behaviors (e.g., body string, body parsing with JSON/XML, and binding).
+// It ensures the framework can:
+// - Parse and respond with JSON bodies
+// - Handle routes with and without parameters
+// - Parse XML inputs correctly
+// - Handle empty bodies, arrays, and different content types
+//
+// Each subtest defines expected status codes and response outputs based on the route and payload.
+//
+// Coverage commands:
+//   - cover:     go test -v -count=1 -cover -failfast -run ^TestQuick_Post$
+//   - coverHTML: go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Post$; go tool cover -html=coverage.out
+
 func TestQuick_Post(t *testing.T) {
 	type args struct {
 		route       string
@@ -278,8 +309,16 @@ func TestQuick_Post(t *testing.T) {
 	}
 }
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^Test_extractParamsPost$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsPost$; go tool cover -html=coverage.out
+// Test_extractParamsPost validates the behavior of `extractParamsPost`, responsible for generating an HTTP handler for POST requests.
+//
+// This test is a placeholder using table-driven testing. It prepares the structure to test different combinations of `Quick` instances
+// and handler functions. It uses `reflect.DeepEqual` to compare the expected and returned handler functions.
+//
+// Note: Test cases should be added to fully cover parsing logic, route matching, and error handling.
+//
+// Coverage commands:
+//   - cover:     go test -v -count=1 -cover -failfast -run ^Test_extractParamsPost$
+//   - coverHTML: go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsPost$; go tool cover -html=coverage.out
 func Test_extractParamsPost(t *testing.T) {
 	type args struct {
 		quick       Quick
