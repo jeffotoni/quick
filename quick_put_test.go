@@ -1,3 +1,12 @@
+// Package quick provides a high-performance, minimalistic web framework for Go.
+//
+// This file contains **unit tests** for various functionalities of the Quick framework.
+// These tests ensure that the core features of Quick work as expected.
+//
+// 📌 To run all unit tests, use:
+//
+//	$ go test -v ./...
+//	$ go test -v
 package quick
 
 import (
@@ -9,6 +18,15 @@ import (
 	"github.com/jeffotoni/quick/internal/concat"
 )
 
+// TestQuick_Put validates the behavior of PUT requests using various route configurations.
+//
+// This test ensures that:
+// - PUT handlers return the correct status code and body content.
+// - Routes with and without parameters behave as expected.
+// - JSON payloads are correctly echoed back in the response body.
+//
+// The test uses a mock handler that sets the Content-Type to "application/json"
+// Usage:
 // cover     -> go test -v -count=1 -cover -failfast -run ^TestQuick_Put$
 // coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^TestQuick_Put$; go tool cover -html=coverage.out
 func TestQuick_Put(t *testing.T) {
@@ -120,8 +138,18 @@ func TestQuick_Put(t *testing.T) {
 	}
 }
 
-// cover     -> go test -v -count=1 -cover -failfast -run ^Test_extractParamsPut$
-// coverHTML -> go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsPut$; go tool cover -html=coverage.out
+// Test_extractParamsPut validates the behavior of the `extractParamsPut` function.
+//
+// This test checks whether the function properly generates an HTTP handler for PUT requests,
+// wiring the provided Quick instance and handler function.
+//
+// Note: Test cases should be added to verify specific route handling, request parsing, and
+// response logic. This scaffolding ensures that future implementations can be verified
+// using table-driven testing.
+//
+// Usage:
+// - cover:     go test -v -count=1 -cover -failfast -run ^Test_extractParamsPut$
+// - coverHTML: go test -v -count=1 -failfast -cover -coverprofile=coverage.out -run ^Test_extractParamsPut$; go tool cover -html=coverage.out
 func Test_extractParamsPut(t *testing.T) {
 	type args struct {
 		quick       Quick
