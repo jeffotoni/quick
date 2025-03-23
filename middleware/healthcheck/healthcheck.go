@@ -1,8 +1,6 @@
 package healthcheck
 
 import (
-	"net/http"
-
 	"github.com/jeffotoni/quick"
 )
 
@@ -18,32 +16,37 @@ type Options struct {
 
 	// Probe defines the function to check the health of the application
 	Probe func(*quick.Ctx) bool
+
+	// App is the Quick instance
+	App *quick.Quick
 }
 
 func New(opt ...Options) func(next quick.Handler) quick.Handler {
 	// Apply default options
 	option := defaultOptions(opt...)
 
+	option.App.Get(option.Endpoint, func(c *quick.Ctx) error {
+		if option.Next != nil && option.Next(c) {
+			return c.Status(quick.StatusNotFound).String("Not Found")
+		}
+
+		if c.Method() != quick.MethodGet {
+			return c.Status(quick.StatusMethodNotAllowed).String("Method Not Allowed")
+		}
+
+		if option.Probe(c) {
+			return c.Status(quick.StatusOK).String("OK")
+		}
+
+		return c.Status(quick.StatusServiceUnavailable).String("Service Unavailable")
+	})
+
+	// The middleware itself can continue to pass through
 	return func(next quick.Handler) quick.Handler {
 		return quick.HandlerFunc(func(c *quick.Ctx) error {
-			// Skip middleware if Next function returns true
-			if option.Next != nil && option.Next(c) {
-				return next.ServeQuick(c)
-			}
-
-			// Skip middleware if request method is not GET
-			if c.Method() != quick.MethodGet {
-				return next.ServeQuick(c)
-			}
-
-			// register path endpoint with quick
-			if option.Probe(c) {
-				c.App.Get(option.Endpoint, func(c *quick.Ctx) error {
-					return c.Status(http.StatusOK).SendString("OK")
-				})
-			}
-
-			return c.Status(http.StatusServiceUnavailable).SendString("Service Unavailable")
+			// The middleware does not interfere with the routes,
+			// it just passes them on to the next one
+			return next.ServeQuick(c)
 		})
 	}
 
@@ -70,6 +73,10 @@ func defaultOptions(opt ...Options) Options {
 		cfg.Probe = func(c *quick.Ctx) bool {
 			return true
 		}
+	}
+
+	if cfg.App == nil {
+		panic("healthcheck.New: App instance must be provided in Options.App")
 	}
 
 	return cfg
