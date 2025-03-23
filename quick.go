@@ -1172,7 +1172,7 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 			// Apply Quick middleware
 			qh = mw(qh)
 			// Convert back to http.Handler
-			handler = convertQuickToHttpHandler(qh)
+			handler = convertQuickToHttpHandler(q, qh)
 		}
 	}
 	return handler
@@ -1205,9 +1205,9 @@ func convertHttpToQuickHandler(h http.Handler) Handler {
 //
 // Returns:
 //   - http.Handler: The net/http-compatible handler.
-func convertQuickToHttpHandler(h Handler) http.Handler {
+func convertQuickToHttpHandler(q *Quick, h Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := &Ctx{Response: w, Request: r}
+		c := &Ctx{Response: w, Request: r, App: q}
 		if err := h.ServeQuick(c); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
