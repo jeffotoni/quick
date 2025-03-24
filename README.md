@@ -16,8 +16,8 @@
 
  Quick v0.0.1 🚀 Fast & Minimal Web Framework
 ─────────────────── ───────────────────────────────
- 🌎 Host : http://127.0.0.1:0.0.0.0:8080
- 📌 Port : 0.0.0.0:8080
+ 🌎 Host : http://0.0.0.0
+ 📌 Port : 8080
  🔀 Routes: 4
 ─────────────────── ───────────────────────────────
 
@@ -70,7 +70,7 @@ To access the documentation for each **Quick Framework** package, click on the l
 | 📤 Upload Files (multipart/form-data)          | yes | 🟢     | 100%       |
 | 🚪 Route Group                                 | yes | 🟢     | 100%       |
 | 🛡️ Middlewares                                 | yes | 🟡     | 50%        |
-| ⚡ HTTP/2 support                              | yes | 🟢     | 100%       |
+| ⚡ HTTP/2 support                              | yes |  🟢     | 100%       |
 | 🔄 Data binding for JSON, XML and form payload | yes | 🟢     | 100%       |
 | 🔍 Regex support                               | yes | 🟡     | 80%        |
 | 🌎 Site                                        | yes | 🟡     | 90%        |
@@ -150,7 +150,6 @@ To access the documentation for each **Quick Framework** package, click on the l
 | Test coverage go test -cover                                                                    | ⏳ 75.5% |
 | Coverage of Regex resources, but possibilities                                                  | 🔴 0%    |
 | Develop for METHOD OPTIONS                                                                      | ✅ 100%  |
-| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 🔴 0%    |
 | Develop method for ListenAndServeTLS (http2)                                                    | 🔴 0%    |
 | Create a CLI (Command Line Interface) Quick.                                                    | 🔴 0%    |
 
