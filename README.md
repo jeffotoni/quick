@@ -73,8 +73,22 @@ To access the documentation for each **Quick Framework** package, click on the l
 | ⚡ HTTP/2 support                              | yes |  🟢     | 100%       |
 | 🔄 Data binding for JSON, XML and form payload | yes | 🟢     | 100%       |
 | 🔍 Regex support                               | yes | 🟡     | 80%        |
-| 🌎 Site                                        | yes | 🟡     | 90%        |
-| 📚 Docs                                        | yes | 🟡     | 40%        |
+| 🌎 Website                                     | yes | 🟡     | 90%        |
+| 📚 Documentation                               | yes | 🟡     | 40%        |
+| 🧩 Template Engine with Layout Support         | yes | 🟢     | 100%       |
+| 📦 Embedded Template Support (`embed.FS`)      | yes | 🟢     | 100%       |
+| 🔧 Custom Template Functions (`AddFunc`)       | yes | 🟢     | 100%       |
+| 🧪 Built-in Test Engine (`Qtest`)              | yes | 🟢     | 100%       |
+| 🧵 Middleware: Rate Limiting                   | yes | 🟢     | 100%       |
+| 🧵 Middleware: Logger                          | yes | 🟢     | 100%       |
+| 🧵 Middleware: Recover (panic handler)         | yes | 🟢     | 100%       |
+| 🧵 Middleware: CORS                            | yes | 🟢     | 100%       |
+| 🧵 Middleware: Helmet (security headers)       | yes | 🟢     | 100%       |
+| 🧵 Middleware: MaxBody                         | yes | 🟢     | 100%       |
+| 🔐 Middleware: BasicAuth                       | yes | 🟢     | 100%       |
+| 🛠️ Healthcheck Middleware                     | yes | 🟢     | 100%       |
+| 🚀 Performance Optimized Routing               | yes | 🟢     | 100%       |
+| 🧱 Extensible Plugin/Middleware System         | yes | 🟡     | 60%        |
 
 # 🗺️ Development Roadmap  
 
@@ -134,26 +148,34 @@ To access the documentation for each **Quick Framework** package, click on the l
 
 ## 🚀 Roadmap for Development  
 
-| Task                                                                                            | Progress |
-| ----------------------------------------------------------------------------------------------- | -------- |
-| Documentation Tests Examples PKG Go                                                             | ⏳ 45%   |
-| Test Coverage go test -cover                                                                    | ⏳ 74.6% |
-| Regex feature coverage, but possibilities                                                       | 🔴 0%    |
-| Develop for OPTIONS METHOD                                                                      | ✅ 100%  |
-| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 🔴 0%    |
-| Develop method for ListenAndServeTLS (http2)                                                    | 🔴 0%    |
-| Develop Static Files support                                                                    | ✅ 100%  |
-| WebSocket Support                                                                               | 🔴 0%    |
-| Rate Limiter Support                                                                            | 🔴 0%    |
-| Template Engines                                                                                | 🔴 0%    |
-| Documentation Tests Examples PKG Go                                                             | ⏳ 45%   |
-| Test coverage go test -cover                                                                    | ⏳ 75.5% |
-| Coverage of Regex resources, but possibilities                                                  | 🔴 0%    |
-| Develop for METHOD OPTIONS                                                                      | ✅ 100%  |
-| Develop method for ListenAndServeTLS (http2)                                                    | 🔴 0%    |
-| Create a CLI (Command Line Interface) Quick.                                                    | 🔴 0%    |
+
+| Task                                                                                             | Progress |
+|--------------------------------------------------------------------------------------------------|----------|
+| 📚 Documentation: Tests & Examples for Go Packages                                               | ⏳ 80%   |
+| ✅ Static Files support                                                                          | ✅ 100%  |
+| ✅ Support for HTTP `OPTIONS` method                                                             | ✅ 100%  |
+| ⚙️ Test coverage via `go test -cover`                                                            | ⏳ 86.1% |
+| 🔍 Regex feature coverage, dynamic routing possibilities                                         | ⏳ 80%   |
+| 📦 Template engine system (layouts, embed.FS, AddFunc)                                           | ✅ 100%  |
+| 🧪 Standard for unit testing + helper functions                                                  | ⏳ 90%   |
+| 🔐 Rate Limiter middleware                                                                       | ✅ 100%  |
+| 🧰 Middleware: Recover (panic handler)                                                           | ✅ 100%  |
+| ❤️ Middleware: Healthcheck                                                                      | ✅ 100%  |
+| 🛡️ Middleware: Helmet (security headers)                                                        | ✅ 100%  |
+| 📏 Middleware: MaxBody (request size limiter)                                                    | ✅ 100%  |
+| 📜 Middleware: Logger (request logging)                                                          | ✅ 100%  |
+| 🔐 Middleware: BasicAuth                                                                         | ✅ 100%  |
+| 🌐 Middleware: CORS                                                                              | ✅ 100%  |
+| 🔌 Develop support for HTTP `CONNECT` method [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 🟡 45%   |
+| 🔒 JWT Authentication support                                                                    | ✅ 100%   |
+| 🌐 WebSocket support                                                                             | 🔴 0%    |
+| 🔒 `ListenAndServeTLS` method (HTTP/2)                                                           | 🟡 50%   |
+| 🛠 Create a CLI (Command Line Interface) for Quick                                               | 🟡 50%   |
 
 ---
+
+
+
 
 ## 📊 Cover Testing Roadmap  
 
@@ -162,21 +184,27 @@ To access the documentation for each **Quick Framework** package, click on the l
 | Ctx         | 🟡 84.1% | 🟡     |
 | Group       | ✅ 100.0% | 🟢     |
 | Http Status | 🔴 7.8%  | 🔴     |
-| Client      | 🟢 83.3% | 🟢     |
+| Client      | 🟢 91.5% | 🟢     |
 | Mock        | ✅ 100.0% | 🟢     |
 | Concat      | ✅ 100.0% | 🟢     |
 | Log         | 🔴 0.0%  | 🔴     |
 | Print       | 🟡 66.7% | 🟡     |
 | Qos         | 🔴 0.0%  | 🔴     |
 | Rand        | 🔴 0.0%  | 🔴     |
-| Compressa   | 🟡 71.4% | 🟡     |
-| Cors        | 🟡 76.0% | 🟡     |
-| Logger      | ✅ 100.0% | 🟢     |
+| Compress   | ✅ 100.0%   | 🟢     |
+| Cors        | 🟡 79.2% | 🟡     |
+| Logger      |  🟢 89.6% | 🟢     |
 | Maxbody     | ✅ 100.0% | 🟢     |
-| Msgid       | ✅ 100.0% | 🟢     |
+| Msgid       |  🟢 80.0% | 🟢     |
 | Msguuid     | 🟢 86.4% | 🟢     |
-| Quick       | 🟡 79.5% | 🟡     |
+| Quick       |  🟢 85.3% |  🟢     |
 | QuickTest   | ✅ 100.0% | 🟢     |
+| Recover     | ✅ 100.0%   | 🟢     |
+| Healthcheck | 🟢 83.3%   | 🟢     |
+| Helmet      | 🟢 81.2%   | 🟢     |
+| BasicAuth   |  🟡 78.9%   |  🟡     |
+| Template    | 🟡 53.3%   | 🟡     |
+| Limiter    | 🟡 71.4%   | 🟡     |
 
 ### Fast quick example
 
@@ -3836,6 +3864,6 @@ Together we can continue to build amazing tools! 🚀
 | <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height="40"> | [@Crow3442](https://github.com/Crow3442)                       | ⭐ x 5        |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height="40">                                         | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | ⭐ x 5        |
 | <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 5        |
-| <img src="https://avatars.githubusercontent.com/u/38386200?v=4" height="40">                                         | [@emmadal](https://github.com/emmadal)           | ⭐ x 1        |
+| <img src="https://avatars.githubusercontent.com/u/38386200?v=4" height="40">                                         | [@emmadal](https://github.com/emmadal)           | ⭐ x 5        |
  
  
