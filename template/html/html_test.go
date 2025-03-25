@@ -8,7 +8,12 @@ import (
 	"testing"
 )
 
-// createTestFiles prepares a temporary directory with base and layout templates
+// createTestFiles prepares a temporary directory structure with a base template
+// (index.html) and a layout template (layouts/main.html) for testing purposes.
+//
+// To run:
+//
+//	go test -v -run ^createTestFiles$
 func createTestFiles(t *testing.T, baseDir string) {
 	t.Helper()
 
@@ -42,6 +47,10 @@ func createTestFiles(t *testing.T, baseDir string) {
 }
 
 // TestRenderNoLayout ensures template rendering works without layout
+//
+// To run:
+//
+//	go test -v -run ^TestRenderNoLayout$
 func TestRenderNoLayout(t *testing.T) {
 	dir := t.TempDir()
 	createTestFiles(t, dir)
@@ -68,6 +77,10 @@ func TestRenderNoLayout(t *testing.T) {
 }
 
 // TestRenderWithLayout verifies rendering with a layout wrapper
+//
+// To run:
+//
+//	go test -v -run ^TestRenderWithLayout$
 func TestRenderWithLayout(t *testing.T) {
 	dir := t.TempDir()
 	createTestFiles(t, dir)
@@ -98,6 +111,10 @@ func TestRenderWithLayout(t *testing.T) {
 }
 
 // TestAddFunc checks that custom template functions are applied correctly
+//
+// To run:
+//
+//	go test -v -run ^TestAddFunc$
 func TestAddFunc(t *testing.T) {
 	dir := t.TempDir()
 
@@ -125,6 +142,12 @@ func TestAddFunc(t *testing.T) {
 	}
 }
 
+// TestTemplateNameAliases ensures that templates can be accessed using multiple aliases,
+// such as "index", "index.html", or full paths, and that they render the same content.
+//
+// To run:
+//
+//	go test -v -run ^TestTemplateNameAliases$
 func TestTemplateNameAliases(t *testing.T) {
 	// Create temporary templates in a test directory
 	dir := createTestTemplates(t)
@@ -159,6 +182,8 @@ func TestTemplateNameAliases(t *testing.T) {
 	}
 }
 
+// createTestTemplates sets up a temporary template structure including base and nested layouts.
+// It is used to test alias rendering and layout wrapping behavior.
 func createTestTemplates(tb testing.TB) string {
 	tmpDir := tb.TempDir()
 
@@ -195,7 +220,8 @@ func createTestTemplates(tb testing.TB) string {
 	return tmpDir
 }
 
-// writeFile is a helper to write content to a file
+// writeFile is a helper function to write a given content to a file at the specified path.
+// It trims leading/trailing spaces and fails the test if writing fails.
 func writeFile(tb testing.TB, path, content string) {
 	err := os.WriteFile(path, []byte(strings.TrimSpace(content)), 0644)
 	if err != nil {
