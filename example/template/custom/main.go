@@ -34,14 +34,14 @@ func main() {
 	})
 
 	app.Get("/layout", func(c *quick.Ctx) error {
-		return c.HTML("index", map[string]interface{}{
+		return c.HTML("index", quick.M{
 			"Title":   "Quick with Layout",
 			"Message": "layout with main.html",
 		}, "layouts/main")
 	})
 
 	app.Get("/layout-nested", func(c *quick.Ctx) error {
-		return c.HTML("index", map[string]interface{}{
+		return c.HTML("index", quick.M{
 			"Title":   "Nested Layouts",
 			"Message": "this is nested layout content",
 		}, "layouts/main", "layouts/base")
