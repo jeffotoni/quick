@@ -7,7 +7,6 @@ package quick
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/jeffotoni/quick/middleware/cors"
@@ -364,7 +363,6 @@ func ExampleMaxBytesReader() {
 		// Read request body
 		body, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			log.Printf("Error reading request body: %v", err)
 			return c.Status(http.StatusRequestEntityTooLarge).String("Request body too large")
 		}
 
