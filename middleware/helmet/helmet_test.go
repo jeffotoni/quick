@@ -8,6 +8,10 @@ import (
 )
 
 // TestHelmet verifies that the Helmet middleware adds all security headers by default.
+//
+// To run:
+//
+//	go test -v -run ^TestHelmet$
 func TestHelmet(t *testing.T) {
 	q := quick.New()
 	q.Use(Helmet())
@@ -49,6 +53,10 @@ func TestHelmet(t *testing.T) {
 }
 
 // TestHelmetWithoutMiddleware confirms that no security headers are set when Helmet is not used.
+//
+// To run:
+//
+//	go test -v -run ^TestWithoutHelmet$
 func TestWithoutHelmet(t *testing.T) {
 	q := quick.New()
 
@@ -75,6 +83,10 @@ func TestWithoutHelmet(t *testing.T) {
 }
 
 // TestHelmetWithCSPReportOnly checks if CSP is correctly set as report-only.
+//
+// To run:
+//
+//	go test -v -run ^TestHelmetWithCSPReportOnly$
 func TestHelmetWithCSPReportOnly(t *testing.T) {
 	q := quick.New()
 	q.Use(Helmet(Options{
@@ -99,6 +111,10 @@ func TestHelmetWithCSPReportOnly(t *testing.T) {
 }
 
 // TestHelmetWithCustomHSTS ensures custom HSTS settings are applied.
+//
+// To run:
+//
+//	go test -v -run ^TestHelmetWithCustomHSTS$
 func TestHelmetWithCustomHSTS(t *testing.T) {
 	q := quick.New()
 	q.Use(Helmet(Options{
@@ -124,6 +140,10 @@ func TestHelmetWithCustomHSTS(t *testing.T) {
 }
 
 // TestHelmetWithNextFunc ensures middleware is skipped when Next returns true.
+//
+// To run:
+//
+//	go test -v -run ^TestHelmetWithNextFunc$
 func TestHelmetWithNextFunc(t *testing.T) {
 	q := quick.New()
 	q.Use(Helmet(Options{
@@ -149,6 +169,10 @@ func TestHelmetWithNextFunc(t *testing.T) {
 }
 
 // TestHelmetWithHidePoweredBy ensures that X-Powered-By and Server headers are hidden.
+//
+// To run:
+//
+//	go test -v -run ^TestHelmetWithHidePoweredBy$
 func TestHelmetWithHidePoweredBy(t *testing.T) {
 	q := quick.New()
 	q.Use(Helmet(Options{

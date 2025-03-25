@@ -1,3 +1,17 @@
+// Package healthcheck provides a middleware and endpoint for application health monitoring.
+//
+// It enables services using the Quick framework to expose a configurable healthcheck endpoint,
+// which can be used by external systems (e.g., load balancers, orchestrators) to verify if the application is running and healthy.
+//
+// Features:
+//   - Customizable endpoint path (default is "/healthcheck")
+//   - Support for user-defined health probes
+//   - Option to skip the middleware conditionally with a `Next` function
+//   - Automatically registers the healthcheck route during application setup
+//
+// The middleware itself does not modify the flow of other routes and only responds to the configured healthcheck endpoint.
+//
+// See the Options struct for further configuration.
 package healthcheck
 
 import (
@@ -75,6 +89,7 @@ func New(opt ...Options) func(next quick.Handler) quick.Handler {
 // If Endpoint or Probe are not provided, they are initialized to defaults.
 // If App is not provided, the function panics, as it is required.
 func defaultOptions(opt ...Options) Options {
+	// Initialize with default values
 	cfg := Options{
 		Endpoint: "/healthcheck",
 		Probe: func(c *quick.Ctx) bool {
@@ -82,20 +97,24 @@ func defaultOptions(opt ...Options) Options {
 		},
 	}
 
+	// Override defaults if options are provided
 	if len(opt) > 0 {
 		cfg = opt[0]
 	}
 
+	// Set default endpoint if not specified
 	if cfg.Endpoint == "" {
 		cfg.Endpoint = "/healthcheck"
 	}
 
+	// Set default probe function if not specified
 	if cfg.Probe == nil {
 		cfg.Probe = func(c *quick.Ctx) bool {
 			return true
 		}
 	}
 
+	// App is required to register the route, panic if not provided
 	if cfg.App == nil {
 		panic("healthcheck.New: Options.App (Quick instance) is required to register the endpoint")
 	}

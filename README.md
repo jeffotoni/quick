@@ -3438,6 +3438,179 @@ func main() {
 - Convenience: Makes it easier to return JSON responses in handlers.
 
 ---
+## 🎗️ Recover 
+
+The **Recover** middleware provides a robust way to intercept and gracefully handle panics during HTTP request processing.
+
+Instead of allowing your application to crash due to an unexpected panic, this middleware recovers from it, logs the error, and returns a `500 Internal Server Error` response. Optionally, it can also print the stack trace to help with debugging.
+
+---
+
+### ✨ Features
+
+- ✅ Recovers from panics without crashing the server  
+- 🧠 Optionally logs stack traces for debugging  
+- 🔌 Custom error handling via `StackTraceHandler`  
+- 🔄 Can be conditionally skipped with `Next()` function  
+
+---
+
+This example demonstrating how to use the `Recover` middleware in a Quick application.  
+This middleware protects your app by recovering from unexpected panics during request handling,  
+logging the error (optionally with a stack trace), and returning a `500 Internal Server Error` to the client.
+
+In this example, the route `/v1/recover` intentionally triggers a panic.  
+Thanks to the `Recover` middleware, the server won't crash — instead, it will return a proper error response.
+
+```go
+package main
+
+import (
+	"errors"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/recover"
+)
+
+func main() {
+	q := quick.New()
+
+	// Apply the Recover middleware
+	q.Use(recover.New(recover.Config{
+		App: q,
+	}))
+
+	// Define a test route
+	q.Get("/v1/recover", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		// halt the server
+		panic(errors.New("Panicking!"))
+	})
+
+	// Start the server
+	q.Listen("0.0.0.0:8080")
+}
+``` 
+### 📌 cURL
+```bash
+$ curl -i -X GET http://localhost:8080/v1/recover
+```
+
+### 📌 Response 
+```bash
+HTTP/1.1 500 Internal Server Error
+Content-Type: text/plain; charset=utf-8
+
+Internal Server Error
+```
+---
+### ⚙️ Configuration Options
+
+You can configure the behavior of the middleware using the `recover.Config` struct:
+
+| Field              | Type                                      | Description                                                                 |
+|-------------------|-------------------------------------------|-----------------------------------------------------------------------------|
+| `EnableStacktrace` | `bool`                                    | Whether to print the stack trace to `stderr`. Defaults to `true`.          |
+| `Next`            | `func(c *quick.Ctx) bool`                 | Skips the middleware if the function returns `true`. Optional.             |
+| `StackTraceHandler` | `func(c *quick.Ctx, err interface{})`     | Custom function to handle the panic. Useful for error tracking/logging.    |
+
+---
+
+## 🛠️ Healthcheck 
+
+The **Healthcheck** middleware provides a simple and customizable way to monitor your application’s health status.
+
+This is especially useful in cloud-native applications and containerized environments (e.g., Docker, Kubernetes), where automated systems frequently check endpoints to determine if the application is healthy and responsive.
+
+---
+
+### ✨ Features
+
+- ✅ Lightweight and easy to use
+- 🔁 Custom health probe logic (e.g., database ping, cache status)
+- 🌐 Customizable endpoint path (default: `/healthcheck`)
+- 🎯 Optional `Next` function to conditionally skip middleware
+- 🧩 Designed for microservices and production-readiness
+
+---
+
+This basic example demonstrating how to use the Healthcheck middleware with its default configuration.  
+It registers a `/healthcheck` endpoint that responds with `200 OK` if the app is considered healthy.
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+	"github.com/seuusuario/healthcheck"
+)
+
+func main() {
+	q := quick.New()
+
+	// Use Healthcheck middleware with default endpoint (/healthcheck)
+	q.Use(healthcheck.New(
+		healthcheck.Options{
+			App: q,
+		},
+	))
+
+	q.Get("/", func(c *quick.Ctx) error {
+		return c.Status(200).String("Home page")
+	})
+
+	log.Fatalln(q.Listen(":8080"))
+}
+```
+### 📌 cURL
+```bash
+$ curl -X GET http://localhost:8080/healthcheck
+```
+
+### 📌 Response 
+
+```bash
+HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+
+OK
+```
+### ⚙️ Custom Configuration
+You can fully customize the behavior of the middleware by using the Options struct. For example, changing the endpoint:
+
+```go
+q.Use(healthcheck.New(
+	healthcheck.Options{
+		App:      q,
+		Endpoint: "/v1/health",
+	},
+))
+```
+You can also define a **custom health probe** function, which runs whenever the endpoint is called:
+```go
+q.Use(healthcheck.New(
+	healthcheck.Options{
+		App: q,
+		Probe: func(c *quick.Ctx) bool {
+			// Perform custom checks (e.g., database, cache)
+			return true // or false if unhealthy
+		},
+	},
+))
+```
+### 🔎 Advanced Configuration Options
+
+| Field     | Type                      | Description                                                                 |
+|-----------|---------------------------|-----------------------------------------------------------------------------|
+| `App`     | `*quick.Quick`            | The Quick application instance (**required**).                             |
+| `Endpoint`| `string`                  | The route path to expose the healthcheck. Default: `/healthcheck`.        |
+| `Probe`   | `func(c *quick.Ctx) bool` | Optional function to perform custom health checks. Returns `true` or `false`. |
+| `Next`    | `func(c *quick.Ctx) bool` | Skips the middleware when it returns `true`. Useful for conditional logic. |
+
+---
 ## 📚| More Examples
 
 This directory contains **practical examples** of the **Quick Framework**, a **fast and lightweight web framework** developed in Go. 
