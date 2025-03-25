@@ -7,6 +7,8 @@ import (
 )
 
 // ExampleNew_defaultBehavior demonstrates the default behavior of the Recover middleware.
+// This function is named ExampleNew_defaultBehavior()
+// it with the Examples type.
 func ExampleNew_defaultBehavior() {
 	q := quick.New()
 
@@ -32,6 +34,8 @@ func ExampleNew_defaultBehavior() {
 }
 
 // ExampleNew_withNextSkipping demonstrates how to use the Next() function to skip the middleware.
+// This function is named ExampleNew_withNextSkipping()
+// it with the Examples type.
 func ExampleNew_withNextSkipping() {
 	q := quick.New()
 
@@ -61,6 +65,8 @@ func ExampleNew_withNextSkipping() {
 }
 
 // ExampleNew_withStacktraceDisabled demonstrates how to disable the stacktrace.
+// This function is named ExampleNew_withStacktraceDisabled()
+// it with the Examples type.
 func ExampleNew_withStacktraceDisabled() {
 	q := quick.New()
 

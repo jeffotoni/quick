@@ -92,6 +92,26 @@ Provides sensible security defaults while allowing full customization.
 - Supports skipping middleware per request
 
 ---
+## 🛠️ Recover
+Captures panics during request handling and prevents the server from crashing.
+
+- Recovers from unexpected panics and returns HTTP 500.
+- Optionally logs a full stack trace to `stderr`.
+- Supports custom panic handlers (`StackTraceHandler`).
+- Helps maintain application availability under failure conditions.
+
+---
+
+## ❤️ Healthcheck
+Provides a lightweight endpoint to verify the application’s health.
+
+- Exposes a simple healthcheck endpoint (default: `/healthcheck`).
+- Supports customizable probe logic for advanced health validations.
+- Configurable endpoint path and conditional middleware skipping.
+- Ideal for readiness and liveness checks in production environments.
+
+---
+
 
 ## 🚧 **Coming soon!**
 - Etag
