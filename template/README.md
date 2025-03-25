@@ -27,11 +27,14 @@ Quick provides native support for html/template with layout and partial composit
 
 
 ```bash
-
-your-app/
+.
 ├── main.go
 └── views/
-    └── index.html
+    ├── index.html
+    └── layouts/
+        ├── main.html
+        └── base.html
+```
 
 ```
 
