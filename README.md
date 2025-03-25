@@ -3505,7 +3505,7 @@ Content-Type: text/plain; charset=utf-8
 Internal Server Error
 ```
 ---
-## ⚙️ Configuration Options
+### ⚙️ Configuration Options
 
 You can configure the behavior of the middleware using the `recover.Config` struct:
 
@@ -3517,7 +3517,7 @@ You can configure the behavior of the middleware using the `recover.Config` stru
 
 ---
 
-# 🛠️ Healthcheck 
+## 🛠️ Healthcheck 
 
 The **Healthcheck** middleware provides a simple and customizable way to monitor your application’s health status.
 
@@ -3525,7 +3525,7 @@ This is especially useful in cloud-native applications and containerized environ
 
 ---
 
-## ✨ Features
+### ✨ Features
 
 - ✅ Lightweight and easy to use
 - 🔁 Custom health probe logic (e.g., database ping, cache status)
@@ -3601,7 +3601,7 @@ q.Use(healthcheck.New(
 	},
 ))
 ```
-## 🔎 Advanced Configuration Options
+### 🔎 Advanced Configuration Options
 
 | Field     | Type                      | Description                                                                 |
 |-----------|---------------------------|-----------------------------------------------------------------------------|
