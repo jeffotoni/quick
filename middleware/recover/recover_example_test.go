@@ -11,9 +11,7 @@ func ExampleNew_defaultBehavior() {
 	q := quick.New()
 
 	// Use the default Recover middleware
-	q.Use(New(Config{
-		App: q,
-	}))
+	q.Use(New())
 
 	// Define a test route
 	q.Get("/v1/recover", func(c *quick.Ctx) error {
@@ -39,7 +37,6 @@ func ExampleNew_withNextSkipping() {
 
 	// Use the Recover middleware with Next() function
 	q.Use(New(Config{
-		App: q,
 		Next: func(c *quick.Ctx) bool {
 			return true // Always skip
 		},
@@ -58,7 +55,7 @@ func ExampleNew_withNextSkipping() {
 	fmt.Println("Status:", resp.StatusCode())
 	fmt.Println("Body:", resp.BodyStr())
 
-	// Output:
+	// Out put:
 	// Status: 200
 	// Body:
 }
@@ -69,7 +66,6 @@ func ExampleNew_withStacktraceDisabled() {
 
 	// Use the Recover middleware with stacktrace disabled
 	q.Use(New(Config{
-		App:              q,
 		EnableStacktrace: false,
 	}))
 

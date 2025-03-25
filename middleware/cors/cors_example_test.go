@@ -49,8 +49,10 @@ func ExampleNew() {
 
 	fmt.Println("Response Body:", string(resp.Body()))
 
-	//Out put:
-	// Response Body: "name":"Alice","year":"2024"
+	// Output
+	// byte: {"name":"Alice","year":"2024"}
+	// String: {"name":"Alice","year":"2024"}
+	// Response Body: {"name":"Alice","year":"2024"}
 }
 
 // This function is named ExampleNew_allowedOrigin()
@@ -80,9 +82,9 @@ func ExampleNew_allowedOrigin() {
 
 	// Print the answer
 	fmt.Println(res.StatusCode()) // Expected: 200
-	fmt.Println(res.BodyStr())    // Expected: "Hello, Quick!"
+	fmt.Println(res.BodyStr())    // Expected: "Hello from CORS!"
 
-	// Out put:
+	// Output:
 	// 200
-	// Hello, Quick!
+	// Hello from CORS!
 }

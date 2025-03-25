@@ -12,7 +12,6 @@ func main() {
 
 	// Apply the Recover middleware with custom configuration
 	q.Use(recover.New(recover.Config{
-		App: q,
 		Next: func(c *quick.Ctx) bool {
 			return false
 		},
