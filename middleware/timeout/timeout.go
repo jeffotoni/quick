@@ -67,8 +67,10 @@ func New(opt ...Options) func(next quick.Handler) quick.Handler {
 // If the context deadline is exceeded, it returns a timeout response.
 func runHandler(c *quick.Ctx, h quick.Handler, errs ...error) error {
 	err := h.ServeQuick(c)
-	if errors.Is(err, context.DeadlineExceeded) {
-		return c.Status(quick.StatusRequestTimeout).SendString("Request Timeout")
+	for _, e := range errs {
+		if errors.Is(err, e) {
+			return c.Status(quick.StatusRequestTimeout).SendString("Request Timeout")
+		}
 	}
 	return err
 }
