@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-//go:embed testdata/views/*.html testdata/views/layouts/*.html
+//go:embed static/views/*.html static/views/layouts/*.html
 var templates embed.FS
 
 // ExampleNew demonstrates loading templates from filesystem.
 // This function is named ExampleNew()
 // it with the Examples type.
 func ExampleNew() {
-	engine := New("./testdata/views", ".html")
+	engine := New("./static/views", ".html")
 	engine.AddFunc("upper", strings.ToUpper)
 	_ = engine.Load()
 
@@ -33,7 +33,7 @@ func ExampleNew() {
 // it with the Examples type.
 func ExampleNewFileSystem() {
 	engine := NewFileSystem(templates, ".html")
-	engine.Dir = "testdata/views"
+	engine.Dir = "static/views"
 	_ = engine.Load()
 
 	var buf bytes.Buffer
