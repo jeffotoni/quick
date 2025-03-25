@@ -1,0 +1,15 @@
+{{ define "layouts/base" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ .Title }}</title>
+</head>
+<body>
+    <div>
+        <p>BASE HEADER</p>
+        {{ .yield }}
+        <p>BASE FOOTER</p>
+    </div>
+</body>
+</html>
+{{ end }}

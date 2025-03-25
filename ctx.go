@@ -47,6 +47,28 @@ type Ctx struct {
 	App            *Quick              // Reference to the Quick application instance
 }
 
+// func (c *Ctx) HTML(name string, data interface{}, layouts ...string) error {
+// 	if c.App.GetConfig().Views != nil {
+// 		return c.App.GetConfig().Views.Render(c.Response, name, data, layouts...)
+// 	}
+// 	return errors.New("template engine not configured")
+// }
+
+func (c *Ctx) HTML(name string, data interface{}, layouts ...string) error {
+	if c.App == nil {
+		return errors.New("App is nil")
+	}
+
+	cfg := c.App.GetConfig()
+	//log.Println("DEBUG", "cfg.Views:", cfg.Views)
+
+	if cfg.Views == nil {
+		return errors.New("template engine not configured")
+	}
+
+	return cfg.Views.Render(c.Response, name, data, layouts...)
+}
+
 // SetStatus sets the HTTP response status code.
 //
 // Parameters:
