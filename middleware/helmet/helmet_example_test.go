@@ -35,21 +35,21 @@ func ExampleHelmet() {
 
 	fmt.Println("Response Body:", string(resp.Body()))
 
-	//Out put
-	// Response Body: {
-	// "Cache-Control": "no-cache, no-store, must-revalidate",
-	// "Content-Security-Policy": "default-src 'self'",
-	// "Cross-Origin-Embedder-Policy": "require-corp",
-	// "Cross-Origin-Opener-Policy": "same-origin",
-	// "Cross-Origin-Resource-Policy": "same-origin",
-	// "Origin-Agent-Cluster": "?1",
-	// "Referrer-Policy": "no-referrer",
-	// "X-Content-Type-Options": "nosniff",
-	// "X-Dns-Prefetch-Control": "off",
-	// "X-Download-Options": "noopen",
-	// "X-Frame-Options": "SAMEORIGIN",
-	// "X-Permitted-Cross-Domain-Policies": "none",
-	// "X-Xss-Protection": "0"
-	//}
+	// Output:
+	// 	Response Body: {
+	//   "Cache-Control": "no-cache, no-store, must-revalidate",
+	//   "Content-Security-Policy": "default-src 'self'",
+	//   "Cross-Origin-Embedder-Policy": "require-corp",
+	//   "Cross-Origin-Opener-Policy": "same-origin",
+	//   "Cross-Origin-Resource-Policy": "same-origin",
+	//   "Origin-Agent-Cluster": "?1",
+	//   "Referrer-Policy": "no-referrer",
+	//   "X-Content-Type-Options": "nosniff",
+	//   "X-Dns-Prefetch-Control": "off",
+	//   "X-Download-Options": "noopen",
+	//   "X-Frame-Options": "SAMEORIGIN",
+	//   "X-Permitted-Cross-Domain-Policies": "none",
+	//   "X-Xss-Protection": "0"
+	// }
 
 }

@@ -24,7 +24,7 @@ func ExampleNew() {
 	fmt.Println("Status:", resp.StatusCode())
 	fmt.Println("Body:", resp.BodyStr())
 
-	// Out put:
+	// Output:
 	// Status: 200
 	// Body: OK
 }
@@ -51,7 +51,7 @@ func ExampleNew_customEndpoint() {
 	fmt.Println("Status:", resp.StatusCode())
 	fmt.Println("Body:", resp.BodyStr())
 
-	// Out put:
+	// Output:
 	// Status: 200
 	// Body: OK
 }
@@ -77,7 +77,7 @@ func ExampleNew_unhealthyProbe() {
 	fmt.Println("Status:", resp.StatusCode())
 	fmt.Println("Body:", resp.BodyStr())
 
-	// Out put:
+	// Output:
 	// Status: 503
 	// Body: Service Unavailable
 }

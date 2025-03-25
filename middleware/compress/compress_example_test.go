@@ -1,7 +1,10 @@
 package compress
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/jeffotoni/quick"
@@ -30,7 +33,7 @@ func ExampleGzip() {
 
 		// Returning a JSON response with headers
 		return c.Status(200).JSON(&response{
-			Msg:     "Quick ❤️",
+			Msg:     "Quick in action!",
 			Headers: c.Headers,
 		})
 	})
@@ -45,9 +48,23 @@ func ExampleGzip() {
 		log.Fatalf("Error running test request: %v", err)
 	}
 
-	// Print the response body
-	fmt.Println(res.BodyStr())
+	reader, err := gzip.NewReader(bytes.NewReader(res.Body()))
+	if err != nil {
+		panic(err)
+	}
+	defer reader.Close()
 
-	// Out put:
-	// {"msg":"Quick ❤️","headers":{"Accept-Encoding":["gzip"]}}
+	var unzipped bytes.Buffer
+	if _, err := io.Copy(&unzipped, reader); err != nil {
+		panic(err)
+	}
+
+	// Print the response body
+	// fmt.Println(res.BodyStr())
+
+	// Decompress
+	fmt.Println(string(unzipped.Bytes()))
+
+	// Output:
+	// {"msg":"Quick in action!","headers":{"Accept-Encoding":["gzip"]}}
 }
