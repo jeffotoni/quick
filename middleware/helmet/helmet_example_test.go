@@ -6,6 +6,8 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
+// This function is named ExampleHelmet()
+// it with the Examples type.
 func ExampleHelmet() {
 
 	q := quick.New()
