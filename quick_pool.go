@@ -53,6 +53,7 @@ func releaseCtx(ctx *Ctx) {
 	ctx.JsonStr = ""
 	ctx.resStatus = 0
 	ctx.MoreRequests = 0
+	ctx.App = nil
 
 	ctxPool.Put(ctx)
 }
@@ -141,9 +142,10 @@ func releaseBuffer(buf *bytes.Buffer) {
 }
 
 // newCtx returns a new, clean instance of Ctx
-func newCtx(w http.ResponseWriter, r *http.Request) *Ctx {
+func newCtx(w http.ResponseWriter, r *http.Request, q *Quick) *Ctx {
 	ctx := ctxPool.Get().(*Ctx)
 	ctx.Reset(w, r)
+	ctx.App = q // Set the App reference
 	return ctx
 }
 

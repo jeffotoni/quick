@@ -1,0 +1,14 @@
+{{ define "layouts/main" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ .Title }}</title>
+</head>
+<body>
+    <header><h2>Main Layout</h2></header>
+    <section>
+        {{ .yield }}
+    </section>
+</body>
+</html>
+{{ end }}

@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/jeffotoni/quick/internal/concat"
+	"github.com/jeffotoni/quick/template"
 )
 
 // SO_REUSEPORT is a constant manually defined for Linux systems
@@ -204,6 +205,7 @@ type Config struct {
 	GCPercent         int           // Renamed to be more descriptive (0-1000) - influences the garbage collector performance.
 	TLSConfig         *tls.Config   // Integrated TLS configuration
 	CorsConfig        *CorsConfig   // Specific type for CORS
+	Views             template.TemplateEngine
 
 	NoBanner bool // Flag to disable the Quick startup Display.
 }
@@ -260,6 +262,13 @@ type Quick struct {
 
 // indeed to Quick
 type App = Quick
+
+//	(q *Quick) Config() Config
+//
+// example: c.App.GetConfig().Views
+func (q *Quick) GetConfig() Config {
+	return q.config
+}
 
 // HandlerFunc adapts a quick.HandlerFunc to a standard http.HandlerFunc.
 // It creates a new Quick context (Ctx) for each HTTP request,
@@ -726,6 +735,7 @@ func extractParamsOptions(q *Quick, method, path string, handlerFunc HandleFunc)
 		ctx.Response = w
 		ctx.Request = r
 		ctx.MoreRequests = q.config.MoreRequests
+		ctx.App = q
 
 		if q.Cors && q.CorsSet != nil {
 			wrappedHandler := q.CorsSet(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -909,6 +919,7 @@ func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFu
 		ctx.Response = w
 		ctx.Request = req
 		ctx.Params = cval.ParamsMap
+		ctx.App = q
 
 		// Initialize Query and Headers maps properly
 		ctx.Query = make(map[string]string)
@@ -971,6 +982,8 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		// Reset `Request.Body` with the new bodyReader to allow re-reading
 		ctx.Request.Body = bodyReader
 
+		ctx.App = q
+
 		// Execute the handler function using the pooled context
 		execHandleFunc(ctx, handlerFunc)
 	}
@@ -1026,6 +1039,7 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		// Reset `Request.Body` with the new bodyReader to allow re-reading
 		ctx.Request.Body = bodyReader
 
+		ctx.App = q
 		// Execute the handler function using the pooled context
 		execHandleFunc(ctx, handlerFunc)
 	}
@@ -1066,6 +1080,8 @@ func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		ctx.Request = req
 		ctx.Params = cval.ParamsMap
 		ctx.MoreRequests = q.config.MoreRequests
+
+		ctx.App = q
 
 		// Execute the handler function using the pooled context
 		execHandleFunc(ctx, handlerFunc)
@@ -1336,8 +1352,8 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer releaseResponseWriter(rw) // Ensure it returns to the pool.
 
 	// Acquiring Ctx from the pool
-	ctx := newCtx(rw, req) // <- creates a new, clean instance of the context
-	defer releaseCtx(ctx)  // Returns it to the pool
+	ctx := newCtx(rw, req, q) // creates a new, clean instance of the context
+	defer releaseCtx(ctx)     // Returns it to the pool
 
 	for i := range q.routes {
 		var requestURI = req.URL.Path
