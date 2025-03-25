@@ -26,11 +26,12 @@ func ExampleGetDefaultConfig() {
 	fmt.Printf("RouteCapacity: %d\n", result.RouteCapacity)   // Maximum number of registered routes
 	fmt.Printf("MoreRequests: %d\n", result.MoreRequests)     // Maximum concurrent requests allowed
 
-	// Print the entire configuration struct
-	fmt.Println(result)
-
-	// Out put: BodyLimit: 2097152, MaxBodySize: 2097152, MaxHeaderBytes: 1048576, RouteCapacity: 1000, MoreRequests: 290
-
+	// Output:
+	// BodyLimit: 2097152
+	// MaxBodySize: 2097152
+	// MaxHeaderBytes: 1048576
+	// RouteCapacity: 1000
+	// MoreRequests: 290
 }
 
 // This function is named ExampleNew()
@@ -52,7 +53,7 @@ func ExampleNew() {
 	res, _ := q.QuickTest("GET", "/", nil)
 	fmt.Println(res.BodyStr())
 
-	// Out put: Quick in action ❤️!
+	// Output: Quick in action ❤️!
 
 }
 
@@ -78,7 +79,7 @@ func ExampleQuick_Use() {
 	res, _ := q.QuickTest("GET", "/use", nil)
 	fmt.Println(res.BodyStr())
 
-	// Out put: Quick in action com middleware ❤️!
+	// Output: Quick in action com middleware ❤️!
 
 }
 
@@ -91,14 +92,14 @@ func ExampleQuick_Get() {
 	// Define a GET route with a handler function
 	q.Get("/hello", func(c *Ctx) error {
 		// Return a simple text response
-		return c.Status(200).String("Olá, mundo!")
+		return c.Status(200).String("Hello, world!")
 	})
 
 	// Simulate a GET request to the route
 	res, _ := q.QuickTest("GET", "/hello", nil)
 	fmt.Println(res.BodyStr())
 
-	// Out put: Olá, mundo!
+	// Output: Hello, world!
 }
 
 // This function is named ExampleQuick_Post()
@@ -110,14 +111,14 @@ func ExampleQuick_Post() {
 	// Define a POST route
 	q.Post("/create", func(c *Ctx) error {
 		// Return response indicating resource creation
-		return c.Status(201).String("Recurso criado!")
+		return c.Status(201).String("Resource created!")
 	})
 
 	// Simulate a POST request for testing
 	res, _ := q.QuickTest("POST", "/create", nil)
 	fmt.Println(res.BodyStr())
 
-	// Out put: Recurso criado!
+	// Output: Resource created!
 }
 
 // This function is named ExampleQuick_Put()
@@ -129,7 +130,7 @@ func ExampleQuick_Put() {
 	// Define a PUT route
 	q.Put("/update", func(c *Ctx) error {
 		// Return response indicating resource update
-		return c.Status(200).String("Recurso atualizado!")
+		return c.Status(200).String("Update resource!")
 	})
 
 	// Simulate a PUT request for testing
@@ -137,7 +138,7 @@ func ExampleQuick_Put() {
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: Recurso atualizado!
+	// Output: Update resource!
 }
 
 // This function is named ExampleQuick_Delete()
@@ -149,7 +150,7 @@ func ExampleQuick_Delete() {
 	// Define a DELETE route
 	q.Delete("/delete", func(c *Ctx) error {
 		// Return response indicating resource deletion
-		return c.Status(200).String("Recurso deletado!")
+		return c.Status(200).String("Deleted resource!")
 	})
 
 	// Simulate a DELETE request for testing
@@ -157,7 +158,7 @@ func ExampleQuick_Delete() {
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: Recurso deletado!
+	// Output: Deleted resource!
 }
 
 // This function is named ExampleQuick_ServeHTTP()
@@ -179,7 +180,9 @@ func ExampleQuick_ServeHTTP() {
 	fmt.Println(res.StatusCode())
 	fmt.Println(res.BodyStr())
 
-	// Out put:	200, 42
+	// Output:
+	// 	200
+	// User Id: 42
 }
 
 // This function is named ExampleQuick_GetRoute()
@@ -207,7 +210,10 @@ func ExampleQuick_GetRoute() {
 		fmt.Println(route.Method, route.Pattern)
 	}
 
-	// Out put: 2, GET /users/:id, POST /users
+	// Output:
+	// 2
+	// GET /users/:id
+	// POST
 }
 
 // This function is named ExampleQuick_Listen()
@@ -226,7 +232,8 @@ func ExampleQuick_Listen() {
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 	}
-	// Out put:
+
+	// Output:
 	// (This function starts a server and does not return an output directly)
 }
 
@@ -248,12 +255,13 @@ func ExampleQuick_Patch() {
 	// Print the response status and body
 	fmt.Println("Status:", res.StatusCode())
 
-	// Out put: Status: 200
+	// Output:
+	// Status: 200
 }
 
 // This function is named ExampleQuick_Options()
+//
 //	it with the Examples type.
-
 func ExampleQuick_Options() {
 	// Start Quick instance
 	q := New()
@@ -270,7 +278,8 @@ func ExampleQuick_Options() {
 	// Print the response status
 	fmt.Println("Status:", res.StatusCode())
 
-	// Out put: Status: 204
+	// Output:
+	// Status: 204
 }
 
 // This function is named ExampleQuick_Static()
@@ -279,30 +288,21 @@ func ExampleQuick_Options() {
 func ExampleQuick_Static() {
 	// Quick Start
 	q := New()
+	q.Static("/static", staticFiles)
 
-	// Uncomment this block if using embedded static files
-	/*
-		//go:embed static/*
-		var staticFiles embed.FS
-		q.Static("/static", staticFiles)
-	*/
-
-	// Serve static files from the "static" directory
-	q.Static("/static", "./static")
-
-	// Serve a specific file on the root path
 	q.Get("/", func(c *Ctx) error {
 		c.File("./static/index.html")
 		return nil
 	})
 
-	// Simulate a request to a static file (e.g., "/static/index.html")
-	res, _ := q.QuickTest("GET", "/static/index.html", nil)
+	// Simula uma requisição para "/"
+	res, _ := q.QuickTest("GET", "/", nil)
 
-	// Print the response status
+	// Imprime o status da resposta
 	fmt.Println("Status:", res.StatusCode())
 
-	// Out put: Status: 200
+	// Output:
+	// Status: 200
 }
 
 // This function is named ExampleQuick_Shutdown()
@@ -334,7 +334,7 @@ func ExampleQuick_Shutdown() {
 		fmt.Println("Error shutting down server:", err)
 	}
 
-	// Out put:
+	// Output:
 	// Server is running!
 	// Server shut down gracefully.
 }
@@ -383,7 +383,7 @@ func ExampleMaxBytesReader() {
 	fmt.Println(res.StatusCode()) // Expecting: 413 (Payload too large)
 	fmt.Println(res.BodyStr())    // Expecting: "Request body too large"
 
-	// Out put:
+	// Output:
 	// 413
 	// Request body too large
 }
