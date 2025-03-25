@@ -3611,6 +3611,196 @@ q.Use(healthcheck.New(
 | `Next`    | `func(c *quick.Ctx) bool` | Skips the middleware when it returns `true`. Useful for conditional logic. |
 
 ---
+## 🖼️ Template Engine
+
+
+This package provides a flexible and extensible **template rendering engine** for the Quick web framework.  
+It allows you to build dynamic HTML views using Go's standard `html/template` package, enriched with features like layout support, custom functions, and file system abstraction.
+
+---
+
+## 📌 What is a Template?
+
+In web development, a **template** is a file that defines the structure of the output (usually HTML) with dynamic placeholders.  
+You can inject data into these placeholders at runtime to render personalized content for each request.
+
+---
+### 🚀 Features
+
+- ✅ Supports rendering templates with optional layout wrapping
+- 🔁 Nested layouts (`base.html` wrapping `main.html` wrapping `index.html`)
+- 🔧 Custom template functions via `AddFunc`
+- 📁 Loads templates from local file system or embedded `fs.FS` (e.g., `embed.FS`)
+- 📦 Fully compatible with Go’s `html/template`
+---
+### 🏗️ HTML Engine
+The html.Engine is a ready-to-use implementation that supports:
+
+- File system loading (local or embedded)
+- Custom template functions
+- Layout composition
+---
+
+## 🧩 Rendering Templates with and without Layouts
+
+The example below shows how to render templates in Quick using:
+
+- A **basic template** (`/`)
+- A template wrapped with a **single layout** (`/layout`)
+- A template wrapped with **nested layouts** (`/layout-nested`)
+
+It also demonstrates how to register custom template functions (e.g., `upper`) and how to configure the `html.Engine` to load `.html` files from the `views/` directory.
+
+---
+### 📁 Project Structure
+
+```text
+.
+├── main.go
+└── views/
+    ├── index.html
+    └── layouts/
+        ├── main.html
+        └── base.html
+```
+
+```go
+
+package main
+
+import (
+	"strings"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/template/html"
+)
+
+func main() {
+	engine := html.New("./views", ".html")
+
+	// Example of adding a custom function
+	engine.AddFunc("upper", strings.ToUpper)
+	engine.Load()
+
+	app := quick.New(quick.Config{
+		Views: engine,
+	})
+
+	app.Get("/", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Quick + Templates",
+			"Message": "this is your index content in views",
+		})
+	})
+
+	app.Get("/layout", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Quick with Layout",
+			"Message": "layout with main.html",
+		}, "layouts/main")
+	})
+
+	app.Get("/layout-nested", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Nested Layouts",
+			"Message": "this is nested layout content",
+		}, "layouts/main", "layouts/base")
+	})
+
+	app.Listen(":8080")
+}
+```
+
+## 📦 Rendering Templates with embed.FS (Go 1.16+)
+
+This example demonstrates how to embed templates into your Go binary using the `embed` package.  
+This is useful for distributing a single executable without external template files.
+
+---
+
+### 📁 Embedded Project Structure
+
+```text
+project/
+├── main.go
+└── views/
+    ├── index.html
+    └── layouts/
+        ├── main.html
+        └── base.html
+```
+### 🧩 Example Using embed.FS
+```go
+package main
+
+import (
+	"embed"
+	"strings"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/template/html"
+)
+
+//go:embed views/*.html views/layouts/*.html
+var viewsFS embed.FS
+
+func main() {
+	engine := html.NewFileSystem(viewsFS, ".html")
+	engine.Dir = "views" // required for path normalization
+	engine.AddFunc("upper", strings.ToUpper)
+	engine.Load()
+
+	app := quick.New(quick.Config{
+		Views: engine,
+	})
+
+	app.Get("/", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Quick + Templates (embed)",
+			"Message": "this is your index content in views (embedded)",
+		})
+	})
+
+	app.Get("/layout", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Quick with Layout",
+			"Message": "layout with main.html",
+		}, "layouts/main")
+	})
+
+	app.Get("/layout-nested", func(c *quick.Ctx) error {
+		return c.HTML("index.html", map[string]interface{}{
+			"Title":   "Nested Layouts",
+			"Message": "this is nested layout content",
+		}, "layouts/main", "layouts/base")
+	})
+
+	app.Listen(":8080")
+}
+```
+### 📌 cURL
+```bash
+curl -i http://localhost:8080/
+curl -i http://localhost:8080/layout
+curl -i http://localhost:8080/layout-nested
+```
+---
+### 🔍 Local Filesystem vs embed.FS: When to Use Each?
+
+The `html.Engine` supports both loading templates from disk (`html.New`) and embedding them in the binary (`html.NewFileSystem`).  
+Here’s a comparison to help you choose the best option for your project:
+
+| Feature                         | Local Filesystem (`html.New`)             | Embedded Filesystem (`html.NewFileSystem`)        |
+|---------------------------------|-------------------------------------------|----------------------------------------------------|
+| 📂 Files stored externally       | ✅ Yes                                     | ❌ No (compiled into binary)                        |
+| 📦 Single binary deployment     | ❌ No (requires template files)           | ✅ Yes (no external files needed)                   |
+| 🔁 Changes reflect on restart   | ✅ Yes                                     | ❌ No (requires recompilation)                      |
+| 🚀 Ideal for development        | ✅ Fast iteration and preview              | ⚠️ Requires rebuild for every change                |
+| 🔒 Ideal for production         | ⚠️ Needs extra steps to bundle files       | ✅ Safer and cleaner deploy                         |
+| ⚙️ Config example               | `html.New("./views", ".html")`            | `html.NewFileSystem(viewsFS, ".html")`             |
+
+
+---
 ## 📚| More Examples
 
 This directory contains **practical examples** of the **Quick Framework**, a **fast and lightweight web framework** developed in Go. 
