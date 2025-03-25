@@ -233,7 +233,6 @@ func ExampleQuick_Listen() {
 		fmt.Println("Error starting server:", err)
 	}
 
-	// Output:
 	// (This function starts a server and does not return an output directly)
 }
 
@@ -336,7 +335,8 @@ func ExampleQuick_Shutdown() {
 
 	// Output:
 	// Server is running!
-	// Server shut down gracefully.
+	// Server shut down successfully.
+
 }
 
 // This function is named ExampleMaxBytesReader()
