@@ -6,7 +6,12 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-// TestWithStacktraceDisabled tests when stacktrace is disabled.
+// TestWithStacktraceDisabled tests when stacktrace is disabled,
+// the middleware recovers from panic and returns HTTP 500 without printing the stack trace.
+//
+// To run:
+//
+//	go test -v -run ^TestWithStacktraceDisabled$
 func TestWithStacktraceDisabled(t *testing.T) {
 	q := quick.New()
 	q.Use(New(Config{
@@ -32,7 +37,12 @@ func TestWithStacktraceDisabled(t *testing.T) {
 	}
 }
 
-// TestWithStacktraceEnabled tests when stacktrace is enabled.
+// TestWithStacktraceEnabled tests when stacktrace is enabled,
+// the middleware recovers from panic and returns HTTP 500, while printing the stack trace.
+//
+// To run:
+//
+//	go test -v -run ^TestWithStacktraceEnabled$
 func TestWithStacktraceEnabled(t *testing.T) {
 	q := quick.New()
 	q.Use(New(Config{
@@ -57,7 +67,12 @@ func TestWithStacktraceEnabled(t *testing.T) {
 	}
 }
 
-// TestWithNextSkipping tests when Next() returns true (skips route logic).
+// TestWithNextSkipping tests when Next() returns true (skips route logic),
+// the middleware is skipped and panic is not handled by Recover.
+//
+// To run:
+//
+//	go test -v -run ^TestWithNextSkipping$
 func TestWithNextSkipping(t *testing.T) {
 	q := quick.New()
 
@@ -87,6 +102,12 @@ func TestWithNextSkipping(t *testing.T) {
 	}
 }
 
+// TestWithCustomStackTraceHandler verifies that the custom StackTraceHandler
+// is called when a panic occurs, allowing custom handling of the error.
+//
+// To run:
+//
+//	go test -v -run ^TestWithCustomStackTraceHandler$
 func TestWithCustomStackTraceHandler(t *testing.T) {
 	var called bool
 	var recoveredErr interface{}
