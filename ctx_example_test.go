@@ -314,24 +314,6 @@ func ExampleCtx_XML() {
 	// Output: <message>Hello, Quick!</message>
 }
 
-// This function is named ExampleCtx_writeResponse()
-// it with the Examples type.
-func ExampleCtx_writeResponse() {
-	q := New()
-
-	q.Get("/response", func(c *Ctx) error {
-		// Directly write raw byte response
-		return c.writeResponse([]byte("Hello, Quick!"))
-	})
-
-	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/response", nil, nil)
-
-	fmt.Println(res.BodyStr())
-
-	// Out put: Hello, Quick!
-}
-
 // This function is named ExampleCtx_Byte()
 // it with the Examples type.
 func ExampleCtx_Byte() {
@@ -343,11 +325,18 @@ func ExampleCtx_Byte() {
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/byte", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/byte",
+	})
+
+	if err := res.AssertString("Hello, Quick!"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: Hello, Quick!
+	// Output: Hello, Quick!
 }
 
 // This function is named ExampleCtx_Send()
@@ -361,11 +350,18 @@ func ExampleCtx_Send() {
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/send", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/send",
+	})
+
+	if err := res.AssertString("Hello, Quick!"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: Hello, Quick!
+	// Output: Hello, Quick!
 }
 
 // This function is named ExampleCtx_SendString()
@@ -379,10 +375,18 @@ func ExampleCtx_SendString() {
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/sendstring", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/sendstring",
+	})
+
+	if err := res.AssertString("Hello, Quick!"); err != nil {
+		fmt.Println("Body error:", err)
+	}
+
 	fmt.Println(res.BodyStr())
 
-	// Out put:	Hello, Quick!
+	// Output:	Hello, Quick!
 }
 
 // This function is named ExampleCtx_String()
@@ -396,10 +400,18 @@ func ExampleCtx_String() {
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/string", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/string",
+	})
+
+	if err := res.AssertString("Hello, Quick!"); err != nil {
+		fmt.Println("Body error:", err)
+	}
+
 	fmt.Println(res.BodyStr())
 
-	// Out put: Hello, Quick!
+	// Output: Hello, Quick!
 }
 
 // This function is named ExampleCtx_SendFile()
@@ -409,16 +421,24 @@ func ExampleCtx_SendFile() {
 
 	q.Get("/sendfile", func(c *Ctx) error {
 		// Simulate sending a file as a response
-		fileContent := []byte("Conteúdo do arquivo")
+		fileContent := []byte("file contents")
 		return c.SendFile(fileContent)
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/sendfile", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/sendfile",
+	})
+
+	if err := res.AssertString("file contents"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: Conteúdo do arquivo
+	// Output: file contents
+
 }
 
 // This function is named ExampleCtx_Set()
@@ -433,11 +453,23 @@ func ExampleCtx_Set() {
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/set-header", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/set-header",
+	})
+
+	if err := res.AssertString("Header Set"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	fmt.Println(res.Response().Header.Get("X-Custom-Header"))
 
-	// Out put: Quick
+	fmt.Println(res.BodyStr())
+
+	// Output:
+	// Quick
+	// Header Set
+
 }
 
 // This function is named ExampleCtx_Append()
@@ -447,17 +479,27 @@ func ExampleCtx_Append() {
 
 	q.Get("/append-header", func(c *Ctx) error {
 		// Append multiple values to a custom header
-		c.Append("X-Custom-Header", "Value1")
-		c.Append("X-Custom-Header", "Value2")
+		c.Append("X-Custom-Header", "Quick")
 		return c.String("Header Appended")
 	})
 
-	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/append-header", nil, nil)
+	// Simulate a GET request and retrieve XML response
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/append-header",
+	})
 
-	fmt.Println(res.Response().Header.Values("X-Custom-Header"))
+	if err := res.AssertString("Header Appended"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
-	// Out put: [Value1 Value2]
+	fmt.Println(res.Response().Header.Get("X-Custom-Header"))
+
+	fmt.Println(res.BodyStr())
+
+	// Output:
+	// Quick
+	// Header Appended
 }
 
 // This function is named ExampleCtx_Accepts()
@@ -472,11 +514,23 @@ func ExampleCtx_Accepts() {
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/accepts", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/accepts",
+	})
+
+	if err := res.AssertString("Accept Set"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	fmt.Println(res.Response().Header.Get("Accept"))
 
-	// Out put: application/json
+	fmt.Println(res.BodyStr())
+
+	// Output:
+	// application/json
+	// Accept Set
+
 }
 
 // This function is named ExampleCtx_Status()
