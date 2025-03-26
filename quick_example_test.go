@@ -7,6 +7,7 @@
 package quick
 
 import (
+	"embed"
 	"fmt"
 	"io"
 	"net/http"
@@ -364,32 +365,45 @@ func ExampleQuick_Options() {
 	})
 
 	// Simulate an OPTIONS request to "/resource"
-	res, _ := q.QuickTest("OPTIONS", "/resource", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodOptions,
+		URI:    "/resource",
+	})
 
 	// Print the response status
 	fmt.Println("Status:", res.StatusCode())
 
-	// Output:
-	// Status: 204
+	// Output: Status: 204
 }
 
 // This function is named ExampleQuick_Static()
 //
 //	it with the Examples type.
+//
+//go:embed static/*
+var staticFilesExample embed.FS
+
 func ExampleQuick_Static() {
 	// Quick Start
 	q := New()
-	q.Static("/static", staticFiles)
+
+	q.Static("/static", staticFilesExample)
 
 	q.Get("/", func(c *Ctx) error {
-		c.File("./static/index.html")
+		c.File("static/index.html")
 		return nil
 	})
 
-	// Simula uma requisição para "/"
-	res, _ := q.QuickTest("GET", "/", nil)
+	// Simulates a request for "/"
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/",
+	})
 
-	// Imprime o status da resposta
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
+
 	fmt.Println("Status:", res.StatusCode())
 
 	// Output:
@@ -410,10 +424,17 @@ func ExampleQuick_Shutdown() {
 	})
 
 	// Simulate a GET request to the route and capture the response
-	resp, _ := q.QuickTest("GET", "/", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/",
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
 
 	// Print only the response body to match GoDoc expectations
-	fmt.Println(resp.BodyStr())
+	fmt.Println(res.BodyStr())
 
 	// Simulate server shutdown immediately after starting
 	err := q.Shutdown()
@@ -469,6 +490,14 @@ func ExampleMaxBytesReader() {
 		Headers: map[string]string{"Content-Type": "application/json"},
 		Body:    oversizedBody, // Convert string to []byte
 	})
+
+	if err := res.AssertStatus(413); err != nil {
+		fmt.Println("status error:", err)
+	}
+
+	if err := res.AssertString("Request body too large"); err != nil {
+		fmt.Println("body error:", err)
+	}
 
 	// Print response status and body for verification
 	fmt.Println(res.StatusCode()) // Expecting: 413 (Payload too large)
