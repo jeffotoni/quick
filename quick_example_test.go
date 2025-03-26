@@ -50,8 +50,21 @@ func ExampleNew() {
 		return c.Status(200).String("Quick in action ❤️!")
 	})
 
-	// Simulate a request to the defined route for testing
-	res, _ := q.QuickTest("GET", "/", nil)
+	// Simulate a request using Quick's test utility
+	res, _ := q.Qtest(QuickTestOptions{
+		Method:  MethodGet,
+		URI:     "/",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
+
+	if err := res.AssertString("Quick in action ❤️!"); err != nil {
+		fmt.Println("body error:", err)
+	}
+
 	fmt.Println(res.BodyStr())
 
 	// Output: Quick in action ❤️!
@@ -77,7 +90,20 @@ func ExampleQuick_Use() {
 	})
 
 	// Simulate a request for testing
-	res, _ := q.QuickTest("GET", "/use", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method:  MethodGet,
+		URI:     "/use",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
+
+	if err := res.AssertString("Quick in action com middleware ❤️!"); err != nil {
+		fmt.Println("body error:", err)
+	}
+
 	fmt.Println(res.BodyStr())
 
 	// Output: Quick in action com middleware ❤️!
@@ -97,7 +123,19 @@ func ExampleQuick_Get() {
 	})
 
 	// Simulate a GET request to the route
-	res, _ := q.QuickTest("GET", "/hello", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/hello",
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
+
+	if err := res.AssertString("Hello, world!"); err != nil {
+		fmt.Println("body error:", err)
+	}
+
 	fmt.Println(res.BodyStr())
 
 	// Output: Hello, world!
@@ -116,7 +154,20 @@ func ExampleQuick_Post() {
 	})
 
 	// Simulate a POST request for testing
-	res, _ := q.QuickTest("POST", "/create", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method:  MethodPost,
+		URI:     "/create",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
+
+	if err := res.AssertStatus(201); err != nil {
+		fmt.Println("status error:", err)
+	}
+
+	if err := res.AssertString("Resource created!"); err != nil {
+		fmt.Println("body error:", err)
+	}
+
 	fmt.Println(res.BodyStr())
 
 	// Output: Resource created!
@@ -135,7 +186,19 @@ func ExampleQuick_Put() {
 	})
 
 	// Simulate a PUT request for testing
-	res, _ := q.QuickTest("PUT", "/update", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method:  MethodPut,
+		URI:     "/update",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
+
+	if err := res.AssertString("Update resource!"); err != nil {
+		fmt.Println("body error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
@@ -155,7 +218,19 @@ func ExampleQuick_Delete() {
 	})
 
 	// Simulate a DELETE request for testing
-	res, _ := q.QuickTest("DELETE", "/delete", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method:  MethodDelete,
+		URI:     "/delete",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
+
+	if err := res.AssertString("Deleted resource!"); err != nil {
+		fmt.Println("body error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
@@ -175,15 +250,22 @@ func ExampleQuick_ServeHTTP() {
 	})
 
 	// Simulate a request with a user ID
-	res, _ := q.QuickTest("GET", "/users/42", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/users/42",
+	})
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
 
-	// Print the response status and body
-	fmt.Println(res.StatusCode())
+	if err := res.AssertString("User Id: 42"); err != nil {
+		fmt.Println("body error:", err)
+	}
+
+	// Print the response body
 	fmt.Println(res.BodyStr())
 
-	// Output:
-	// 	200
-	// User Id: 42
+	// Output: User Id: 42
 }
 
 // This function is named ExampleQuick_GetRoute()
@@ -250,13 +332,22 @@ func ExampleQuick_Patch() {
 	})
 
 	// Simulate a PATCH request to "/update"
-	res, _ := q.QuickTest("PATCH", "/update", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPatch,
+		URI:    "/update",
+	})
 
-	// Print the response status and body
-	fmt.Println("Status:", res.StatusCode())
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
 
-	// Output:
-	// Status: 200
+	if err := res.AssertString("PATCH request received"); err != nil {
+		fmt.Println("body error:", err)
+	}
+
+	fmt.Println(res.BodyStr())
+
+	// Output: PATCH request received
 }
 
 // This function is named ExampleQuick_Options()
