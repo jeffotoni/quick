@@ -1,5 +1,3 @@
-//go:build !exclude_test
-
 package html
 
 import (
