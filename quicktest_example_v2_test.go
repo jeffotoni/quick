@@ -39,7 +39,8 @@ func ExampleQuick_Qtest() {
 	fmt.Println("Status Code:", res.StatusCode())
 	fmt.Println("Body:", res.BodyStr())
 
-	// Out put: Status Code: 200
+	// Output:
+	// Status Code: 200
 	// Body: Hello, Quick!
 }
 
@@ -75,7 +76,7 @@ func ExampleQTestPlus_AssertStatus() {
 		fmt.Println("Status code is correct")
 	}
 
-	// Out put: Status code is correct
+	// Output: Status code is correct
 }
 
 // ExampleQTestPlus_AssertHeader demonstrates how to validate an HTTP response header.
@@ -111,7 +112,7 @@ func ExampleQTestPlus_AssertHeader() {
 		fmt.Println("Header is correct")
 	}
 
-	// Out put: Header is correct
+	// Output: Header is correct
 }
 
 // ExampleQTestPlus_AssertBodyContains demonstrates how to validate the response body.
@@ -147,7 +148,7 @@ func ExampleQTestPlus_AssertBodyContains() {
 		fmt.Println("Body contains expected content")
 	}
 
-	// Out put: Body contains expected content
+	// Output: Body contains expected content
 }
 
 // ExampleQTestPlus_Body demonstrates how to retrieve the response body as a byte slice.
@@ -162,7 +163,7 @@ func ExampleQTestPlus_Body() {
 	// Retrieving and printing the body content
 	fmt.Println(string(res.Body()))
 
-	// Out put: Hello, Quick!
+	// Output: Hello, Quick!
 }
 
 // ExampleQTestPlus_BodyStr demonstrates how to retrieve the response body as a string.
@@ -177,7 +178,7 @@ func ExampleQTestPlus_BodyStr() {
 	// Retrieving and printing the body content as a string
 	fmt.Println(res.BodyStr())
 
-	// Out put: Hello, Quick!
+	// Output: Hello, Quick!
 }
 
 // ExampleQTestPlus_StatusCode demonstrates how to retrieve the response status code.
@@ -191,7 +192,7 @@ func ExampleQTestPlus_StatusCode() {
 	// Retrieving and printing the response status code
 	fmt.Println("Status Code:", res.StatusCode())
 
-	// Out put: Status Code: 200
+	// Output: Status Code: 200
 }
 
 // ExampleQTestPlus_Response demonstrates how to retrieve the complete HTTP response object.
@@ -212,7 +213,7 @@ func ExampleQTestPlus_Response() {
 	// Retrieving and printing the response status
 	fmt.Println("Response Status:", res.Response().Status)
 
-	// Out put: Response Status: 200 OK
+	// Output: Response Status: 200 OK
 }
 
 // ExampleQTestPlus_AssertNoHeader demonstrates how to check that a header is not present in the response.
@@ -241,7 +242,7 @@ func ExampleQTestPlus_AssertNoHeader() {
 		fmt.Println("Header is not present as expected")
 	}
 
-	// Out put: Header is not present as expected
+	// Output: Header is not present as expected
 }
 
 // ExampleQTestPlus_AssertString demonstrates how to compare the response body with an expected string.
@@ -267,7 +268,7 @@ func ExampleQTestPlus_AssertString() {
 		fmt.Println("Body matches expected string")
 	}
 
-	// Out put: Body matches expected string
+	// Output: Body matches expected string
 }
 
 // ExampleQTestPlus_AssertHeaderHasPrefix demonstrates how to verify if a header starts with a prefix.
@@ -293,7 +294,7 @@ func ExampleQTestPlus_AssertHeaderHasPrefix() {
 		fmt.Println("Header has expected prefix")
 	}
 
-	// Out put: Header has expected prefix
+	// Output: Header has expected prefix
 }
 
 // ExampleQTestPlus_AssertHeaderHasValueInSet demonstrates how to verify if a header value matches one of the allowed values.
@@ -320,7 +321,7 @@ func ExampleQTestPlus_AssertHeaderHasValueInSet() {
 		fmt.Println("Header value is in allowed set")
 	}
 
-	// Out put: Header value is in allowed set
+	// Output: Header value is in allowed set
 }
 
 // ExampleQTestPlus_AssertHeaderContains demonstrates how to verify if a header contains a substring.
@@ -346,5 +347,5 @@ func ExampleQTestPlus_AssertHeaderContains() {
 		fmt.Println("Header contains expected substring")
 	}
 
-	// Out put: Header contains expected substring
+	// Output: Header contains expected substring
 }
