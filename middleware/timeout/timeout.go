@@ -2,7 +2,7 @@ package timeout
 
 import (
 	"context"
-	"errors"
+	"log"
 	"time"
 
 	"github.com/jeffotoni/quick"
@@ -45,10 +45,11 @@ func New(opt ...Options) func(next quick.Handler) quick.Handler {
 				return next.ServeQuick(c)
 			}
 
-			// skip middleware logic if duration is 0
+			// Skip if duration is not set
 			if option.Duration <= 0 {
 				return next.ServeQuick(c)
 			}
+
 			// Create a timeout context
 			ctx, cancel := context.WithTimeout(c.Request.Context(), option.Duration)
 			defer cancel()
@@ -56,21 +57,27 @@ func New(opt ...Options) func(next quick.Handler) quick.Handler {
 			// Attach timeout context to request
 			c.Request = c.Request.WithContext(ctx)
 
-			// Execute the next handler
-			return runHandler(c, next, context.DeadlineExceeded)
+			// Channel to capture handler execution result
+			errCh := make(chan error, 1)
 
+			// Run handler in a goroutine
+			go func() {
+				defer func() {
+					if err := recover(); err != nil {
+						log.Printf("Timeout recover: %v", err)
+					}
+				}()
+				errCh <- next.ServeQuick(c)
+				close(errCh)
+			}()
+
+			// Wait for handler execution or timeout
+			select {
+			case err := <-errCh:
+				return err
+			case <-ctx.Done():
+				return c.Status(quick.StatusRequestTimeout).SendString("Request Timeout")
+			}
 		})
 	}
-}
-
-// runHandler executes the handler and checks for timeout
-// If the context deadline is exceeded, it returns a timeout response.
-func runHandler(c *quick.Ctx, h quick.Handler, errs ...error) error {
-	err := h.ServeQuick(c)
-	for _, e := range errs {
-		if errors.Is(err, e) {
-			return c.Status(quick.StatusRequestTimeout).SendString("Request Timeout")
-		}
-	}
-	return err
 }
