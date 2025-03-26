@@ -1,3 +1,5 @@
+//go:build !exclude_test
+
 // Package quick provides a minimalistic and high-performance web framework for Go.
 //
 // This file contains example implementations demonstrating different functionalities
