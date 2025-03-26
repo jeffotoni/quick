@@ -7,6 +7,7 @@
 package quick
 
 import (
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"net/http"
@@ -30,16 +31,24 @@ func ExampleCtx_GetReqHeadersAll() {
 	})
 
 	// Simulate a GET request with headers
-	res, _ := q.QuickTest("GET", "/headers", map[string]string{
-		"Content-Type": "application/json",
-		"Accept":       "application/xml",
-	}, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/headers",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+			"Accept":       "application/xml"},
+	})
 
-	fmt.Println(res.BodyStr())
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
 
-	// Out put:
+	fmt.Println("Status:", res.StatusCode())
+
+	// Output:
 	// [application/json]
 	// [application/xml]
+	// Status: 200
 }
 
 // This function is named ExampleCtx_GetHeadersAll()
@@ -56,13 +65,19 @@ func ExampleCtx_GetHeadersAll() {
 	})
 
 	// Simulate a GET request with headers
-	res, _ := q.QuickTest("GET", "/headers", map[string]string{
-		"Content-Type": "application/json",
-		"Accept":       "application/xml",
-	}, nil)
-	fmt.Println(res.BodyStr())
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/headers",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+			"Accept":       "application/xml"},
+	})
 
-	// Out put:
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	// Output:
 	// [application/json]
 	// [application/xml]
 }
@@ -86,19 +101,24 @@ func ExampleCtx_Bind() {
 			return err
 		}
 
-		// Print extracted data
-		fmt.Println(data.Name, data.Age)
+		// Print extracted data in desired format
+		fmt.Printf("%s %d\n", data.Name, data.Age)
 		return nil
 	})
 
 	// Simulate a POST request with JSON data
-	body := []byte(`{"name": "Quick", "age": 30}`)
-
-	res, _ := q.QuickTest("POST", "/bind", map[string]string{"Content-Type": "application/json"}, body)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPost,
+		URI:    "/bind",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: []byte(`{"name": "Quick", "age": 30}`),
+	})
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: Quick 30
+	// Output: Quick 30
 }
 
 // This function is named ExampleCtx_BodyParser()
@@ -121,18 +141,23 @@ func ExampleCtx_BodyParser() {
 		}
 
 		// Print parsed data
-		fmt.Println(data.Name, data.Age)
+		fmt.Printf("%s %d\n", data.Name, data.Age)
 		return nil
 	})
 
 	// Simulate a POST request with JSON data
-	body := []byte(`{"name": "Quick", "age": 28}`)
-
-	res, _ := q.QuickTest("POST", "/parse", map[string]string{"Content-Type": "application/json"}, body)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPost,
+		URI:    "/parse",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: []byte(`{"name": "Quick", "age": 28}`),
+	})
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: Quick 28
+	// Output: Quick 28
 }
 
 // This function is named ExampleCtx_Param()
@@ -147,42 +172,78 @@ func ExampleCtx_Param() {
 	})
 
 	// Simulate a GET request with a path parameter
-	res, _ := q.QuickTest("GET", "/user/42", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/user/42",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: 42
+	// Output: 42
 }
 
 // This function is named ExampleCtx_Body()
 // it with the Examples type.
 func ExampleCtx_Body() {
+	q := New()
+
 	// Create a new context with a simulated request body
-	c := &Ctx{
-		bodyByte: []byte(`{"name": "Quick", "age": 28}`),
+	q.Post("/body", func(c *Ctx) error {
+		// Access the raw body
+		body := c.Body()
+		fmt.Println(string(body))
+		return c.Status(200).String("OK")
+	})
+
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPost,
+		URI:    "/body",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: []byte(`{"name": "Quick", "age": 28}`),
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
 	}
 
-	// Retrieve the request body as a byte slice
-	body := c.Body()
-
-	// Print the request body as a string
-	fmt.Println(string(body))
-
-	// Out put: {"name": "Quick", "age": 28}
+	// Output: {"name": "Quick", "age": 28}
 }
 
 // This function is named ExampleCtx_Body()
 // it with the Examples type.
 func ExampleCtx_BodyString() {
-	c := &Ctx{
-		bodyByte: []byte(`{"name": "Quick", "age": 28}`),
+	q := New()
+
+	q.Post("/bodyString", func(c *Ctx) error {
+		// Access the raw body
+		bodyStr := c.BodyString()
+		fmt.Println(bodyStr)
+		return c.Status(200).String("OK")
+	})
+
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPost,
+		URI:    "/bodyString",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: []byte(`{"name": "Quick", "age": 28}`),
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
 	}
 
-	bodyStr := c.BodyString()
-
-	fmt.Println(bodyStr)
-
-	// Out put: {"name": "Quick", "age": 28}
+	// Output: {"name": "Quick", "age": 28}
 }
 
 // This function is named ExampleCtx_JSON()
@@ -197,11 +258,21 @@ func ExampleCtx_JSON() {
 	})
 
 	// Simulate a GET request and retrieve JSON response
-	res, _ := q.QuickTest("GET", "/json", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/json",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	})
+
+	if err := res.AssertString("{\"message\":\"Hello, Quick!\"}"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
-	// Out put: {"message":"Hello, Quick!"}
+	// Output: {"message":"Hello, Quick!"}
 }
 
 // This function is named ExampleCtx_XML()
@@ -210,21 +281,37 @@ func ExampleCtx_XML() {
 	q := New()
 
 	q.Get("/xml", func(c *Ctx) error {
-		// Define XML response structure
-		data := struct {
-			Message string `xml:"message"`
-		}{
-			Message: "Hello, Quick!",
+		type XMLResponse struct {
+			XMLName xml.Name `xml:"message"`
+			Text    string   `xml:",chardata"`
 		}
-		return c.XML(data)
+
+		data := XMLResponse{Text: "Hello, Quick!"}
+		xmlBytes, err := xml.Marshal(data)
+		if err != nil {
+			return c.Status(500).String("Failed to marshal XML")
+		}
+
+		c.Set("Content-Type", "application/xml")
+		return c.Status(200).Send(xmlBytes)
 	})
 
 	// Simulate a GET request and retrieve XML response
-	res, _ := q.QuickTest("GET", "/xml", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/xml",
+		Headers: map[string]string{
+			"Accept": "application/xml",
+		},
+	})
+
+	if err := res.AssertString(`<message>Hello, Quick!</message>`); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
-	// Out put:<message>Hello, Quick!</message>
+	// Output: <message>Hello, Quick!</message>
 }
 
 // This function is named ExampleCtx_writeResponse()
