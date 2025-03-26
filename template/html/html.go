@@ -1,3 +1,16 @@
+// Package html provides a powerful and extensible HTML template engine
+// for the Quick web framework, built on top of Go's html/template.
+//
+// It supports rendering templates with optional layout wrapping and
+// allows templates to be loaded from either the local filesystem or
+// an embedded filesystem (fs.FS), such as embed.FS.
+//
+// Key features:
+//   - Dynamic HTML rendering using native html/template
+//   - Support for multiple layout layers (nested layouts)
+//   - Custom template functions via AddFunc
+//   - Template aliasing (load templates with multiple names/paths)
+//   - Lazy loading support via Render if Load is not called explicitly
 package html
 
 import (

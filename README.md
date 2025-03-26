@@ -73,8 +73,22 @@ To access the documentation for each **Quick Framework** package, click on the l
 | ⚡ HTTP/2 support                              | yes |  🟢     | 100%       |
 | 🔄 Data binding for JSON, XML and form payload | yes | 🟢     | 100%       |
 | 🔍 Regex support                               | yes | 🟡     | 80%        |
-| 🌎 Site                                        | yes | 🟡     | 90%        |
-| 📚 Docs                                        | yes | 🟡     | 40%        |
+| 🌎 Website                                     | yes | 🟡     | 90%        |
+| 📚 Documentation                               | yes | 🟡     | 40%        |
+| 🧩 Template Engine with Layout Support         | yes | 🟢     | 100%       |
+| 📦 Embedded Template Support (`embed.FS`)      | yes | 🟢     | 100%       |
+| 🔧 Custom Template Functions (`AddFunc`)       | yes | 🟢     | 100%       |
+| 🧪 Built-in Test Engine (`Qtest`)              | yes | 🟢     | 100%       |
+| 🧵 Middleware: Rate Limiting                   | yes | 🟢     | 100%       |
+| 🧵 Middleware: Logger                          | yes | 🟢     | 100%       |
+| 🧵 Middleware: Recover (panic handler)         | yes | 🟢     | 100%       |
+| 🧵 Middleware: CORS                            | yes | 🟢     | 100%       |
+| 🧵 Middleware: Helmet (security headers)       | yes | 🟢     | 100%       |
+| 🧵 Middleware: MaxBody                         | yes | 🟢     | 100%       |
+| 🔐 Middleware: BasicAuth                       | yes | 🟢     | 100%       |
+| 🛠️ Healthcheck Middleware                     | yes | 🟢     | 100%       |
+| 🚀 Performance Optimized Routing               | yes | 🟢     | 100%       |
+| 🧱 Extensible Plugin/Middleware System         | yes | 🟡     | 60%        |
 
 # 🗺️ Development Roadmap  
 
@@ -134,26 +148,34 @@ To access the documentation for each **Quick Framework** package, click on the l
 
 ## 🚀 Roadmap for Development  
 
-| Task                                                                                            | Progress |
-| ----------------------------------------------------------------------------------------------- | -------- |
-| Documentation Tests Examples PKG Go                                                             | ⏳ 45%   |
-| Test Coverage go test -cover                                                                    | ⏳ 74.6% |
-| Regex feature coverage, but possibilities                                                       | 🔴 0%    |
-| Develop for OPTIONS METHOD                                                                      | ✅ 100%  |
-| Develop for CONNECT METHOD [See more](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 🔴 0%    |
-| Develop method for ListenAndServeTLS (http2)                                                    | 🔴 0%    |
-| Develop Static Files support                                                                    | ✅ 100%  |
-| WebSocket Support                                                                               | 🔴 0%    |
-| Rate Limiter Support                                                                            | 🔴 0%    |
-| Template Engines                                                                                | 🔴 0%    |
-| Documentation Tests Examples PKG Go                                                             | ⏳ 45%   |
-| Test coverage go test -cover                                                                    | ⏳ 75.5% |
-| Coverage of Regex resources, but possibilities                                                  | 🔴 0%    |
-| Develop for METHOD OPTIONS                                                                      | ✅ 100%  |
-| Develop method for ListenAndServeTLS (http2)                                                    | 🔴 0%    |
-| Create a CLI (Command Line Interface) Quick.                                                    | 🔴 0%    |
+
+| Task                                                                                             | Progress |
+|--------------------------------------------------------------------------------------------------|----------|
+| 📚 Documentation: Tests & Examples for Go Packages                                               | ⏳ 80%   |
+| ✅ Static Files support                                                                          | ✅ 100%  |
+| ✅ Support for HTTP `OPTIONS` method                                                             | ✅ 100%  |
+| ⚙️ Test coverage via `go test -cover`                                                            | ⏳ 86.1% |
+| 🔍 Regex feature coverage, dynamic routing possibilities                                         | ⏳ 80%   |
+| 📦 Template engine system (layouts, embed.FS, AddFunc)                                           | ✅ 100%  |
+| 🧪 Standard for unit testing + helper functions                                                  | ⏳ 90%   |
+| 🔐 Rate Limiter middleware                                                                       | ✅ 100%  |
+| 🧰 Middleware: Recover (panic handler)                                                           | ✅ 100%  |
+| ❤️ Middleware: Healthcheck                                                                      | ✅ 100%  |
+| 🛡️ Middleware: Helmet (security headers)                                                        | ✅ 100%  |
+| 📏 Middleware: MaxBody (request size limiter)                                                    | ✅ 100%  |
+| 📜 Middleware: Logger (request logging)                                                          | ✅ 100%  |
+| 🔐 Middleware: BasicAuth                                                                         | ✅ 100%  |
+| 🌐 Middleware: CORS                                                                              | ✅ 100%  |
+| 🔌 Develop support for HTTP `CONNECT` method [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-connect) | 🟡 45%   |
+| 🔒 JWT Authentication support                                                                    | ✅ 100%   |
+| 🌐 WebSocket support                                                                             | 🔴 0%    |
+| 🔒 `ListenAndServeTLS` method (HTTP/2)                                                           | 🟡 50%   |
+| 🛠 Create a CLI (Command Line Interface) for Quick                                               | 🟡 50%   |
 
 ---
+
+
+
 
 ## 📊 Cover Testing Roadmap  
 
@@ -162,21 +184,27 @@ To access the documentation for each **Quick Framework** package, click on the l
 | Ctx         | 🟡 84.1% | 🟡     |
 | Group       | ✅ 100.0% | 🟢     |
 | Http Status | 🔴 7.8%  | 🔴     |
-| Client      | 🟢 83.3% | 🟢     |
+| Client      | 🟢 91.5% | 🟢     |
 | Mock        | ✅ 100.0% | 🟢     |
 | Concat      | ✅ 100.0% | 🟢     |
 | Log         | 🔴 0.0%  | 🔴     |
 | Print       | 🟡 66.7% | 🟡     |
 | Qos         | 🔴 0.0%  | 🔴     |
 | Rand        | 🔴 0.0%  | 🔴     |
-| Compressa   | 🟡 71.4% | 🟡     |
-| Cors        | 🟡 76.0% | 🟡     |
-| Logger      | ✅ 100.0% | 🟢     |
+| Compress   | ✅ 100.0%   | 🟢     |
+| Cors        | 🟡 79.2% | 🟡     |
+| Logger      |  🟢 89.6% | 🟢     |
 | Maxbody     | ✅ 100.0% | 🟢     |
-| Msgid       | ✅ 100.0% | 🟢     |
+| Msgid       |  🟢 80.0% | 🟢     |
 | Msguuid     | 🟢 86.4% | 🟢     |
-| Quick       | 🟡 79.5% | 🟡     |
+| Quick       |  🟢 85.3% |  🟢     |
 | QuickTest   | ✅ 100.0% | 🟢     |
+| Recover     | ✅ 100.0%   | 🟢     |
+| Healthcheck | 🟢 83.3%   | 🟢     |
+| Helmet      | 🟢 81.2%   | 🟢     |
+| BasicAuth   |  🟡 78.9%   |  🟡     |
+| Template    | 🟡 53.3%   | 🟡     |
+| Limiter    | 🟡 71.4%   | 🟡     |
 
 ### Fast quick example
 
@@ -3611,6 +3639,196 @@ q.Use(healthcheck.New(
 | `Next`    | `func(c *quick.Ctx) bool` | Skips the middleware when it returns `true`. Useful for conditional logic. |
 
 ---
+## 🖼️ Template Engine
+
+
+This package provides a flexible and extensible **template rendering engine** for the Quick web framework.  
+It allows you to build dynamic HTML views using Go's standard `html/template` package, enriched with features like layout support, custom functions, and file system abstraction.
+
+---
+
+## 📌 What is a Template?
+
+In web development, a **template** is a file that defines the structure of the output (usually HTML) with dynamic placeholders.  
+You can inject data into these placeholders at runtime to render personalized content for each request.
+
+---
+### 🚀 Features
+
+- ✅ Supports rendering templates with optional layout wrapping
+- 🔁 Nested layouts (`base.html` wrapping `main.html` wrapping `index.html`)
+- 🔧 Custom template functions via `AddFunc`
+- 📁 Loads templates from local file system or embedded `fs.FS` (e.g., `embed.FS`)
+- 📦 Fully compatible with Go’s `html/template`
+---
+### 🏗️ HTML Engine
+The html.Engine is a ready-to-use implementation that supports:
+
+- File system loading (local or embedded)
+- Custom template functions
+- Layout composition
+---
+
+## 🧩 Rendering Templates with and without Layouts
+
+The example below shows how to render templates in Quick using:
+
+- A **basic template** (`/`)
+- A template wrapped with a **single layout** (`/layout`)
+- A template wrapped with **nested layouts** (`/layout-nested`)
+
+It also demonstrates how to register custom template functions (e.g., `upper`) and how to configure the `html.Engine` to load `.html` files from the `views/` directory.
+
+---
+### 📁 Project Structure
+
+```text
+.
+├── main.go
+└── views/
+    ├── index.html
+    └── layouts/
+        ├── main.html
+        └── base.html
+```
+
+```go
+
+package main
+
+import (
+	"strings"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/template/html"
+)
+
+func main() {
+	engine := html.New("./views", ".html")
+
+	// Example of adding a custom function
+	engine.AddFunc("upper", strings.ToUpper)
+	engine.Load()
+
+	app := quick.New(quick.Config{
+		Views: engine,
+	})
+
+	app.Get("/", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Quick + Templates",
+			"Message": "this is your index content in views",
+		})
+	})
+
+	app.Get("/layout", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Quick with Layout",
+			"Message": "layout with main.html",
+		}, "layouts/main")
+	})
+
+	app.Get("/layout-nested", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Nested Layouts",
+			"Message": "this is nested layout content",
+		}, "layouts/main", "layouts/base")
+	})
+
+	app.Listen(":8080")
+}
+```
+
+## 📦 Rendering Templates with embed.FS (Go 1.16+)
+
+This example demonstrates how to embed templates into your Go binary using the `embed` package.  
+This is useful for distributing a single executable without external template files.
+
+---
+
+### 📁 Embedded Project Structure
+
+```text
+project/
+├── main.go
+└── views/
+    ├── index.html
+    └── layouts/
+        ├── main.html
+        └── base.html
+```
+### 🧩 Example Using embed.FS
+```go
+package main
+
+import (
+	"embed"
+	"strings"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/template/html"
+)
+
+//go:embed views/*.html views/layouts/*.html
+var viewsFS embed.FS
+
+func main() {
+	engine := html.NewFileSystem(viewsFS, ".html")
+	engine.Dir = "views" // required for path normalization
+	engine.AddFunc("upper", strings.ToUpper)
+	engine.Load()
+
+	app := quick.New(quick.Config{
+		Views: engine,
+	})
+
+	app.Get("/", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Quick + Templates (embed)",
+			"Message": "this is your index content in views (embedded)",
+		})
+	})
+
+	app.Get("/layout", func(c *quick.Ctx) error {
+		return c.HTML("index", map[string]interface{}{
+			"Title":   "Quick with Layout",
+			"Message": "layout with main.html",
+		}, "layouts/main")
+	})
+
+	app.Get("/layout-nested", func(c *quick.Ctx) error {
+		return c.HTML("index.html", map[string]interface{}{
+			"Title":   "Nested Layouts",
+			"Message": "this is nested layout content",
+		}, "layouts/main", "layouts/base")
+	})
+
+	app.Listen(":8080")
+}
+```
+### 📌 cURL
+```bash
+curl -i http://localhost:8080/
+curl -i http://localhost:8080/layout
+curl -i http://localhost:8080/layout-nested
+```
+---
+### 🔍 Local Filesystem vs embed.FS: When to Use Each?
+
+The `html.Engine` supports both loading templates from disk (`html.New`) and embedding them in the binary (`html.NewFileSystem`).  
+Here’s a comparison to help you choose the best option for your project:
+
+| Feature                         | Local Filesystem (`html.New`)             | Embedded Filesystem (`html.NewFileSystem`)        |
+|---------------------------------|-------------------------------------------|----------------------------------------------------|
+| 📂 Files stored externally       | ✅ Yes                                     | ❌ No (compiled into binary)                        |
+| 📦 Single binary deployment     | ❌ No (requires template files)           | ✅ Yes (no external files needed)                   |
+| 🔁 Changes reflect on restart   | ✅ Yes                                     | ❌ No (requires recompilation)                      |
+| 🚀 Ideal for development        | ✅ Fast iteration and preview              | ⚠️ Requires rebuild for every change                |
+| 🔒 Ideal for production         | ⚠️ Needs extra steps to bundle files       | ✅ Safer and cleaner deploy                         |
+| ⚙️ Config example               | `html.New("./views", ".html")`            | `html.NewFileSystem(viewsFS, ".html")`             |
+
+
+---
 ## 📚| More Examples
 
 This directory contains **practical examples** of the **Quick Framework**, a **fast and lightweight web framework** developed in Go. 
@@ -3646,6 +3864,6 @@ Together we can continue to build amazing tools! 🚀
 | <img src="https://avatars.githubusercontent.com/u/99341377?s=400&u=095679b08054e215561a4d4b08da764c2de619e6&v=4" height="40"> | [@Crow3442](https://github.com/Crow3442)                       | ⭐ x 5        |
 | <img src="https://avatars.githubusercontent.com/u/70351793?v=4" height="40">                                         | [@Guilherme-De-Marchi](https://github.com/Guilherme-De-Marchi) | ⭐ x 5        |
 | <img src="https://avatars.githubusercontent.com/u/59976892?v=4" height="40">                                         | [@jaquelineabreu](https://github.com/jaquelineabreu)           | ⭐ x 5        |
-| <img src="https://avatars.githubusercontent.com/u/38386200?v=4" height="40">                                         | [@emmadal](https://github.com/emmadal)           | ⭐ x 1        |
+| <img src="https://avatars.githubusercontent.com/u/38386200?v=4" height="40">                                         | [@emmadal](https://github.com/emmadal)           | ⭐ x 5        |
  
  
