@@ -20,9 +20,27 @@ func ExampleQuick_Group() {
 	// Create a route group with prefix "/api"
 	apiGroup := q.Group("/api")
 
-	// Print the prefix of the group
-	fmt.Println(apiGroup.prefix)
-	// Out put: /api
+	// As the prefix field is unexported, we test by registering a route and calling it
+	apiGroup.Get("/check", func(c *Ctx) error {
+		return c.Status(200).String("Prefix OK")
+	})
+
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/api/check",
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	if err := res.AssertString("Prefix OK"); err != nil {
+		fmt.Println("Body error:", err)
+	}
+
+	fmt.Println(res.BodyStr())
+
+	// Output: Prefix OK
 }
 
 // This function is named ExampleGroup_Get()
@@ -40,12 +58,22 @@ func ExampleGroup_Get() {
 	})
 
 	// Simulate a GET request to "/api/users"
-	res, _ := q.QuickTest("GET", "/api/users", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/api/users",
+	})
 
-	// Print the response body
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	if err := res.AssertString("List of users"); err != nil {
+		fmt.Println("Body error:", err)
+	}
+
 	fmt.Println(res.BodyStr())
 
-	// Out put: List of users
+	// Output: List of users
 }
 
 // This function is named ExampleGroup_Post()
@@ -63,12 +91,23 @@ func ExampleGroup_Post() {
 	})
 
 	// Simulate a POST request to "/api/users"
-	res, _ := q.QuickTest("POST", "/api/users", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPost,
+		URI:    "/api/users",
+	})
+
+	if err := res.AssertStatus(201); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	if err := res.AssertString("User created"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	// Print the response body
 	fmt.Println(res.BodyStr())
 
-	// Out put: User created
+	// Output: User created
 }
 
 // This function is named ExampleGroup_Put()
@@ -86,12 +125,23 @@ func ExampleGroup_Put() {
 	})
 
 	// Simulate a PUT request to "/api/users/42"
-	res, _ := q.QuickTest("PUT", "/api/users/42", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPut,
+		URI:    "/api/users/42",
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	if err := res.AssertString("User updated"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	// Print the response body
 	fmt.Println(res.BodyStr())
 
-	// Out put: User updated
+	// Output: User updated
 }
 
 // This function is named ExampleGroup_Delete()
@@ -109,12 +159,23 @@ func ExampleGroup_Delete() {
 	})
 
 	// Simulate a DELETE request to "/api/users/42"
-	res, _ := q.QuickTest("DELETE", "/api/users/42", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodDelete,
+		URI:    "/api/users/42",
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	if err := res.AssertString("User deleted"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	// Print the response body
 	fmt.Println(res.BodyStr())
 
-	// Out put: User deleted
+	// Output: User deleted
 }
 
 // This function is named ExampleGroup_Delete()
@@ -143,12 +204,23 @@ func ExampleGroup_Use() {
 	})
 
 	// Simulate a request to test middleware activation
-	res, _ := q.QuickTest("GET", "/api/hello", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/api/hello",
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	if err := res.AssertString("Hello from API group Quick"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	// Print the response body
 	fmt.Println(res.BodyStr())
 
-	// Out put:
+	// Output:
 	// Middleware activated for: /api/hello
 	// Hello from API group Quick
 }
@@ -168,13 +240,23 @@ func ExampleGroup_Patch() {
 	})
 
 	// Simulate a PATCH request
-	res, _ := q.QuickTest("PATCH", "/api/update", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPatch,
+		URI:    "/api/update",
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	if err := res.AssertString("PATCH request received"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	// Print the response body
 	fmt.Println(res.BodyStr())
 
-	// Out put:
-	// PATCH request received
+	// Output: PATCH request received
 }
 
 // This function is named ExampleGroup_Options()
@@ -193,11 +275,17 @@ func ExampleGroup_Options() {
 	})
 
 	// Simulate an OPTIONS request
-	res, _ := q.QuickTest("OPTIONS", "/api/resource", nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodOptions,
+		URI:    "/api/resource",
+	})
+
+	if err := res.AssertStatus(204); err != nil {
+		fmt.Println("Status error:", err)
+	}
 
 	// Print the response status
 	fmt.Println("Status:", res.StatusCode())
 
-	// Out put:
-	// Status: 204
+	// Output: Status: 204
 }
