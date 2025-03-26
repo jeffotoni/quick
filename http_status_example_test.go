@@ -11,7 +11,7 @@ func ExampleStatusText() {
 	fmt.Println(StatusText(404))
 	fmt.Println(StatusText(500))
 
-	// Out put:
+	// Output:
 	// OK
 	// Not Found
 	// Internal Server Error
