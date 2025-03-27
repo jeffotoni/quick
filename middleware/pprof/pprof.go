@@ -1,9 +1,14 @@
-// Package profiling provides a middleware for profiling in Quick to help with
-// debugging and optimization.
+// Package pprof provides a Quick middleware that integrates Go's built-in
+// net/http/pprof profiler for runtime analysis, performance debugging,
+// and memory/cpu profiling.
 //
-// It allows you to enable profiling in development mode only.
-// In production, profiling is disabled, because it can introduce unwanted overhead
-// and potentially degrade performance
+// It exposes profiling endpoints such as /debug/pprof/, /heap, /goroutine, /profile, etc.
+//
+// Security:
+//
+// This middleware is intended for use in development environments.
+// In production, it is recommended to disable or restrict access
+// due to potential performance impact and exposure of internal details.
 package pprof
 
 import (
@@ -14,7 +19,11 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-// Config defines the configuration for the pprof middleware.
+// Config defines options for the pprof middleware.
+//
+// Prefix sets the base route for the pprof endpoints (default: "/debug/pprof").
+// Next allows conditional execution, letting you disable the middleware
+// for specific requests or environments (e.g., production).
 type Config struct {
 	// Prefix defines the base route for pprof endpoints.
 	// Default is "/debug/pprof"
@@ -31,9 +40,23 @@ var defaultConfig = Config{
 	Next:   nil,
 }
 
-// New returns a Quick middleware handler that exposes pprof endpoints
-// at the configured prefix. It dynamically intercepts requests and serves
-// profiling data without requiring manual route registration.
+// New returns a middleware handler for the Quick framework that serves
+// pprof profiling data under a configurable prefix.
+//
+// The middleware automatically handles paths like /heap, /profile, /goroutine, etc.,
+// using Go's net/http/pprof package.
+//
+// Optionally, a Config can be passed to set a custom prefix or control execution
+// (e.g., disable in production).
+//
+// Example:
+//
+//	q.Use(pprof.New(pprof.Config{
+//		Prefix: "/debug/pprof",
+//		Next: func(c *quick.Ctx) bool {
+//			return os.Getenv("APP_ENV") == "production"
+//		},
+//	}))
 func New(config ...Config) func(next quick.Handler) quick.Handler {
 	cfg := defaultConfig
 	if len(config) > 0 {
