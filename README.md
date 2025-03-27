@@ -57,6 +57,10 @@ To access the documentation for each **Quick Framework** package, click on the l
 | **quick/qtest**        | Auxiliary tools for testing in the Quick          | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#QTest)                  |
 | **quick/uploadedFile** | File upload management                            | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#UploadedFile)           |
 | **quick/zeroth**       | Framework helpers                                 | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick#Zeroth)                 |
+| **quick/template**       | Template                                | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick@v0.0.0-20250327050516-ae83fc2d0fa1/template)      
+| **quick/benchmarks**       | Benchmarks                                | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick@v0.0.0-20250327050516-ae83fc2d0fa1/benchmarks)            |
+| **quick/example**       | Usage examples                                | [![GoDoc](https://pkg.go.dev/badge/github.com/jeffotoni/quick.svg)](https://pkg.go.dev/github.com/jeffotoni/quick@v0.0.0-20250327050516-ae83fc2d0fa1/example)   
+
 
 ---
 
