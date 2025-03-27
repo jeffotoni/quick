@@ -545,11 +545,18 @@ func ExampleCtx_Status() {
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/status", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/status",
+	})
+
+	if err := res.AssertString("Not Found"); err != nil {
+		fmt.Println("Body error:", err)
+	}
 
 	fmt.Println(res.Response().StatusCode)
 
-	// Out put: 404
+	// Output: 404
 }
 
 // This function is named ExampleCtx_File()
@@ -560,16 +567,23 @@ func ExampleCtx_File() {
 
 	// Defining a route that serves a specific file
 	q.Get("/file", func(c *Ctx) error {
-		return c.File("quick.txt") // Serves an existing file
+		return c.File("./test_uploads/quick.txt") // Serves an existing file
 	})
 
 	// Simulating a request to test the route
-	res, _ := q.QuickTest("GET", "/file", nil)
+	// Simulate a GET request
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/file",
+	})
 
-	// Printing the expected response
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
 	fmt.Println("Status:", res.StatusCode())
 
-	// Out put: Status: 200
+	// Output: Status: 200
 }
 
 // This function is named ExampleCtx_JSONIN()
