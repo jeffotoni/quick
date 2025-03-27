@@ -11,17 +11,13 @@ func main() {
 	q := quick.New()
 
 	// Apply the profiling middleware
-	q.Use(pprof.New(
-		pprof.Options{
-			App: q,
-		},
-	))
+	q.Use(pprof.New())
 
 	// Define a test route
-	q.Get("/", func(c *quick.Ctx) error {
+	q.Get("/debug/pprof*", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
-		return c.Status(http.StatusOK).JSON(map[string]any{
+		return c.Status(http.StatusOK).JSON(quick.M{
 			"message": "Hello, World!",
 		})
 	})

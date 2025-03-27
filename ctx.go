@@ -45,6 +45,9 @@ type Ctx struct {
 	Query          map[string]string   // Map of query parameters
 	uploadFileSize int64               // Maximum allowed file upload size (bytes)
 	App            *Quick              // Reference to the Quick application instance
+
+	handlers     []HandlerFunc // list of handlers for this route
+	handlerIndex int           // current position in handlers stack
 }
 
 // func (c *Ctx) HTML(name string, data interface{}, layouts ...string) error {
@@ -794,4 +797,49 @@ func (c *Ctx) FormValues() map[string][]string {
 		_ = c.Request.ParseForm() // Processes application/x-www-form-urlencoded
 	}
 	return c.Request.Form
+}
+
+// Redirect sends an HTTP redirect response to the client.
+//
+// It sets the "Location" header to the given URL and returns a basic message.
+// By default, it uses HTTP status 302 (Found), but a custom status code
+// (e.g., 301, 307, 308) can be provided as an optional argument.
+func (c *Ctx) Redirect(location string, code ...int) error {
+	status := StatusFound // 302
+	if len(code) > 0 {
+		status = code[0]
+	}
+	c.Set("Location", location)
+	c.Status(status)
+	return c.String("Redirecting to " + location)
+}
+
+func (c *Ctx) responseWritten() bool {
+	if rw, ok := c.Response.(interface{ Written() bool }); ok {
+		return rw.Written()
+	}
+	// Fallback: assume false
+	return false
+}
+
+// internal method to set handlers for the current request
+func (c *Ctx) setHandlers(handlers []HandlerFunc) {
+	c.handlers = handlers
+	c.handlerIndex = -1
+}
+
+// Next executes the next handler in the chain.
+func (c *Ctx) Next() error {
+	c.handlerIndex++
+	if c.handlerIndex < len(c.handlers) {
+		handler := c.handlers[c.handlerIndex]
+		return handler(c)
+	}
+
+	// No more handlers — if no response has been written, send 404
+	if !c.responseWritten() {
+		NotFound(c.Response, c.Request)
+	}
+
+	return nil
 }
