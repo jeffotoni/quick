@@ -7,9 +7,12 @@
 package quick
 
 import (
+	"bytes"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -592,23 +595,34 @@ func ExampleCtx_JSONIN() {
 	// Creating a Quick instance
 	q := New()
 
-	// Defining a route that returns a structured JSON
+	// Defining a route that serves a specific file
 	q.Get("/json", func(c *Ctx) error {
 		data := map[string]string{"message": "Hello, Quick!"}
 		return c.JSONIN(data)
 	})
 
-	// Simulating a request to test the JSON response
-	res, _ := q.QuickTest("GET", "/json", nil)
+	// Simulate a GET request
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/json",
+	})
 
-	// Printing the expected response
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	if err := res.AssertString("{\n  \"message\": \"Hello, Quick!\"\n}\n"); err != nil {
+		fmt.Println("Body error:", err)
+	}
+
 	fmt.Println("Status:", res.StatusCode())
+
 	fmt.Println("Body:", res.BodyStr())
 
-	// Out put: Status: 200
-	// Body:
-	// {
-	//  "message": "Hello, Quick!"
+	// Output:
+	// Status: 200
+	// Body: {
+	//   "message": "Hello, Quick!"
 	// }
 }
 
@@ -628,7 +642,7 @@ func ExampleCtx_FormFileLimit() {
 		fmt.Println("Upload limit set to:", ctx.uploadFileSize)
 	}
 
-	// Out put: Upload limit set to: 5242880
+	// Output: Upload limit set to: 5242880
 }
 
 // This function is named ExampleCtx_FormFile()
@@ -662,7 +676,7 @@ func ExampleCtx_FormFile() {
 		fmt.Println("Received file:", files[0].FileName())
 	}
 
-	// Out put: Received file: quick.txt
+	// Output: Received file: quick.txt
 }
 
 // This function is named ExampleCtx_FormFiles()
@@ -709,7 +723,7 @@ func ExampleCtx_FormFiles() {
 		}
 	}
 
-	// Out put: Received files:
+	// Output: Received files:
 	// - file1.txt (1024 bytes)
 	// - file2.txt (2048 bytes)
 }
@@ -717,27 +731,46 @@ func ExampleCtx_FormFiles() {
 // This function is named ExampleCtx_MultipartForm()
 // it with the Examples type.
 func ExampleCtx_MultipartForm() {
-	// Creating a context and simulating an HTTP request
+	// Create a multipart/form-data body using a buffer
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+
+	// Add a sample form field "username" with value "quickuser"
+	_ = writer.WriteField("username", "quickuser")
+
+	// Close the writer to finalize the form body (writes the boundary end)
+	writer.Close()
+
+	// Create a new Quick context manually
 	ctx := &Ctx{}
 
-	// Simulating an HTTP header with the correct Content-Type
+	// Construct a fake HTTP request with method POST and the correct headers
 	ctx.Request = &http.Request{
-		Header: map[string][]string{
-			"Content-Type": {"multipart/form-data"},
+		Method: "POST",
+		Header: http.Header{
+			// Set the Content-Type to multipart/form-data with the proper boundary
+			"Content-Type": []string{writer.FormDataContentType()},
 		},
+		Body:          http.NoBody, // Temporary placeholder, will be replaced below
+		ContentLength: int64(body.Len()),
 	}
 
-	// Attempting to parse the multipart form
+	// Set the actual body (must be an io.ReadCloser)
+	ctx.Request.Body = io.NopCloser(&body)
+
+	// Attempt to parse the multipart form from the request
 	form, err := ctx.MultipartForm()
 
-	// Checking for errors
+	// Print the result
 	if err != nil {
 		fmt.Println("Error processing form:", err)
 	} else {
-		fmt.Println("Form processed successfully:", form)
+		fmt.Println("Form processed successfully:", form.Value)
 	}
 
-	// Out put: Form processed successfully: &{...}
+	// Output:
+	// Form processed successfully: map[username:[quickuser]]
+
 }
 
 // This function is named ExampleCtx_GetHeader()
@@ -745,22 +778,36 @@ func ExampleCtx_MultipartForm() {
 func ExampleCtx_GetHeader() {
 	q := New()
 
+	// Defining a route that serves a specific file
 	q.Get("/header", func(c *Ctx) error {
 		// Retrieve the "User-Agent" header
-		ua := c.GetHeader("User-Agent")
-		fmt.Println(ua) // Expected output: "Go-Test-Agent"
+		header := c.GetHeader("User-Agent")
+		c.Set("User-Agent", header)
+		fmt.Println(header)
 		return nil
 	})
 
-	// Simulate a GET request with headers
-	res, _ := q.QuickTest("GET", "/header", map[string]string{
-		"User-Agent": "Go-Test-Agent",
-	}, nil)
+	// Simulate a GET request
+	res, _ := q.Qtest(QuickTestOptions{
+		Method:  MethodGet,
+		URI:     "/header",
+		Headers: map[string]string{"User-Agent": "Go-Test-Agent"},
+	})
 
-	fmt.Println(res.BodyStr())
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
 
-	// Out put:
+	if err := res.AssertHeader("User-Agent", "Go-Test-Agent"); err != nil {
+		fmt.Println("Header error:", err)
+	}
+
+	fmt.Println("Status:", res.StatusCode())
+
+	// Output:
 	// Go-Test-Agent
+	// Status: 200
+
 }
 
 // This function is named ExampleCtx_GetHeaders()
@@ -772,23 +819,39 @@ func ExampleCtx_GetHeaders() {
 		// Retrieve all request headers
 		headers := c.GetHeaders()
 
+		c.Set("Content-Type", headers.Get("Content-Type"))
+		c.Set("Accept", headers.Get("Accept"))
+
 		// Print specific headers for demonstration
 		fmt.Println(headers.Get("Content-Type")) // Expected output: "application/json"
 		fmt.Println(headers.Get("Accept"))       // Expected output: "application/xml"
 		return nil
 	})
 
-	// Simulate a GET request with headers
-	res, _ := q.QuickTest("GET", "/headers", map[string]string{
-		"Content-Type": "application/json",
-		"Accept":       "application/xml",
-	}, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/headers",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+			"Accept":       "application/xml",
+		},
+	})
 
-	fmt.Println(res.BodyStr())
+	if err := res.AssertHeader("Content-Type", "application/json"); err != nil {
+		fmt.Println("Header error:", err)
+	}
 
-	// Out put:
+	if err := res.AssertHeader("Accept", "application/xml"); err != nil {
+		fmt.Println("Header error:", err)
+	}
+
+	fmt.Println("Status:", res.StatusCode())
+
+	// Output:
 	// application/json
 	// application/xml
+	// Status: 200
+
 }
 
 // This function is named ExampleCtx_RemoteIP()
@@ -816,7 +879,7 @@ func ExampleCtx_RemoteIP() {
 	// Capture and print the response
 	fmt.Println(strings.TrimSpace(rec.Body.String()))
 
-	// Out put:
+	// Output:
 	// 192.168.1.100
 }
 
@@ -831,11 +894,17 @@ func ExampleCtx_Method() {
 	})
 
 	// Simulate a POST request
-	res, _ := q.QuickTest("POST", "/method", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodPost,
+		URI:    "/method",
+	})
 
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
 	fmt.Println(res.BodyStr())
 
-	// Out put:
+	// Output:
 	// POST
 }
 
@@ -850,11 +919,18 @@ func ExampleCtx_Path() {
 	})
 
 	// Simulate a GET request
-	res, _ := q.QuickTest("GET", "/path/to/resource", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/path/to/resource",
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
-	// Out put:
+	// Output:
 	// /path/to/resource
 }
 
@@ -869,10 +945,18 @@ func ExampleCtx_QueryParam() {
 	})
 
 	// Simulate a GET request with query parameters
-	res, _ := q.QuickTest("GET", "/search?query=quick", nil, nil)
+	res, _ := q.Qtest(QuickTestOptions{
+		Method:      MethodGet,
+		URI:         "/search?query=quick",
+		QueryParams: map[string]string{"query": "quick"},
+	})
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
 
 	fmt.Println(res.BodyStr())
 
-	// Out put:
+	// Output:
 	// quick
 }
