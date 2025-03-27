@@ -45,6 +45,13 @@ Here are some examples that demonstrate how to use **Quick** for managing routes
 | [`quick.regex/`](quick.regex/) | Use of Regular Expressions for dynamic routes.   |
 | [`quick.start/`](quick.start/) | Quick Start Guide.   |
 | [`quick.listen.tls/`](quick.listen.tls/) | Quick TLS.   |
+| [`quick.new/`](quick.new/)               | Instantiating and configuring the Quick application.        |
+| [`quick.http2/`](quick.http2/)           | Example of using HTTP/2 with Quick.                         |
+| [`page/`](page/)                         | Example for rendering dynamic pages.                        |
+| [`get.ctx/`](get.ctx/)                   | Demonstrates accessing request context and query params.    |
+| [`form.post/`](form.post/)               | Handling form submission via POST.                          |
+| [`upload.multipart/`](upload.multipart/) | Multipart file upload handling.                             |
+| [`template/`](template/)                 | Using templates with Quick.                                 |
 
 ---
 
