@@ -139,4 +139,4 @@ You will see the list:
 $ go tool pprof -http=:8081 http://localhost:8080/debug/pprof/profile?seconds=10
 ```
 
-# ![pprof](/pprof.jpg)
+# ![pprof](./pprof.jpg)
