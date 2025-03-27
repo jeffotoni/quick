@@ -960,3 +960,68 @@ func ExampleCtx_QueryParam() {
 	// Output:
 	// quick
 }
+
+// This function is named ExampleCtx_Redirect()
+// it with the Examples type.
+func ExampleCtx_Redirect() {
+	q := New()
+
+	q.Get("/old-path", func(c *Ctx) error {
+		return c.Redirect("/new-path")
+	})
+
+	// Simulate a GET request
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/old-path",
+	})
+
+	if err := res.AssertStatus(StatusFound); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	fmt.Println("Location header:", res.Response().Header.Get("Location"))
+	fmt.Println("Status:", res.StatusCode())
+	fmt.Println("Body:", res.BodyStr())
+
+	// Output:
+	// Location header: /new-path
+	// Status: 302
+	// Body: Redirecting to /new-path
+}
+
+// This function is named ExampleCtx_Next()
+// it with the Examples type.
+func ExampleCtx_Next() {
+	q := New()
+
+	// Middleware that uses Next
+	q.Use(func(c *Ctx) error {
+		err := c.Next()
+		return err
+	})
+
+	// Final route handler
+	q.Get("/", func(c *Ctx) error {
+		fmt.Println("Quick")
+		return c.String("done")
+	})
+
+	// Simulate request
+	res, _ := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/",
+	})
+
+	// Ensure response is what we expect
+	if err := res.AssertString("done"); err != nil {
+		fmt.Println("Body error:", err)
+	}
+
+	if err := res.AssertStatus(200); err != nil {
+		fmt.Println("Status error:", err)
+	}
+
+	// Output:
+	// Quick
+}
