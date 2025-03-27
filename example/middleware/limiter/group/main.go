@@ -61,7 +61,7 @@ func main() {
 	// Define route without rate limit
 	// This route is not affected by the rate limiter
 	q.Get("/", func(c *quick.Ctx) error {
-		return c.JSON(map[string]string{"msg": "Quick in action ❤️!"})
+		return c.JSON(map[string]string{"msg": "Quick in action!"})
 	})
 
 	// Start the server on port 8080

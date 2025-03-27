@@ -45,7 +45,7 @@ func main() {
 
 		// Retornar resposta JSON
 		return c.Status(200).JSON(quick.M{
-			"msg": "Quick ❤️",
+			"msg": "Quick",
 		})
 	})
 

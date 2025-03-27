@@ -28,7 +28,7 @@ func main() {
 
 		// Returning a JSON response with headers
 		return c.Status(200).JSON(&my{
-			Msg:     "Quick ❤️",
+			Msg:     "Quick ",
 			Headers: c.Headers,
 		})
 	})
