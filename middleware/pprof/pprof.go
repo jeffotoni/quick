@@ -9,88 +9,94 @@ package pprof
 import (
 	"net/http"
 	"net/http/pprof"
-	"os"
+	"strings"
 
 	"github.com/jeffotoni/quick"
 )
 
-// Options defines the configuration for the profiling middleware.
-type Options struct {
-	// Next is an optional function that, if returns true, skips the middleware.
-	// Useful to conditionally bypass the middleware.
+// Config defines the configuration for the pprof middleware.
+type Config struct {
+	// Prefix defines the base route for pprof endpoints.
+	// Default is "/debug/pprof"
+	Prefix string
+
+	// Next is a function that allows skipping this middleware conditionally.
+	// If it returns true, the middleware is bypassed.
 	Next func(c *quick.Ctx) bool
-
-	// App is the instance of the Quick application.
-	// Required to register the profiling endpoint once during setup.
-	App *quick.Quick
 }
 
-func New(opt ...Options) func(next quick.Handler) quick.Handler {
-	option := defaultOptions(opt...)
-
-	// Define profiling routes
-	profilingRoutes := map[string]http.Handler{
-		"/debug/pprof":        http.HandlerFunc(pprof.Index),
-		"/debug/cmdline":      http.HandlerFunc(pprof.Cmdline),
-		"/debug/profile":      http.HandlerFunc(pprof.Profile),
-		"/debug/symbol":       http.HandlerFunc(pprof.Symbol),
-		"/debug/pprof/trace":  http.HandlerFunc(pprof.Trace),
-		"/debug/goroutine":    pprof.Handler("goroutine"),
-		"/debug/heap":         pprof.Handler("heap"),
-		"/debug/threadcreate": pprof.Handler("threadcreate"),
-		"/debug/mutex":        pprof.Handler("mutex"),
-		"/debug/allocs":       pprof.Handler("allocs"),
-		"/debug/block":        pprof.Handler("block"),
-	}
-
-	// Register routes in Quick
-	for route, handler := range profilingRoutes {
-		option.App.Get(route, func(c *quick.Ctx) error {
-			// Skip route logic if Next returns true
-			if option.Next != nil && option.Next(c) {
-				return c.Status(http.StatusNotFound).SendString("Not Found")
-			}
-
-			// Only allow GET requests
-			if c.Method() != quick.MethodGet {
-				return c.Status(http.StatusMethodNotAllowed).SendString("Method Not Allowed")
-			}
-
-			// Serve the profiling endpoint
-			handler.ServeHTTP(c.Response, c.Request)
-			return nil
-		})
-	}
-
-	// Middleware just forwards the request
-	return func(next quick.Handler) quick.Handler {
-		return quick.HandlerFunc(func(c *quick.Ctx) error {
-			return next.ServeQuick(c)
-		})
-	}
+// defaultConfig returns the default configuration for the middleware.
+var defaultConfig = Config{
+	Prefix: "/debug/pprof",
+	Next:   nil,
 }
 
-// defaultOptions applies sane defaults for the profiling middleware.
-// If App is not provided, the function panics, as it is required.
-// Profiling is only enabled in development mode
-func defaultOptions(opt ...Options) Options {
-	// Check if APP_ENV is set to "development".
-	// Profiling is only enabled in development mode
-	env := os.Getenv("APP_ENV")
-	if env != "development" {
-		panic("pprof.New: Environment variable APP_ENV must be set to 'development'")
-	}
-
-	// Initialize with default values
-	if len(opt) == 0 {
-		return Options{
-			Next: func(c *quick.Ctx) bool { return false },
+// New returns a Quick middleware handler that exposes pprof endpoints
+// at the configured prefix. It dynamically intercepts requests and serves
+// profiling data without requiring manual route registration.
+func New(config ...Config) func(next quick.Handler) quick.Handler {
+	cfg := defaultConfig
+	if len(config) > 0 {
+		cfg = config[0]
+		if cfg.Prefix == "" {
+			cfg.Prefix = defaultConfig.Prefix
 		}
 	}
 
-	// Check if App is provided
-	if opt[0].App == nil {
-		panic("pprof.New: Options.App (Quick instance) is required to register the profiling route")
+	// Middleware handler that intercepts requests matching the configured pprof prefix.
+	// It serves profiling endpoints like /cmdline, /profile, /symbol, etc.
+	return func(next quick.Handler) quick.Handler {
+		return quick.HandlerFunc(func(c *quick.Ctx) error {
+			// Skip middleware if Next function is defined and returns true
+			if cfg.Next != nil && cfg.Next(c) {
+				return next.ServeQuick(c)
+			}
+
+			path := c.Path()
+
+			// Check if the request path matches the pprof prefix
+			if path == cfg.Prefix || strings.HasPrefix(path, cfg.Prefix+"/") {
+				// Trim the prefix to get the specific subpath (e.g., /cmdline, /heap)
+				subpath := strings.TrimPrefix(path, cfg.Prefix)
+
+				// If subpath is empty or root, serve the pprof index
+				if subpath == "" || subpath == "/" {
+					http.HandlerFunc(pprof.Index).ServeHTTP(c.Response, c.Request)
+					return nil
+				}
+
+				// Match each supported pprof route and serve accordingly
+				switch subpath {
+				case "/cmdline":
+					http.HandlerFunc(pprof.Cmdline).ServeHTTP(c.Response, c.Request)
+				case "/profile":
+					http.HandlerFunc(pprof.Profile).ServeHTTP(c.Response, c.Request)
+				case "/symbol":
+					http.HandlerFunc(pprof.Symbol).ServeHTTP(c.Response, c.Request)
+				case "/trace":
+					http.HandlerFunc(pprof.Trace).ServeHTTP(c.Response, c.Request)
+				case "/allocs":
+					http.HandlerFunc(pprof.Handler("allocs").ServeHTTP).ServeHTTP(c.Response, c.Request)
+				case "/block":
+					http.HandlerFunc(pprof.Handler("block").ServeHTTP).ServeHTTP(c.Response, c.Request)
+				case "/goroutine":
+					http.HandlerFunc(pprof.Handler("goroutine").ServeHTTP).ServeHTTP(c.Response, c.Request)
+				case "/heap":
+					http.HandlerFunc(pprof.Handler("heap").ServeHTTP).ServeHTTP(c.Response, c.Request)
+				case "/mutex":
+					http.HandlerFunc(pprof.Handler("mutex").ServeHTTP).ServeHTTP(c.Response, c.Request)
+				case "/threadcreate":
+					http.HandlerFunc(pprof.Handler("threadcreate").ServeHTTP).ServeHTTP(c.Response, c.Request)
+				default:
+					// Redirect unknown subpaths to the index page
+					return c.Redirect(cfg.Prefix + "/")
+				}
+
+				return nil
+			}
+
+			// If path doesn't match, continue to the next middleware or handler
+			return next.ServeQuick(c)
+		})
 	}
-	return opt[0]
 }

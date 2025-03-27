@@ -61,6 +61,9 @@ const myContextKey contextKey = 0
 //	})
 type HandleFunc func(*Ctx) error
 
+// nextFunc is an internal type used to control next handler execution.
+type nextFunc func(*Ctx) error
+
 // HandlerFunc defines the function signature for request handlers in Quick.
 //
 // This type provides a way to implement request handlers as standalone
@@ -242,22 +245,20 @@ type CorsConfig struct {
 
 // Quick is the main structure of the framework, holding routes and configurations.
 type Quick struct {
-	config        Config         // Configuration settings.
-	Cors          bool           // Indicates if CORS is enabled.
-	groups        []Group        // List of route groups.
-	handler       http.Handler   // The primary HTTP handler.
-	mux           *http.ServeMux // Multiplexer for routing requests.
-	routes        []*Route       // Registered routes.
-	routeCapacity int            // The maximum number of routes allowed.
-	mws2          []any          // List of registered middlewares.
-
-	CorsSet     func(http.Handler) http.Handler // CORS middleware handler function.
-	CorsOptions map[string]string               // CORS options map
+	config        Config                          // Configuration settings.
+	Cors          bool                            // Indicates if CORS is enabled.
+	groups        []Group                         // List of route groups.
+	handler       http.Handler                    // The primary HTTP handler.
+	mux           *http.ServeMux                  // Multiplexer for routing requests.
+	routes        []*Route                        // Registered routes.
+	routeCapacity int                             // The maximum number of routes allowed.
+	mws2          []any                           // List of registered middlewares.
+	CorsSet       func(http.Handler) http.Handler // CORS middleware handler function.
+	CorsOptions   map[string]string               // CORS options map
 	// corsConfig    *CorsConfig // Specific type for CORS // Removed unused field
-	embedFS embed.FS     // File system for embedded static files.
-	server  *http.Server // Http server
-
-	bufferPool *sync.Pool
+	embedFS    embed.FS     // File system for embedded static files.
+	server     *http.Server // Http server
+	bufferPool *sync.Pool   // Reusable buffer pool to reduce allocations and improve performance
 }
 
 // indeed to Quick
@@ -422,7 +423,6 @@ func (q *Quick) Use(mw any) {
 
 	// Append middleware to the list of registered middlewares
 	q.mws2 = append(q.mws2, mw)
-
 }
 
 // isCorsMiddleware checks whether the provided middleware function is a CORS handler.
@@ -909,7 +909,7 @@ func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFu
 		// Retrieve the custom context from the request (myContextKey)
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			http.NotFound(w, req)
+			NotFound(w, req)
 			return
 		}
 
@@ -963,7 +963,7 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		// Retrieve the custom context from the request
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			http.NotFound(w, req) // Return 404 if no context value is found
+			NotFound(w, req) // Return 404 if no context value is found
 			return
 		}
 
@@ -1017,7 +1017,7 @@ func extractParamsPut(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		// Retrieve the custom context from the request
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			http.NotFound(w, req) // Return 404 if no context value is found
+			NotFound(w, req) // Return 404 if no context value is found
 			return
 		}
 
@@ -1066,7 +1066,7 @@ func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		// Retrieve the custom context from the request
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			http.NotFound(w, req) // Return 404 if no context value is found
+			NotFound(w, req) // Return 404 if no context value is found
 			return
 		}
 
@@ -1386,7 +1386,7 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// If no route matches, send a 404 response.
-	http.NotFound(rw, req)
+	NotFound(rw, req)
 }
 
 // createParamsAndValid extracts dynamic parameters from a request URI and validates the pattern.
@@ -1404,6 +1404,14 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 
 	reqURI = strings.TrimPrefix(reqURI, "/")
 	patternURI = strings.TrimPrefix(patternURI, "/")
+
+	// Ex: /xxx* or /x/y*
+	if strings.HasSuffix(patternURI, "*") {
+		base := strings.TrimSuffix(patternURI, "*")
+		if strings.HasPrefix(reqURI, base) {
+			return params, true
+		}
+	}
 
 	reqSplit := strings.Split(reqURI, "/")
 	patternSplit := strings.Split(patternURI, "/")
@@ -1451,11 +1459,6 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 			builder.WriteString(seg)
 		}
 	}
-
-	//if "/"+reqURI != builder.String() {
-	//	return nil, false
-	//}
-
 	return params, true
 }
 
@@ -1935,4 +1938,10 @@ func (q *Quick) startServerWithGracefulShutdown(listener net.Listener, certFile,
 		// If an unrecoverable error occurred in ServeTLS, return it here.
 		return err
 	}
+}
+
+// NotFound sends a 404 Not Found response with optional custom body.
+// It wraps http.NotFound and provides a Quick-style naming.
+func NotFound(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
 }

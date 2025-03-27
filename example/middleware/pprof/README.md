@@ -26,14 +26,12 @@ func main() {
 	q := quick.New()
 
 	// Apply the Profiling middleware
-	q.Use(pprof.New(pprof.Options{
-		App: q,
-	}))
+	q.Use(pprof.New())
 
 	// Define a test route
 	q.Get("/", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "text/plain")
-		return c.Status(http.StatusOK).SendString("OK")
+		return c.Status(quick.StatusOK).String("OK")
 	})
 
 	// Start the server
