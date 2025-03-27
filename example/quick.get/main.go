@@ -35,8 +35,8 @@ func main() {
 
 	// Complex route with multiple parameters
 	q.Get("/v1/userx/:p1/:p2/cust/:p3/:p4", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")              // Set response content type as JSON
-		return c.Status(200).SendString("Quick in action ❤️!") // Return a success message
+		c.Set("Content-Type", "application/json")           // Set response content type as JSON
+		return c.Status(200).SendString("Quick in action!") // Return a success message
 	})
 
 	// Print all registered routes
