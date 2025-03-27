@@ -8,6 +8,13 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
+// TestPprofIndex verifies that the main pprof index route (/debug/pprof)
+// returns a 200 OK response when the pprof middleware is enabled.
+// This ensures that the profiler is properly registered in the application.
+//
+// To run:
+//
+//	go test -v -run ^TestPprofIndex$
 func TestPprofIndex(t *testing.T) {
 	// Set environment to development to enable the pprof middleware
 	os.Setenv("APP_ENV", "development")
@@ -36,6 +43,13 @@ func TestPprofIndex(t *testing.T) {
 		t.Error("Expected 200 OK for /debug/pprof, got:", err)
 	}
 }
+
+// TestPprofRoutes verifies that all standard pprof subroutes return 200 OK.
+// This ensures each profiling endpoint is correctly exposed by the middleware.
+//
+// To run:
+//
+//	go test -v -run ^TestPprofRoutes$
 func TestPprofRoutes(t *testing.T) {
 	// Set environment to development to enable the pprof middleware
 	os.Setenv("APP_ENV", "development")
@@ -81,6 +95,12 @@ func TestPprofRoutes(t *testing.T) {
 	}
 }
 
+// TestPprofInvalidPathRedirect ensures that accessing an invalid
+// pprof subroute triggers a redirect back to the index page (/debug/pprof/).
+//
+// To run:
+//
+//	go test -v -run ^TestPprofInvalidPathRedirect$
 func TestPprofInvalidPathRedirect(t *testing.T) {
 	// Set environment to development to enable the pprof middleware
 	os.Setenv("APP_ENV", "development")
@@ -110,6 +130,15 @@ func TestPprofInvalidPathRedirect(t *testing.T) {
 	}
 }
 
+// TestPprofWithCustomPrefixAndNext tests two features of the middleware:
+// 1. Custom prefix configuration (e.g., /custom-pprof).
+// 2. Conditional skipping via the Next function.
+// It checks that profiling works under the custom prefix and that paths matching
+// a specific condition are correctly excluded from profiling.
+//
+// To run:
+//
+//	go test -v -run ^TestPprofWithCustomPrefixAndNext$
 func TestPprofWithCustomPrefixAndNext(t *testing.T) {
 	os.Setenv("APP_ENV", "development")
 	defer os.Unsetenv("APP_ENV")
