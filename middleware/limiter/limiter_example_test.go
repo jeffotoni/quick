@@ -35,7 +35,10 @@ func ExampleRateLimiter() {
 
 	// Simulate multiple requests to test rate limiting
 	for i := 0; i < 5; i++ { // Enviar mais requisições que o limite (3)
-		res, _ := q.QuickTest("GET", "/", nil)
+		res, _ := q.Qtest(quick.QuickTestOptions{
+			Method: quick.MethodGet,
+			URI:    "/",
+		})
 		fmt.Println(res.BodyStr())
 	}
 
@@ -102,7 +105,10 @@ func ExampleRateLimiter_group() {
 
 	// Functionality test using QuickTest (simulates a request for the protected route)
 	for i := 0; i < 5; i++ { // Send more requests than the limit (3) to test the block
-		res, _ := q.QuickTest("GET", "/v1/users", nil)
+		res, _ := q.Qtest(quick.QuickTestOptions{
+			Method: quick.MethodGet,
+			URI:    "/v1/users",
+		})
 		fmt.Println(res.BodyStr())
 	}
 
