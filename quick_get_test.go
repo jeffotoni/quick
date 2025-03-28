@@ -30,9 +30,13 @@ func TestRouteGET(t *testing.T) {
 		return c.String("Hello, GET!")
 	})
 
-	data, err := q.QuickTest("GET", "/v1/user", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method:  MethodGet,
+		URI:     "/v1/user",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
 	if err != nil {
-		t.Errorf("Error during QuickTest: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
 		return
 	}
 
@@ -169,7 +173,12 @@ func TestQuick_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			data, err := r.QuickTest("GET", tt.args.route, tt.args.reqHeaders)
+			data, err := r.Qtest(QuickTestOptions{
+				Method:  "GET",
+				URI:     tt.args.route,
+				Headers: tt.args.reqHeaders,
+			})
+
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return

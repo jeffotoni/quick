@@ -103,7 +103,12 @@ func TestQuick_GroupGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			data, err := r.QuickTest("GET", tt.args.route, tt.args.reqHeaders)
+			data, err := r.Qtest(QuickTestOptions{
+				Method:  "GET",
+				URI:     tt.args.route,
+				Headers: tt.args.reqHeaders,
+			})
+
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return

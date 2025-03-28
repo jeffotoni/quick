@@ -98,7 +98,13 @@ func TestQuick_DeleteGroup(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data, err := r.QuickTest("DELETE", tt.args.route, tt.args.reqHeaders)
+
+			data, err := r.Qtest(QuickTestOptions{
+				Method:  "DELETE",
+				URI:     tt.args.route,
+				Headers: tt.args.reqHeaders,
+			})
+
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return

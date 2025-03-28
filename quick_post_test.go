@@ -26,7 +26,7 @@ import (
 // - If the response status code is 200 (OK)
 // - If the body contains the expected string "Data submitted!"
 //
-// Useful to ensure that POST routes are working with default behaviors and that `QuickTest` handles basic POST requests correctly.
+// Useful to ensure that POST routes are working with default behaviors and that `Qtest` handles basic POST requests correctly.
 //
 // Coverage commands:
 //   - cover:     go test -v -count=1 -cover -failfast -run ^TestRoutePOST$
@@ -38,9 +38,14 @@ func TestRoutePOST(t *testing.T) {
 		return c.String("Data submitted!")
 	})
 
-	data, err := q.QuickTest("POST", "/v1/user", nil, []byte(`{"name": "Jeff"}`))
+	// Simulate a GET request to "/api/users"
+	data, err := q.Qtest(QuickTestOptions{
+		Method:  MethodPost,
+		URI:     "/v1/user",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
 	if err != nil {
-		t.Errorf("Error during QuickTest: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
 		return
 	}
 
@@ -287,7 +292,13 @@ func TestQuick_Post(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data, err := r.QuickTest("POST", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
+			data, err := r.Qtest(QuickTestOptions{
+				Method:  "POST",
+				URI:     tt.args.route,
+				Headers: tt.args.reqHeaders,
+				Body:    tt.args.reqBody,
+			})
+
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return
