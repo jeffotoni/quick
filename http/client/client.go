@@ -216,7 +216,7 @@ func (c *Client) cloneHeaders() map[string]string {
 //
 // /Return:
 //   - None (void function).
-func (c *Client) log(msg string, args ...interface{}) {
+func (c *Client) Log(msg string, args ...interface{}) {
 	if c.EnableLogger && c.Logger != nil {
 		// Format and log the message at the INFO level.
 		c.Logger.Info(msg, args...)
