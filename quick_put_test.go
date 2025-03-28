@@ -113,7 +113,14 @@ func TestQuick_Put(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data, err := r.QuickTest("PUT", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
+
+			data, err := r.Qtest(QuickTestOptions{
+				Method:  "PUT",
+				URI:     tt.args.route,
+				Headers: tt.args.reqHeaders,
+				Body:    tt.args.reqBody,
+			})
+
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return
