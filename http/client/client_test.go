@@ -336,7 +336,7 @@ func TestClientLog(t *testing.T) {
 	client.Logger = logger // Set custom logger
 
 	// Call the log function using structured logging
-	client.log("Test message", slog.String("key", "log check"))
+	client.Log("Test message", slog.String("key", "log check"))
 
 	// Capture log output
 	logOutput := logBuffer.String()
@@ -349,7 +349,7 @@ func TestClientLog(t *testing.T) {
 	// Test when logging is disabled
 	client.EnableLogger = false
 	logBuffer.Reset() // Clear buffer
-	client.log("This should not be logged")
+	client.Log("This should not be logged")
 
 	if logBuffer.Len() != 0 {
 		t.Errorf("Log message should not have been written, but got: %s", logBuffer.String())
