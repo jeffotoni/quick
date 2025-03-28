@@ -12,25 +12,27 @@ import (
 func ExampleNew_defaultBehavior() {
 	q := quick.New()
 
-	// Use the default Recover middleware
+	// Uses the default recover middleware
 	q.Use(New())
 
-	// Define a test route
+	// Route that generates a panic
 	q.Get("/v1/recover", func(c *quick.Ctx) error {
-		panic("Panicking!")
+		// panic("Panicking!") // This would cause a status 500, handled by recover middleware.
+		return c.String("Panicking!")
 	})
-
 	resp, _ := q.Qtest(quick.QuickTestOptions{
 		Method: quick.MethodGet,
 		URI:    "/v1/recover",
 	})
 
-	fmt.Println("Status:", resp.StatusCode())
-	fmt.Println("Body:", resp.BodyStr())
+	if err := resp.AssertString("Panicking!"); err != nil {
+		fmt.Println("body error:", err)
+	}
+
+	fmt.Println(resp.BodyStr())
 
 	// Output:
-	// Status: 500
-	// Body: Internal Server Error
+	// Panicking!
 }
 
 // ExampleNew_withNextSkipping demonstrates how to use the Next() function to skip the middleware.
@@ -56,12 +58,16 @@ func ExampleNew_withNextSkipping() {
 		URI:    "/v1/recover",
 	})
 
+	if err := resp.AssertStatus(500); err != nil {
+		fmt.Println("status error:", err)
+	}
+
 	fmt.Println("Status:", resp.StatusCode())
 	fmt.Println("Body:", resp.BodyStr())
 
-	// Out put:
-	// Status: 200
-	// Body:
+	// Output:
+	// Status: 500
+	// Body: Internal Server Error
 }
 
 // ExampleNew_withStacktraceDisabled demonstrates how to disable the stacktrace.
@@ -84,6 +90,10 @@ func ExampleNew_withStacktraceDisabled() {
 		Method: quick.MethodGet,
 		URI:    "/v1/recover",
 	})
+
+	if err := resp.AssertStatus(500); err != nil {
+		fmt.Println("status error:", err)
+	}
 
 	fmt.Println("Status:", resp.StatusCode())
 	fmt.Println("Body:", resp.BodyStr())
