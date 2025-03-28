@@ -23,7 +23,7 @@ func main() {
 		c.Set("Content-Type", "application/json")
 
 		return c.Status(200).JSON(quick.M{
-			"msg": "Quick ❤️",
+			"msg": "Quick",
 		})
 	})
 

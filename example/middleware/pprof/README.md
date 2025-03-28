@@ -1,4 +1,4 @@
-## 📌 PPROF Middleware in Quick ![Quick Logo](/quick.png)
+## 🧠 PPROF Middleware in Quick ![Quick Logo](/quick.png)
 
 **pprof** provides profiling endpoints for your Quick application. It helps you to identify 
 performance bottlenecks, monitor resource usage, and ensure that the code runs efficiently
@@ -106,9 +106,7 @@ func main() {
 ```
 
 ```bash
-
 $ go run main.go
-
 ```
 
 Let's generate a small load in our API
@@ -141,4 +139,4 @@ You will see the list:
 $ go tool pprof -http=:8081 http://localhost:8080/debug/pprof/profile?seconds=10
 ```
 
-# ![pprof](/pprof.jpg)
+# ![pprof](./pprof.jpg)
