@@ -801,9 +801,14 @@ func (c *Ctx) FormValues() map[string][]string {
 
 // Redirect sends an HTTP redirect response to the client.
 //
-// It sets the "Location" header to the given URL and returns a basic message.
-// By default, it uses HTTP status 302 (Found), but a custom status code
-// (e.g., 301, 307, 308) can be provided as an optional argument.
+// It sets the "Location" header to the given URL and returns a plain text
+// message indicating the redirection. By default, it uses HTTP status 302 (Found),
+// but an optional custom status code can be provided (e.g., 301, 307, 308).
+//
+// Example usage:
+//
+//	c.Redirect("https://quick.com")
+//	c.Redirect("/new-path", 301)
 func (c *Ctx) Redirect(location string, code ...int) error {
 	status := StatusFound // 302
 	if len(code) > 0 {
@@ -814,6 +819,10 @@ func (c *Ctx) Redirect(location string, code ...int) error {
 	return c.String("Redirecting to " + location)
 }
 
+// responseWritten checks if the response has already been written.
+//
+// This is useful to prevent duplicate writes or to decide whether to send
+// default responses such as 404.
 func (c *Ctx) responseWritten() bool {
 	if rw, ok := c.Response.(interface{ Written() bool }); ok {
 		return rw.Written()
@@ -822,13 +831,26 @@ func (c *Ctx) responseWritten() bool {
 	return false
 }
 
-// internal method to set handlers for the current request
+// setHandlers sets the chain of handlers for the current request.
+//
+// This is used internally by the router to assign the matched middleware
+// and final handler to the context.
 func (c *Ctx) setHandlers(handlers []HandlerFunc) {
 	c.handlers = handlers
 	c.handlerIndex = -1
 }
 
 // Next executes the next handler in the chain.
+//
+// If no more handlers are available and no response has been written,
+// it automatically sends a 404 response.
+//
+// Usage:
+//
+//	func myMiddleware(c *quick.Ctx) error {
+//	    err := c.Next()
+//	    return err
+//	}
 func (c *Ctx) Next() error {
 	c.handlerIndex++
 	if c.handlerIndex < len(c.handlers) {

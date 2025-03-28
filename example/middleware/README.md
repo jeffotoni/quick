@@ -112,10 +112,20 @@ Provides a lightweight endpoint to verify the application’s health.
 
 ---
 
+## 🧠 Pprof (Performance Profiler)
+The Pprof middleware enables Go's built-in runtime profiling via HTTP endpoints. It helps developers analyze performance bottlenecks, memory usage, goroutines, and CPU load.
+
+- Integrates with Go's net/http/pprof package.
+- Exposes profiling endpoints such as /debug/pprof/heap, /goroutine, /profile, etc.
+- Useful for diagnosing issues in development and debugging production incidents.
+- Can be conditionally enabled (e.g., only in development) using the Next function.
+- Supports customizable base route via Prefix (default: /debug/pprof).
+
+---
+
 
 ## 🚧 **Coming soon!**
 - Etag
-- Pprof
 - Proxy
 - RequestID
 - Skip

@@ -15,7 +15,7 @@ func main() {
 		c.Set("Content-Type", "text/plain")
 
 		// Return a 200 OK response with a message
-		return c.Status(200).String("Quick in action ❤️!")
+		return c.Status(200).String("Quick in action!")
 	})
 
 	// Start the Quick server on port 8080
