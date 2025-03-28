@@ -1365,10 +1365,10 @@ func (q *Quick) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if len(patternUri) == 0 {
-			patternUri = path.Clean(q.routes[i].Path)
+			patternUri = q.routes[i].Path
 		}
 
-		paramsMap, isValid := createParamsAndValid(requestURI, patternUri)
+		paramsMap, isValid := createParamsAndValid(requestURI, path.Clean(patternUri))
 
 		if !isValid {
 			continue // This route doesn't match, continue checking.
