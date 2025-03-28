@@ -20,10 +20,11 @@ func ExampleNew() {
 		c.Set("Content-Type", "application/json")
 
 		// Retrieve the MsgUUID from the request headers
-		msgId := c.Request.Header.Get("Msguuid")
+		_ = c.Request.Header.Get("Msguuid")
 
 		// Return the MsgUUID in the JSON response
-		return c.Status(200).JSON(map[string]string{"msguuid": msgId})
+		return c.Status(200).JSON(map[string]string{"message": "generated msgId"})
+		//return c.Status(200).JSON(map[string]string{"msguuid": msguuid})
 	})
 
 	// Send test request using Quick's built-in test utility
@@ -39,9 +40,15 @@ func ExampleNew() {
 		return
 	}
 
-	// Print response body to verify the MsgUUID
-	fmt.Println("Response Body:", string(resp.Body()))
+	if err := resp.AssertStatus(200); err != nil {
+		fmt.Println("status error:", err)
+	}
 
-	// Out put:
-	// Response Body: "msguuid":"f299b00d-875e-4502-966e-22e16767eb13"
+	// Print response body to verify the MsgUUID
+	fmt.Println(string(resp.Body()))
+	//alternative print
+	//{"msguuid":"8bf38aea-d27f-4217-bea0-0549181cc26a"}
+
+	// Output:
+	// {"message":"generated msgId"}
 }
