@@ -3995,7 +3995,7 @@ Feel free to do **PR** (at risk of winning a Go t-shirt ❤️ and of course rec
 
 The Quick Project aims to develop and provide quality software for the developer community. 💻 To continue improving our tools, we rely on the support of our sponsors in Patreon. 🤝
 
-We thank all our supporters! 🙌 If you also believe in our work and want to contribute to the advancement of the development community, consider supporting Project Quick on our Patreon [here](https://www.patreon.com/jeffotoni_quick)
+We thank all our supporters! 🙌 If you also believe in our work and want to contribute to the advancement of the development community, consider supporting Project Quick on our Patreon [click here](https://patreon.com/go_quick)
 
 Together we can continue to build amazing tools! 🚀
 
