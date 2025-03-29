@@ -64,9 +64,14 @@ func TestGroup_Get(t *testing.T) {
 	})
 
 	// Simulate a GET request to "/api/users"
-	res, err := q.QuickTest("GET", "/api/users", nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method:  MethodGet,
+		URI:     "/api/users",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	// Validate HTTP status code

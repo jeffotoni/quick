@@ -255,7 +255,7 @@ func TestCtx_BodyString(t *testing.T) {
 
 // TestCtx_Methods_JSON ensures that JSON responses are properly serialized and returned by the Ctx.JSON() method.
 //
-// It registers a POST route and sends a request using QuickTest to validate:
+// It registers a POST route and sends a request using Qtest to validate:
 //   - The response status code is HTTP 200 OK.
 //   - The response body is correctly formatted as a JSON string.
 //
@@ -271,9 +271,13 @@ func TestCtx_Methods_JSON(t *testing.T) {
 		return c.JSON(data)
 	})
 
-	data, err := q.QuickTest("POST", "/json", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method:  MethodPost,
+		URI:     "/json",
+		Headers: map[string]string{"Content-Type": "application/json"},
+	})
 	if err != nil {
-		t.Errorf("Error during QuickTest: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
 		return
 	}
 

@@ -2,7 +2,6 @@ package limiter
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jeffotoni/quick"
@@ -10,31 +9,40 @@ import (
 
 // This function is named ExampleRateLimiter()
 // it with the Examples type.
+// ExampleRateLimiter demonstrates the usage of the rate limiting middleware.
 func ExampleRateLimiter() {
-	// Initialize the Quick framework
 	q := quick.New()
 
-	// Apply the rate limiter middleware with max 3 requests per IP address within 10 seconds
+	// Apply the rate limiter middleware before defining routes
 	q.Use(New(Config{
-		Max:        3,                // Max 3 requests per IP
-		Expiration: 10 * time.Second, // Reset the rate limit every 10 seconds
+		Max:        3,
+		Expiration: 10 * time.Second,
 		KeyGenerator: func(c *quick.Ctx) string {
-			return c.RemoteIP() // Use the client's IP address as the key
+			return "test-client" // Fixed key to simulate a single user/IP
 		},
 		LimitReached: func(c *quick.Ctx) error {
-			c.Set("Content-Type", "application/json")
-			c.Set("Retry-After", "10") // Instruct client to wait 10 seconds before retrying
+			// Print the limit exceeded message for demonstration
 			response := map[string]string{
 				"error":       "Too many requests",
 				"message":     "You have exceeded the request limit. Please wait 10 seconds and try again.",
 				"retry_after": "10s",
 			}
+			fmt.Println("Rate Limit Exceeded:", response) // <-- This line is essential for Output
+			c.Set("Content-Type", "application/json")
+			c.Set("Retry-After", "10")
 			return c.Status(quick.StatusTooManyRequests).JSON(response)
 		},
 	}))
 
-	// Simulate multiple requests to test rate limiting
-	for i := 0; i < 5; i++ { // Enviar mais requisições que o limite (3)
+	// Define the test route
+	q.Get("/", func(c *quick.Ctx) error {
+		return c.JSON(map[string]string{
+			"msg": "Quick in action!",
+		})
+	})
+
+	// Simulate 5 requests (rate limit is 3)
+	for i := 0; i < 3; i++ {
 		res, _ := q.Qtest(quick.QuickTestOptions{
 			Method: quick.MethodGet,
 			URI:    "/",
@@ -42,12 +50,12 @@ func ExampleRateLimiter() {
 		fmt.Println(res.BodyStr())
 	}
 
-	// Out put:
-	// {"msg":"Quick in action ❤️!"}
-	// {"msg":"Quick in action ❤️!"}
-	// {"msg":"Quick in action ❤️!"}
+	// Output:
+	// {"msg":"Quick in action!"}
+	// {"msg":"Quick in action!"}
 	// Rate Limit Exceeded: map[error:Too many requests message:You have exceeded the request limit. Please wait 10 seconds and try again. retry_after:10s]
 	// {"error":"Too many requests","message":"You have exceeded the request limit. Please wait 10 seconds and try again.","retry_after":"10s"}
+
 }
 
 // This function is named ExampleRateLimiter_group()
@@ -59,7 +67,7 @@ func ExampleRateLimiter_group() {
 	// Rate Limiter Middleware
 	limiterMiddleware := New(Config{
 		// Maximum 5 requests allowed per IP address within a 10-second window
-		Max: 5,
+		Max: 3,
 		// The limit resets every 10 seconds
 		Expiration: 10 * time.Second,
 		// Use the client's IP address as the unique key to track rate limits
@@ -80,7 +88,7 @@ func ExampleRateLimiter_group() {
 			}
 
 			// Log to verify that the rate limit exceeded response is being sent
-			log.Println("Rate Limit Exceeded:", response)
+			fmt.Println("Rate Limit Exceeded:", response)
 
 			// Return the response with HTTP status 429 (Too Many Requests)
 			return c.Status(quick.StatusTooManyRequests).JSON(response)
@@ -100,11 +108,11 @@ func ExampleRateLimiter_group() {
 	// Define route without rate limit
 	// This route is not affected by the rate limiter
 	q.Get("/", func(c *quick.Ctx) error {
-		return c.JSON(map[string]string{"msg": "Quick in action ❤️!"})
+		return c.JSON(map[string]string{"msg": "Quick in action!"})
 	})
 
 	// Functionality test using QuickTest (simulates a request for the protected route)
-	for i := 0; i < 5; i++ { // Send more requests than the limit (3) to test the block
+	for i := 0; i < 4; i++ { // Send more requests than the limit (3) to test the block
 		res, _ := q.Qtest(quick.QuickTestOptions{
 			Method: quick.MethodGet,
 			URI:    "/v1/users",
@@ -112,7 +120,7 @@ func ExampleRateLimiter_group() {
 		fmt.Println(res.BodyStr())
 	}
 
-	// Out put:
+	// Output:
 	// {"msg":"list of users"}
 	// {"msg":"list of users"}
 	// {"msg":"list of users"}

@@ -121,7 +121,14 @@ func TestQuick_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// TODO method DELETE is not acceptable
-			data, err := r.QuickTest("DELETE", tt.args.route, tt.args.reqHeaders, tt.args.reqBody)
+
+			data, err := r.Qtest(QuickTestOptions{
+				Method:  "DELETE",
+				URI:     tt.args.route,
+				Headers: tt.args.reqHeaders,
+				Body:    tt.args.reqBody,
+			})
+
 			if (!tt.args.isWantedErr) && err != nil {
 				t.Errorf("error: %v", err)
 				return

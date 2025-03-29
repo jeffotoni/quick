@@ -35,7 +35,7 @@ func ExampleClient_Get() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// GET OK
 }
 
@@ -87,7 +87,7 @@ func ExampleClient_Post() {
 	}
 	fmt.Println("io.Reader body:", string(resp.Body))
 
-	// Out put:
+	// Output:
 	// String body: Hello, POST!
 	// Struct body: Hello, JSON POST!
 	// io.Reader body: Reader POST
@@ -131,7 +131,7 @@ func ExampleClient_Put() {
 	}
 	fmt.Println("Struct body:", result["value"])
 
-	// Out put:
+	// Output:
 	// String body: Hello, PUT!
 	// Struct body: 42
 }
@@ -156,7 +156,7 @@ func ExampleClient_Delete() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// DELETE OK
 }
 
@@ -180,7 +180,7 @@ func ExampleWithInsecureTLS() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Insecure TLS OK
 }
 
@@ -214,7 +214,7 @@ func ExampleWithCustomHTTPClient() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Custom Client OK
 }
 
@@ -239,7 +239,7 @@ func ExampleWithTimeout() {
 		fmt.Println("Request succeeded")
 	}
 
-	// Out put:
+	// Output:
 	// Request timed out
 }
 
@@ -268,7 +268,7 @@ func ExampleWithContext() {
 		fmt.Println("Request succeeded")
 	}
 
-	// Out put:
+	// Output:
 	// Request canceled due to timeout
 }
 
@@ -296,7 +296,7 @@ func ExampleWithHeaders() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Header received
 }
 
@@ -304,22 +304,33 @@ func ExampleWithHeaders() {
 func ExampleWithLogger() {
 	// Create a log buffer to capture logs.
 	var logBuffer bytes.Buffer
-	logger := slog.New(slog.NewTextHandler(&logBuffer, &slog.HandlerOptions{
+	fixedTime := time.Date(2025, 3, 28, 15, 0, 0, 0, time.FixedZone("-03", -3*60*60))
+
+	//Handler with ReplaceAttr to overwrite timestamp
+	handler := slog.NewTextHandler(&logBuffer, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
-	}))
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.TimeKey {
+				return slog.String("time", fixedTime.Format(time.RFC3339))
+			}
+			return a
+		},
+	})
+
+	logger := slog.New(handler)
 
 	// Initialize a client with logging enabled.
 	client := New(WithLogger(true))
 	client.Logger = logger
 
 	// Perform a log entry.
-	client.log("Testing logging")
+	client.Log("Testing logging")
 
 	// Print captured log.
 	fmt.Println(logBuffer.String())
 
-	// Out put:
-	// time=<timestamp> level=INFO msg="Testing logging"
+	// Output:
+	// time=2025-03-28T15:00:00-03:00 level=INFO msg="Testing logging"
 }
 
 // ExampleWithRetry demonstrates how to use the Client with retry logic.
@@ -354,7 +365,7 @@ func ExampleWithRetry() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Retry succeeded
 }
 
@@ -376,23 +387,23 @@ func ExampleNew_withRetry() {
 	// Initialize a client with retry logic enabled.
 	client := New(
 		WithRetry(RetryConfig{
-			MaxRetries:   3,                                                                   // Allow up to 3 retry attempts.
-			Delay:        500 * time.Millisecond,                                              // Base delay before retrying.
-			UseBackoff:   true,                                                                // Use exponential backoff for retries.
-			Statuses:     []int{http.StatusInternalServerError},                               // Retry on HTTP 500 errors.
-			FailoverURLs: []string{"https://reqres.in/api/users", "https://httpbin.org/post"}, // Failover URLs.
-			EnableLog:    false,                                                               // Disable logging for this example.
+			MaxRetries:   3,
+			Delay:        500 * time.Millisecond,
+			UseBackoff:   true,
+			Statuses:     []int{http.StatusInternalServerError},
+			FailoverURLs: []string{ts.URL},
+			EnableLog:    false,
 		}))
 
 	// Perform a GET request to the test server.
-	resp, err := client.Get(ts.URL)
+	resp, err := client.Get(ts.URL + "/invalid")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Retry succeeded
 }
 
@@ -419,7 +430,7 @@ func ExampleWithTLSConfig() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Secure TLS OK
 }
 
@@ -446,7 +457,7 @@ func ExampleWithTransport() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Custom Transport OK
 }
 
@@ -473,7 +484,7 @@ func ExampleWithTransportConfig() {
 	}
 	fmt.Println(string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Configured Transport OK
 }
 
@@ -508,7 +519,7 @@ func ExampleClient_PostForm() {
 	// Displaying the answer.
 	fmt.Println("Form POST response:", string(resp.Body))
 
-	// Out put:
+	// Output:
 	// Form POST response: hello=world&key=value
 }
 
@@ -536,8 +547,7 @@ func ExampleWithMaxIdleConns() {
 	// You can print something related to the configuration to avoid the no output issue, or simply avoid the output comment
 	fmt.Println("MaxIdleConns set to 20")
 
-	// This will now match with the Output comment below
-	// Out put:
+	// Output:
 	// MaxIdleConns set to 20
 }
 
@@ -565,7 +575,7 @@ func ExampleWithMaxConnsPerHost() {
 	// Confirm the setting (for example purposes, normally you might not print this).
 	fmt.Println("MaxConnsPerHost set to 10")
 
-	// Out put:
+	// Output:
 	// MaxConnsPerHost set to 10
 }
 
@@ -593,6 +603,6 @@ func ExampleWithDisableKeepAlives() {
 	// Confirm that keep-alives are disabled (for example purposes, normally you might not print this).
 	fmt.Println("Keep-alives are disabled")
 
-	// Out put:
+	// Output:
 	// Keep-alives are disabled
 }
