@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/internal/rand"
+	"github.com/jeffotoni/quick/pkg/rand"
 )
 
 func main() {
