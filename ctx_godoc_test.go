@@ -85,9 +85,16 @@ func TestCtx_ExampleBind(t *testing.T) {
 
 	body := []byte(`{"name":"Quick","age":30}`)
 
-	res, err := q.QuickTest("POST", "/bind", map[string]string{"Content-Type": "application/json"}, body)
+	// Simulate a GET request to "/api/users"
+	res, err := q.Qtest(QuickTestOptions{
+		Method:  MethodPost,
+		URI:     "/bind",
+		Headers: map[string]string{"Content-Type": "application/json"},
+		Body:    body,
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	if res.StatusCode() != 200 {
@@ -127,9 +134,15 @@ func TestCtx_ExampleBodyParser(t *testing.T) {
 
 	body := []byte(`{"name": "Quick", "age": 28}`)
 
-	res, err := q.QuickTest("POST", "/test", map[string]string{"Content-Type": "application/json"}, body)
+	res, err := q.Qtest(QuickTestOptions{
+		Method:  MethodPost,
+		URI:     "/test",
+		Headers: map[string]string{"Content-Type": "application/json"},
+		Body:    body,
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	if res.StatusCode() != 200 {
@@ -155,9 +168,13 @@ func TestCtx_ExampleParam(t *testing.T) {
 		return c.SendString(id)
 	})
 
-	res, err := q.QuickTest("GET", "/user/42", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/user/42",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedBody := "42"
@@ -218,9 +235,13 @@ func TestCtx_ExampleJSON(t *testing.T) {
 		return c.JSON(data)
 	})
 
-	res, err := q.QuickTest("GET", "/json", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/json",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedBody := `{"message":"Hello, Quick!"}`
@@ -251,9 +272,13 @@ func TestCtx_ExampleJSONIN(t *testing.T) {
 		return c.JSONIN(data)
 	})
 
-	res, err := q.QuickTest("GET", "/json", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/json",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	// expectedBody := `{"message":"Hello, Quick!"}`
@@ -288,9 +313,13 @@ func TestCtx_ExampleXML(t *testing.T) {
 		return c.XML(data)
 	})
 
-	res, err := q.QuickTest("GET", "/xml", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/xml",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedBody := `<message>Hello, Quick!</message>`
@@ -319,9 +348,13 @@ func TestCtx_ExamplewriteResponse(t *testing.T) {
 		return c.writeResponse([]byte("Hello, Quick!"))
 	})
 
-	res, err := q.QuickTest("GET", "/response", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/response",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedBody := "Hello, Quick!"
@@ -348,9 +381,13 @@ func TestCtx_ExampleByte(t *testing.T) {
 		return c.Byte([]byte("Hello, Quick!"))
 	})
 
-	res, err := q.QuickTest("GET", "/byte", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/byte",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedBody := "Hello, Quick!"
@@ -377,9 +414,13 @@ func TestCtx_ExampleSend(t *testing.T) {
 		return c.Send([]byte("Hello, Quick!"))
 	})
 
-	res, err := q.QuickTest("GET", "/send", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/send",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedBody := "Hello, Quick!"
@@ -406,9 +447,13 @@ func TestCtx_ExampleSendString(t *testing.T) {
 		return c.SendString("Hello, Quick!")
 	})
 
-	res, err := q.QuickTest("GET", "/sendstring", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/sendstring",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedBody := "Hello, Quick!"
@@ -436,9 +481,13 @@ func TestCtx_ExampleSendFile(t *testing.T) {
 		return c.SendFile(fileContent)
 	})
 
-	res, err := q.QuickTest("GET", "/sendfile", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/sendfile",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedBody := "Conteúdo do arquivo"
@@ -466,9 +515,13 @@ func TestCtx_ExampleSet(t *testing.T) {
 		return c.String("Header Set")
 	})
 
-	res, err := q.QuickTest("GET", "/set-header", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/set-header",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedHeader := "Quick"
@@ -498,9 +551,13 @@ func TestCtx_ExampleAppend(t *testing.T) {
 		return c.String("Header Appended")
 	})
 
-	res, err := q.QuickTest("GET", "/append-header", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/append-header",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedHeaders := []string{"Value1", "Value2"}
@@ -524,9 +581,13 @@ func TestCtx_ExampleAccepts(t *testing.T) {
 		return c.String("Accept Set")
 	})
 
-	res, err := q.QuickTest("GET", "/accepts", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/accepts",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedHeader := "application/json"
@@ -550,9 +611,13 @@ func TestCtx_ExampleStatus(t *testing.T) {
 		return c.String("Not Found")
 	})
 
-	res, err := q.QuickTest("GET", "/status", nil, nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/status",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	expectedStatus := 404
