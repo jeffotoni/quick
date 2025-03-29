@@ -1,82 +1,90 @@
 package main
 
-// More Examples
+import (
+	"fmt"
+	"log"
+	"time"
 
-// Simple foreground color
-// New().Fg("green").Println("Success message")
+	"github.com/jeffotoni/quick/pkg/gcolor"
+)
 
-//Foreground + Background
-// New().Fg("white").Bg("red").Println("Error with red background")
+func main() {
+	// Simple foreground color
+	gcolor.New().Fg("green").Println("Success message")
 
-// Bold text
-// New().Fg("yellow").Bold().Println("Warning in bold")
+	// Foreground + Background
+	gcolor.New().Fg("white").Bg("red").Println("Error with red background")
 
-//Underline
-// New().Fg("cyan").Underline().Println("Link or reference")
+	// Bold text
+	gcolor.New().Fg("yellow").Bold().Println("Warning in bold")
 
-// Full style chain
-// New().
-//     Fg("blue").
-//     Bg("white").
-//     Bold().
-//     Underline().
-//     Println("Styled and readable message")
+	// Underline text
+	gcolor.New().Fg("cyan").Underline().Println("Link or reference")
 
-// Using Sprintf for formatted string
-// user := "jeffotoni"
-// New().Fg("green").Sprintf("Welcome, %s!", user)
+	// Full style chain
+	gcolor.New().
+		Fg("blue").
+		Bg("white").
+		Bold().
+		Underline().
+		Println("Styled and readable message")
 
-// Dynamic log formatting
-// traceID := "abc123"
-// duration := 215 * time.Millisecond
-// log.Printf(
-//     "[Trace-ID: %s] <- Completed in %s\n",
-//     New().Fg("cyan").Sprint(traceID),
-//     New().Fg("yellow").Sprintf("%v", duration),
+	// Using Sprintf for formatted message
+	user := "jeffotoni"
+	fmt.Println(gcolor.New().Fg("green").Sprintf("Welcome, %s!", user))
 
-// Reusable styles
-// warnStyle := New().Fg("yellow").Bold()
-// warnStyle.Println("Disk space running low...")
-// infoStyle := New().Fg("blue")
-// infoStyle.Println("Server started successfully")
+	// Dynamic log formatting with colorized values
+	traceID := "abc123"
+	duration := 215 * time.Millisecond
+	log.Printf(
+		"[Trace-ID: %s] <- Completed in %s\n",
+		gcolor.New().Fg("cyan").Sprint(traceID),
+		gcolor.New().Fg("yellow").Sprintf("%v", duration),
+	)
 
-// Set custom prefix in log
-// log.SetPrefix(New().Fg("purple").Sprint("[ "))
-// log.Println("Logger initialized")
+	// Reusable styles
+	warnStyle := gcolor.New().Fg("yellow").Bold()
+	warnStyle.Println("Disk space running low...")
 
-// Build and store style for later use
-//  style := New().Fg("red").Bold().Underline()
-// fmt.Println(style.Sprint("Reusable styled message"))
+	infoStyle := gcolor.New().Fg("blue")
+	infoStyle.Println("Server started successfully")
 
-//////// more example
-// Option 1: Using Sprint() to color only specific parts
+	// Set custom prefix in log
+	log.SetPrefix(gcolor.New().Fg("purple").Sprint("[GCOLOR] "))
+	log.Println("Logger initialized")
 
-// log.Printf(
-//   "[Trace-ID: %s] <- End of request duration:[(%v)]\n",
-//   New().Fg("cyan").Sprint(traceID),
-//   New().Fg("yellow").Sprint(duration),
-// )
+	// Build and store reusable style
+	style := gcolor.New().Fg("red").Bold().Underline()
+	fmt.Println(style.Sprint("Reusable styled message"))
 
-// Option 2: Assemble the complete line with Sprint()
-// msg := New().Fg("green").Sprint(
-//   fmt.Sprintf("[Trace-ID: %s] <- End of request duration:[(%v)]", traceID, duration),
-// )
-// log.Println(msg)
+	// Color specific parts using Sprint()
+	log.Printf(
+		"[Trace-ID: %s] <- End of request duration:[(%v)]\n",
+		gcolor.New().Fg("cyan").Sprint(traceID),
+		gcolor.New().Fg("yellow").Sprint(fmt.Sprint(duration)),
+	)
 
-// Option 3: Create custom themes
-// traceStyle := New().Fg("cyan").Bold()
-// timeStyle := New().Fg("yellow")
+	// Colorize full message
+	msg := gcolor.New().Fg("green").Sprint(
+		fmt.Sprintf("[Trace-ID: %s] <- End of request duration:[(%v)]", traceID, duration),
+	)
+	log.Println(msg)
 
-// log.Printf(
-//   "[Trace-ID: %s] <- End of request duration:[(%v)]\n",
-//   traceStyle.Sprint(traceID),
-//   timeStyle.Sprint(duration),
-// )
+	// Custom reusable styles
+	traceStyle := gcolor.New().Fg("cyan").Bold()
+	timeStyle := gcolor.New().Fg("yellow")
+	log.Printf(
+		"[Trace-ID: %s] <- End of request duration:[(%v)]\n",
+		traceStyle.Sprint(traceID),
+		timeStyle.Sprint(fmt.Sprint(duration)),
+	)
 
-// Option 4: If you want to colorize even the log prefix
-// log.SetPrefix(New().Fg("purple").Sprint("[APP] "))
+	// Colorized log prefix
+	log.SetPrefix(gcolor.New().Fg("purple").Sprint("[APP] "))
+	log.Println("This is an application log entry")
 
-// Option 5: Use Sprintf
-// log.Print(
-//   New().Fg("yellow").Bold().Sprintf("[Trace-ID: %s] Done in %v", traceID, duration),
-// )
+	// Full message color with Sprintf
+	log.Print(
+		gcolor.New().Fg("yellow").Bold().Sprintf("[Trace-ID: %s] Done in %v", traceID, duration),
+	)
+}
