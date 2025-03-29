@@ -1,4 +1,4 @@
-v# 🌟 glog — Fast, Flexible, Beautiful Logging for Go ![Quick Logo](/quick.png)
+# 🌟 glog — Fast, Flexible, Beautiful Logging for Go ![Quick Logo](./quick.png)
 
 `glog` is a lightweight and powerful logging library for Go designed for simplicity, flexibility, and readability — built for humans and structured for machines.
 
