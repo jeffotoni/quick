@@ -1,4 +1,4 @@
-# 🎨 gcolor – Fluent Terminal Styling ![Quick Logo](/quick.png)
+# 🎨 gcolor – Fluent Terminal Styling ![Quick Logo](./quick.png)
 
 > A powerful and expressive ANSI color library for building stylish CLI tools in Go – with a fluent API, test coverage, and real-world usage patterns.
 
@@ -100,7 +100,7 @@ We implemented unit tests for:
 Run with:
 
 ```bash
-go test -v -cover 
+$ go test -v -cover 
 ```
 
 ---

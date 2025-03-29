@@ -1,4 +1,4 @@
-# 🧩 HTML Template Engine for Quick ![Quick Logo](/quick.png)
+# 🧩 HTML Template Engine for Quick ![Quick Logo](./quick.png)
 
 
 ### ⚡️ Quick Template Engine
