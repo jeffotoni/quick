@@ -84,9 +84,10 @@ func New(config ...Config) func(http.Handler) http.Handler {
 					r.Header.Set(cfd.Name, algo)
 					w.Header().Set(cfd.Name, algo)
 				}
-				// Pass the request to the next handler in the chain
-				next.ServeHTTP(w, r)
 			}
+
+			// Pass the request to the next handler in the chain
+			next.ServeHTTP(w, r)
 		})
 	}
 }
