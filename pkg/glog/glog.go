@@ -13,7 +13,8 @@
 //		Pattern: "[${time}] ${level} ${msg} |",
 //		Level:   glog.DEBUG,
 //	})
-//	glog.Info("User login", glog.Fields{"user": "jeff"})
+//	glog.InfoT("User login", glog.Fields{"user": "jeff"})
+//	glog.Info("User login").Str("user", "jeff").Send()
 package glog
 
 import (
@@ -33,11 +34,14 @@ import (
 // Level defines the severity level of a log message.
 type Level string
 
+// Level defines the severity of a log entry.
+// These constants represent the standard log levels used throughout glog.
+// They control the verbosity of output and can be filtered via Config.Level.
 const (
-	DEBUG Level = "DEBUG"
-	INFO  Level = "INFO"
-	WARN  Level = "WARN"
-	ERROR Level = "ERROR"
+	DEBUG Level = "DEBUG" // Fine-grained information for debugging
+	INFO  Level = "INFO"  // General operational messages (default)
+	WARN  Level = "WARN"  // Indications of possible issues or important changes
+	ERROR Level = "ERROR" // Critical errors that need attention
 )
 
 // Config holds global logger configuration.
@@ -49,10 +53,24 @@ type Config struct {
 	Level         Level             // Minimum level to log
 	CustomFields  map[string]string // Global fields always included
 	IncludeCaller bool              // Include file:line information
+	Separator     string            // default: " ", applies only when Pattern is not defined in format text
 }
 
+// Fields is a shorthand for generic field map, kept for compatibility.
+type Fields = map[string]any
+
 // Fields represent contextual dynamic fields passed per log.
-type Fields map[string]any
+type Field struct {
+	Key string
+	Val any
+}
+
+// Entry is the fluent log entry builder.
+type Entry struct {
+	level  Level
+	msg    string
+	fields []Field
+}
 
 // Logger defines the internal logger structure.
 type Logger struct {
@@ -60,13 +78,17 @@ type Logger struct {
 	config Config
 }
 
+// std is the default global logger instance used internally by glog.
+// It holds the initial configuration and is shared across all logging calls
+// unless overridden via Set(Config). This ensures thread-safe logging with
+// sensible defaults: text format, standard output, timestamp, and DEBUG level.
 var std = &Logger{
 	config: Config{
-		Format:     "text",
-		Writer:     os.Stdout,
-		TimeFormat: time.RFC3339,
-		Pattern:    "${time} ${level} ${msg} ",
-		Level:      DEBUG,
+		Format:     "text",                     // Default to human-readable text output
+		Writer:     os.Stdout,                  // Logs are written to standard output
+		TimeFormat: time.RFC3339,               // ISO 8601 timestamp format
+		Pattern:    "${time} ${level} ${msg} ", // Basic log pattern
+		Level:      DEBUG,                      // Lowest level to log by default
 	},
 }
 
@@ -78,7 +100,9 @@ func Set(cfg Config) {
 	if cfg.TimeFormat == "" {
 		cfg.TimeFormat = time.RFC3339
 	}
-	if cfg.Pattern == "" {
+	if cfg.Format == "text" && cfg.Pattern == "" && cfg.Separator != "" {
+		cfg.Pattern = ""
+	} else if cfg.Pattern == "" {
 		cfg.Pattern = "${time} ${level} ${msg} "
 	}
 	if cfg.Level == "" {
@@ -89,32 +113,144 @@ func Set(cfg Config) {
 	std.config = cfg
 }
 
-// Debug logs a DEBUG level message.
-func Debug(msg string, fields ...Fields) { std.log(DEBUG, msg, getFields(fields...)) }
+// Info creates a fluent INFO-level log entry.
+func Info(msg string) *Entry {
+	return &Entry{level: INFO, msg: msg}
+}
 
-// Info logs an INFO level message.
-func Info(msg string, fields ...Fields) { std.log(INFO, msg, getFields(fields...)) }
+// Debug creates a fluent DEBUG-level log entry.
+func Debug(msg string) *Entry {
+	return &Entry{level: DEBUG, msg: msg}
+}
 
-// Warn logs a WARN level message.
-func Warn(msg string, fields ...Fields) { std.log(WARN, msg, getFields(fields...)) }
+// Warn creates a fluent WARN-level log entry.
+func Warn(msg string) *Entry {
+	return &Entry{level: WARN, msg: msg}
+}
 
-// Error logs an ERROR level message.
-func Error(msg string, fields ...Fields) { std.log(ERROR, msg, getFields(fields...)) }
+// Error creates a fluent ERROR-level log entry.
+func Error(msg string) *Entry {
+	return &Entry{level: ERROR, msg: msg}
+}
 
-// Debugf logs a DEBUG formatted message.
-func Debugf(format string, args ...any) { std.log(DEBUG, fmt.Sprintf(format, args...), nil) }
+// InfoT logs with a structured Fields map (compat mode).
+func InfoT(msg string, fields ...map[string]any) {
+	std.log(INFO, msg, flattenMap(fieldsSafe(fields...)))
+}
 
-// Infof logs an INFO formatted message.
+// DebugT logs with a structured Fields map (compat mode).
+func DebugT(msg string, fields ...map[string]any) {
+	std.log(DEBUG, msg, flattenMap(fieldsSafe(fields...)))
+}
+
+// WarnT logs with a structured Fields map (compat mode).
+func WarnT(msg string, fields ...map[string]any) {
+	std.log(WARN, msg, flattenMap(fieldsSafe(fields...)))
+}
+
+// ErrorT logs with a structured Fields map (compat mode).
+func ErrorT(msg string, fields ...map[string]any) {
+	std.log(ERROR, msg, flattenMap(fieldsSafe(fields...)))
+}
+
+// Infof logs a formatted INFO message.
 func Infof(format string, args ...any) { std.log(INFO, fmt.Sprintf(format, args...), nil) }
 
-// Warnf logs a WARN formatted message.
+// Debugf logs a formatted DEBUG message.
+func Debugf(format string, args ...any) { std.log(DEBUG, fmt.Sprintf(format, args...), nil) }
+
+// Warnf logs a formatted WARN message.
 func Warnf(format string, args ...any) { std.log(WARN, fmt.Sprintf(format, args...), nil) }
 
-// Errorf logs an ERROR formatted message.
+// Errorf logs a formatted ERROR message.
 func Errorf(format string, args ...any) { std.log(ERROR, fmt.Sprintf(format, args...), nil) }
 
+// Str adds a string field to the log entry.
+func (e *Entry) Str(key, val string) *Entry {
+	e.fields = append(e.fields, Field{key, val})
+	return e
+}
+
+// Int adds an integer field to the log entry.
+func (e *Entry) Int(key string, val int) *Entry {
+	e.fields = append(e.fields, Field{key, val})
+	return e
+}
+
+// Float64 adds a float64 field to the log entry.
+func (e *Entry) Float64(key string, val float64) *Entry {
+	e.fields = append(e.fields, Field{key, val})
+	return e
+}
+
+// Bool adds a boolean field to the log entry.
+func (e *Entry) Bool(key string, val bool) *Entry {
+	e.fields = append(e.fields, Field{key, val})
+	return e
+}
+
+// Duration adds a time.Duration field to the log entry.
+func (e *Entry) Duration(key string, val time.Duration) *Entry {
+	e.fields = append(e.fields, Field{key, val.String()})
+	return e
+}
+
+// Time adds a time.Time field to the log entry.
+func (e *Entry) Time(key string, val time.Time) *Entry {
+	e.fields = append(e.fields, Field{key, val.Format(time.RFC3339)})
+	return e
+}
+
+// Err adds an error field to the log entry.
+func (e *Entry) Err(key string, err error) *Entry {
+	if err != nil {
+		e.fields = append(e.fields, Field{key, err.Error()})
+	}
+	return e
+}
+
+// Func adds a field by executing a function that returns any.
+func (e *Entry) Func(key string, fn func() any) *Entry {
+	if fn != nil {
+		e.fields = append(e.fields, Field{key, fn()})
+	}
+	return e
+}
+
+// Any adds a generic value field to the log entry.
+func (e *Entry) Any(key string, val any) *Entry {
+	e.fields = append(e.fields, Field{key, val})
+	return e
+}
+
+// Send finalizes and sends the log entry.
+func (e *Entry) Send() {
+	std.log(e.level, e.msg, e.fields)
+}
+
+// flattenMap converts a generic map[K]V into a slice of Field structs.
+// This is useful for integrating arbitrary key-value pairs into the log entry system.
+// Keys are converted to strings via fmt.Sprint to ensure compatibility.
+func flattenMap[K comparable, V any](m map[K]V) []Field {
+	result := make([]Field, 0, len(m))
+	for k, v := range m {
+		result = append(result, Field{Key: fmt.Sprint(k), Val: v})
+	}
+	return result
+}
+
+// fieldsSafe safely unwraps the first map from a variadic slice of maps.
+// Returns nil if no map is provided or if the first map is nil.
+// Commonly used to handle optional log fields passed to log functions.
+func fieldsSafe(m ...map[string]any) map[string]any {
+	if len(m) == 0 || m[0] == nil {
+		return nil
+	}
+	return m[0]
+}
+
 // log renders and writes the log message.
-func (l *Logger) log(level Level, msg string, fields Fields) {
+func (l *Logger) log(level Level, msg string, fields []Field) {
 	l.mu.RLock()
 	cfg := l.config
 	l.mu.RUnlock()
@@ -128,15 +264,16 @@ func (l *Logger) log(level Level, msg string, fields Fields) {
 	for k, v := range cfg.CustomFields {
 		merged[k] = v
 	}
-	for k, v := range fields {
-		merged[k] = v
+	for _, f := range fields {
+		merged[f.Key] = f.Val
 	}
+
 	merged["level"] = level
 	merged["time"] = ts
 	merged["msg"] = msg
 
 	if cfg.IncludeCaller {
-		if _, file, line, ok := runtime.Caller(2); ok {
+		if _, file, line, ok := runtime.Caller(3); ok {
 			merged["file"] = fmt.Sprintf("%s:%d", filepath.Base(file), line)
 		}
 	}
@@ -172,7 +309,6 @@ func printText(w io.Writer, data map[string]any, pattern string) {
 	line := pattern
 	used := map[string]bool{}
 
-	// Replaces existing tokens in the Pattern
 	for k, v := range data {
 		token := "${" + k + "}"
 		if strings.Contains(line, token) {
@@ -181,29 +317,43 @@ func printText(w io.Writer, data map[string]any, pattern string) {
 		}
 	}
 
-	// Detect separator (ex: " " or " | ")
 	sep := detectSeparator(pattern)
 
-	// Create a list of extras (fields not used in the Pattern)
+	if pattern == "" {
+		std.mu.RLock()
+		sep = std.config.Separator
+		if sep == "" {
+			sep = " "
+		}
+		std.mu.RUnlock()
+	}
+
 	var extra []string
-	for k, v := range data {
+	keys := sortedKeys(data) // ensures consistent output order
+	for _, k := range keys {
 		if !used[k] {
-			extra = append(extra, fmt.Sprintf("%s %v", k, colorValue(k, v)))
+			extra = append(extra, fmt.Sprintf("%s %v", k, colorValue(k, data[k])))
 		}
 	}
 
-	// Concatenate extras, if any
+	// Create a list of extras (fields not used in the Pattern)
 	if len(extra) > 0 {
-		if !strings.HasSuffix(line, sep) {
-			line += sep
+		if pattern == "" {
+			line = strings.Join(extra, sep)
+		} else {
+			if !strings.HasSuffix(line, sep) {
+				line += sep
+			}
+			line += strings.Join(extra, sep)
 		}
-		line += strings.Join(extra, sep)
 	}
 
 	fmt.Fprintln(w, line)
 }
 
-// shouldLog checks if the current level is loggable.
+// shouldLog determines whether a log message should be emitted
+// based on the current message level and the minimum configured level.
+// Returns true if the current level is equal to or more severe than the minimum.
 func shouldLog(min Level, current Level) bool {
 	priorities := map[Level]int{
 		DEBUG: 1,
@@ -224,14 +374,6 @@ func detectSeparator(pattern string) string {
 	return " "
 }
 
-// getFields ensures variadic Fields is safely unwrapped.
-func getFields(fields ...Fields) Fields {
-	if len(fields) > 0 && fields[0] != nil {
-		return fields[0]
-	}
-	return Fields{}
-}
-
 // sortedKeys returns keys sorted alphabetically.
 func sortedKeys(m map[string]any) []string {
 	var keys []string
@@ -245,8 +387,6 @@ func sortedKeys(m map[string]any) []string {
 // colorValue returns colorized string based on field name or level.
 func colorValue(field string, val any) string {
 	s := fmt.Sprint(val)
-
-	// Only color the "level" field
 	if field == "level" {
 		switch Level(strings.ToUpper(s)) {
 		case DEBUG:
@@ -259,6 +399,5 @@ func colorValue(field string, val any) string {
 			return "\033[31m" + s + "\033[0m"
 		}
 	}
-
 	return s
 }

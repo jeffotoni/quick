@@ -1,6 +1,9 @@
 package main
 
 import (
+	"errors"
+	"time"
+
 	"github.com/jeffotoni/quick/pkg/gcolor"
 	"github.com/jeffotoni/quick/pkg/glog"
 	"github.com/jeffotoni/quick/pkg/rand"
@@ -24,15 +27,15 @@ func main() {
 
 	// Example 1: Trace ID only
 	traceID := rand.TraceID()
-	glog.Info(traceID) // string message only
+	glog.InfoT(traceID) // string message only
 
 	// Example 2: Trace ID as field
-	glog.Info("Start request", glog.Fields{
+	glog.InfoT("Start request", glog.Fields{
 		"TRACE": traceID,
 	})
 
 	// Example 3: Debug message with custom field
-	glog.Debug("This is a debug message", glog.Fields{
+	glog.DebugT("This is a debug message", glog.Fields{
 		"user": gcolor.
 			New().
 			Fg("yellow").
@@ -43,17 +46,48 @@ func main() {
 	glog.Infof("User %s logged in successfully", "arthur")
 
 	// Example 5: Warning with simple string
-	glog.Warn("Low disk space warning")
+	glog.WarnT("Low disk space warning")
 
 	// Example 6: Error with custom retry field
-	glog.Error("Database connection failed", glog.Fields{
+	glog.ErrorT("Database connection failed", glog.Fields{
 		"retry": true,
 	})
 
 	// Example 7: Simulated order processing log
-	glog.Info("Processing order", glog.Fields{
+	glog.InfoT("Processing order", glog.Fields{
 		"order_id": "ORD1234",
 		"customer": "Alice",
 		"total":    153.76,
 	})
+
+	// new sintaxe fluent
+	////
+	glog.Debug("api-fluent-example").
+		Int("TraceID", 123475).
+		Str("func", "BodyParser").
+		Str("status", "success").
+		Send()
+
+	glog.Info("api-fluent-example").
+		Int("TraceID", 123475).
+		Bool("error", false).
+		Send()
+
+	errTest := errors.New("something went wrong")
+	ts := time.Now()
+	dur := 1500 * time.Millisecond
+
+	glog.Warn("Fluent log test").
+		Str("user", "jeff").
+		Int("retries", 3).
+		Bool("authenticated", true).
+		Float64("load", 87.4).
+		Duration("elapsed", dur).
+		Time("timestamp", ts).
+		Err("error", errTest).
+		Any("data", map[string]int{"a": 1}).
+		Func("trace_id", func() any {
+			return "abc123"
+		}).
+		Send()
 }

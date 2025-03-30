@@ -1,0 +1,609 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>glog: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/jeffotoni/quick/pkg/glog/glog.go (99.2%)</option>
+				
+				<option value="file1">github.com/jeffotoni/quick/pkg/glog/glog_ctx.go (96.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Package glog provides a lightweight and flexible logging library for Go.
+// It supports text, slog-style, and JSON formats with dynamic fields and custom patterns.
+//
+// Format behavior:
+// - text:     colorized values, "field value" style, dynamic fields use pattern's first separator
+// - slog:     colorized, "field=value" for all fields
+// - json:     no color, serialized JSON
+//
+// Example:
+//
+//        glog.Set(glog.Config{
+//                Format:  "text",
+//                Pattern: "[${time}] ${level} ${msg} |",
+//                Level:   glog.DEBUG,
+//        })
+//        glog.InfoT("User login", glog.Fields{"user": "jeff"})
+//        glog.Info("User login").Str("user", "jeff").Send()
+package glog
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "os"
+        "path/filepath"
+        "regexp"
+        "runtime"
+        "sort"
+        "strings"
+        "sync"
+        "time"
+)
+
+// Level defines the severity level of a log message.
+type Level string
+
+// Level defines the severity of a log entry.
+// These constants represent the standard log levels used throughout glog.
+// They control the verbosity of output and can be filtered via Config.Level.
+const (
+        DEBUG Level = "DEBUG" // Fine-grained information for debugging
+        INFO  Level = "INFO"  // General operational messages (default)
+        WARN  Level = "WARN"  // Indications of possible issues or important changes
+        ERROR Level = "ERROR" // Critical errors that need attention
+)
+
+// Config holds global logger configuration.
+type Config struct {
+        Format        string            // "text", "json", "slog"
+        Pattern       string            // Format pattern, e.g. "[${time}] ${level} ${msg}"
+        Writer        io.Writer         // Output target (default: os.Stdout)
+        TimeFormat    string            // Timestamp format (default: RFC3339)
+        Level         Level             // Minimum level to log
+        CustomFields  map[string]string // Global fields always included
+        IncludeCaller bool              // Include file:line information
+        Separator     string            // default: " ", applies only when Pattern is not defined in format text
+}
+
+// Fields is a shorthand for generic field map, kept for compatibility.
+type Fields = map[string]any
+
+// Fields represent contextual dynamic fields passed per log.
+type Field struct {
+        Key string
+        Val any
+}
+
+// Entry is the fluent log entry builder.
+type Entry struct {
+        level  Level
+        msg    string
+        fields []Field
+}
+
+// Logger defines the internal logger structure.
+type Logger struct {
+        mu     sync.RWMutex
+        config Config
+}
+
+// std is the default global logger instance used internally by glog.
+// It holds the initial configuration and is shared across all logging calls
+// unless overridden via Set(Config). This ensures thread-safe logging with
+// sensible defaults: text format, standard output, timestamp, and DEBUG level.
+var std = &amp;Logger{
+        config: Config{
+                Format:     "text",                     // Default to human-readable text output
+                Writer:     os.Stdout,                  // Logs are written to standard output
+                TimeFormat: time.RFC3339,               // ISO 8601 timestamp format
+                Pattern:    "${time} ${level} ${msg} ", // Basic log pattern
+                Level:      DEBUG,                      // Lowest level to log by default
+        },
+}
+
+// Set sets the global logger configuration.
+func Set(cfg Config) <span class="cov6" title="18">{
+        if cfg.Writer == nil </span><span class="cov1" title="1">{
+                cfg.Writer = os.Stdout
+        }</span>
+        <span class="cov6" title="18">if cfg.TimeFormat == "" </span><span class="cov2" title="2">{
+                cfg.TimeFormat = time.RFC3339
+        }</span>
+        <span class="cov6" title="18">if cfg.Format == "text" &amp;&amp; cfg.Pattern == "" &amp;&amp; cfg.Separator != "" </span><span class="cov1" title="1">{
+                cfg.Pattern = ""
+        }</span> else<span class="cov6" title="17"> if cfg.Pattern == "" </span><span class="cov4" title="6">{
+                cfg.Pattern = "${time} ${level} ${msg} "
+        }</span>
+        <span class="cov6" title="18">if cfg.Level == "" </span><span class="cov1" title="1">{
+                cfg.Level = INFO
+        }</span>
+        <span class="cov6" title="18">std.mu.Lock()
+        defer std.mu.Unlock()
+        std.config = cfg</span>
+}
+
+// Info creates a fluent INFO-level log entry.
+func Info(msg string) *Entry <span class="cov2" title="2">{
+        return &amp;Entry{level: INFO, msg: msg}
+}</span>
+
+// Debug creates a fluent DEBUG-level log entry.
+func Debug(msg string) *Entry <span class="cov2" title="2">{
+        return &amp;Entry{level: DEBUG, msg: msg}
+}</span>
+
+// Warn creates a fluent WARN-level log entry.
+func Warn(msg string) *Entry <span class="cov1" title="1">{
+        return &amp;Entry{level: WARN, msg: msg}
+}</span>
+
+// Error creates a fluent ERROR-level log entry.
+func Error(msg string) *Entry <span class="cov1" title="1">{
+        return &amp;Entry{level: ERROR, msg: msg}
+}</span>
+
+// InfoT logs with a structured Fields map (compat mode).
+func InfoT(msg string, fields ...map[string]any) <span class="cov5" title="9">{
+        std.log(INFO, msg, flattenMap(fieldsSafe(fields...)))
+}</span>
+
+// DebugT logs with a structured Fields map (compat mode).
+func DebugT(msg string, fields ...map[string]any) <span class="cov3" title="4">{
+        std.log(DEBUG, msg, flattenMap(fieldsSafe(fields...)))
+}</span>
+
+// WarnT logs with a structured Fields map (compat mode).
+func WarnT(msg string, fields ...map[string]any) <span class="cov3" title="3">{
+        std.log(WARN, msg, flattenMap(fieldsSafe(fields...)))
+}</span>
+
+// ErrorT logs with a structured Fields map (compat mode).
+func ErrorT(msg string, fields ...map[string]any) <span class="cov2" title="2">{
+        std.log(ERROR, msg, flattenMap(fieldsSafe(fields...)))
+}</span>
+
+// Infof logs a formatted INFO message.
+func Infof(format string, args ...any) <span class="cov1" title="1">{ std.log(INFO, fmt.Sprintf(format, args...), nil) }</span>
+
+// Debugf logs a formatted DEBUG message.
+func Debugf(format string, args ...any) <span class="cov1" title="1">{ std.log(DEBUG, fmt.Sprintf(format, args...), nil) }</span>
+
+// Warnf logs a formatted WARN message.
+func Warnf(format string, args ...any) <span class="cov1" title="1">{ std.log(WARN, fmt.Sprintf(format, args...), nil) }</span>
+
+// Errorf logs a formatted ERROR message.
+func Errorf(format string, args ...any) <span class="cov1" title="1">{ std.log(ERROR, fmt.Sprintf(format, args...), nil) }</span>
+
+// Str adds a string field to the log entry.
+func (e *Entry) Str(key, val string) *Entry <span class="cov4" title="5">{
+        e.fields = append(e.fields, Field{key, val})
+        return e
+}</span>
+
+// Int adds an integer field to the log entry.
+func (e *Entry) Int(key string, val int) *Entry <span class="cov3" title="3">{
+        e.fields = append(e.fields, Field{key, val})
+        return e
+}</span>
+
+// Float64 adds a float64 field to the log entry.
+func (e *Entry) Float64(key string, val float64) *Entry <span class="cov1" title="1">{
+        e.fields = append(e.fields, Field{key, val})
+        return e
+}</span>
+
+// Bool adds a boolean field to the log entry.
+func (e *Entry) Bool(key string, val bool) *Entry <span class="cov3" title="3">{
+        e.fields = append(e.fields, Field{key, val})
+        return e
+}</span>
+
+// Duration adds a time.Duration field to the log entry.
+func (e *Entry) Duration(key string, val time.Duration) *Entry <span class="cov1" title="1">{
+        e.fields = append(e.fields, Field{key, val.String()})
+        return e
+}</span>
+
+// Time adds a time.Time field to the log entry.
+func (e *Entry) Time(key string, val time.Time) *Entry <span class="cov1" title="1">{
+        e.fields = append(e.fields, Field{key, val.Format(time.RFC3339)})
+        return e
+}</span>
+
+// Err adds an error field to the log entry.
+func (e *Entry) Err(key string, err error) *Entry <span class="cov1" title="1">{
+        if err != nil </span><span class="cov1" title="1">{
+                e.fields = append(e.fields, Field{key, err.Error()})
+        }</span>
+        <span class="cov1" title="1">return e</span>
+}
+
+// Func adds a field by executing a function that returns any.
+func (e *Entry) Func(key string, fn func() any) *Entry <span class="cov1" title="1">{
+        if fn != nil </span><span class="cov1" title="1">{
+                e.fields = append(e.fields, Field{key, fn()})
+        }</span>
+        <span class="cov1" title="1">return e</span>
+}
+
+// Any adds a generic value field to the log entry.
+func (e *Entry) Any(key string, val any) *Entry <span class="cov1" title="1">{
+        e.fields = append(e.fields, Field{key, val})
+        return e
+}</span>
+
+// Send finalizes and sends the log entry.
+func (e *Entry) Send() <span class="cov4" title="6">{
+        std.log(e.level, e.msg, e.fields)
+}</span>
+
+// flattenMap converts a generic map[K]V into a slice of Field structs.
+// This is useful for integrating arbitrary key-value pairs into the log entry system.
+// Keys are converted to strings via fmt.Sprint to ensure compatibility.
+func flattenMap[K comparable, V any](m map[K]V) []Field <span class="cov6" title="18">{
+        result := make([]Field, 0, len(m))
+        for k, v := range m </span><span class="cov6" title="18">{
+                result = append(result, Field{Key: fmt.Sprint(k), Val: v})
+        }</span>
+        <span class="cov6" title="18">return result</span>
+}
+
+// fieldsSafe safely unwraps the first map from a variadic slice of maps.
+// Returns nil if no map is provided or if the first map is nil.
+// Commonly used to handle optional log fields passed to log functions.
+func fieldsSafe(m ...map[string]any) map[string]any <span class="cov6" title="18">{
+        if len(m) == 0 || m[0] == nil </span><span class="cov4" title="5">{
+                return nil
+        }</span>
+        <span class="cov6" title="13">return m[0]</span>
+}
+
+// log renders and writes the log message.
+func (l *Logger) log(level Level, msg string, fields []Field) <span class="cov7" title="28">{
+        l.mu.RLock()
+        cfg := l.config
+        l.mu.RUnlock()
+
+        if !shouldLog(cfg.Level, level) </span><span class="cov1" title="1">{
+                return
+        }</span>
+
+        <span class="cov7" title="27">ts := time.Now().Format(cfg.TimeFormat)
+        merged := make(map[string]any)
+        for k, v := range cfg.CustomFields </span><span class="cov5" title="8">{
+                merged[k] = v
+        }</span>
+        <span class="cov7" title="27">for _, f := range fields </span><span class="cov8" title="35">{
+                merged[f.Key] = f.Val
+        }</span>
+
+        <span class="cov7" title="27">merged["level"] = level
+        merged["time"] = ts
+        merged["msg"] = msg
+
+        if cfg.IncludeCaller </span><span class="cov2" title="2">{
+                if _, file, line, ok := runtime.Caller(3); ok </span><span class="cov2" title="2">{
+                        merged["file"] = fmt.Sprintf("%s:%d", filepath.Base(file), line)
+                }</span>
+        }
+
+        <span class="cov7" title="27">switch cfg.Format </span>{
+        case "json":<span class="cov5" title="8">
+                printJSON(cfg.Writer, merged)</span>
+        case "slog":<span class="cov1" title="1">
+                printSlog(cfg.Writer, merged)</span>
+        default:<span class="cov6" title="18">
+                printText(cfg.Writer, merged, cfg.Pattern)</span>
+        }
+}
+
+// printJSON writes log data as JSON.
+func printJSON(w io.Writer, data map[string]any) <span class="cov5" title="8">{
+        b, _ := json.Marshal(data)
+        fmt.Fprintln(w, string(b))
+}</span>
+
+// printSlog formats all fields as key=value with color.
+func printSlog(w io.Writer, data map[string]any) <span class="cov1" title="1">{
+        var parts []string
+        keys := sortedKeys(data)
+        for _, k := range keys </span><span class="cov4" title="5">{
+                parts = append(parts, fmt.Sprintf("%s=%v", k, colorValue(k, data[k])))
+        }</span>
+        <span class="cov1" title="1">fmt.Fprintln(w, strings.Join(parts, " "))</span>
+}
+
+// printText formats fields based on pattern and appends extra fields with same separator.
+func printText(w io.Writer, data map[string]any, pattern string) <span class="cov6" title="18">{
+        line := pattern
+        used := map[string]bool{}
+
+        for k, v := range data </span><span class="cov9" title="88">{
+                token := "${" + k + "}"
+                if strings.Contains(line, token) </span><span class="cov8" title="52">{
+                        line = strings.ReplaceAll(line, token, fmt.Sprint(colorValue(k, v)))
+                        used[k] = true
+                }</span>
+        }
+
+        <span class="cov6" title="18">sep := detectSeparator(pattern)
+
+        if pattern == "" </span><span class="cov1" title="1">{
+                std.mu.RLock()
+                sep = std.config.Separator
+                if sep == "" </span><span class="cov0" title="0">{
+                        sep = " "
+                }</span>
+                <span class="cov1" title="1">std.mu.RUnlock()</span>
+        }
+
+        <span class="cov6" title="18">var extra []string
+        keys := sortedKeys(data) // ensures consistent output order
+        for _, k := range keys </span><span class="cov9" title="88">{
+                if !used[k] </span><span class="cov8" title="36">{
+                        extra = append(extra, fmt.Sprintf("%s %v", k, colorValue(k, data[k])))
+                }</span>
+        }
+
+        // Create a list of extras (fields not used in the Pattern)
+        <span class="cov6" title="18">if len(extra) &gt; 0 </span><span class="cov5" title="12">{
+                if pattern == "" </span><span class="cov1" title="1">{
+                        line = strings.Join(extra, sep)
+                }</span> else<span class="cov5" title="11"> {
+                        if !strings.HasSuffix(line, sep) </span><span class="cov2" title="2">{
+                                line += sep
+                        }</span>
+                        <span class="cov5" title="11">line += strings.Join(extra, sep)</span>
+                }
+        }
+
+        <span class="cov6" title="18">fmt.Fprintln(w, line)</span>
+}
+
+// shouldLog determines whether a log message should be emitted
+// based on the current message level and the minimum configured level.
+// Returns true if the current level is equal to or more severe than the minimum.
+func shouldLog(min Level, current Level) bool <span class="cov7" title="28">{
+        priorities := map[Level]int{
+                DEBUG: 1,
+                INFO:  2,
+                WARN:  3,
+                ERROR: 4,
+        }
+        return priorities[current] &gt;= priorities[min]
+}</span>
+
+// detectSeparator infers the field separator from the pattern.
+func detectSeparator(pattern string) string <span class="cov6" title="19">{
+        r := regexp.MustCompile(`\}\s*([^$\{\s]+)\s*\$\{`)
+        match := r.FindStringSubmatch(pattern)
+        if len(match) &gt; 1 &amp;&amp; match[1] != "" </span><span class="cov4" title="5">{
+                return match[1]
+        }</span>
+        <span class="cov6" title="14">return " "</span>
+}
+
+// sortedKeys returns keys sorted alphabetically.
+func sortedKeys(m map[string]any) []string <span class="cov6" title="19">{
+        var keys []string
+        for k := range m </span><span class="cov10" title="93">{
+                keys = append(keys, k)
+        }</span>
+        <span class="cov6" title="19">sort.Strings(keys)
+        return keys</span>
+}
+
+// colorValue returns colorized string based on field name or level.
+func colorValue(field string, val any) string <span class="cov10" title="93">{
+        s := fmt.Sprint(val)
+        if field == "level" </span><span class="cov6" title="19">{
+                switch Level(strings.ToUpper(s)) </span>{
+                case DEBUG:<span class="cov3" title="4">
+                        return "\033[36m" + s + "\033[0m"</span>
+                case INFO:<span class="cov5" title="10">
+                        return "\033[32m" + s + "\033[0m"</span>
+                case WARN:<span class="cov3" title="3">
+                        return "\033[33m" + s + "\033[0m"</span>
+                case ERROR:<span class="cov2" title="2">
+                        return "\033[31m" + s + "\033[0m"</span>
+                }
+        }
+        <span class="cov9" title="74">return s</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package glog
+
+import (
+        "context"
+        "sync"
+        "time"
+)
+
+// contextKey is a private type to avoid collisions in context
+type contextKey struct{ name string }
+
+const defaultCtxKey = "TraceID"
+const defaultCtxTimeout = 30 * time.Second
+
+var keyCache sync.Map // map[string]*contextKey
+
+func getCtxKey(name string) *contextKey <span class="cov10" title="6">{
+        if name == "" </span><span class="cov0" title="0">{
+                name = defaultCtxKey
+        }</span>
+        <span class="cov10" title="6">if v, ok := keyCache.Load(name); ok </span><span class="cov7" title="4">{
+                return v.(*contextKey)
+        }</span>
+        <span class="cov4" title="2">k := &amp;contextKey{name}
+        keyCache.Store(name, k)
+        return k</span>
+}
+
+// CtxBuilder provides a fluent API to build a context with a trace ID.
+type CtxBuilder struct {
+        name    string
+        key     string
+        timeout time.Duration
+}
+
+// NewCtx creates a new fluent context builder.
+func NewCtx() *CtxBuilder <span class="cov6" title="3">{
+        return &amp;CtxBuilder{
+                name:    defaultCtxKey,
+                timeout: defaultCtxTimeout,
+        }
+}</span>
+
+// Name sets a custom context key name.
+func (b *CtxBuilder) Name(name string) *CtxBuilder <span class="cov1" title="1">{
+        if name != "" </span><span class="cov1" title="1">{
+                b.name = name
+        }</span>
+        <span class="cov1" title="1">return b</span>
+}
+
+// Key sets the value to store in the context.
+func (b *CtxBuilder) Key(val string) *CtxBuilder <span class="cov6" title="3">{
+        b.key = val
+        return b
+}</span>
+
+// Timeout sets a custom timeout duration for the context.
+func (b *CtxBuilder) Timeout(d time.Duration) *CtxBuilder <span class="cov1" title="1">{
+        if d &gt; 0 </span><span class="cov1" title="1">{
+                b.timeout = d
+        }</span>
+        <span class="cov1" title="1">return b</span>
+}
+
+// Build creates the context and returns it with a cancel function.
+func (b *CtxBuilder) Build() (context.Context, context.CancelFunc) <span class="cov6" title="3">{
+        ctxKey := getCtxKey(b.name)
+        base := context.WithValue(context.Background(), ctxKey, b.key)
+        ctx, cancel := context.WithTimeout(base, b.timeout)
+        return ctx, cancel
+}</span>
+
+// GetCtx retrieves the trace ID from context using the given key name (optional).
+// Defaults to "TraceID" if no keyName is provided.
+func GetCtx(ctx context.Context, keyName ...string) string <span class="cov7" title="4">{
+        if ctx == nil </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+        <span class="cov6" title="3">key := defaultCtxKey
+        if len(keyName) &gt; 0 &amp;&amp; keyName[0] != "" </span><span class="cov1" title="1">{
+                key = keyName[0]
+        }</span>
+        <span class="cov6" title="3">ctxKey := getCtxKey(key)
+
+        if val, ok := ctx.Value(ctxKey).(string); ok </span><span class="cov4" title="2">{
+                return val
+        }</span>
+        <span class="cov1" title="1">return ""</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
