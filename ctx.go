@@ -106,6 +106,17 @@ type FileInfo struct {
 	Bytes       []byte
 }
 
+// Get retrieves a specific header value from the request.
+//
+// Parameters:
+//   - key: The name of the header to retrieve.
+//
+// Returns:
+//   - string: The value of the specified header, or an empty string if not found.
+func (c *Ctx) Get(key string) string {
+	return c.Request.Header.Get(key)
+}
+
 // GetHeader retrieves a specific header value from the request.
 //
 // Parameters:
@@ -454,7 +465,7 @@ func (c *Ctx) writeResponse(b []byte) error {
 	}
 
 	if c.resStatus == 0 {
-		c.resStatus = http.StatusOK
+		c.resStatus = StatusOK
 	}
 
 	c.Response.WriteHeader(c.resStatus)
