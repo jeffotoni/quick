@@ -1,9 +1,12 @@
 package rand
 
 import (
+	"crypto/rand"
 	randx "crypto/rand"
+	"log"
 	"math/big"
 	randm "math/rand"
+	"strconv"
 	"time"
 )
 
@@ -38,4 +41,16 @@ func TraceID() string {
 		b[i] = charset[r.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+// AlgoDefault generates a random MsgID within the specified range
+func AlgoDefault(Start, End int) string {
+	max := big.NewInt(int64(End))              // Define the upper limit for the random number
+	randInt, err := rand.Int(rand.Reader, max) // Generate a secure random number
+	if err != nil {
+		log.Printf("error: %v", err)
+		return "" // Return an empty string if an error occurs
+	}
+	// Return the generated MsgID as a string
+	return strconv.Itoa(Start + int(randInt.Int64()))
 }

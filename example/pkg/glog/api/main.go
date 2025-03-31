@@ -10,7 +10,7 @@ import (
 	"github.com/jeffotoni/quick/pkg/rand"
 )
 
-const KeyName string = "TraceID"
+const KeyName string = "X-Trace-ID"
 
 // curl -i -XPOST -H "Content-Type:application/json" localhost:8080/v1/user -d '{"name": "jeff", "year": 2025}'
 func main() {
@@ -24,16 +24,24 @@ func main() {
 
 	q.Post("/v1/user", func(c *quick.Ctx) error {
 		// creating a trace
-		traceID := c.Get(KeyName)
+		traceID := c.Get("X-Trace-ID")
 		if traceID == "" {
 			traceID = rand.TraceID()
 		}
-		c.Set(KeyName, traceID)
+
+		userID := c.Get("X-User-ID")
+		if userID == "" {
+			userID = rand.AlgoDefault(9000, 9000)
+		}
+
+		c.Set("X-Trace-ID", traceID)
+		c.Set("X-User-ID", userID)
 
 		ctx, cancel := glog.NewCtx().
-			Name(KeyName).
-			Key(traceID).
-			Timeout(10 * time.Second).
+			Set("X-Trace-ID", traceID).
+			Set("X-User-ID", userID).
+			Set("env", "dev").
+			Timeout(5 * time.Second).
 			Build()
 		defer cancel()
 
@@ -75,7 +83,7 @@ func main() {
 }
 
 func SaveSomeWhere(ctx context.Context, data any) (b []byte, err error) {
-	traceID := glog.GetCtx(ctx)
+	traceID := glog.GetCtx(ctx, "X-Trace-ID")
 	b, err = json.Marshal(data)
 	if err != nil {
 		glog.ErrorT(traceID, glog.Fields{"error": err})
@@ -103,7 +111,7 @@ func SendQueue(ctx context.Context, data []byte) (err error) {
 	time.Sleep(time.Millisecond * 100)
 
 	glog.Debug("SendQueue").
-		Str(KeyName, glog.GetCtx(ctx)).
+		Str(KeyName, glog.GetCtx(ctx, "X-Trace-ID")).
 		Str("func", "SendSQS").
 		Str("status", "success").
 		Send()
