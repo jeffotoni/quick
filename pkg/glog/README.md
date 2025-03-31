@@ -29,42 +29,80 @@ $ go get github.com/jeffotoni/quick/pkg/glog
 ```
 ---
 
-## 🧠 Context Support (TraceID, etc.)
+## 🧠 Context Support (TraceID, X-Request-ID, etc.)
 
-Sometimes you want to propagate values like `TraceID`, `X-Request-ID`, or `X-User-ID` across your services or middlewares. `glog` provides built-in helpers to work with `context.Context` safely and fluently.
+In distributed systems or structured APIs, it’s common to pass values like TraceID, X-Request-ID, or User-ID across services and goroutines. glog offers fluent helpers to inject and retrieve contextual data into context.Context safely and consistently.
 
+
+You can easily create and manage contexts with custom keys:
 ```go
-ctx, cancel := glog.CreateCtx().
-	Name("X-Trace-ID").
-	Key("abc-123").
-	Timeout(10 * time.Second).
-	Build()
-defer cancel()
+ctx, cancel := NewCtx().
+		Set("X-Trace-ID", "bOlFr59X49f1ym7H").
+		Set("X-User-ID", "10539").
+		Set("env", "prod").
+		Timeout(5 * time.Second).
+		Build()
+	defer cancel()
 
-trace := glog.GetCtx(ctx)             // returns "abc-123"
-user := glog.GetCtx(ctx, "X-User-ID") // returns "" if not set
+traceID := glog.GetCtx(ctx, "X-Trace-ID") // returns "bOlFr59X49f1ym7H" 
+userID  := glog.GetCtx(ctx, "X-User-ID") // returns "10539" 
+all := glog.GetCtxMap(ctx) // returns map[string]string{"X-Trace-ID": "bOlFr59X49f1ym7H", "X-User-ID": "10539", "env": "prod"}
 ```
 
-You can customize:
-	• Name() → sets the context key (default: "TraceID")
-	• Key() → sets the value to store in the context
-	• Timeout() → context lifetime (default: 30s)
+This is especially useful for logging, tracing, and observability in middlewares, background jobs, or chained requests.
 
 
-## 💡 If you don’t pass anything, it uses defaults:
+You can customize with Set(key, value):
+
+	• Set("Name", "X-Request-ID") → defines the context key name (default is "TraceID")
+	• Set("Value", "abc-123") → sets the value to store in the context
+	• Set("Timeout", 10*time.Second) → sets the timeout duration (default is 30s)
+
+
+
+✅ Safe behavior:
+
+	•	Returns "" if ctx is nil or key not found
+	•	No default keys are assumed — you must Set() explicitly
+	•	Internal collision-safe key types (private struct)
+	•	Tracks and retrieves only values injected via glog.NewCtx().Set(...)
+
 ```go
-ctx, cancel := glog.CreateCtx().Key("abc-123").Build()
-```
 
-✅ Safe fallback behavior:
-	• Returns "" if context is nil
-	• Uses "TraceID" key if not specified
-	• Timeout defaults to 30s if not provided
-	• Internally avoids key collisions with a private key type
+...
 
-```go
-glog.GetCtx(ctx)            // looks for key "TraceID"
-glog.GetCtx(ctx, "custom")  // looks for key "custom"
+	 glog.Set(glog.Config{
+	     Format:     "text",
+	     Pattern:    "[${time}] ${level} ${msg} |",
+	     Level:      glog.DEBUG,
+	     TimeFormat: time.RFC3339,
+	 })
+
+	 glog.Info("App started").
+	     Str("version", "1.0.0").
+	     Str("env", "production").
+	     Send()
+
+	 ctx, cancel := glog.NewCtx().
+	     Set("TraceID", "abc-123").
+	     Set("X-User-ID", "user-789").
+	     Timeout(5 * time.Second).
+	     Build()
+	 defer cancel()
+
+	 traceID := glog.GetCtx(ctx)
+	 userID := glog.GetCtx(ctx, "X-User-ID")
+
+	 glog.Debug("Request received").
+	     Str("trace", traceID).
+	     Str("user", userID).
+	     Send()
+...
+
+Output (text):
+
+	[2025-03-30T15:20:00Z] INFO App started | version 1.0.0 env production
+	[2025-03-30T15:20:00Z] DEBUG Request received | trace abc-123 user user-789
 ```
 
 ## Example
