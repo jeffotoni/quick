@@ -22,6 +22,10 @@ func main() {
 
 	q := quick.New()
 
+	// q.Use(trace.New(trace.Config{
+	// 	Fields: map[string]func(*quick.Ctx) string{},
+	// }))
+
 	q.Post("/v1/user", func(c *quick.Ctx) error {
 		// creating a trace
 		traceID := c.Get(KeyName)

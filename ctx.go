@@ -19,6 +19,7 @@ package quick
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -48,14 +49,23 @@ type Ctx struct {
 
 	handlers     []HandlerFunc // list of handlers for this route
 	handlerIndex int           // current position in handlers stack
+
+	Context context.Context // custom context
 }
 
-// func (c *Ctx) HTML(name string, data interface{}, layouts ...string) error {
-// 	if c.App.GetConfig().Views != nil {
-// 		return c.App.GetConfig().Views.Render(c.Response, name, data, layouts...)
-// 	}
-// 	return errors.New("template engine not configured")
-// }
+// SetCtx allows you to override the default context used in c.Ctx()
+func (c *Ctx) SetCtx(ctx context.Context) {
+	c.Context = ctx
+}
+
+// Ctx returns the active context for this request.
+// It returns the custom context if SetCtx was used; otherwise defaults to Request.Context()
+func (c *Ctx) Ctx() context.Context {
+	if c.Context != nil {
+		return c.Context
+	}
+	return c.Request.Context()
+}
 
 func (c *Ctx) HTML(name string, data interface{}, layouts ...string) error {
 	if c.App == nil {
