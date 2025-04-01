@@ -3,12 +3,60 @@ package glog_test
 import (
 	"bytes"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/jeffotoni/quick/pkg/glog"
 )
+
+func TestNew_DefaultConfig(t *testing.T) {
+	logger := glog.New() // no config passed, should fallback to defaults
+
+	if logger == nil {
+		t.Fatal("Expected logger instance, got nil")
+	}
+
+	// Validate internal config fallback values
+	v := reflect.ValueOf(logger).Elem()
+	cfg := v.FieldByName("config")
+
+	if cfg.FieldByName("Writer").IsNil() {
+		t.Error("Expected default Writer (os.Stdout), got nil")
+	}
+
+	if cfg.FieldByName("TimeFormat").String() != glog.LayoutDefault {
+		t.Errorf("Expected default TimeFormat, got: %s", cfg.FieldByName("TimeFormat").String())
+	}
+
+	if glog.Level(cfg.FieldByName("Level").String()) != glog.INFO {
+		t.Errorf("Expected default Level=INFO, got: %s", cfg.FieldByName("Level").String())
+	}
+}
+
+func TestNew_WithCustomConfig(t *testing.T) {
+	var buf bytes.Buffer
+	cfg := glog.Config{
+		Format:     "json",
+		Writer:     &buf,
+		TimeFormat: glog.LayoutDateTime,
+		Level:      glog.DEBUG,
+		Separator:  " :: ",
+	}
+
+	logger := glog.New(cfg)
+
+	if logger == nil {
+		t.Fatal("Expected logger instance, got nil")
+	}
+
+	logger.Debug().Str("event", "test").Msg("ok").Send()
+
+	if !strings.Contains(buf.String(), `"event":"test"`) {
+		t.Errorf("Expected field in JSON output, got: %s", buf.String())
+	}
+}
 
 // TestCallerIncluded checks that the caller information is correctly included in the log when .Caller() is used.
 func TestCallerIncluded(t *testing.T) {

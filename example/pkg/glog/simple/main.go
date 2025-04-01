@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	logger := glog.Set(glog.Config{
+	logger := glog.New(glog.Config{
 		Format: "json",
 		Level:  glog.DEBUG,
 	})

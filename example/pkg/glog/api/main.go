@@ -16,7 +16,7 @@ const KeyName string = "X-Trace-ID"
 // curl -i -XPOST -H "Content-Type:application/json" localhost:8080/v1/user -d '{"name": "jeff", "year": 2025}'
 func main() {
 
-	logger := glog.Set(glog.Config{
+	logger := glog.New(glog.Config{
 		Format: "json",
 		Level:  glog.DEBUG,
 	})

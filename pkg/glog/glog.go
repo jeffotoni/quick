@@ -179,6 +179,29 @@ func Set(cfg Config) *Logger {
 	return &Logger{config: cfg}
 }
 
+// New creates a new logger with optional configuration.
+// If no config is passed, it uses default settings.
+func New(cfgs ...Config) *Logger {
+	var cfg Config
+	if len(cfgs) > 0 {
+		cfg = cfgs[0]
+	}
+
+	if cfg.Writer == nil {
+		cfg.Writer = os.Stdout
+	}
+	if cfg.TimeFormat == "" {
+		cfg.TimeFormat = LayoutDefault
+	}
+	if cfg.Level == "" {
+		cfg.Level = INFO
+	}
+	if cfg.Format == "" {
+		cfg.Format = "text"
+	}
+	return &Logger{config: cfg}
+}
+
 // Debug starts a new log entry with the DEBUG level.
 // It retrieves a reusable Entry instance and binds it to the logger.
 func (l *Logger) Debug() *Entry {
