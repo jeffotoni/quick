@@ -3995,6 +3995,11 @@ If you have some interesting example of using the **Quick Framework**, feel free
 We already have several examples, and we can already test and play 😁. Of course, we are at the beginning, still has much to do.
 Feel free to do **PR** (at risk of winning a Go t-shirt ❤️ and of course recognition as a professional Go 😍 in the labor market).
 
+### 👋 **New to the project? Start here:**  
+Check out our [First Contact Improvements Guide](https://github.com/jeffotoni/quick/blob/main/CONTRIBUTING.md)
+ to get up and running smoothly!
+
+
 ### 🚀 **Quick Project Supporters** 🙏
 
 The Quick Project aims to develop and provide quality software for the developer community. 💻 To continue improving our tools, we rely on the support of our sponsors in Patreon. 🤝
