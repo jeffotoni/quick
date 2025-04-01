@@ -2,8 +2,10 @@ package glog_test
 
 import (
 	"bytes"
+	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/jeffotoni/quick/pkg/glog"
 )
@@ -322,5 +324,80 @@ func TestBoolHandlingText(t *testing.T) {
 	out := buf.String()
 	if !bytes.Contains([]byte(out), []byte("true")) || !bytes.Contains([]byte(out), []byte("false")) {
 		t.Errorf("Expected boolean values in text output: %s", out)
+	}
+}
+
+func TestEntryFloat64Field(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+	logger.Debug().Float64("load", 99.99).Send()
+
+	if !strings.Contains(buf.String(), "99.99") {
+		t.Errorf("Expected float64 value in output: %s", buf.String())
+	}
+}
+
+func TestEntryDurationField(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+	duration := 3*time.Second + 500*time.Millisecond
+	logger.Debug().Duration("elapsed", duration).Send()
+
+	if !strings.Contains(buf.String(), duration.String()) {
+		t.Errorf("Expected duration string in output: %s", buf.String())
+	}
+}
+
+func TestEntryTimeFieldWithDefaultFormat(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "slog",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+	now := time.Now()
+	logger.Debug().AddTime("created_at", now).Send()
+
+	// Uses RFC3339, e.g., 2025-03-31T12:00:00Z
+	if !strings.Contains(buf.String(), "created_at="+now.Format(time.RFC3339)) {
+		t.Errorf("Expected time field in output: %s Expected: %s", buf.String(), now.Format(time.RFC3339))
+	}
+}
+
+func TestEntryTimeFieldWithCustomLayout(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+	now := time.Now()
+	logger.Debug().AddTime("ts", now, glog.LayoutDateTime).Send()
+
+	if !strings.Contains(buf.String(), now.Format(glog.LayoutDateTime)) {
+		t.Errorf("Expected formatted time field in output: %s", buf.String())
+	}
+}
+
+func TestEntryErrField(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+	err := errors.New("database connection failed")
+	logger.Error().Err("error", err).Send()
+
+	if !strings.Contains(buf.String(), "database connection failed") {
+		t.Errorf("Expected error string in output: %s", buf.String())
 	}
 }

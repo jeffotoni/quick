@@ -10,7 +10,6 @@ Part of the [Quick Framework](https://github.com/jeffotoni/quick) ecosystem, `gl
 
 - 🔥 Lightweight and zero-dependency
 - 🎨 Supports `text`, `slog`, and `json` formats
-- 🧩 Custom `Pattern` with placeholders (`${time}`, `${level}`, `${msg}`, etc)
 - 🧠 Dynamic separator detection (` | `, `--`, `:`… based on your pattern)
 - 📋 Fluent log builder API with dynamic fields: `.Str()`, `.Int()`, `.Bool()`, `.Any()`, `.Msg()`
 - 🎯 Built-in caller tracing: add `file:line` with `.Caller()`
@@ -33,43 +32,122 @@ $ go get github.com/jeffotoni/quick/pkg/glog
 
 ## 🧠 Context Support (TraceID, etc.)
 
-Sometimes you want to propagate values like `TraceID`, `X-Request-ID`, or `X-User-ID` across your services or middlewares. `glog` provides built-in helpers to work with `context.Context` safely and fluently.
+Need to propagate request metadata like `TraceID`, `X-User-ID`, `Session-ID` or any other key through Go's `context.Context`?  
+Use `glog`'s fluent context builder to create and retrieve values safely and efficiently.
+
+### Creating a context:
 
 ```go
 ctx, cancel := glog.CreateCtx().
-	Name("X-Trace-ID").
-	Key("abc-123").
+	Set("X-Trace-ID", "abc-123").
+	Set("X-User-ID", "user-42").
+	Set("X-Session-ID", "sess-999").
 	Timeout(10 * time.Second).
 	Build()
 defer cancel()
 
-trace := glog.GetCtx(ctx,"X-Trace-ID") // returns "abc-123"
-user := glog.GetCtx(ctx, "X-User-ID") // returns "" if not set
-```
+traceID := glog.GetCtx(ctx, "X-Trace-ID")
+// abc-123
 
-You can customize:
-	• Name() → sets the context key (default: "TraceID")
-	• Key() → sets the value to store in the context
-	• Timeout() → context lifetime (default: 30s)
+userID := glog.GetCtx(ctx, "X-User-ID")
+// user-42
 
+fields := glog.GetCtxAll(ctx)
+// map[string]string{ "X-Trace-ID": "abc-123", "X-User-ID": "user-42", ... }
 
-## 💡 If you don’t pass anything, it uses defaults:
-```go
-ctx, cancel := glog.CreateCtx().Key("abc-123").Build()
-```
-
-✅ Safe fallback behavior:
-	• Returns "" if context is nil
-	• Uses "TraceID" key if not specified
-	• Timeout defaults to 30s if not provided
-	• Internally avoids key collisions with a private key type
-
-```go
-glog.GetCtx(ctx, "custom")  // looks for key "custom"
 ```
 
 ## Example
 
+```go
+...
+func main() {
+
+	logger := glog.Set(glog.Config{
+		Format: "json",
+		Level:  glog.DEBUG,
+	})
+
+	q := quick.New()
+
+	q.Post("/v1/user", func(c *quick.Ctx) error {
+		// creating a trace
+		traceID := c.Get(KeyName)
+		if traceID == "" {
+			traceID = rand.TraceID()
+		}
+		
+		userID:= "user3039"
+		spanID:= "span39393"
+		
+		ctx, cancel := glog.CreateCtx().
+			Set("X-Trace-ID", traceID).
+			Set("X-User-ID", userID).
+			Set("X-Span-ID", spanID).
+			Timeout(10 * time.Second).
+			Build()
+		defer cancel()
+
+		c.Set("X-Trace-ID", traceID)
+		c.Set("X-User-ID", userID)
+		c.Set("X-Span-ID", spanID)
+
+		c.Set("Content-type", "application/json")
+		var d any
+		err := c.BodyParser(&d)
+		if err != nil {
+			logger.Error().
+				Time().
+				Level().
+				Str(KeyName, traceID).
+				Str("error", err.Error()).
+				Send()
+			return c.Status(500).JSON(quick.M{"msg": err.Error()})
+		}
+
+		logger.Debug().
+			Time().
+			Level().
+			Str(KeyName, traceID).
+			Str("func", "BodyParser").
+			Str("status", "success").
+			// Caller().
+			Send()
+
+		// call metodh
+		b, err := SaveSomeWhere(ctx, logger, d)
+		if err != nil {
+			logger.Error().
+				Time().
+				Level().
+				Str(KeyName, traceID).
+				Str("Error", err.Error()).
+				Send()
+
+			return c.Status(500).JSON(quick.M{"msg": err.Error()})
+		}
+
+		logger.Debug().
+			Time().
+			Level().
+			Str(KeyName, traceID).
+			Str("func", "SaveSomeWhere").
+			Int("code", quick.StatusOK).
+			Msg("api-post-fluent").
+			Send()
+
+		all := glog.GetCtxAll(ctx)
+		fmt.Printf("X-Trace-ID:%s X-User-ID:%s X-Span-ID:%s\n", all["X-Trace-ID"], all["X-User-ID"], all["X-Span-ID"])
+
+		return c.Status(quick.StatusOK).Send(b)
+	})
+
+	q.Listen("0.0.0.0:8080")
+}
+...
+```
+
+Output:
 ```bash
 
    ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗
@@ -86,17 +164,24 @@ glog.GetCtx(ctx, "custom")  // looks for key "custom"
  🔀 Routes: 1
 ─────────────────── ───────────────────────────────
 
-TraceID maF1ZfqvvId44Qka | func BodyParser | level DEBUG | msg api-fluent-example-post | status success | time 2025-03-30T16:07:15-03:00
-TraceID maF1ZfqvvId44Qka | func SendSQS | level DEBUG | msg SendQueue | status success | time 2025-03-30T16:07:15-03:00
-TraceID maF1ZfqvvId44Qka | func Marshal | level DEBUG | msg method SaveSomeWhere | status success | time 2025-03-30T16:07:15-03:00
-TraceID maF1ZfqvvId44Qka | code 200 | func SaveSomeWhere | level DEBUG | msg api-fluent-example-post | time 2025-03-30T16:07:15-03:00
+time=2025-03-31T22:49:25-03:00 level=DEBUG X-Trace-ID=21OGKpAUzL4yQnPk func=BodyParser status=success
+time=time=03-31T22:49:25-03:00 level=DEBUG X-Trace-ID=21OGKpAUzL4yQnPk func=SendSQS status=success
+time=time=03-31T22:49:25-03:00 level=DEBUG X-Trace-ID=21OGKpAUzL4yQnPk func=Marshal status=success
+time=time=03-31T22:49:25-03:00 level=DEBUG X-Trace-ID=21OGKpAUzL4yQnPk func=SaveSomeWhere code=200 msg=api-post-fluent
 
 -- or
 
-TraceID=yKlWprDAfPlCCO7A func=BodyParser level=DEBUG msg=api-fluent-example-post status=success time=2025-03-30T17:06:34-03:00
-TraceID=yKlWprDAfPlCCO7A func=SendSQS level=DEBUG msg=SendQueue status=success time=2025-03-30T17:06:34-03:00
-TraceID=yKlWprDAfPlCCO7A func=Marshal level=DEBUG msg=method SaveSomeWhere status=success time=2025-03-30T17:06:34-03:00
-TraceID=yKlWprDAfPlCCO7A code=200 func=SaveSomeWhere level=DEBUG msg=api-fluent-example-post time=2025-03-30T17:06:34-03:00
+2025-03-31T22:50:00-03:00 DEBUG JHCbFzOY2su9Wf9v BodyParser success
+2025-03-31T22:50:00-03:00 DEBUG JHCbFzOY2su9Wf9v SendSQS success
+2025-03-31T22:50:00-03:00 DEBUG JHCbFzOY2su9Wf9v Marshal success
+2025-03-31T22:50:00-03:00 DEBUG JHCbFzOY2su9Wf9v SaveSomeWhere 200 api-post-fluent
+
+-- or
+
+{"X-Trace-ID":"f5C5fIPqt285cEEZ","func":"BodyParser","status":"success","time":"2025-03-31T22:50:23-03:00","level":"DEBUG"}
+{"X-Trace-ID":"f5C5fIPqt285cEEZ","func":"SendSQS","status":"success","time":"2025-03-31T22:50:24-03:00","level":"DEBUG"}
+{"X-Trace-ID":"f5C5fIPqt285cEEZ","func":"Marshal","status":"success","time":"2025-03-31T22:50:24-03:00","level":"DEBUG"}
+{"X-Trace-ID":"f5C5fIPqt285cEEZ","func":"SaveSomeWhere","code":200,"time":"2025-03-31T22:50:24-03:00","level":"DEBUG","msg":"api-post-fluent"}
 
 ```
 
@@ -110,44 +195,46 @@ import (
 )
 
 func main() {
-	glog.Set(glog.Config{
+
+	logger := glog.Set(glog.Config{
+		Format: "json",
+		Level:  glog.DEBUG,
+	})
+	logger := glog.Set(glog.Config{
 		Format:        "text",
 		Level:         glog.DEBUG,
-		IncludeCaller: true,
-		Pattern:       "[${time}] ${level} ${msg} ",
-		TimeFormat:    "2006-01-02 15:04:05",
-		CustomFields: map[string]string{
-			"service": "example-api",
-		},
 	})
 
-	glog.Debug("api-fluent-example").
+	logger.Debug().
 		Int("TraceID", 123475).
 		Str("func", "BodyParser").
 		Str("status", "success").
+		Msg("api-fluent-example").
 		Send()
 
-	glog.Info("api-fluent-example").
+	logger.Info().
 		Int("TraceID", 123475).
 		Bool("error", false).
+		Msg("api-fluent-example")
 		Send()
 
 	errTest := errors.New("something went wrong")
 	ts := time.Now()
 	dur := 1500 * time.Millisecond
 
-	glog.Warn("Fluent log test").
+	logger.Warn().
 		Str("user", "jeff").
 		Int("retries", 3).
 		Bool("authenticated", true).
 		Float64("load", 87.4).
 		Duration("elapsed", dur).
-		Time("timestamp", ts).
+		AddTime("timestamp", ts).
 		Err("error", errTest).
 		Any("data", map[string]int{"a": 1}).
-		Func("trace_id", func() any {
-			return "abc123"
-		}).
+		// Func("trace_id", func() any {
+		// 	return "abc123"
+		// }). // soon
+		Msg("Fluent log test").
 		Send()
 }
 ```
@@ -160,69 +247,9 @@ func main() {
 🔴 ERROR
 
 ```
-2025-03-30 16:31:00 DEBUG api-fluent-example TraceID 123475 env production file proc.go:283 func BodyParser service example-api status success
-2025-03-30 16:31:00 INFO api-fluent-example TraceID 123475 env production error false file proc.go:283 service example-api
-2025-03-30 16:31:00 WARN Fluent log test authenticated true data map[a:1] elapsed 1.5s env production error something went wrong file proc.go:283 load 87.4 retries 3 service example-api timestamp 2025-03-30T16:31:00-03:00 trace_id abc123 user jeff
-```
-
----
-
-## 🚀 Usage normal but InfoT,DebugT,WarnT and ErrorT
-
-```go
-package main
-
-import (
-	"github.com/jeffotoni/quick/pkg/glog"
-	"github.com/jeffotoni/quick/pkg/rand"
-)
-
-func main() {
-	glog.Set(glog.Config{
-		Format:        "text",
-		Level:         glog.DEBUG,
-		IncludeCaller: true,
-		Pattern:       "[${time}] ${level} ${msg} ",
-		TimeFormat:    "2006-01-02 15:04:05",
-		CustomFields: map[string]string{
-			"service": "example-api",
-		},
-	})
-
-	glog.InfoT(rand.TraceID())
-
-	glog.InfoT("Started request", glog.Fields{
-		"TRACE": rand.TraceID(),
-	})
-
-	glog.DebugT("This is a debug message", glog.Fields{"user": "jeff"})
-	glog.Infof("User %s logged in successfully", "arthur")
-	glog.WarnT("Low disk space warning")
-	glog.ErrorT("Database connection failed", glog.Fields{"retry": true})
-
-	glog.InfoT("Processing order", glog.Fields{
-		"order_id": "ORD1234",
-		"customer": "Alice",
-		"total":    153.76,
-	})
-}
-```
-
-🖨️ Sample Output (text):
-
-🟢 INFO  
-🔵 DEBUG  
-🟡 WARN  
-🔴 ERROR
-
-```
-[2025-03-29 17:10:21] INFO 7KF5hlUUNic0K7Sr main.go:15 service example-api
-[2025-03-29 17:10:21] INFO Started request main.go:17 TRACE zMxy1...
-[2025-03-29 17:10:21] DEBUG This is a debug message main.go:19 user jeff service example-api
-[2025-03-29 17:10:21] INFO User arthur logged in successfully main.go:20 service example-api
-[2025-03-29 17:10:21] WARN Low disk space warning main.go:21 service example-api
-[2025-03-29 17:10:21] ERROR Database connection failed main.go:22 retry true service example-api
-[2025-03-29 17:10:21] INFO Processing order main.go:24 order_id ORD1234 customer Alice total 153.76 service example-api
+{"TraceID":123475,"func":"BodyParser","status":"success","msg":"api-fluent-example"}                                           
+{"TraceID":123475,"error":false,"msg":"api-fluent-example"}                                                                                     
+{"user":"jeff","retries":3,"authenticated":true,"load":87.4,"elapsed":"1.5s","timestamp":"2025-03-31T23:07:32-03:00","error":"something went wrong","data":null,"msg":"Fluent log test"} 
 ```
 
 ---
@@ -234,10 +261,8 @@ We implemented unit tests for:
 - All log levels (`Info`, `Debug`, `Error`, `Warn`) with both fluent and legacy `*T` syntax
 - Pattern replacement and extra field rendering
 - Separator auto-detection logic (via pattern) and fallback to `" "` if not defined
-- Custom field merging: global `CustomFields` + dynamic fluent fields
 - Ordered field rendering in fluent logs (preserves insertion order)
 - Caller trace injection via `${file}` when `IncludeCaller` is enabled
-- `Debugf`, `Errorf`, `Warnf`, `Infof` formatted message handling
 - JSON and slog output structure (key/value format with coloring for `slog`)
 - Writer redirection for test capture and output validation
 - Contextual fallback logic for `Separator` when `Pattern` is empty
@@ -267,13 +292,123 @@ In pkg.go.dev [quick pkg/glog](https://pkg.go.dev/github.com/jeffotoni/quick/pkg
 
 ---
 
-## 🛣️ Roadmap
+# 🛣️ Roadmap — Planned Features & Enhancements
 
-- 🧩 Named templates and reusable config profiles  
-- 🧵 Fine-grained style customization (e.g. themes per level)  
-- 🧠 More optimized color rendering for `slog` and `text`  
-- 🚦 Buffered + async writer (opt-in)
-- 🧪 Benchmark utilities
+A long way to go, a long way to go, but at least after that the first step. Soon.
+
+## ✅ Fluent Logging API Enhancements
+
+- [ ] **`.Func()` Method**  
+      Automatically capture the caller function/method name.  
+      ```go
+      logger.Info().Func().Msg("called").Send()
+      // Output: func=main.HandleUser
+      ```
+
+## 📝 Advanced Output Features
+
+- [ ] **File Output with Rotation Support**  
+      Allow rotating logs by file size or date.  
+      ```go
+      glog.Set(glog.Config{
+          Format: "text",
+          Writer: glog.File("app.log").RotateDaily(),
+      })
+      ```
+
+- [ ] **Export to Logfmt Format**  
+      Support output in `logfmt` style (popular in Prometheus/Grafana ecosystems).  
+      ```go
+      glog.Set(glog.Config{
+          Format: "logfmt",
+      })
+      ```
+
+## 🎯 Filtering and Hooking
+
+- [ ] **Hooks for Pre/Post Processing**  
+      Inject logic before or after sending logs (e.g., to Sentry, metrics).  
+      ```go
+      glog.AddHook(func(e *glog.Entry) {
+          if e.Level == glog.ERROR {
+              reportToSentry(e)
+          }
+      })
+      ```
+
+- [ ] **Custom Field-Based Filtering**  
+      Filter logs dynamically based on custom fields.  
+      ```go
+      glog.Set(glog.Config{
+          Filter: func(e *glog.Entry) bool {
+              return e.HasField("X-Trace-ID")
+          },
+      })
+      ```
+
+## 🧩 Modular & Contextual Logging
+
+- [ ] **Multiple Logger Instances**  
+      Instantiate logger per service/module.  
+      ```go
+      logger := glog.NewLogger(glog.Config{...})
+      logger.Info().Msg("auth log").Send()
+      ```
+
+- [ ] **Enhanced Context Builder**  
+      Set multiple keys dynamically using `.Set()`  
+      ```go
+      ctx, cancel := glog.CreateCtx().
+          Set("X-Trace-ID", "abc123").
+          Set("X-User-ID", "user42").
+          Timeout(5 * time.Second).
+          Build()
+      ```
+
+- [ ] **`GetCtxAll` Function**  
+      Retrieve all context values as a map from a context.  
+      ```go
+      all := glog.GetCtxAll(ctx)
+      fmt.Println(all["X-Trace-ID"])
+      ```
+
+## ⚡ Performance and Observability
+
+- [ ] **Async Logging Mode**  
+      Enable background writing using buffered channels.  
+      ```go
+      glog.Set(glog.Config{
+          Async: true,
+          BufferSize: 1024,
+      })
+      ```
+
+- [ ] **Benchmark Report in README**  
+      Include detailed comparisons:
+      - Ops/sec
+      - Allocations
+      - Memory usage
+      - Comparison with `zerolog`
+
+## 🌍 External Integration
+
+- [ ] **Pluggable Writers for Elasticsearch, Loki, Fluentd**  
+      Enable remote logging targets with ease.  
+      ```go
+      glog.ToElastic("http://localhost:9200")
+      glog.ToLoki("http://localhost:3100")
+      ```
+
+## 📘 Documentation & Examples
+
+- [ ] **Real-World Logging Examples**  
+      Include auth, API, retry policies, error handling, tracing.
+
+- [ ] **Showcase `.Caller()`, `.Func()`, `.Time()`, `.Duration()`**  
+      Provide usage in JSON, text and slog formats.
+
+- [ ] **Context Guide**  
+      Document propagation of `TraceID`, `UserID`, and contextual IDs across services.
 
 ---
 

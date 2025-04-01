@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/jeffotoni/quick"
@@ -10,15 +11,14 @@ import (
 	"github.com/jeffotoni/quick/pkg/rand"
 )
 
-const KeyName string = "TraceID"
+const KeyName string = "X-Trace-ID"
 
 // curl -i -XPOST -H "Content-Type:application/json" localhost:8080/v1/user -d '{"name": "jeff", "year": 2025}'
 func main() {
 
 	logger := glog.Set(glog.Config{
-		Format:    "slog", // ou "slog", "json"
-		Level:     glog.DEBUG,
-		Separator: " | ",
+		Format: "json",
+		Level:  glog.DEBUG,
 	})
 
 	q := quick.New()
@@ -29,14 +29,21 @@ func main() {
 		if traceID == "" {
 			traceID = rand.TraceID()
 		}
-		c.Set(KeyName, traceID)
 
-		ctx, cancel := glog.NewCtx().
-			Name(KeyName).
-			Key(traceID).
+		userID := "user3039"
+		spanID := "span39393"
+
+		ctx, cancel := glog.CreateCtx().
+			Set("X-Trace-ID", traceID).
+			Set("X-User-ID", userID).
+			Set("X-Span-ID", spanID).
 			Timeout(10 * time.Second).
 			Build()
 		defer cancel()
+
+		c.Set("X-Trace-ID", traceID)
+		c.Set("X-User-ID", userID)
+		c.Set("X-Span-ID", spanID)
 
 		c.Set("Content-type", "application/json")
 		var d any
@@ -57,7 +64,7 @@ func main() {
 			Str(KeyName, traceID).
 			Str("func", "BodyParser").
 			Str("status", "success").
-			Caller().
+			// Caller().
 			Send()
 
 		// call metodh
@@ -82,6 +89,9 @@ func main() {
 			Msg("api-post-fluent").
 			Send()
 
+		all := glog.GetCtxAll(ctx)
+		fmt.Printf("X-Trace-ID:%s X-User-ID:%s X-Span-ID:%s\n", all["X-Trace-ID"], all["X-User-ID"], all["X-Span-ID"])
+
 		return c.Status(quick.StatusOK).Send(b)
 	})
 
@@ -90,7 +100,7 @@ func main() {
 
 func SaveSomeWhere(ctx context.Context, logger *glog.Logger, data any) (b []byte, err error) {
 
-	traceID := glog.GetCtx(ctx)
+	traceID := glog.GetCtx(ctx, KeyName)
 	b, err = json.Marshal(data)
 	if err != nil {
 		logger.Error().
@@ -133,7 +143,7 @@ func SendQueue(ctx context.Context, logger *glog.Logger, data []byte) (err error
 	logger.Debug().
 		Time().
 		Level().
-		Str(KeyName, glog.GetCtx(ctx)).
+		Str(KeyName, glog.GetCtx(ctx, KeyName)).
 		Str("func", "SendSQS").
 		Str("status", "success").
 		Send()
