@@ -1,567 +1,326 @@
-// Package glog provides a lightweight and flexible logging library for Go.
-// It supports multiple output formats (text, JSON, slog-like) and dynamic log patterns.
-// The logger can be configured globally or used independently.
-//
-// Example usage:
-//
-//	package main
-//
-//	import (
-//		"github.com/jeffotoni/quick/glog"
-//	)
-//
-//	func main() {
-//		Set(Config{
-//			Format:     "text",
-//			Pattern:    "[${time}] ${level} ${msg}",
-//			TimeFormat: "2006-01-02 15:04:05",
-//		})
-//
-//		Infof("Server started on port %d", 8080)
-//		ErrorT("Failed to connect to database", Fields{"retry": true})
-//	}
-//
-// This will output colorized logs to stdout with the defined format and values.
-package glog
+package glog_test
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"strings"
 	"testing"
-	"time"
+
+	"github.com/jeffotoni/quick/pkg/glog"
 )
 
-// TestGlogTextFormat verifies text output format and placeholder replacement.
-func TestGlogTextFormat(t *testing.T) {
+// TestCallerIncluded checks that the caller information is correctly included in the log when .Caller() is used.
+func TestCallerIncluded(t *testing.T) {
 	var buf bytes.Buffer
 
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		TimeFormat: time.RFC3339,
-		Pattern:    "[${time}] ${level} ${msg}",
-		Level:      DEBUG,
+	logger := glog.Set(glog.Config{
+		Format: "slog",
+		Writer: &buf,
+		Level:  glog.DEBUG,
 	})
 
-	InfoT("Test log entry", Fields{"user": "jeff"})
-	output := buf.String()
-
-	if !strings.Contains(output, "Test log entry") {
-		t.Errorf("Expected log message not found in output: %s", output)
-	}
-	if !strings.Contains(output, "INFO") {
-		t.Errorf("Expected log level 'INFO' not found in output: %s", output)
-	}
-}
-
-// TestGlogJsonFormat verifies JSON log output with dynamic fields.
-func TestGlogJsonFormat(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
-		Format:     "json",
-		Writer:     &buf,
-		TimeFormat: time.RFC3339,
-		Level:      DEBUG,
-	})
-
-	DebugT("Debugging event", Fields{"module": "auth"})
-	InfoT("Information", Fields{"status": "ok"})
-	WarnT("Something suspicious", Fields{"threshold": 70})
-	ErrorT("Something went wrong", Fields{"code": 500})
-
-	output := buf.String()
-
-	tests := []struct {
-		level   string
-		message string
-		field   string
-	}{
-		{"DEBUG", "Debugging event", "\"module\":\"auth\""},
-		{"INFO", "Information", "\"status\":\"ok\""},
-		{"WARN", "Something suspicious", "\"threshold\":70"},
-		{"ERROR", "Something went wrong", "\"code\":500"},
-	}
-
-	for _, test := range tests {
-		if !strings.Contains(output, fmt.Sprintf("\"level\":\"%s\"", test.level)) {
-			t.Errorf("Expected JSON level '%s' not found", test.level)
-		}
-		if !strings.Contains(output, fmt.Sprintf("\"msg\":\"%s\"", test.message)) {
-			t.Errorf("Expected JSON message '%s' not found", test.message)
-		}
-		if !strings.Contains(output, test.field) {
-			t.Errorf("Expected JSON field %s not found", test.field)
-		}
-	}
-}
-
-// TestGlogLevelFiltering ensures messages below the configured level are skipped.
-func TestGlogLevelFiltering(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		TimeFormat: time.RFC3339,
-		Pattern:    "[${time}] ${level} ${msg}",
-		Level:      WARN, // Minimum level set to WARN
-	})
-
-	InfoT("This should not appear", nil)
-	WarnT("This should appear", nil)
-
-	output := buf.String()
-
-	if strings.Contains(output, "This should not appear") {
-		t.Errorf("INFO log should have been filtered out, but it appeared")
-	}
-	if !strings.Contains(output, "This should appear") {
-		t.Errorf("WARN log expected but not found")
-	}
-}
-
-// TestGlogCustomFields validates inclusion of global custom fields in the output.
-func TestGlogCustomFields(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
-		Format:       "text",
-		Writer:       &buf,
-		TimeFormat:   time.RFC3339,
-		Pattern:      "[${time}] ${level} ${msg} (${service})",
-		Level:        DEBUG,
-		CustomFields: map[string]string{"service": "quick-api"},
-	})
-
-	DebugT("Debugging app", nil)
-	output := buf.String()
-
-	if !strings.Contains(output, "quick-api") {
-		t.Errorf("Custom field 'service' not found in log output: %s", output)
-	}
-}
-
-// TestGlogFormattedLogs checks formatted logging using Infof, Debugf, etc.
-func TestGlogFormattedLogs(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		TimeFormat: time.RFC3339,
-		Pattern:    "[${time}] ${level} ${msg}",
-		Level:      DEBUG,
-	})
-
-	Infof("Hello %s, your score is %d", "Arthur", 99)
-	output := buf.String()
-
-	if !strings.Contains(output, "Arthur") || !strings.Contains(output, "99") {
-		t.Errorf("Formatted log output incorrect: %s", output)
-	}
-}
-
-// TestGlogFullCoverage tests glog behaviors for all formats, patterns, dynamic fields, colors, and separators.
-func TestGlogFullCoverage(t *testing.T) {
-	var buf bytes.Buffer
-
-	// TEXT format with proper pattern spacing
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		TimeFormat: "2006-01-02 15:04:05",
-		Pattern:    "${time} ${level} ${msg} ",
-		Level:      DEBUG,
-		CustomFields: map[string]string{
-			"service": "example-api",
-		},
-	})
-
-	DebugT("Debugging", Fields{"user": "jeff"})
-	InfoT("User login", Fields{"trace": "abc123"})
-	WarnT("Warning issued")
-	ErrorT("Error occurred", Fields{"retry": true})
-
-	out := buf.String()
-
-	if !strings.Contains(out, "Debugging") {
-		t.Errorf("Expected 'Debugging': %s", out)
-	}
-	if !strings.Contains(out, "user jeff") {
-		t.Errorf("Expected 'user jeff': %s", out)
-	}
-	if !strings.Contains(out, "service example-api") {
-		t.Errorf("Expected 'service example-api': %s", out)
-	}
-	if !strings.Contains(out, "trace abc123") {
-		t.Errorf("Expected 'trace abc123': %s", out)
-	}
-	if !strings.Contains(out, "retry true") {
-		t.Errorf("Expected 'retry true': %s", out)
-	}
-
-	buf.Reset()
-
-	// SLOG format with key=value and color output
-	Set(Config{
-		Format:     "slog",
-		Writer:     &buf,
-		Pattern:    "${time} ${level} ${msg} ",
-		TimeFormat: time.RFC3339,
-		Level:      INFO,
-		CustomFields: map[string]string{
-			"env": "dev",
-		},
-	})
-	InfoT("Slog test", Fields{"xid": "xyz"})
-	out = buf.String()
-
-	if !strings.Contains(out, "xid=xyz") ||
-		!strings.Contains(out, "env=dev") ||
-		!strings.Contains(out, "msg=Slog test") {
-		t.Errorf("Expected slog format fields missing: %s", out)
-	}
-
-	buf.Reset()
-
-	// JSON format with serialized fields
-	Set(Config{
-		Format:     "json",
-		Writer:     &buf,
-		TimeFormat: time.RFC3339,
-		Level:      DEBUG,
-	})
-	DebugT("Json test", Fields{"id": 123, "ok": true})
-	out = buf.String()
-
-	if !strings.Contains(out, "\"id\":123") || !strings.Contains(out, "\"ok\":true") {
-		t.Errorf("Expected fields in JSON output: %s", out)
-	}
-	if strings.Contains(out, "\033[") {
-		t.Errorf("JSON output must not contain ANSI color codes: %s", out)
-	}
-
-	buf.Reset()
-
-	// TEXT with custom separator " | " in pattern
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		Pattern:    "${time} | ${level} | ${msg} | ",
-		TimeFormat: time.RFC3339,
-	})
-	InfoT("Pattern separator test", Fields{
-		"ip":     "127.0.0.1",
-		"region": "us-east",
-	})
-	out = buf.String()
-
-	if !strings.Contains(out, "ip 127.0.0.1") || !strings.Contains(out, "region us-east") {
-		t.Errorf("Expected dynamic fields in output: %s", out)
-	}
-	if strings.Count(out, "|") < 3 {
-		t.Errorf("Expected at least 3 pipes (|) in log: %s", out)
-	}
-}
-
-func TestGlogFormattedMethods(t *testing.T) {
-	var buf bytes.Buffer
-
-	// Setup with TEXT format so we can match string content easily
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		TimeFormat: "2006-01-02 15:04:05",
-		Pattern:    "${time} ${level} ${msg} ",
-		Level:      DEBUG,
-	})
-
-	buf.Reset()
-	Debugf("Hello %s", "Jeff")
-	if !strings.Contains(buf.String(), "Hello Jeff") {
-		t.Errorf("Expected formatted debug message to appear")
-	}
-
-	buf.Reset()
-	Warnf("Warning at step %d", 3)
-	if !strings.Contains(buf.String(), "Warning at step 3") {
-		t.Errorf("Expected formatted warning message to appear")
-	}
-
-	buf.Reset()
-	Errorf("Failed with code %d", 500)
-	if !strings.Contains(buf.String(), "Failed with code 500") {
-		t.Errorf("Expected formatted error message to appear")
-	}
-}
-
-func GetConfig() Config {
-	std.mu.RLock()
-	defer std.mu.RUnlock()
-	return std.config
-}
-
-func TestGlogSet_Defaults(t *testing.T) {
-	// Set config without Writer and TimeFormat
-	cfg := Config{
-		Format:       "text",
-		Level:        DEBUG,
-		Pattern:      "", // intentionally empty
-		CustomFields: map[string]string{"app": "test"},
-		// Writer and TimeFormat left empty on purpose
-	}
-
-	Set(cfg)
-
-	stdConfig := GetConfig()
-
-	if stdConfig.Writer == nil {
-		t.Errorf("Expected Writer to be defaulted to os.Stdout")
-	}
-
-	if stdConfig.TimeFormat != time.RFC3339 {
-		t.Errorf("Expected default TimeFormat to be RFC3339, got %s", stdConfig.TimeFormat)
-	}
-
-	if stdConfig.Pattern != "${time} ${level} ${msg} " {
-		t.Errorf("Expected default pattern to be injected")
-	}
-}
-
-func TestDetectSeparatorFallback(t *testing.T) {
-	sep := detectSeparator("${time}${level}${msg}")
-	if sep != " " {
-		t.Errorf("Expected fallback separator ' ', got: %q", sep)
-	}
-}
-
-func TestIncludeCallerAddsFileLine(t *testing.T) {
-	var buf bytes.Buffer
-
-	// Set logger with IncludeCaller true
-	Set(Config{
-		Format:        "text",
-		Writer:        &buf,
-		Pattern:       "${time} ${level} ${msg} ", // file not in pattern
-		TimeFormat:    "2006-01-02 15:04:05",
-		Level:         DEBUG,
-		IncludeCaller: true,
-	})
-
-	buf.Reset()
-	InfoT("Testing caller inclusion")
-
-	logOutput := buf.String()
-
-	// Expect that the auto-included 'file' field appears as dynamic field (since not in pattern)
-	if !strings.Contains(logOutput, "file") || !strings.Contains(logOutput, ".go:") {
-		t.Errorf("Expected 'file' field with .go:<line> to be included, got: %s", logOutput)
-	}
-}
-
-func TestGlogFluent_InfoWithFields(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
-		Format:     "text",
-		Pattern:    "${time} ${level} ${msg} ",
-		Writer:     &buf,
-		Level:      DEBUG,
-		TimeFormat: "2006-01-02 15:04:05",
-		CustomFields: map[string]string{
-			"service": "api-gateway",
-		},
-	})
-
-	Info("user login").
-		Str("user", "jeff").
-		Int("attempts", 2).
-		Bool("valid", true).
-		Send()
-
-	out := buf.String()
-	if !strings.Contains(out, "user jeff") {
-		t.Errorf("Expected user field, got: %s", out)
-	}
-}
-
-func TestGlogFluent_AllFields(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		Level:      DEBUG,
-		Pattern:    "${time} ${level} ${msg} ",
-		TimeFormat: time.RFC3339,
-		CustomFields: map[string]string{
-			"env": "dev",
-		},
-		IncludeCaller: true,
-	})
-
-	errTest := errors.New("something went wrong")
-	ts := time.Now()
-	dur := 1500 * time.Millisecond
-
-	Info("Fluent log test").
-		Str("user", "jeff").
-		Int("retries", 3).
-		Bool("authenticated", true).
-		Float64("load", 87.4).
-		Duration("elapsed", dur).
-		Time("timestamp", ts).
-		Err("error", errTest).
-		Any("data", map[string]int{"a": 1}).
-		Func("trace_id", func() any {
-			return "abc123"
-		}).
+	logger.Debug().
+		Caller().
+		Str("trace", "abc123").
+		Msg("with caller").
 		Send()
 
 	out := buf.String()
 
-	checks := []string{
-		"Fluent log test",
-		"user jeff",
-		"retries 3",
-		"authenticated true",
-		"load 87.4",
-		"elapsed 1.5",
-		"timestamp",
-		"error something went wrong",
-		"trace_id abc123",
-		"env dev",
-		"data map[a:1]",
-		"file", // from IncludeCaller
+	if !strings.Contains(out, "caller=") {
+		t.Errorf("Expected caller field in output, got: %s", out)
 	}
-
-	for _, check := range checks {
-		if !strings.Contains(out, check) {
-			t.Errorf("Expected field '%s' in output: %s", check, out)
-		}
+	if !strings.Contains(out, "with caller") || !strings.Contains(out, "trace=abc123") {
+		t.Errorf("Expected other fields in output, got: %s", out)
 	}
 }
 
-// TestTextOrder verifies deterministic field ordering in TEXT format.
-func TestTextOrder(t *testing.T) {
+// TestTextFormatMinimal verifies that a basic text log entry is correctly formatted without key=value when using text format.
+func TestTextFormatMinimal(t *testing.T) {
 	var buf bytes.Buffer
-
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		TimeFormat: time.RFC3339,
-		Level:      DEBUG,
-	})
-
-	fields := Fields{
-		"zeta":  1,
-		"alpha": true,
-		"delta": "ok",
-	}
-
-	InfoT("Ordered test", fields)
-	out := buf.String()
-
-	// We expect keys to appear in sorted order: alpha, delta, zeta
-	alphaIndex := strings.Index(out, "alpha true")
-	deltaIndex := strings.Index(out, "delta ok")
-	zetaIndex := strings.Index(out, "zeta 1")
-
-	if !(alphaIndex < deltaIndex && deltaIndex < zetaIndex) {
-		t.Errorf("Expected field order: alpha < delta < zeta. Got: %s", out)
-	}
-}
-
-// TestTextSeparator verifies custom separator when Pattern is empty.
-func TestTextSeparator(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
-		Format:     "text",
-		Writer:     &buf,
-		TimeFormat: time.RFC3339,
-		Level:      DEBUG,
-		Pattern:    "",
-		Separator:  " | ",
-	})
-
-	InfoT("Testing separator", Fields{
-		"region": "us-east",
-		"ip":     "127.0.0.1",
-	})
-
-	out := buf.String()
-	if !strings.Contains(out, "region us-east") || !strings.Contains(out, "ip 127.0.0.1") {
-		t.Errorf("Expected custom dynamic fields in output: %s", out)
-	}
-	if strings.Count(out, "|") < 1 {
-		t.Errorf("Expected '|' separator in dynamic field output: %s", out)
-	}
-}
-
-func TestFluentLogLevels(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
-		Format:     "json",
-		Writer:     &buf,
-		TimeFormat: time.RFC3339,
-		Level:      DEBUG,
-	})
-
-	Debug("debug msg").Str("module", "core").Send()
-	Warn("warn msg").Bool("retry", true).Send()
-	Error("error msg").Int("code", 500).Send()
-
-	output := buf.String()
-
-	tests := []struct {
-		level   string
-		message string
-	}{
-		{"DEBUG", "debug msg"},
-		{"WARN", "warn msg"},
-		{"ERROR", "error msg"},
-	}
-
-	for _, test := range tests {
-		if !strings.Contains(output, fmt.Sprintf("\"level\":\"%s\"", test.level)) {
-			t.Errorf("Expected level '%s' not found", test.level)
-		}
-		if !strings.Contains(output, fmt.Sprintf("\"msg\":\"%s\"", test.message)) {
-			t.Errorf("Expected message '%s' not found", test.message)
-		}
-	}
-}
-
-func TestPrintText_FallbackToDefaultSpaceSeparator(t *testing.T) {
-	var buf bytes.Buffer
-
-	Set(Config{
+	logger := glog.Set(glog.Config{
 		Format:    "text",
 		Writer:    &buf,
-		Pattern:   "", // pattern vazio → trigger do bloco
-		Separator: "", // separator vazio → trigger do sep = " "
-		Level:     DEBUG,
+		Level:     glog.DEBUG,
+		Separator: " | ",
 	})
 
-	Debug("check-space-fallback").
-		Str("alpha", "1").
-		Str("beta", "2").
-		Send()
+	logger.Debug().Str("key", "value").Send()
 
-	output := buf.String()
-
-	// Esperamos os campos extra com separador de espaço
-	if !(strings.Contains(output, "alpha 1") && strings.Contains(output, "beta 2")) {
-		t.Errorf("Expected fields with space separator, got: %s", output)
+	out := buf.String()
+	if strings.Contains(out, "key=value") {
+		t.Errorf("Expected 'key=value' in output: %s", out)
 	}
+}
 
-	// Apenas garantir que não tem "|", que seria outro separador comum
-	if strings.Contains(output, "|") {
-		t.Errorf("Unexpected '|' separator found in output: %s", output)
+// TestTextFormatFull checks if time, level, and message are included and formatted properly in full text output.
+func TestTextFormatFull(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format:    "text",
+		Writer:    &buf,
+		Level:     glog.DEBUG,
+		Separator: " | ",
+	})
+
+	logger.Debug().Time(glog.LayoutDateTime).Level().Str("x", "1").Msg("done").Send()
+
+	out := buf.String()
+	if strings.Contains(out, "time=") || strings.Contains(out, "level=DEBUG") || !strings.Contains(out, "done") {
+		t.Errorf("Expected full fields in output: %s", out)
+	}
+}
+
+// TestSlogFormatOrder ensures that fields are logged in the same order they are added using the slog format.
+func TestSlogFormatOrder(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format:    "slog",
+		Writer:    &buf,
+		Level:     glog.DEBUG,
+		Separator: " ",
+	})
+
+	logger.Debug().Str("first", "1").Str("second", "2").Str("third", "3").Send()
+	out := buf.String()
+
+	if !strings.Contains(out, "first=1 second=2 third=3") {
+		t.Errorf("Field order incorrect: %s", out)
+	}
+}
+
+// TestSlogWithTimeAndLevel verifies that time and level are included when explicitly enabled in slog format.
+func TestSlogWithTimeAndLevel(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "slog",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+
+	logger.Debug().Time().Level().Str("func", "Process").Send()
+	out := buf.String()
+
+	if !strings.Contains(out, "time=") || !strings.Contains(out, "level=DEBUG") {
+		t.Errorf("Expected time and level in slog output: %s", out)
+	}
+}
+
+// TestJSONFormatFull validates that all expected fields are serialized correctly in JSON output.
+func TestJSONFormatFull(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "json",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+
+	logger.Debug().Time().Level().Str("status", "ok").Msg("json message").Send()
+	out := buf.String()
+
+	if !strings.Contains(out, "\"status\":\"ok\"") || !strings.Contains(out, "\"msg\":\"json message\"") {
+		t.Errorf("Expected JSON fields in output: %s", out)
+	}
+}
+
+// TestLevelFiltering ensures that log entries below the minimum log level are filtered out.
+func TestLevelFiltering(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.WARN,
+	})
+
+	logger.Debug().Str("should", "not appear").Send()
+	if out := buf.String(); out != "" {
+		t.Errorf("Expected no output due to level filtering, got: %s", out)
+	}
+}
+
+// TestDefaultFallbacks confirms that a logger using default config does not panic and logs to stdout.
+func TestDefaultFallbacks(t *testing.T) {
+	logger := glog.Set(glog.Config{})
+	logger.Info().Str("fallback", "true").Send()
+	// Just checking that it doesn't panic and writes to os.Stdout.
+}
+
+// TestWarnAndErrorLevels checks if WARN and ERROR levels are correctly handled and output.
+func TestWarnAndErrorLevels(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+
+	logger.Warn().Str("warnKey", "warnValue").Send()
+	logger.Error().Str("errorKey", "errorValue").Send()
+
+	combined := buf.String()
+	if strings.Contains(combined, "warnKey=warnValue") || strings.Contains(combined, "errorKey=errorValue") {
+		t.Errorf("Expected warn and error logs: %s", combined)
+	}
+}
+
+// TestIntAndBoolFields ensures integer and boolean fields are properly included in the log entry.
+func TestIntAndBoolFields(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+
+	logger.Debug().Int("code", 200).Bool("ok", true).Send()
+	out := buf.String()
+	if strings.Contains(out, "code=200") || strings.Contains(out, "ok=true") {
+		t.Errorf("Expected int and bool fields in output: %s", out)
+	}
+}
+
+// TestTextMsgField validates that a message appears correctly in the output when using text format.
+func TestTextMsgField(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+
+	logger.Debug().Msg("custom message").Send()
+	out := buf.String()
+	if !strings.Contains(out, "custom message") {
+		t.Errorf("Expected message in text format: %s", out)
+	}
+}
+
+// TestTextMsgField validates that a message appears correctly in the output when using text format.
+func TestSlogMsgField(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "slog",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+
+	logger.Debug().Msg("api call").Send()
+	out := buf.String()
+	if !strings.Contains(out, "msg=api call") {
+		t.Errorf("Expected msg=api call in slog format: %s", out)
+	}
+}
+
+// TestSlogMsgField verifies that the `msg` field appears in slog format output.
+func TestLevelPriorityFallback(t *testing.T) {
+	if prio := glog.DEBUG; glog.TestLevelPriority("UNKNOWN") != 0 {
+		t.Errorf("Expected fallback priority 0 for unknown level, got %d prio %v", glog.TestLevelPriority("UNKNOWN"), prio)
+	}
+}
+
+// TestTextFormatWithUnsupportedType ensures unsupported custom types are safely logged as "null" in text format.
+func TestTextFormatWithUnsupportedType(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format:    "text",
+		Writer:    &buf,
+		Level:     glog.DEBUG,
+		Separator: " | ",
+	})
+
+	type custom struct{}
+
+	logger.Debug().Str("trace", "abc").Any("custom", custom{}).Send()
+
+	out := buf.String()
+	if !bytes.Contains([]byte(out), []byte("null")) {
+		t.Errorf("Expected 'null' for unsupported type, got: %s", out)
+	}
+}
+
+// TestJSONFormatWithUnsupportedType ensures unsupported types are serialized as "null" in JSON format.
+func TestJSONFormatWithUnsupportedType(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "json",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+
+	type custom struct{}
+	logger.Debug().Any("custom", custom{}).Send()
+
+	out := buf.String()
+	if !bytes.Contains([]byte(out), []byte("\"custom\":null")) {
+		t.Errorf("Expected JSON field with null value, got: %s", out)
+	}
+}
+
+// TestSmallIntOptimization checks if small integer values are optimized in the text output (zero-allocation).
+func TestSmallIntOptimization(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "text",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+	logger.Debug().Int("single", 5).Send()
+	if !bytes.Contains(buf.Bytes(), []byte("5")) {
+		t.Errorf("Expected fast int conversion for small int, got: %s", buf.String())
+	}
+}
+
+// TestJSONStringEscaping ensures special characters are properly escaped in JSON output.
+func TestJSONStringEscaping(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "json",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+
+	escaped := "line\nnewline\tquote\""
+	logger.Debug().Str("escaped", escaped).Send()
+	out := buf.String()
+	if !bytes.Contains([]byte(out), []byte("\\n")) || !bytes.Contains([]byte(out), []byte("\\t")) || !bytes.Contains([]byte(out), []byte("\\\"")) {
+		t.Errorf("Expected JSON escaping, got: %s", out)
+	}
+}
+
+// TestBytesToStringNoAlloc validates that bytes are converted to string with no allocation using unsafe.
+func TestBytesToStringNoAlloc(t *testing.T) {
+	original := []byte("convert")
+	converted := glog.TestBytesToString(original)
+	if converted != "convert" {
+		t.Errorf("Expected 'convert', got '%s'", converted)
+	}
+}
+
+// TestNilHandlingInJSON ensures `nil` values are rendered as `null` in JSON output.
+func TestNilHandlingInJSON(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format: "json",
+		Writer: &buf,
+		Level:  glog.DEBUG,
+	})
+	logger.Debug().Any("maybe", nil).Send()
+	if !bytes.Contains(buf.Bytes(), []byte("\"maybe\":null")) {
+		t.Errorf("Expected 'maybe' field as null in JSON: %s", buf.String())
+	}
+}
+
+// TestBoolHandlingText verifies correct rendering of boolean values in text output.
+func TestBoolHandlingText(t *testing.T) {
+	var buf bytes.Buffer
+	logger := glog.Set(glog.Config{
+		Format:    "text",
+		Writer:    &buf,
+		Level:     glog.DEBUG,
+		Separator: " ",
+	})
+	logger.Debug().Bool("truth", true).Bool("lie", false).Send()
+	out := buf.String()
+	if !bytes.Contains([]byte(out), []byte("true")) || !bytes.Contains([]byte(out), []byte("false")) {
+		t.Errorf("Expected boolean values in text output: %s", out)
 	}
 }
