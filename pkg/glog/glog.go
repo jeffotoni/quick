@@ -148,6 +148,9 @@ func getEntry() *Entry {
 	e.msg = ""
 	e.addTime = false
 	e.addLevel = false
+	// Ensure caller information is disabled by default.
+	// It will only be included if the user explicitly calls .Caller().
+	e.addCaller = false
 	return e
 }
 
