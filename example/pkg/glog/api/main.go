@@ -25,12 +25,12 @@ func main() {
 
 	q.Post("/v1/user", func(c *quick.Ctx) error {
 		// creating a trace
-		traceID := c.Get(KeyName)
+		traceID := c.Get("X-Trace-ID")
 		if traceID == "" {
 			traceID = rand.TraceID()
 		}
 
-		userID := "user3039"
+		userID := rand.AlgoDefault(9000, 9000)
 		spanID := "span39393"
 
 		ctx, cancel := glog.CreateCtx().
@@ -99,7 +99,6 @@ func main() {
 }
 
 func SaveSomeWhere(ctx context.Context, logger *glog.Logger, data any) (b []byte, err error) {
-
 	traceID := glog.GetCtx(ctx, KeyName)
 	b, err = json.Marshal(data)
 	if err != nil {
