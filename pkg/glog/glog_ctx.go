@@ -48,9 +48,10 @@ import (
 	"time"
 )
 
+const internalKeysKey = "__glog_ctx_keys__"
+
 // Constantes pré-definidas para reduzir alocações
 const (
-	defaultCtxKey     = "TraceID"
 	defaultCtxTimeout = 30 * time.Second
 )
 
@@ -60,20 +61,14 @@ type contextKey string
 
 // Cache para as chaves de contexto - pré-alocamos as chaves comuns
 var (
-	keyCache     sync.Map // map[string]contextKey
-	defaultKey   = contextKey(defaultCtxKey)
+	keyCache     sync.Map               // map[string]contextKey
 	emptyContext = context.Background() // Reutilizamos o mesmo contexto de fundo
 )
-
-// init inicializa o cache com a chave padrão para evitar lookup/alocação mais tarde
-func init() {
-	keyCache.Store(defaultCtxKey, defaultKey)
-}
 
 // getCtxKey recupera uma chave de contexto do cache ou cria uma nova
 func getCtxKey(name string) contextKey {
 	if name == "" {
-		return defaultKey
+		return contextKey("default")
 	}
 
 	if v, ok := keyCache.Load(name); ok {
@@ -85,64 +80,92 @@ func getCtxKey(name string) contextKey {
 	return k
 }
 
-// CtxBuilder fornece uma API fluente para construir um contexto com ID de rastreamento
+// CtxBuilder fornece uma API fluente para construir um contexto com múltiplos campos
 type CtxBuilder struct {
-	name    string
-	key     string
+	fields  map[string]string
 	timeout time.Duration
 }
 
-// NewCtx cria um novo builder de contexto fluente com valores padrão
-func NewCtx() CtxBuilder {
-	return CtxBuilder{
-		name:    defaultCtxKey,
+// CreateCtx inicia um novo builder de contexto
+func CreateCtx() *CtxBuilder {
+	return &CtxBuilder{
+		fields:  make(map[string]string),
 		timeout: defaultCtxTimeout,
 	}
 }
 
-// Name define um nome de chave de contexto personalizado
-func (b CtxBuilder) Name(name string) CtxBuilder {
-	if name != "" {
-		b.name = name
+// Set adiciona uma chave/valor ao contexto
+func (b *CtxBuilder) Set(key, value string) *CtxBuilder {
+	if key != "" && value != "" {
+		b.fields[key] = value
 	}
 	return b
 }
 
-// Key define o valor a ser armazenado no contexto
-func (b CtxBuilder) Key(val string) CtxBuilder {
-	b.key = val
-	return b
-}
-
 // Timeout define uma duração de timeout personalizada para o contexto
-func (b CtxBuilder) Timeout(d time.Duration) CtxBuilder {
+func (b *CtxBuilder) Timeout(d time.Duration) *CtxBuilder {
 	if d > 0 {
 		b.timeout = d
 	}
 	return b
 }
 
-// Build cria o contexto e retorna-o com uma função de cancelamento
+// Build cria o contexto com os campos definidos e retorna-o com uma função de cancelamento
+// func (b *CtxBuilder) Build() (context.Context, context.CancelFunc) {
+// 	ctx := emptyContext
+// 	for k, v := range b.fields {
+// 		ctx = context.WithValue(ctx, getCtxKey(k), v)
+// 	}
+// 	return context.WithTimeout(ctx, b.timeout)
+// }
+
 func (b CtxBuilder) Build() (context.Context, context.CancelFunc) {
-	ctxKey := getCtxKey(b.name)
-	base := context.WithValue(emptyContext, ctxKey, b.key)
+	base := emptyContext
+	keys := make([]string, 0, len(b.fields))
+
+	for k, v := range b.fields {
+		ctxKey := getCtxKey(k)
+		base = context.WithValue(base, ctxKey, v)
+		keys = append(keys, k)
+	}
+
+	base = context.WithValue(base, internalKeysKey, keys)
 	return context.WithTimeout(base, b.timeout)
 }
 
-// GetCtx recupera o ID de rastreamento do contexto usando o nome da chave fornecido (opcional).
-// Usa "TraceID" como padrão se nenhum keyName for fornecido.
+// GetCtx recupera o valor do contexto para a chave fornecida
 func GetCtx(ctx context.Context, keyName ...string) string {
 	if ctx == nil {
 		return ""
 	}
 
-	key := defaultKey
-	if len(keyName) > 0 && keyName[0] != "" {
-		key = getCtxKey(keyName[0])
+	if len(keyName) == 0 || keyName[0] == "" {
+		return ""
 	}
 
+	key := getCtxKey(keyName[0])
 	if val, ok := ctx.Value(key).(string); ok {
 		return val
 	}
 	return ""
+}
+
+func GetCtxAll(ctx context.Context) map[string]string {
+	if ctx == nil {
+		return nil
+	}
+
+	result := make(map[string]string)
+
+	rawKeys := ctx.Value(internalKeysKey)
+	if keyList, ok := rawKeys.([]string); ok {
+		for _, k := range keyList {
+			val := ctx.Value(getCtxKey(k))
+			if strVal, ok := val.(string); ok {
+				result[k] = strVal
+			}
+		}
+	}
+
+	return result
 }

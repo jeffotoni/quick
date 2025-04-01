@@ -236,6 +236,47 @@ func (e *Entry) Int(k string, v int) *Entry {
 	return e
 }
 
+// Int adds an Float64 field to the log entry.
+func (e *Entry) Float64(k string, v float64) *Entry {
+	e.fields = append(e.fields, Field{key: k, val: v})
+	return e
+}
+
+// Int adds an Duration field to the log entry.
+func (e *Entry) Duration(k string, v time.Duration) *Entry {
+	e.fields = append(e.fields, Field{key: k, val: v.String()})
+	return e
+}
+
+// TimeField adds a time.Time field with custom format.
+func (e *Entry) TimeField(k string, v time.Time, layout ...string) *Entry {
+	format := time.RFC3339
+	if len(layout) > 0 {
+		format = layout[0]
+	}
+	e.fields = append(e.fields, Field{key: k, val: v.Format(format)})
+	return e
+}
+
+// Err adds an error field to the log entry.
+func (e *Entry) Err(k string, err error) *Entry {
+	if err != nil {
+		e.fields = append(e.fields, Field{key: k, val: err.Error()})
+	}
+	return e
+}
+
+// AddTime adds a time.Time field with optional format.
+// If no format is provided, it uses RFC3339.
+func (e *Entry) AddTime(k string, v time.Time, layout ...string) *Entry {
+	format := time.RFC3339
+	if len(layout) > 0 {
+		format = layout[0]
+	}
+	e.fields = append(e.fields, Field{key: k, val: v.Format(format)})
+	return e
+}
+
 // Bool adds a boolean field to the log entry.
 func (e *Entry) Bool(k string, v bool) *Entry {
 	e.fields = append(e.fields, Field{key: k, val: v})
