@@ -23,6 +23,27 @@ Part of the [Quick Framework](https://github.com/jeffotoni/quick) ecosystem, `gl
 
 ---
 
+## 🚀 Benchmark Comparison
+
+Hardware: Apple M3 Max
+Command: go test -bench=. -benchtime=7s -benchmem
+
+| Logger      | Format | ops         | ns/op   | B/op | allocs/op |
+|-------------|--------|-------------|---------|------|-----------|
+| `glog`      | text   | 54,624,878  | 154.4   | 189  | 2         |
+| `glog`      | slog   | 41,001,594  | 196.1   | 346  | 2         |
+| `glog`      | json   | 32,973,249  | 255.4   | 324  | 3         |
+| `zerolog`   | text   | 57,916,555  | 176.6   | 296  | 0         |
+| `zerolog`   | json   | 52,844,396  | 162.7   | 325  | 0         |
+| `zap`       | text   | 18,958,725  | 450.0   | 192  | 4         |
+| `zap`       | json   | 30,100,347  | 276.9   | 128  | 1         |
+| `logrus`    | text   | 8,296,321   | 1037.0  | 1139 | 16        |
+| `logrus`    | json   | 5,424,778   | 1558.0  | 1758 | 28        |
+
+
+## 🚀 Graphic
+![benchmark](./bench.png)
+
 ## 📦 Installation
 
 ```bash
@@ -63,7 +84,7 @@ fields := glog.GetCtxAll(ctx)
 ...
 func main() {
 
-	logger := glog.Set(glog.Config{
+	logger := glog.New(glog.Config{
 		Format: "json",
 		Level:  glog.DEBUG,
 	})
@@ -196,13 +217,9 @@ import (
 
 func main() {
 
-	logger := glog.Set(glog.Config{
+	logger := glog.New(glog.Config{
 		Format: "json",
 		Level:  glog.DEBUG,
-	})
-	logger := glog.Set(glog.Config{
-		Format:        "text",
-		Level:         glog.DEBUG,
 	})
 
 	logger.Debug().
@@ -292,7 +309,7 @@ In pkg.go.dev [quick pkg/glog](https://pkg.go.dev/github.com/jeffotoni/quick/pkg
 
 ---
 
-# 🛣️ Roadmap — Planned Features & Enhancements
+# 🛣️ Roadmap — Planned Features
 
 A long way to go, a long way to go, but at least after that the first step. Soon.
 
