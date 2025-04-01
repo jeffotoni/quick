@@ -39,9 +39,12 @@ func TestExamplePath(t *testing.T) {
 	})
 
 	// Simulates a PATCH request
-	data, err := q.QuickTest("PATCH", "/update-partial", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method: MethodPatch,
+		URI:    "/update-partial",
+	})
 	if err != nil {
-		t.Errorf("Error running QuickTest: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
 		return
 	}
 
@@ -195,7 +198,10 @@ func TestExampleNew(t *testing.T) {
 	})
 
 	// Simulate a GET request
-	data, err := q.QuickTest("GET", "/", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/",
+	})
 	if err != nil {
 		t.Errorf("Error when running QuickTest: %v", err)
 		return
@@ -234,7 +240,10 @@ func TestExampleUse(t *testing.T) {
 	})
 
 	// Simulate a GET request
-	data, err := q.QuickTest("GET", "/use", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/use",
+	})
 	if err != nil {
 		t.Errorf("Error when running QuickTest: %v", err)
 		return
@@ -270,7 +279,10 @@ func TestExampleGet(t *testing.T) {
 	})
 
 	// Simulate a GET request
-	data, err := q.QuickTest("GET", "/hello", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/hello",
+	})
 	if err != nil {
 		t.Errorf("Error when running QuickTest: %v", err)
 		return
@@ -306,7 +318,10 @@ func TestExamplePost(t *testing.T) {
 	})
 
 	// Simulate a POST request
-	data, err := q.QuickTest("POST", "/create", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method: MethodPost,
+		URI:    "/create",
+	})
 	if err != nil {
 		t.Errorf("Error when running QuickTest: %v", err)
 		return
@@ -340,9 +355,13 @@ func TestExamplePut(t *testing.T) {
 	})
 
 	// Simulate a PUT request
-	data, err := q.QuickTest("PUT", "/update", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method: MethodPut,
+		URI:    "/update",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error when running QuickTest: %v", err)
+		return
 	}
 
 	// Check if the status code is correct
@@ -373,9 +392,13 @@ func TestExampleDelete(t *testing.T) {
 	})
 
 	// Simulate a DELETE request
-	data, err := q.QuickTest("DELETE", "/delete", nil)
+	data, err := q.Qtest(QuickTestOptions{
+		Method: MethodDelete,
+		URI:    "/delete",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error when running QuickTest: %v", err)
+		return
 	}
 
 	// Check if the status code is correct
@@ -405,9 +428,13 @@ func TestServeHTTP(t *testing.T) {
 	})
 
 	// Simulate a GET request with a user ID
-	res, err := q.QuickTest("GET", "/users/42", nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/users/42",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error when running QuickTest: %v", err)
+		return
 	}
 
 	// Check if the status code is correct
