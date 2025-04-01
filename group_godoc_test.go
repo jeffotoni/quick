@@ -103,9 +103,13 @@ func TestGroup_Post(t *testing.T) {
 	})
 
 	// Simulate a POST request to "/api/users"
-	res, err := q.QuickTest("POST", "/api/users", nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodPost,
+		URI:    "/api/users",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	// Validate HTTP status code
@@ -137,9 +141,13 @@ func TestGroup_Put(t *testing.T) {
 	})
 
 	// Simulate a PUT request to "/api/users/42"
-	res, err := q.QuickTest("PUT", "/api/users/42", nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodPut,
+		URI:    "/api/users/42",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	// Validate HTTP status code
@@ -171,9 +179,13 @@ func TestGroup_Delete(t *testing.T) {
 	})
 
 	// Simulate a DELETE request to "/api/users/42"
-	res, err := q.QuickTest("DELETE", "/api/users/42", nil)
+	res, err := q.Qtest(QuickTestOptions{
+		Method: MethodDelete,
+		URI:    "/api/users/42",
+	})
 	if err != nil {
-		t.Fatalf("QuickTest failed: %v", err)
+		t.Errorf("Error during Qtest: %v", err)
+		return
 	}
 
 	// Validate HTTP status code

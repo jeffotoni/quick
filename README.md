@@ -773,11 +773,15 @@ func TestQuickExample(t *testing.T) {
     reqHeaders := map[string]string{"Content-Type": "application/json"}
 
     // Perform test request
-    data, err := q.QuickTest("POST", "/v1/user", reqHeaders, reqBody)
-    if err != nil {
-        t.Errorf("error: %v", err)
-        return
-    }
+	data, err := q.Qtest(QuickTestOptions{
+	Method:  MethodPost,
+	URI:     "/v1/user",
+	Headers: map[string]string{"Content-Type": "application/json"},
+	})
+	if err != nil {
+		t.Errorf("Error during Qtest: %v", err)
+		return
+	}
 
     // Compare expected and actual response
     s := strings.TrimSpace(data.BodyStr())
