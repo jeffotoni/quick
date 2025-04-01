@@ -12,6 +12,8 @@ Part of the [Quick Framework](https://github.com/jeffotoni/quick) ecosystem, `gl
 - 🎨 Supports `text`, `slog`, and `json` formats
 - 🧩 Custom `Pattern` with placeholders (`${time}`, `${level}`, `${msg}`, etc)
 - 🧠 Dynamic separator detection (` | `, `--`, `:`… based on your pattern)
+- 📋 Fluent log builder API with dynamic fields: `.Str()`, `.Int()`, `.Bool()`, `.Any()`, `.Msg()`
+- 🎯 Built-in caller tracing: add `file:line` with `.Caller()`
 - 🧵 Global `CustomFields` + per-log `Fields` (contextual)
 - 🎯 Precise caller tracing with `${file}` (file:line) support
 - 🎛️ Built-in log levels: `DEBUG`, `INFO`, `WARN`, `ERROR`
@@ -41,7 +43,7 @@ ctx, cancel := glog.CreateCtx().
 	Build()
 defer cancel()
 
-trace := glog.GetCtx(ctx)             // returns "abc-123"
+trace := glog.GetCtx(ctx,"X-Trace-ID") // returns "abc-123"
 user := glog.GetCtx(ctx, "X-User-ID") // returns "" if not set
 ```
 
@@ -63,7 +65,6 @@ ctx, cancel := glog.CreateCtx().Key("abc-123").Build()
 	• Internally avoids key collisions with a private key type
 
 ```go
-glog.GetCtx(ctx)            // looks for key "TraceID"
 glog.GetCtx(ctx, "custom")  // looks for key "custom"
 ```
 
