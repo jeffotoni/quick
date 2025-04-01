@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-	"net/http/httptest"
 )
 
 const logDelimiter = "====================="
@@ -35,63 +34,6 @@ type (
 		Body    []byte            // Request body content.
 	}
 )
-
-// QuickTest is a helper function to perform HTTP tests quickly.
-//
-// It creates an HTTP request using the specified method, URI, and optional body,
-// then executes the request within Quick's internal router and returns the response.
-//
-// Parameters:
-//   - method (string): HTTP method (e.g., "GET", "POST").
-//   - URI (string): The request path (e.g., "/test/:param").
-//   - headers (map[string]string): Optional headers to include in the request.
-//   - body (optional []byte): Request body, used for methods like POST.
-//
-// Returns:
-//   - QuickTestReturn: The response object containing the body, status code, and full HTTP response.
-//   - error: Any error encountered during the request creation or execution.
-//
-// Example Usage:
-//
-//	resp, err := q.QuickTest("GET", "/api/user", nil)
-//	if err != nil {
-//	    log.Fatal(err)
-//	}
-//	fmt.Println("Status Code:", resp.StatusCode())
-//	fmt.Println("Response Body:", resp.BodyStr())
-func (q Quick) QuickTest(method, URI string, headers map[string]string, body ...[]byte) (QuickTestReturn, error) {
-	requestBody := []byte{}
-	if len(body) > 0 {
-		requestBody = body[0]
-	}
-
-	// Log request details for debugging purposes.
-	logRequestDetails(method, URI, len(requestBody))
-
-	// Create the HTTP request.
-	req, err := createHTTPRequest(method, URI, headers, requestBody)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create a new HTTP response recorder to capture the output.
-	rec := httptest.NewRecorder()
-	q.ServeHTTP(rec, req)
-
-	// Retrieve the recorded response.
-	resp := rec.Result()
-	responseBody, err := readResponseBody(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return &qTest{
-		body:       responseBody,
-		bodyStr:    string(responseBody),
-		statusCode: resp.StatusCode,
-		response:   resp,
-	}, nil
-}
 
 // createHTTPRequest constructs an HTTP request with the specified method, URI, headers, and body.
 //
