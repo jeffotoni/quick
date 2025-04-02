@@ -9,6 +9,12 @@ import (
 	"github.com/jeffotoni/quick/pkg/glog"
 )
 
+// TestNewCtx_DefaultKey verifies that a context built with a "TraceID" key
+// correctly stores and retrieves its value.
+//
+// To run:
+//
+//	go test -v -run ^TestNewCtx_DefaultKey$
 func TestNewCtx_DefaultKey(t *testing.T) {
 	ctx, cancel := glog.CreateCtx().Set("TraceID", "abc123").Build()
 	defer cancel()
@@ -19,6 +25,12 @@ func TestNewCtx_DefaultKey(t *testing.T) {
 	}
 }
 
+// TestNewCtx_CustomKeyName verifies that custom key names (e.g., "X-User-ID")
+// can be used and correctly retrieved from the context.
+//
+// To run:
+//
+//	go test -v -run ^TestNewCtx_CustomKeyName$
 func TestNewCtx_CustomKeyName(t *testing.T) {
 	ctx, cancel := glog.CreateCtx().Set("X-User-ID", "user42").Build()
 	defer cancel()
@@ -29,6 +41,12 @@ func TestNewCtx_CustomKeyName(t *testing.T) {
 	}
 }
 
+// TestNewCtx_NilContext ensures that passing a nil context to GetCtx
+// returns an empty string instead of causing a panic or error.
+//
+// To run:
+//
+//	go test -v -run ^TestNewCtx_NilContext$
 func TestNewCtx_NilContext(t *testing.T) {
 	var ctx context.Context
 	val := glog.GetCtx(ctx)
@@ -37,6 +55,12 @@ func TestNewCtx_NilContext(t *testing.T) {
 	}
 }
 
+// TestNewCtx_KeyNotFound verifies that requesting a non-existent key
+// from a context returns an empty string.
+//
+// To run:
+//
+//	go test -v -run ^TestNewCtx_KeyNotFound$
 func TestNewCtx_KeyNotFound(t *testing.T) {
 	ctx := context.Background()
 	val := glog.GetCtx(ctx)
@@ -45,6 +69,12 @@ func TestNewCtx_KeyNotFound(t *testing.T) {
 	}
 }
 
+// TestNewCtx_Timeout ensures that contexts built with a short timeout
+// correctly expire after the given duration.
+//
+// To run:
+//
+//	go test -v -run ^TestNewCtx_Timeout$
 func TestNewCtx_Timeout(t *testing.T) {
 	ctx, cancel := glog.CreateCtx().Set("TraceID", "with-timeout").Timeout(10 * time.Millisecond).Build()
 	defer cancel()
@@ -59,6 +89,12 @@ func TestNewCtx_Timeout(t *testing.T) {
 	}
 }
 
+// TestNewCtx_GetCtxAll validates that GetCtxAll returns all
+// keys and values previously set in the context.
+//
+// To run:
+//
+//	go test -v -run ^TestNewCtx_GetCtxAll$
 func TestNewCtx_GetCtxAll(t *testing.T) {
 	ctx, cancel := glog.CreateCtx().
 		Set("TraceID", "abc-123").
