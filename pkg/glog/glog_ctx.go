@@ -1,44 +1,44 @@
-// Package glog provides an optimized and zero-allocation logger, and this file extends
-// its functionality with utilities to generate, propagate, and retrieve trace IDs through
-// context.Context in a fluent and efficient way.
+// Package glog provides an optimized zero-allocation logger and contextual tracing helpers.
 //
-// The context builder pattern (`CtxBuilder`) allows you to fluently create new contexts
-// with a trace ID and optional timeout, promoting consistent observability and tracing
-// across service boundaries.
+// This file extends glog's capabilities by providing context propagation utilities
+// using a fluent API (`CtxBuilder`) that allows you to safely and efficiently inject
+// metadata like Trace IDs into `context.Context`. This is useful for observability,
+// distributed tracing, correlation IDs, or user/session propagation.
 //
-// It also uses sync.Map to cache key types, reducing allocation cost during context propagation.
+// Key goals:
+//   - No heap allocations using string-based context keys and sync.Map caching
+//   - Fluent builder for setting multiple fields and optional timeout
+//   - Compatible with standard context propagation in Go HTTP servers, workers, etc.
 //
 // # Features:
 //
-//   - Zero-allocation trace context key management using `contextKey`
-//   - Default trace key name: "TraceID"
-//   - Fluent API to build a new context with optional timeout
+//   - Zero-allocation context key management
+//   - Fluent builder to set trace fields and timeout
 //   - Safe fallback when context is nil
-//   - Customizable trace key names per use case
+//   - Retrieve individual or all injected fields
+//   - Optimized for performance and readability
 //
 // # Example:
 //
-// ```go
-// import (
-//
-//	"fmt"
-//	"time"
-//	"github.com/jeffotoni/quick/pkg/glog"
-//
-// )
+//	import (
+//		"fmt"
+//		"time"
+//		"github.com/jeffotoni/quick/pkg/glog"
+//	)
 //
 //	func main() {
-//	    // Create a context with a trace ID and custom timeout
-//	    ctx, cancel := glog.NewCtx().
-//	        Name("MyTrace").
-//	        Key("abc-123").
-//	        Timeout(10 * time.Second).
-//	        Build()
-//	    defer cancel()
+//		ctx, cancel := glog.CreateCtx().
+//			Set("TraceID", "abc-123").
+//			Set("UserID", "u42").
+//			Timeout(5 * time.Second).
+//			Build()
+//		defer cancel()
 //
-//	    // Retrieve the trace ID from the context
-//	    trace := glog.GetCtx(ctx, "MyTrace")
-//	    fmt.Println("Trace ID:", trace)
+//		trace := glog.GetCtx(ctx, "TraceID")
+//		fmt.Println("Trace:", trace)
+//
+//		all := glog.GetCtxAll(ctx)
+//		fmt.Println("All Fields:", all)
 //	}
 package glog
 
@@ -48,24 +48,27 @@ import (
 	"time"
 )
 
+// internalKeysKey is the reserved context key used to track which custom keys
+// were injected by the context builder, enabling retrieval via GetCtxAll.
 const internalKeysKey = "__glog_ctx_keys__"
 
-// Constantes pré-definidas para reduzir alocações
+// Predefined constants to reduce allocations and provide sane defaults.
 const (
-	defaultCtxTimeout = 30 * time.Second
+	defaultCtxTimeout = 30 * time.Second // Default timeout for built contexts
 )
 
-// contextKey é um tipo privado para evitar colisões no contexto
-// Usando uma string como valor interno em vez de struct para reduzir alocação
+// contextKey is a private type to avoid key collisions in context.Context.
+// A string-based key is used instead of a struct to reduce allocations.
 type contextKey string
 
-// Cache para as chaves de contexto - pré-alocamos as chaves comuns
+// Cached context keys using sync.Map to minimize allocations during key creation.
 var (
 	keyCache     sync.Map               // map[string]contextKey
-	emptyContext = context.Background() // Reutilizamos o mesmo contexto de fundo
+	emptyContext = context.Background() // Reusable base context
 )
 
-// getCtxKey recupera uma chave de contexto do cache ou cria uma nova
+// getCtxKey returns a cached context key or creates and stores a new one.
+// This reduces allocations by reusing frequently accessed keys.
 func getCtxKey(name string) contextKey {
 	if name == "" {
 		return contextKey("default")
@@ -80,13 +83,19 @@ func getCtxKey(name string) contextKey {
 	return k
 }
 
-// CtxBuilder fornece uma API fluente para construir um contexto com múltiplos campos
+// CtxBuilder provides a fluent API for constructing a context.Context
+// with multiple key-value fields and an optional timeout.
 type CtxBuilder struct {
 	fields  map[string]string
 	timeout time.Duration
 }
 
-// CreateCtx inicia um novo builder de contexto
+// CreateCtx initializes and returns a new context builder (CtxBuilder)
+// with default timeout. Use .Set(...) and .Timeout(...) to add metadata.
+//
+// Example:
+//
+//	ctx, cancel := glog.CreateCtx().Set("TraceID", "abc").Build()
 func CreateCtx() *CtxBuilder {
 	return &CtxBuilder{
 		fields:  make(map[string]string),
@@ -94,7 +103,8 @@ func CreateCtx() *CtxBuilder {
 	}
 }
 
-// Set adiciona uma chave/valor ao contexto
+// Set injects a key-value string pair into the context.
+// Keys and values must be non-empty.
 func (b *CtxBuilder) Set(key, value string) *CtxBuilder {
 	if key != "" && value != "" {
 		b.fields[key] = value
@@ -110,15 +120,11 @@ func (b *CtxBuilder) Timeout(d time.Duration) *CtxBuilder {
 	return b
 }
 
-// Build cria o contexto com os campos definidos e retorna-o com uma função de cancelamento
-// func (b *CtxBuilder) Build() (context.Context, context.CancelFunc) {
-// 	ctx := emptyContext
-// 	for k, v := range b.fields {
-// 		ctx = context.WithValue(ctx, getCtxKey(k), v)
-// 	}
-// 	return context.WithTimeout(ctx, b.timeout)
-// }
-
+// Build finalizes the context creation and returns a new context.Context
+// containing all provided fields and a cancel function with the given timeout.
+//
+// Internally, it uses context.WithValue for each key and caches all key names
+// under an internal key so they can later be retrieved via GetCtxAll.
 func (b CtxBuilder) Build() (context.Context, context.CancelFunc) {
 	base := emptyContext
 	keys := make([]string, 0, len(b.fields))
@@ -133,7 +139,8 @@ func (b CtxBuilder) Build() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(base, b.timeout)
 }
 
-// GetCtx recupera o valor do contexto para a chave fornecida
+// GetCtx retrieves the string value for the given key from the context.
+// Returns an empty string if the context is nil or key is not found.
 func GetCtx(ctx context.Context, keyName ...string) string {
 	if ctx == nil {
 		return ""
@@ -150,6 +157,8 @@ func GetCtx(ctx context.Context, keyName ...string) string {
 	return ""
 }
 
+// GetCtxAll returns a map[string]string with all fields previously injected
+// into the context using the CtxBuilder. Returns nil if context is nil.
 func GetCtxAll(ctx context.Context) map[string]string {
 	if ctx == nil {
 		return nil
