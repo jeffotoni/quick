@@ -11,6 +11,12 @@ import (
 	"github.com/jeffotoni/quick/pkg/glog"
 )
 
+// TestNew_DefaultConfig verifies that calling glog.New() with no config
+// falls back to default values like os.Stdout, default layout, and INFO level.
+//
+// To run:
+//
+//	go test -v -run ^TestNew_DefaultConfig$
 func TestNew_DefaultConfig(t *testing.T) {
 	logger := glog.New() // no config passed, should fallback to defaults
 
@@ -35,6 +41,12 @@ func TestNew_DefaultConfig(t *testing.T) {
 	}
 }
 
+// TestNew_WithCustomConfig checks if a logger initialized with a full custom config
+// writes structured logs (JSON) as expected.
+//
+// To run:
+//
+//	go test -v -run ^TestNew_WithCustomConfig$
 func TestNew_WithCustomConfig(t *testing.T) {
 	var buf bytes.Buffer
 	cfg := glog.Config{
@@ -58,7 +70,11 @@ func TestNew_WithCustomConfig(t *testing.T) {
 	}
 }
 
-// TestCallerIncluded checks that the caller information is correctly included in the log when .Caller() is used.
+// TestCallerIncluded checks that the caller field is present when .Caller() is enabled.
+//
+// To run:
+//
+//	go test -v -run ^TestCallerIncluded$
 func TestCallerIncluded(t *testing.T) {
 	var buf bytes.Buffer
 
@@ -84,7 +100,11 @@ func TestCallerIncluded(t *testing.T) {
 	}
 }
 
-// TestTextFormatMinimal verifies that a basic text log entry is correctly formatted without key=value when using text format.
+// TestTextFormatMinimal checks if log in text format avoids key=value by default.
+//
+// To run:
+//
+//	go test -v -run ^TestTextFormatMinimal$
 func TestTextFormatMinimal(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -102,7 +122,11 @@ func TestTextFormatMinimal(t *testing.T) {
 	}
 }
 
-// TestTextFormatFull checks if time, level, and message are included and formatted properly in full text output.
+// TestTextFormatFull validates inclusion of time, level, and msg in text format.
+//
+// To run:
+//
+//	go test -v -run ^TestTextFormatFull$
 func TestTextFormatFull(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -120,7 +144,11 @@ func TestTextFormatFull(t *testing.T) {
 	}
 }
 
-// TestSlogFormatOrder ensures that fields are logged in the same order they are added using the slog format.
+// TestSlogFormatOrder ensures field order is preserved in slog format output.
+//
+// To run:
+//
+//	go test -v -run ^TestSlogFormatOrder$
 func TestSlogFormatOrder(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -138,7 +166,11 @@ func TestSlogFormatOrder(t *testing.T) {
 	}
 }
 
-// TestSlogWithTimeAndLevel verifies that time and level are included when explicitly enabled in slog format.
+// TestSlogWithTimeAndLevel ensures that time and level fields appear when enabled in slog format.
+//
+// To run:
+//
+//	go test -v -run ^TestSlogWithTimeAndLevel$
 func TestSlogWithTimeAndLevel(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -155,7 +187,11 @@ func TestSlogWithTimeAndLevel(t *testing.T) {
 	}
 }
 
-// TestJSONFormatFull validates that all expected fields are serialized correctly in JSON output.
+// TestJSONFormatFull ensures that all fields are present and correctly serialized in JSON output.
+//
+// To run:
+//
+//	go test -v -run ^TestJSONFormatFull$
 func TestJSONFormatFull(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -172,7 +208,11 @@ func TestJSONFormatFull(t *testing.T) {
 	}
 }
 
-// TestLevelFiltering ensures that log entries below the minimum log level are filtered out.
+// TestLevelFiltering verifies that log entries below the configured level are filtered out.
+//
+// To run:
+//
+//	go test -v -run ^TestLevelFiltering$
 func TestLevelFiltering(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -187,14 +227,22 @@ func TestLevelFiltering(t *testing.T) {
 	}
 }
 
-// TestDefaultFallbacks confirms that a logger using default config does not panic and logs to stdout.
+// TestDefaultFallbacks ensures that a logger with empty config still works without panic.
+//
+// To run:
+//
+//	go test -v -run ^TestDefaultFallbacks$
 func TestDefaultFallbacks(t *testing.T) {
 	logger := glog.Set(glog.Config{})
 	logger.Info().Str("fallback", "true").Send()
 	// Just checking that it doesn't panic and writes to os.Stdout.
 }
 
-// TestWarnAndErrorLevels checks if WARN and ERROR levels are correctly handled and output.
+// TestWarnAndErrorLevels ensures WARN and ERROR level logs are correctly handled.
+//
+// To run:
+//
+//	go test -v -run ^TestWarnAndErrorLevels$
 func TestWarnAndErrorLevels(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -212,7 +260,11 @@ func TestWarnAndErrorLevels(t *testing.T) {
 	}
 }
 
-// TestIntAndBoolFields ensures integer and boolean fields are properly included in the log entry.
+// TestIntAndBoolFields checks that integer and boolean fields are serialized correctly.
+//
+// To run:
+//
+//	go test -v -run ^TestIntAndBoolFields$
 func TestIntAndBoolFields(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -228,7 +280,11 @@ func TestIntAndBoolFields(t *testing.T) {
 	}
 }
 
-// TestTextMsgField validates that a message appears correctly in the output when using text format.
+// TestTextMsgField ensures messages are included in output when using text format.
+//
+// To run:
+//
+//	go test -v -run ^TestTextMsgField$
 func TestTextMsgField(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -244,7 +300,11 @@ func TestTextMsgField(t *testing.T) {
 	}
 }
 
-// TestTextMsgField validates that a message appears correctly in the output when using text format.
+// TestSlogMsgField ensures that "msg" is present in slog output.
+//
+// To run:
+//
+//	go test -v -run ^TestSlogMsgField$
 func TestSlogMsgField(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -260,14 +320,22 @@ func TestSlogMsgField(t *testing.T) {
 	}
 }
 
-// TestSlogMsgField verifies that the `msg` field appears in slog format output.
+// TestLevelPriorityFallback verifies fallback to priority 0 for unknown levels.
+//
+// To run:
+//
+//	go test -v -run ^TestLevelPriorityFallback$
 func TestLevelPriorityFallback(t *testing.T) {
 	if prio := glog.DEBUG; glog.TestLevelPriority("UNKNOWN") != 0 {
 		t.Errorf("Expected fallback priority 0 for unknown level, got %d prio %v", glog.TestLevelPriority("UNKNOWN"), prio)
 	}
 }
 
-// TestTextFormatWithUnsupportedType ensures unsupported custom types are safely logged as "null" in text format.
+// TestTextFormatWithUnsupportedType ensures custom/unsupported types are rendered as "null".
+//
+// To run:
+//
+//	go test -v -run ^TestTextFormatWithUnsupportedType$
 func TestTextFormatWithUnsupportedType(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -287,7 +355,11 @@ func TestTextFormatWithUnsupportedType(t *testing.T) {
 	}
 }
 
-// TestJSONFormatWithUnsupportedType ensures unsupported types are serialized as "null" in JSON format.
+// TestJSONFormatWithUnsupportedType ensures unsupported types are serialized as null in JSON.
+//
+// To run:
+//
+//	go test -v -run ^TestJSONFormatWithUnsupportedType$
 func TestJSONFormatWithUnsupportedType(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -305,7 +377,11 @@ func TestJSONFormatWithUnsupportedType(t *testing.T) {
 	}
 }
 
-// TestSmallIntOptimization checks if small integer values are optimized in the text output (zero-allocation).
+// TestSmallIntOptimization checks optimized rendering for small integers.
+//
+// To run:
+//
+//	go test -v -run ^TestSmallIntOptimization$
 func TestSmallIntOptimization(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -319,7 +395,11 @@ func TestSmallIntOptimization(t *testing.T) {
 	}
 }
 
-// TestJSONStringEscaping ensures special characters are properly escaped in JSON output.
+// TestJSONStringEscaping ensures special characters are escaped in JSON.
+//
+// To run:
+//
+//	go test -v -run ^TestJSONStringEscaping$
 func TestJSONStringEscaping(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -336,7 +416,11 @@ func TestJSONStringEscaping(t *testing.T) {
 	}
 }
 
-// TestBytesToStringNoAlloc validates that bytes are converted to string with no allocation using unsafe.
+// TestBytesToStringNoAlloc verifies byte-to-string conversion is zero-allocation.
+//
+// To run:
+//
+//	go test -v -run ^TestBytesToStringNoAlloc$
 func TestBytesToStringNoAlloc(t *testing.T) {
 	original := []byte("convert")
 	converted := glog.TestBytesToString(original)
@@ -345,7 +429,11 @@ func TestBytesToStringNoAlloc(t *testing.T) {
 	}
 }
 
-// TestNilHandlingInJSON ensures `nil` values are rendered as `null` in JSON output.
+// TestNilHandlingInJSON ensures nil values are encoded as null in JSON output.
+//
+// To run:
+//
+//	go test -v -run ^TestNilHandlingInJSON$
 func TestNilHandlingInJSON(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -359,7 +447,11 @@ func TestNilHandlingInJSON(t *testing.T) {
 	}
 }
 
-// TestBoolHandlingText verifies correct rendering of boolean values in text output.
+// TestBoolHandlingText checks if boolean fields appear correctly in text format.
+//
+// To run:
+//
+//	go test -v -run ^TestBoolHandlingText$
 func TestBoolHandlingText(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -375,6 +467,11 @@ func TestBoolHandlingText(t *testing.T) {
 	}
 }
 
+// TestEntryFloat64Field verifies correct rendering of float64 values in text format.
+//
+// To run:
+//
+//	go test -v -run ^TestEntryFloat64Field$
 func TestEntryFloat64Field(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -389,6 +486,11 @@ func TestEntryFloat64Field(t *testing.T) {
 	}
 }
 
+// TestEntryDurationField ensures duration fields are rendered as time strings.
+//
+// To run:
+//
+//	go test -v -run ^TestEntryDurationField$
 func TestEntryDurationField(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -404,6 +506,11 @@ func TestEntryDurationField(t *testing.T) {
 	}
 }
 
+// TestEntryTimeFieldWithDefaultFormat checks that time fields use RFC3339 by default.
+//
+// To run:
+//
+//	go test -v -run ^TestEntryTimeFieldWithDefaultFormat$
 func TestEntryTimeFieldWithDefaultFormat(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -420,6 +527,11 @@ func TestEntryTimeFieldWithDefaultFormat(t *testing.T) {
 	}
 }
 
+// TestEntryTimeFieldWithCustomLayout ensures time fields respect a custom layout.
+//
+// To run:
+//
+//	go test -v -run ^TestEntryTimeFieldWithCustomLayout$
 func TestEntryTimeFieldWithCustomLayout(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
@@ -435,6 +547,11 @@ func TestEntryTimeFieldWithCustomLayout(t *testing.T) {
 	}
 }
 
+// TestEntryErrField ensures errors are correctly rendered in log output.
+//
+// To run:
+//
+//	go test -v -run ^TestEntryErrField$
 func TestEntryErrField(t *testing.T) {
 	var buf bytes.Buffer
 	logger := glog.Set(glog.Config{
