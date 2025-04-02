@@ -1,9 +1,17 @@
-// Package gcolor offers a fluent, flexible, and expressive API
-// for styling terminal output using ANSI escape codes.
+// Package gcolor provides a fluent and expressive API for styling terminal output
+// using ANSI escape codes. It allows developers to apply foreground and background
+// colors, text decorations such as bold and underline, and output styled strings
+// to the terminal.
 //
-// It allows you to combine foreground and background colors,
-// text styles like bold and underline, and render the result
-// to the terminal with full control over formatting.
+// gcolor is ideal for CLIs, logging systems, and other tools where color-coded
+// or styled output can improve readability.
+//
+// Features:
+//
+//   - Foreground and background color support (8 base colors)
+//   - Bold and underline styling
+//   - Chainable (fluent) syntax
+//   - Print, Println, Sprint, and Sprintf helpers
 //
 // Example:
 //
@@ -20,14 +28,15 @@ import (
 	"strings"
 )
 
-// ANSI escape codes for styles and reset
+// ANSI escape codes for basic text styles and reset.
 const (
-	ansiReset     = "\033[0m"
-	ansiBold      = "\033[1m"
-	ansiUnderline = "\033[4m"
+	ansiReset     = "\033[0m" // Resets all styles (color, bold, underline, etc.)
+	ansiBold      = "\033[1m" // Enables bold text
+	ansiUnderline = "\033[4m" // Enables underline text
 )
 
-// ANSI foreground color codes
+// ansiFgColors maps color names to ANSI escape sequences for foreground (text) colors.
+// These can be used to change the text color in terminal output.
 var ansiFgColors = map[string]string{
 	"black":  "\033[30m",
 	"red":    "\033[31m",
@@ -39,7 +48,8 @@ var ansiFgColors = map[string]string{
 	"white":  "\033[37m",
 }
 
-// ANSI background color codes
+// ansiBgColors maps color names to ANSI escape sequences for background colors.
+// These are used to change the background color behind terminal text.
 var ansiBgColors = map[string]string{
 	"black":  "\033[40m",
 	"red":    "\033[41m",
@@ -51,7 +61,9 @@ var ansiBgColors = map[string]string{
 	"white":  "\033[47m",
 }
 
-// Style represents a combination of foreground, background and text styles.
+// Style represents a combination of ANSI styles for terminal text,
+// including foreground color, background color, bold, and underline.
+// Use New() to construct a Style and apply styling methods fluently.
 type Style struct {
 	fg        string
 	bg        string
@@ -59,36 +71,40 @@ type Style struct {
 	underline bool
 }
 
-// New returns a new empty Style instance.
+// New returns a new Style instance with no styles applied.
+// You can chain methods like Fg, Bg, Bold, and Underline to apply formatting.
 func New() *Style {
 	return &Style{}
 }
 
-// Fg sets the foreground color.
+// Fg sets the foreground (text) color using a named ANSI color.
+// Available options: black, red, green, yellow, blue, purple, cyan, white.
 func (s *Style) Fg(color string) *Style {
 	s.fg = ansiFgColors[color]
 	return s
 }
 
-// Bg sets the background color.
+// Bg sets the background color using a named ANSI color.
+// Available options: black, red, green, yellow, blue, purple, cyan, white.
 func (s *Style) Bg(color string) *Style {
 	s.bg = ansiBgColors[color]
 	return s
 }
 
-// Bold enables bold text style.
+// Bold enables bold formatting on the styled text.
 func (s *Style) Bold() *Style {
 	s.bold = true
 	return s
 }
 
-// Underline enables underline text style.
+// Underline enables underline formatting on the styled text.
 func (s *Style) Underline() *Style {
 	s.underline = true
 	return s
 }
 
-// Sprint returns the styled string.
+// Sprint returns the input string with all the applied styles (colors and decorations).
+// The result includes ANSI escape sequences and ends with a reset code.
 func (s *Style) Sprint(text string) string {
 	var sb strings.Builder
 
@@ -110,17 +126,17 @@ func (s *Style) Sprint(text string) string {
 	return sb.String()
 }
 
-// Print prints the styled text.
+// Print writes the styled string to standard output without a newline.
 func (s *Style) Print(text string) {
 	fmt.Print(s.Sprint(text))
 }
 
-// Println prints the styled text followed by a new line.
+// Println writes the styled string to standard output followed by a newline.
 func (s *Style) Println(text string) {
 	fmt.Println(s.Sprint(text))
 }
 
-// Sprintf returns a formatted and styled string.
+// Sprintf formats a string using fmt.Sprintf and applies the style to the result.
 func (s *Style) Sprintf(format string, args ...interface{}) string {
 	formatted := fmt.Sprintf(format, args...)
 	return s.Sprint(formatted)

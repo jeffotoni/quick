@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-// Example demonstrating different use cases with gcolor
+// This function is named ExampleStyle_sprintf()
+// it with the Examples type.
 func ExampleStyle_sprintf() {
 	traceID := "abc123"
 	duration := 150 * time.Millisecond
@@ -36,6 +37,8 @@ func ExampleStyle_sprintf() {
 	log.Println("Running with colored prefix")
 }
 
+// This function is named ExampleStyle_sprint()
+// it with the Examples type.
 func ExampleStyle_sprint() {
 	New().
 		Fg("red").
@@ -45,6 +48,8 @@ func ExampleStyle_sprint() {
 		Println("Hello, colorful Quick!")
 }
 
+// This function is named ExampleStyle_basic()
+// it with the Examples type.
 func ExampleStyle_basic() {
 	New().Fg("green").Println("Success message")
 	New().Fg("white").Bg("red").Println("Error with red background")
@@ -53,11 +58,15 @@ func ExampleStyle_basic() {
 	New().Fg("blue").Bg("white").Bold().Underline().Println("Styled and readable message")
 }
 
+// This function is named ExampleStyle_formatted()
+// it with the Examples type.
 func ExampleStyle_formatted() {
 	user := "jeffotoni"
 	fmt.Println(New().Fg("green").Sprintf("Welcome, %s!", user))
 }
 
+// This function is named ExampleStyle_logging()
+// it with the Examples type.
 func ExampleStyle_logging() {
 	traceID := "abc123"
 	duration := 215 * time.Millisecond
@@ -69,6 +78,8 @@ func ExampleStyle_logging() {
 	)
 }
 
+// This function is named ExampleStyle_reusable()
+// it with the Examples type.
 func ExampleStyle_reusable() {
 	warnStyle := New().Fg("yellow").Bold()
 	warnStyle.Println("Disk space running low...")
@@ -77,11 +88,15 @@ func ExampleStyle_reusable() {
 	infoStyle.Println("Server started successfully")
 }
 
+// This function is named ExampleStyle_loggerPrefix()
+// it with the Examples type.
 func ExampleStyle_loggerPrefix() {
 	log.SetPrefix(New().Fg("purple").Sprint("[ "))
 	log.Println("Logger initialized")
 }
 
+// This function is named ExampleStyle_buildAndStore()
+// it with the Examples type.
 func ExampleStyle_buildAndStore() {
 	style := New().Fg("red").Bold().Underline()
 	fmt.Println(style.Sprint("Reusable styled message"))
