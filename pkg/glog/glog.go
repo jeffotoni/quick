@@ -607,7 +607,11 @@ func levelPriority(l Level) int {
 }
 
 // TestLevelPriority exposes the numeric level of a Level (for tests).
-func TestLevelPriority(l Level) int
+func TestLevelPriority(l Level) int {
+	return levelPriority(l)
+}
 
 // TestBytesToString returns a string view of bytes without allocation (for tests).
-func TestBytesToString(b []byte) string
+func TestBytesToString(b []byte) string {
+	return bytesToString(b)
+}
