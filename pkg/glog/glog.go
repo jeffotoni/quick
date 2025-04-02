@@ -48,20 +48,20 @@ import (
 type Level string
 
 const (
-	DEBUG Level = "DEBUG"
-	INFO  Level = "INFO"
-	WARN  Level = "WARN"
-	ERROR Level = "ERROR"
+	DEBUG Level = "DEBUG" // Fine-grained debugging information
+	INFO  Level = "INFO"  // General operational entries
+	WARN  Level = "WARN"  // Indications of potential issues
+	ERROR Level = "ERROR" // Errors that should be investigated
 )
 
 // Predefined time layouts for log formatting.
 const (
-	LayoutDefault     = time.RFC3339
-	LayoutCompact     = "20060102T150405"
+	LayoutDefault     = time.RFC3339      // Default layout: 2006-01-02T15:04:05Z07:00
+	LayoutCompact     = "20060102T150405" // Compact layout: 20250101T150405
 	LayoutDateTime    = "2006-01-02 15:04:05"
 	LayoutDateOnly    = "2006-01-02"
 	LayoutTimeOnly    = "15:04:05"
-	LayoutISO8601Nano = time.RFC3339Nano
+	LayoutISO8601Nano = time.RFC3339Nano // High-precision layout
 )
 
 // Constants for JSON formatting to avoid allocations.
@@ -81,12 +81,14 @@ const (
 )
 
 // Config defines the configuration for the logger instance.
+// Config defines the global configuration used to initialize a Logger.
+// It can be passed to glog.Set or glog.New.
 type Config struct {
 	Format     string    // Output format: "text", "json", or "slog"
-	Writer     io.Writer // Output destination (defaults to os.Stdout)
-	TimeFormat string    // Time layout format
-	Level      Level     // Minimum log level to output
-	Separator  string    // Field separator for text and slog formats
+	Writer     io.Writer // Destination writer (e.g., os.Stdout, file, buffer)
+	TimeFormat string    // Time layout used by Time() or AddTime()
+	Level      Level     // Minimum level to output (DEBUG, INFO, WARN, ERROR)
+	Separator  string    // Used for text and slog formats to separate fields
 }
 
 // Field represents a key-value log field with zero allocations.
@@ -604,11 +606,8 @@ func levelPriority(l Level) int {
 	}
 }
 
-// only test
-func TestLevelPriority(l Level) int {
-	return levelPriority(l)
-}
+// TestLevelPriority exposes the numeric level of a Level (for tests).
+func TestLevelPriority(l Level) int
 
-func TestBytesToString(b []byte) string {
-	return bytesToString(b)
-}
+// TestBytesToString returns a string view of bytes without allocation (for tests).
+func TestBytesToString(b []byte) string
