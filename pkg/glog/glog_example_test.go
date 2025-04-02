@@ -438,3 +438,25 @@ func ExampleEntry_Send_text() {
 	// Output:
 	// true
 }
+
+// This function is named ExampleSet_defaults()
+// it with the Examples type.
+func ExampleSet_defaults() {
+	var buf bytes.Buffer
+
+	logger := Set(Config{
+		Writer: &buf,
+		Format: "slog",
+	})
+
+	logger.Info().
+		Level().
+		Str("app", "example").
+		Msg("hello").
+		Send()
+
+	fmt.Println(buf.String())
+
+	// Output:
+	// level=INFO app=example msg=hello
+}
