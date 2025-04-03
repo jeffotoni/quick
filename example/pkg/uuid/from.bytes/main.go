@@ -1,0 +1,17 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/jeffotoni/quick/pkg/uuid"
+)
+
+func main() {
+	b := []byte{0x12, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x12, 0xd3, 0xa4, 0x56, 0x42, 0x66, 0x14, 0x17, 0x40, 0x00}
+	uuid, err := uuid.FromBytes(b)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("UUID:", uuid)
+}
