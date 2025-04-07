@@ -17,11 +17,5 @@ func main() {
 /**
 $ curl -i XGET localhost:8080/v1/user
 HTTP/1.1 200 OK
-Content-Type: application/json
-Date: Thu, 27 Mar 2025 19:06:20 GMT
-Content-Length: 13
-
 Quick! ❤️
 */
-
-
