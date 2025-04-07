@@ -31,3 +31,7 @@ func main() {
 	fmt.Println("Server running on :3000")
 	log.Fatal(q.Listen("0.0.0.0:3000"))
 }
+
+// $ curl -X POST http://localhost:3000/postform \
+//  -d "name=quick" \
+//  -d "email=quick@example.com"
