@@ -120,6 +120,9 @@ $ git checkout -b feat/timeout-middleware
 follow step by step on the  instructions to create a pull request
  - First you go to your forked repository on GitHub;
  - Click on the Compare & pull request button (it appears after the push);
+  
+  ![Pullrequestarrow](./PullReuqestArrow.png)
+ 
  - Check that the base is correct:
  ```bash
  Here is a example:
@@ -131,7 +134,11 @@ follow step by step on the  instructions to create a pull request
  ```
  - compare: my-feature
  - Add a title and description explaining the change.
- - Click on Create pull request.
+
+ ![pullrequesttext](./pullrequesttext.png)
+
+ - Click on Create pull request
+
 
 ## 📦 What can you do?
 
