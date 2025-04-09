@@ -66,10 +66,4 @@ q.Use(healthcheck.New(
 ---
 
 
-## 🚧 **Coming soon!**
-- Etag
-- Pprof
-- Proxy
-- RequestID
-- Skip
-- Timeout
+
