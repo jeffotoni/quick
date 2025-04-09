@@ -262,9 +262,5 @@ func main() {
 JSON Logging
 ```bash
 $ curl -i -XGET http://localhost:8080/v1/logger/json
-```
-#### Console:
-![Quick Logger Example](../readmeLogs/log.format.json.png)
-
-
+``
 ---
