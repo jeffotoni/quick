@@ -163,13 +163,13 @@ func main() {
 ### 🔹 Request authenticated via user and password
 
 ```bash
-curl -u admin:1234 http://localhost:8080/protected
+$ curl -u admin:1234 http://localhost:8080/protected
 ```
 
 ### 🔹 Request authenticated via Authorization header
 
 ```bash
-curl -H "Authorization: Basic YWRtaW46MTIzNA==" http://localhost:8080/protected
+$ curl -H "Authorization: Basic YWRtaW46MTIzNA==" http://localhost:8080/protected
 ```
 
 ---
