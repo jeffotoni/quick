@@ -16,7 +16,6 @@ package main
 import (
     "fmt"
     "log"
-
     "github.com/jeffotoni/quick"
     "github.com/jeffotoni/quick/middleware/cors"
 )
@@ -66,6 +65,68 @@ func main() {
 }
 
 ```
+---
+### 📌 Configuring HTTP server 
+
+```go
+package cors
+
+import (
+	"fmt"
+
+	"github.com/jeffotoni/quick"
+)
+
+// This function is named ExampleNew()
+//
+//	it with the Examples type.
+func ExampleNew() {
+	q := quick.New()
+
+	q.Use(New(Config{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true,
+		Debug:            true,
+	}))
+
+	q.Post("/v1/user", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		type My struct {
+			Name string `json:"name"`
+			Year string `json:"year"`
+		}
+
+		var my My
+		err := c.BodyParser(&my)
+		fmt.Println("byte:", string(c.Body()))
+
+		if err != nil {
+			return c.Status(400).SendString(err.Error())
+		}
+
+		fmt.Println("String:", c.BodyString())
+		return c.Status(200).JSON(my)
+	})
+
+	// Send test request using Quick's built-in test utility
+	resp, _ := q.Qtest(quick.QuickTestOptions{
+		Method:  quick.MethodPost,
+		URI:     "/v1/user",
+		Headers: map[string]string{"Content-Type": "application/json"},
+		Body:    []byte(`{"name":"Alice","year":"2024"}`),
+	})
+
+	fmt.Println("Response Body:", string(resp.Body()))
+
+	// Output
+	// byte: {"name":"Alice","year":"2024"}
+	// String: {"name":"Alice","year":"2024"}
+	// Response Body: {"name":"Alice","year":"2024"}
+}
+```
+
 ### 📌 Testing with cURL
 
 #### 🔹 Making a POST request with CORS enabled

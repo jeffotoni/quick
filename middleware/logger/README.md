@@ -49,7 +49,7 @@ Text Logging
 $ curl -i -XGET http://localhost:8080/v1/logger
 ```
 #### Console:
-![Quick Logger Example](../readmeLogs/log.simple.png)
+![Quick Logger Example](/readmeLogs/log.simple.png)
 
 ---
 
@@ -120,7 +120,7 @@ Text Logging
 $ curl -i -XGET http://localhost:8080/v1/logger
 ```
 #### Console:
-![Quick Logger Example](../readmeLogs/log.format.text.png)
+![Quick Logger Example](/readmeLogs/log.format.text.png)
 
 ---
 ### 🛠️ Structured Logging (Slog Format)
@@ -197,7 +197,7 @@ func main() {
 $ curl -i -XGET http://localhost:8080/v1/logger/slog
 ```
 #### Console:
-![Quick Logger Example](../readmeLogs/log.format.slog.png)
+![Quick Logger Example](/readmeLogs/log.format.slog.png)
 
 ---
 ### 📦 JSON Logging (Machine-Readable)

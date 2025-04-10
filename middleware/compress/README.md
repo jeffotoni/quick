@@ -13,6 +13,11 @@ The Quick framework supports multiple styles of middleware implementation for GZ
 ### 1️⃣ Native Quick Implementation (quick.Handler)
 This is the standard and recommended approach in Quick. It follows the framework’s native middleware pattern using quick.Handler.
 ```go
+package main
+import (
+    "net/http"
+    "github.com/your/project/quick"
+    )
 func Gzip() func(next quick.Handler) quick.Handler {
     return func(next quick.Handler) quick.Handler {
         return quick.HandlerFunc(func(c *quick.Ctx) error {
@@ -50,6 +55,17 @@ func Gzip() func(next quick.Handler) quick.Handler {
 Quick also supports quick.HandlerFunc, which allows a function-based syntax instead of using the Handler interface.
 
 ```go
+package main
+import (
+	"compress/gzip"
+	"io"
+	"net/http"
+	"strings"
+	"sync"
+
+	"github.com/jeffotoni/quick"
+)
+
 func Gzip() func(next quick.HandlerFunc) quick.HandlerFunc {
     return func(next quick.HandlerFunc) quick.HandlerFunc {
         return func(c *quick.Ctx) error {
@@ -86,6 +102,13 @@ func Gzip() func(next quick.HandlerFunc) quick.HandlerFunc {
 Quick also supports native `net/http` middleware, making it compatible with standard Go HTTP handlers.
 
 ```go
+package main
+import(
+	"compress/gzip"
+	"fmt"
+	"net/http"
+	"strings"
+	)
 func clientSupportsGzipHttp(r *http.Request) bool {
     return strings.Contains(strings.ToLower(r.Header.Get("Accept-Encoding")), "gzip")
 }
@@ -120,6 +143,7 @@ func Gzip() func(h http.Handler) http.Handler {
         })
     }
 }
+
 ```
 #### 📌 ✅ Useful when integrating Quick with net/http-based applications.
 ---
