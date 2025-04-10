@@ -59,6 +59,11 @@ Use `glog`'s fluent context builder to create and retrieve values safely and eff
 ### Creating a context:
 
 ```go
+package main 
+import (
+	"context"
+	"github.com/jeffotoni/quick/pkg/glog"
+	)
 ctx, cancel := glog.CreateCtx().
 	Set("X-Trace-ID", "abc-123").
 	Set("X-User-ID", "user-42").
@@ -81,7 +86,16 @@ fields := glog.GetCtxAll(ctx)
 ## Example
 
 ```go
-...
+package main
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+	"github.com/jeffotoni/quick/pkg/glog"
+	)
+
+
 func main() {
 
 	logger := glog.New(glog.Config{

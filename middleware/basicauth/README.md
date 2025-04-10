@@ -33,10 +33,121 @@ Content-Length: 50
 ---
 
 ---
+### 📌 Basic Authusing environment variables
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/jeffotoni/quick"
+	middleware "github.com/jeffotoni/quick/middleware/basicauth"
+)
+
+var (
+	User     = os.Getenv("USER")
+	Password = os.Getenv("PASSWORD")
+)
+
+func main() {
+
+	q := quick.New()
+	// Adding BasicAuth middleware
+	q.Use(middleware.BasicAuth(User, Password))
+
+	// Protected route
+	q.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	// Starting the server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+---
+
+### 📌 Basic Authentication with Quick Middleware
+
+```go
+package basicauth
+
+import (
+	"log"
+	"github.com/jeffotoni/quick"
+	middleware "github.com/jeffotoni/quick/middleware/basicauth"
+)
+
+// This function is named ExampleBasicAuth()
+// it with the Examples type.
+func ExampleBasicAuth() {
+	//starting Quick
+	q := quick.New()
+
+	// calling middleware
+	q.Use(BasicAuth("admin", "1234"))
+
+	// everything below Use will apply the middleware
+	q.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	// Start server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+
+```
+### 📌 Basic Authentication with Quick Route Groups
+```go
+package main
+import (
+	"log"
+	middleware "github.com/jeffotoni/quick/middleware/basicauth"
+	"github.com/jeffotoni/quick"
+	)
+func main() {
+	q := quick.New()
+
+	// Using a group to isolate protected routes
+	gr := q.Group("/")
+
+	// Applying BasicAuth middleware to the group
+	gr.Use(middleware.BasicAuth("admin", "1234"))
+
+	// Public route
+	q.Get("/v1/user", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("Public quick route")
+	})
+
+	// Protected route
+	gr.Get("/protected", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.SendString("You have accessed a protected route!")
+	})
+
+	// Start server
+	log.Fatal(q.Listen("0.0.0.0:8080"))
+}
+```
+
 ### 📌 Manual implementation of BasicAuth
 
 ```go
+package main
+
+import (
+	"encoding/base64"
+	"log"
+	"net/http"
+	"strings"
+	"github.com/jeffotoni/quick"
+)
+
 func main() {
+
 	q := quick.New()
 
 	// BasicAuth Middleware manual
@@ -78,86 +189,6 @@ func main() {
 }
 ```
 ---
-
-### 📌 Basic Authusing environment variables
-
-```go
-package main
-
-import (
-	"log"
-
-	"github.com/jeffotoni/quick"
-	middleware "github.com/jeffotoni/quick/middleware/basicauth"
-)
-
-var (
-	User     = os.Getenv("USER")
-	Password = os.Getenv("PASSWORD")
-)
-
-func main() {
-
-	q := quick.New()
-	// Adding BasicAuth middleware
-	q.Use(middleware.BasicAuth(User, Password))
-
-	// Protected route
-	q.Get("/protected", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-		return c.SendString("You have accessed a protected route!")
-	})
-
-	// Starting the server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
-}
-```
----
-
-### 📌 Basic Authentication with Quick Middleware
-
-```go
-	q := quick.New()
-	// Applying BasicAuth middleware
-	q.Use(middleware.BasicAuth("admin", "1234"))
-
-	// All routes below `Use` will require authentication
-	q.Get("/protected", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-		return c.SendString("You have accessed a protected route!")
-	})
-
-	// Start server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
-```
-### 📌 Basic Authentication with Quick Route Groups
-```go
-
-func main() {
-	q := quick.New()
-
-	// Using a group to isolate protected routes
-	gr := q.Group("/")
-
-	// Applying BasicAuth middleware to the group
-	gr.Use(middleware.BasicAuth("admin", "1234"))
-
-	// Public route
-	q.Get("/v1/user", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-		return c.SendString("Public quick route")
-	})
-
-	// Protected route
-	gr.Get("/protected", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
-		return c.SendString("You have accessed a protected route!")
-	})
-
-	// Start server
-	log.Fatal(q.Listen("0.0.0.0:8080"))
-}
-```
 ### 📌 Testing with cURL
 
 ### 🔹 Request authenticated via user and password

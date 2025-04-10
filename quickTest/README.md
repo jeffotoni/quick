@@ -14,6 +14,11 @@ The `Qtest` function takes a `QuickTestOptions` struct containing request parame
 
 ### 🛠 Core Function
 ```go
+package main
+import (
+	"github.com/quick/quick"
+	"github.com/quick/quick/httptest"
+	)
 func (q Quick) Qtest(opts QuickTestOptions) (QtestReturn, error) {
     // Build URL with query parameters (if any)
     uriWithParams, err := attachQueryParams(opts.URI, opts.QueryParams)
