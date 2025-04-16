@@ -53,6 +53,7 @@ var (
 func main() {
 
 	q := quick.New()
+
 	// Adding BasicAuth middleware
 	q.Use(middleware.BasicAuth(User, Password))
 
@@ -133,7 +134,7 @@ func main() {
 }
 ```
 
-### 📌 Manual implementation of BasicAuth
+### 📌 Custom implementation of BasicAuth
 
 ```go
 package main
@@ -150,7 +151,7 @@ func main() {
 
 	q := quick.New()
 
-	// BasicAuth Middleware manual
+	// BasicAuth Middleware Custom
 	q.Use(func(next http.Handler) http.Handler {
 		username := "admin"
 		password := "1234"
