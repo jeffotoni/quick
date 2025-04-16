@@ -23,7 +23,9 @@ func main() {
 		}
 
 		// Return the parsed JSON data as a response with 200 OK
-		return c.Status(200).JSON(&my)
+		return c.Status(200).JSON(quick.M{
+			"name": "jeff",
+		})
 
 		// Alternative:
 		// return c.Status(200).String(c.BodyString())
