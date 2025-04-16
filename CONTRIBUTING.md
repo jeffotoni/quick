@@ -12,12 +12,19 @@ Thank you for considering contributing to **Quick** – a Go framework designed 
 
 You can click the **"Fork"** button at the top of the repository page on GitHub.
 
+![ForkImage](./fork.png)
 ---
 
 ### 🌱 2. Clone your fork locally
 
+HTTPS
 ```bash
 $ git clone https://github.com/YOUR_USER/quick.git
+$ cd quick
+```
+SSH
+```bash
+$ git clone ssh://git@github.com/YOUR_USER/quick.git
 $ cd quick
 ```
 
@@ -38,10 +45,11 @@ $ git checkout -b fix/fix-readme-url
 $ git checkout -b docs/logger-example
 ```
 
-## ✏️ 4. Make your changes and commit
+## ✏️ 4. Make your changes, commit and push using the pattern
 
 ```bash
-$ git add . $ git commit -m "feat: add timeout middleware"
+$ git add . 
+$ git commit -am "feat: add timeout middleware"
 $ git push origin feat/your-feature-name
 ```
 
@@ -50,6 +58,8 @@ $ git push origin feat/your-feature-name
 • Access your fork on GitHub
 • Click “Compare & Pull Request”
 • Submit the PR to the jeffotoni:main branch
+
+![PullRequest](./pullrequest.png)
 
 ## 🔄 6. (Optional) Keep your fork up to date
 
@@ -81,7 +91,7 @@ $ git push origin main
 
 ## 🌱 Branch name pattern
 
-Use the same pattern as the commit, adapted as a branch prefix:
+Always use the same pattern as the commit, adapted as a branch prefix:
 
 | Prefix | Description | Example |
 |---------------|----------------------------------------|------------------------------------|
@@ -106,6 +116,29 @@ refactor: simplify error handler logic
 ```bash
 $ git checkout -b feat/timeout-middleware
 ```
+### ✅ 7. Create the Pull Request (in the browser)
+follow step by step on the  instructions to create a pull request
+ - First you go to your forked repository on GitHub;
+ - Click on the Compare & pull request button (it appears after the push);
+  
+  ![Pullrequestarrow](./PullReuqestArrow.png)
+ 
+ - Check that the base is correct:
+ ```bash
+ Here is a example:
+   base repository: jeffotoni/quick
+ ```
+ - base branch: usually main or the branch of the main project.
+ ```bash
+ - head repository: your-user/quick
+ ```
+ - compare: my-feature
+ - Add a title and description explaining the change.
+
+ ![pullrequesttext](./pullrequesttext.png)
+
+ - Click on Create pull request
+
 
 ## 📦 What can you do?
 
