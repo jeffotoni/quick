@@ -21,7 +21,6 @@ package main
 
 import (
 	"time"
-
 	"github.com/jeffotoni/quick"
 	"github.com/jeffotoni/quick/middleware/limiter"
 )
