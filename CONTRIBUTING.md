@@ -86,7 +86,6 @@ $ git merge upstream/main
 
 ```bash
 $ git push origin main
-
 ```
 
 ## 🌱 Branch name pattern
@@ -103,13 +102,13 @@ Always use the same pattern as the commit, adapted as a branch prefix:
 | `test/` | Unit tests | `test/add-msguuid-test` |
 | `chore/` | Internal tasks | `chore/update-dependencies` |
 
-📌 Example commits:
+**📌 Example commits:**
 
-feat: add timeout middleware
-fix: correct panic when body is nil
-docs: improve README with example for logger
-test: add unit test for msguuid middleware
-refactor: simplify error handler logic
+    feat: add timeout middleware
+    fix: correct panic when body is nil
+    docs: improve README with example for logger
+    test: add unit test for msguuid middleware
+    refactor: simplify error handler logic
 
 ### 📌 Example branch creation:
 
@@ -126,7 +125,7 @@ follow step by step on the  instructions to create a pull request
  - Check that the base is correct:
  ```bash
  Here is a example:
-   base repository: jeffotoni/quick
+ base repository: jeffotoni/quick
  ```
  - base branch: usually main or the branch of the main project.
  ```bash
@@ -137,12 +136,12 @@ follow step by step on the  instructions to create a pull request
 
  ![pullrequesttext](./pullrequesttext.png)
 
- - Click on Create pull request
+**- Click on Create pull request**
 
 
 ## 📦 What can you do?
 
-You can contribute in many ways — all are welcome:
+**You can contribute in many ways — all are welcome:**
 🐞 Fix links or typos
 📚 Add or improve usage examples in examples/
 💬 Comment functions in the code clearly
@@ -150,17 +149,18 @@ You can contribute in many ways — all are welcome:
 🧪 Write unit tests using QTest
 ✍️ Improve documentation
 
-💡 It doesn't matter how big your contribution is. The important thing is to contribute.
+**💡 It doesn't matter how big your contribution is. The important thing is to contribute.**
 
-## 🧪 What is mandatory in the code? ✅ Always unit tests, check the examples in Quick
+## 🧪 What is mandatory in the code? 
+✅ Always unit tests, check the examples in Quick
 ✅ Test coverage if possible 100% of what is being proposed
 ✅ Objective and direct comments about what the function does
 ✅ Clean, idiomatic code, and following good Go practices
 
 ## 💚 Support the project
 
-If you want to thank or support Quick, here are some simple ways to do so:
-• ⭐ Give a star to the repository here on [GitHub](https://github.com/jeffotoni/quick)
+**If you want to thank or support Quick, here are some simple ways to do so:**
+• ⭐ Give a star to the repository here on [GitHub Quick](https://github.com/jeffotoni/quick)
 • 📢 Share the project on your social networks
 • ✍️ Write a post or tutorial on [Dev.to](https://dev.to) or on your personal blog
 • ☕ Support with a cup of coffee: [patreon.com/go_quick](https://patreon.com/go_quick)
@@ -171,6 +171,6 @@ If you want to thank or support Quick, here are some simple ways to do so:
 - It will be a pleasure to help you contribute to the project.
 - You can post in [discussions](https://github.com/jeffotoni/quick/discussions)
 
-Let's **godar** with purpose, community and lightness.
+**Let's **godar** with purpose, community and lightness.**
 
-You are very welcome! 🚀
+**You are very welcome! 🚀 💚**
