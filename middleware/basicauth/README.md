@@ -20,7 +20,7 @@ Content-Type: application/json
 Content-Length: 50
 {
     "username": "admin",
-    "password": "1234"
+    "password": "12345"
 }
 ```
 📌 **Important headers in `BasicAuth`:**
