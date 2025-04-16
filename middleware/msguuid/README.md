@@ -28,7 +28,6 @@ package main
 import (
     "fmt"
     "log"
-
     "github.com/jeffotoni/quick"
     "github.com/jeffotoni/quick/middleware/msguuid"
 )
