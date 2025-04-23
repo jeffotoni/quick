@@ -112,7 +112,7 @@ func (b *CtxBuilder) Set(key, value string) *CtxBuilder {
 	return b
 }
 
-// Timeout define uma duração de timeout personalizada para o contexto
+// Timeout sets a customized timeout duration for the context
 func (b *CtxBuilder) Timeout(d time.Duration) *CtxBuilder {
 	if d > 0 {
 		b.timeout = d
