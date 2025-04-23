@@ -31,6 +31,7 @@ func ExampleBasicAuth() {
 	log.Fatal(q.Listen("0.0.0.0:8080"))
 }
 
+//This function is named ExampleBasicAuth_withGroup
 func ExampleBasicAuth_withGroup() {
 	//starting Quick
 	q := quick.New()
