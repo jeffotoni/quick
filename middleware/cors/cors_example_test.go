@@ -1,3 +1,13 @@
+// Package cors provides Cross-Origin Resource Sharing (CORS) middleware
+// for the Quick web framework. It implements proper CORS headers and
+// preflight request handling according to W3C specifications.
+
+// Key Features:
+//   - Configurable allowed origins, methods, and headers
+//   - Support for credentialed requests
+//   - Preflight request handling
+//   - Debug mode for development
+//   - Simple integration with Quick framework
 package cors
 
 import (
@@ -6,8 +16,21 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
+// ExampleNew demonstrates a basic CORS configuration allowing requests
+// from any origin with common HTTP methods and headers.
+
+// This example shows:
+//   - How to configure CORS middleware with permissive settings
+//   - Handling of POST requests with JSON body
+//   - Response headers and status codes
+
+//   # Preflight request
+//   curl -X OPTIONS http://localhost:8080/v1/user \
+//     -H "Origin: http://example.com" \
+//     -H "Access-Control-Request-Method: POST" \
+//     -H "Access-Control-Request-Headers: content-type"
+
 // This function is named ExampleNew()
-//
 //	it with the Examples type.
 func ExampleNew() {
 	q := quick.New()

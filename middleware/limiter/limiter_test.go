@@ -9,13 +9,35 @@ import (
 
 	"github.com/jeffotoni/quick"
 )
-
-// TestLimiterMiddleware ensures that the rate limiter correctly blocks requests after the limit is reached.
+// TestLimiterMiddleware verifies the complete behavior of the rate limiting middleware.
+//
+// The test validates:
+//   - Request allowance within the defined limit
+//   - Proper blocking of requests exceeding the limit
+//   - Correct HTTP status codes (200 vs 429)
+//   - Rate limit window expiration and reset
+//   - Integration with the Quick framework
+//
+// Test Flow:
+// 1. Configures middleware with 3 requests per 2 seconds limit
+// 2. Makes 6 requests in sequence
+// 3. Verifies first 3 requests succeed (200 OK)
+// 4. Verifies next 3 requests are blocked (429 Too Many Requests)
+// 5. Waits for rate limit window to reset (2 seconds)
+// 6. Verifies requests are allowed again after reset
+//
+// Debugging:
+//   - The test includes debug logs to trace middleware execution
+//   - Key generation and limit reached callbacks are instrumented
 func TestLimiterMiddleware(t *testing.T) {
 	// Create a new Quick instance
 	q := quick.New()
 
-	// Apply the rate limiter middleware
+	// Configure rate limiting middleware with:
+	// - Maximum 3 requests per window
+	// - 2 second window duration
+	// - Client IP as rate limit key
+	// - Custom rate limit response
 	q.Use(New(Config{
 		Max:        3,               // Allow up to 3 requests
 		Expiration: 2 * time.Second, // Reset after 2 seconds

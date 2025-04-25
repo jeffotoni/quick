@@ -1,3 +1,12 @@
+// Package limiter provides request rate limiting middleware for Go web applications.
+// It implements a flexible token bucket algorithm to control request frequency.
+//
+// Key Features:
+//   - Configurable request limits and time windows
+//   - Customizable rate limit keys (IP, user ID, etc.)
+//   - Group-specific rate limiting
+//   - Custom responses for rate-limited requests
+//   - Simple integration with Quick framework
 package limiter
 
 import (
@@ -6,14 +15,20 @@ import (
 
 	"github.com/jeffotoni/quick"
 )
-
-// This function is named ExampleRateLimiter()
-// it with the Examples type.
-// ExampleRateLimiter demonstrates the usage of the rate limiting middleware.
+// ExampleRateLimiter demonstrates basic rate limiting configuration.
+// This example shows:
+//   - Setting a global rate limit (3 requests per 10 seconds)
+//   - Using a fixed client key for testing
+//   - Custom response for rate-limited requests
+//   - Integration with Quick framework
 func ExampleRateLimiter() {
 	q := quick.New()
 
-	// Apply the rate limiter middleware before defining routes
+	// Configure rate limiting with:
+	// - Max: 3 requests per window
+	// - Window: 10 seconds
+	// - Fixed client key for testing
+	// - Custom rate limit response
 	q.Use(New(Config{
 		Max:        3,
 		Expiration: 10 * time.Second,
