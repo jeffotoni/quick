@@ -35,6 +35,7 @@ var names = []string{"Jefferson", "Arthur", "Mariana", "Carlos",
 	"Fernanda", "João", "Beatriz", "Gabriel", "Maria", "Jaque",
 	"Gael", "Vanessa", "Felipe", "Tatiane", "Lucas", "Larissa", "Pedro"}
 
+// Generate a random name 
 func randomName() string {
 	return names[rand.Intn(len(names))]
 }
@@ -42,7 +43,7 @@ func randomName() string {
 // Function to generate a random instance
 func generateRandomCreateJSON() CreateJSON {
 	rand.Seed(time.Now().UnixNano())
-
+	
 	return CreateJSON{
 		ID:    fmt.Sprintf("%d", rand.Intn(999999)),
 		Name:  randomName(),

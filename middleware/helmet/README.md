@@ -12,7 +12,6 @@
 - Supports skipping middleware per request
 
 ---
-
 ### 🛡️ Default Headers
 
 | Feature                                             | Status | Notes / Observations                                 |
@@ -44,47 +43,48 @@
 ---
 
 ### 🧩 Example Usage
+
 ```go
 package main
 
 import (
-	"github.com/jeffotoni/quick"
-	"github.com/seuusuario/helmet"
-	
+    "github.com/jeffotoni/quick"
+    "github.com/seuusuario/helmet"
+    
 )
 
 func main() {
-	q := quick.New()
+    q := quick.New()
 
-	// Use Helmet middleware with default security headers
-	q.Use(helmet.Helmet())
+    // Use Helmet middleware with default security headers
+    q.Use(helmet.Helmet())
 
-	// Simple route to test headers
-	q.Get("/v1/user", func(c *quick.Ctx) error {
+    // Simple route to test headers
+    q.Get("/v1/user", func(c *quick.Ctx) error {
 
-		// list all headers
-		headers := make(map[string]string)
-		for k, v := range c.Response.Header() {
-			if len(v) > 0 {
-				headers[k] = v[0]
-			}
-		}
-		return c.Status(200).JSONIN(headers)
-	})
+        // list all headers
+        headers := make(map[string]string)
+        for k, v := range c.Response.Header() {
+            if len(v) > 0 {
+                headers[k] = v[0]
+            }
+        }
+        return c.Status(200).JSONIN(headers)
+    })
 
-	q.Listen("0.0.0.0:8080")
+    q.Listen("0.0.0.0:8080")
 }
 ```
+---
+
 ### 📌 cURL
 ```bash
 $ curl -X GET 'http://localhost:8080/v1/user'
 ```
 
-### 📥 Example Output
+### 📌 Response
 
-Here's an example of the response headers returned:
-
-```go
+```bash
 {
   "Cache-Control": "no-cache, no-store, must-revalidate",
   "Content-Security-Policy": "default-src 'self'",
@@ -100,29 +100,4 @@ Here's an example of the response headers returned:
   "X-Permitted-Cross-Domain-Policies": "none",
   "X-XSS-Protection": "0"
 }
-```
----
-### ⚙️ Custom Configuration
-
-You can override any of the default headers by providing an Options struct:
-
-```go
-app.Use(helmet.Helmet(helmet.Options{
-	XSSProtection:         "1; mode=block",
-	ContentSecurityPolicy: "default-src 'self'; script-src 'none'",
-	XFrameOptions:         "DENY",
-	HSTSMaxAge:            63072000,
-	HSTSPreloadEnabled:    true,
-}))
-```
-
-You can also use the `Next` function to conditionally skip the middleware:
-
-```go
-app.Use(helmet.Helmet(helmet.Options{
-	Next: func(c *quick.Ctx) bool {
-		// Skip for health checks
-		return c.Path() == "/health"
-	},
-}))
 ```

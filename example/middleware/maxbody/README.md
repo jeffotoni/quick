@@ -149,6 +149,7 @@ $ curl -i -X POST http://localhost:8080/v1/user/maxbody/large \
 
 ---
 
-Now you can **complete with your specific examples** where I left the spaces ` ```go ... ``` `.
+Now you can **complete with your specific examples** where I left the spaces 
+.
 
 🚀 **If you need adjustments or improvements, just let me know!** 😃🔥

@@ -133,6 +133,8 @@ func TestNullUUIDUnmarshalText(t *testing.T) {
 	}
 }
 
+// This function is named TestNullUUIDMarshalBinary()
+// it with the Test type.
 func TestNullUUIDMarshalBinary(t *testing.T) {
 	tests := []struct {
 		nullUUID NullUUID

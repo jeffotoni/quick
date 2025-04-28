@@ -12,12 +12,19 @@ Thank you for considering contributing to **Quick** – a Go framework designed 
 
 You can click the **"Fork"** button at the top of the repository page on GitHub.
 
+![ForkImage](./fork.png)
 ---
 
 ### 🌱 2. Clone your fork locally
 
+HTTPS
 ```bash
 $ git clone https://github.com/YOUR_USER/quick.git
+$ cd quick
+```
+SSH
+```bash
+$ git clone ssh://git@github.com/YOUR_USER/quick.git
 $ cd quick
 ```
 
@@ -38,10 +45,11 @@ $ git checkout -b fix/fix-readme-url
 $ git checkout -b docs/logger-example
 ```
 
-## ✏️ 4. Make your changes and commit
+## ✏️ 4. Make your changes, commit and push using the pattern
 
 ```bash
-$ git add . $ git commit -m "feat: add timeout middleware"
+$ git add . 
+$ git commit -am "feat: add timeout middleware"
 $ git push origin feat/your-feature-name
 ```
 
@@ -50,6 +58,8 @@ $ git push origin feat/your-feature-name
 • Access your fork on GitHub
 • Click “Compare & Pull Request”
 • Submit the PR to the jeffotoni:main branch
+
+![PullRequest](./pullrequest.png)
 
 ## 🔄 6. (Optional) Keep your fork up to date
 
@@ -76,12 +86,11 @@ $ git merge upstream/main
 
 ```bash
 $ git push origin main
-
 ```
 
 ## 🌱 Branch name pattern
 
-Use the same pattern as the commit, adapted as a branch prefix:
+Always use the same pattern as the commit, adapted as a branch prefix:
 
 | Prefix | Description | Example |
 |---------------|----------------------------------------|------------------------------------|
@@ -93,23 +102,46 @@ Use the same pattern as the commit, adapted as a branch prefix:
 | `test/` | Unit tests | `test/add-msguuid-test` |
 | `chore/` | Internal tasks | `chore/update-dependencies` |
 
-📌 Example commits:
+**📌 Example commits:**
 
-feat: add timeout middleware
-fix: correct panic when body is nil
-docs: improve README with example for logger
-test: add unit test for msguuid middleware
-refactor: simplify error handler logic
+    feat: add timeout middleware
+    fix: correct panic when body is nil
+    docs: improve README with example for logger
+    test: add unit test for msguuid middleware
+    refactor: simplify error handler logic
 
 ### 📌 Example branch creation:
 
 ```bash
 $ git checkout -b feat/timeout-middleware
 ```
+### ✅ 7. Create the Pull Request (in the browser)
+follow step by step on the  instructions to create a pull request
+ - First you go to your forked repository on GitHub;
+ - Click on the Compare & pull request button (it appears after the push);
+  
+  ![Pullrequestarrow](./PullReuqestArrow.png)
+ 
+ - Check that the base is correct:
+ ```bash
+ Here is a example:
+ base repository: jeffotoni/quick
+ ```
+ - base branch: usually main or the branch of the main project.
+ ```bash
+ - head repository: your-user/quick
+ ```
+ - compare: my-feature
+ - Add a title and description explaining the change.
+
+ ![pullrequesttext](./pullrequesttext.png)
+
+**- Click on Create pull request**
+
 
 ## 📦 What can you do?
 
-You can contribute in many ways — all are welcome:
+**You can contribute in many ways — all are welcome:**
 🐞 Fix links or typos
 📚 Add or improve usage examples in examples/
 💬 Comment functions in the code clearly
@@ -117,17 +149,18 @@ You can contribute in many ways — all are welcome:
 🧪 Write unit tests using QTest
 ✍️ Improve documentation
 
-💡 It doesn't matter how big your contribution is. The important thing is to contribute.
+**💡 It doesn't matter how big your contribution is. The important thing is to contribute.**
 
-## 🧪 What is mandatory in the code? ✅ Always unit tests, check the examples in Quick
+## 🧪 What is mandatory in the code? 
+✅ Always unit tests, check the examples in Quick
 ✅ Test coverage if possible 100% of what is being proposed
 ✅ Objective and direct comments about what the function does
 ✅ Clean, idiomatic code, and following good Go practices
 
 ## 💚 Support the project
 
-If you want to thank or support Quick, here are some simple ways to do so:
-• ⭐ Give a star to the repository here on [GitHub](https://github.com/jeffotoni/quick)
+**If you want to thank or support Quick, here are some simple ways to do so:**
+• ⭐ Give a star to the repository here on [GitHub Quick](https://github.com/jeffotoni/quick)
 • 📢 Share the project on your social networks
 • ✍️ Write a post or tutorial on [Dev.to](https://dev.to) or on your personal blog
 • ☕ Support with a cup of coffee: [patreon.com/go_quick](https://patreon.com/go_quick)
@@ -138,6 +171,6 @@ If you want to thank or support Quick, here are some simple ways to do so:
 - It will be a pleasure to help you contribute to the project.
 - You can post in [discussions](https://github.com/jeffotoni/quick/discussions)
 
-Let's **godar** with purpose, community and lightness.
+**Let's **godar** with purpose, community and lightness.**
 
-You are very welcome! 🚀
+**You are very welcome! 🚀 💚**

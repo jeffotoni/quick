@@ -1,4 +1,4 @@
-# 📩 MsgID Middleware - Quick Framework ![Quick Logo](/quick.png)
+## 📩 MsgID Middleware - Quick Framework 
 
 The `MsgID Middleware`  automatically assigns a unique identifier (MsgID) to each request. This helps with tracking, debugging, and log correlation in distributed systems.
 
@@ -34,34 +34,30 @@ Here is an example of how to use the `MsgID Middleware` with Quick:
 package main
 
 import (
-	"fmt"
-	"log"
-	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/msguuid"
+    "fmt"
+    "log"
+    "github.com/jeffotoni/quick"
+    "github.com/jeffotoni/quick/middleware/msguuid"
 )
 
 func main() {
-	q := quick.New()
+    q := quick.New()
 
-	// Aplica o Middleware MsgID globalmente
-	q.Use(msgid.New())
+    // Apply MsgUUID Middleware globally
+    q.Use(msguuid.New())
 
-	// Define uma rota que retorna o MsgID gerado
-	q.Get("/v1/msgid/default", func(c *quick.Ctx) error {
-		c.Set("Content-Type", "application/json")
+    // Define an endpoint that responds with a UUID
+    q.Get("/v1/msguuid/default", func(c *quick.Ctx) error {
+        c.Set("Content-Type", "application/json")
 
-		// Obtém o MsgID do header da requisição
-		msgId := c.Request.Header.Get("Msgid")
+        // Log headers to validate UUID presence
+        fmt.Println("Headers:", c.Response.Header())
 
-		// Log para depuração
-		fmt.Printf("Generated MsgID: %s\n", msgId)
+        // Return a 200 OK status
+        return c.Status(200).JSON(nil)
+    })
 
-		// Retorna o MsgID no JSON da resposta
-		return c.Status(200).JSON(map[string]string{"msgid": msgId})
-	})
-
-	// Inicia o servidor
-	log.Fatal(q.Listen("0.0.0.0:8080"))
+    log.Fatal(q.Listen("0.0.0.0:8080"))
 }
 ```
 ### 📌 cURL
@@ -75,3 +71,4 @@ $ curl -i -X GET http://localhost:8080/v1/msguuid/default
   "msgid": "974562398"
 }
 ```
+---

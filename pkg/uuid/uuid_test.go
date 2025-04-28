@@ -153,6 +153,8 @@ func TestFromBytes(t *testing.T) {
 	}
 }
 
+// This function is named TestConstants()
+// it with the Test type.
 func TestConstants(t *testing.T) {
 	for x, tt := range constants {
 		v, ok := tt.c.(fmt.Stringer)
@@ -385,7 +387,8 @@ func TestNode(t *testing.T) {
 		t.Errorf("got interface %q, want %q", ni, "user")
 	}
 }
-
+// This function is named TestNodeAndTime()
+// it with the Test type.
 func TestNodeAndTime(t *testing.T) {
 	// Time is February 5, 1998 12:30:23.136364800 AM GMT
 
@@ -406,6 +409,8 @@ func TestNodeAndTime(t *testing.T) {
 	}
 }
 
+// This function is named TestMD5()
+// it with the Test type.
 func TestMD5(t *testing.T) {
 	uuid := NewMD5(NameSpaceDNS, []byte("python.org")).String()
 	want := "6fa459ea-ee8a-3ca4-894e-db77e160355e"
@@ -422,6 +427,8 @@ func TestSHA1(t *testing.T) {
 	}
 }
 
+// This function is named TestNodeID()
+// it with the Test type.
 func TestNodeID(t *testing.T) {
 	nid := []byte{1, 2, 3, 4, 5, 6}
 	SetNodeInterface("")
@@ -451,6 +458,8 @@ func TestNodeID(t *testing.T) {
 	}
 }
 
+// This function is named TestDCE()
+// it with the Test type.
 func testDCE(t *testing.T, name string, uuid UUID, err error, domain Domain, id uint32) {
 	if err != nil {
 		t.Errorf("%s failed: %v", name, err)
@@ -486,6 +495,8 @@ func (r badRand) Read(buf []byte) (int, error) {
 	return len(buf), nil
 }
 
+// This function is named TestBadRand()
+// it with the Test type.
 func TestBadRand(t *testing.T) {
 	SetRand(badRand{})
 	uuid1 := New()
@@ -501,6 +512,8 @@ func TestBadRand(t *testing.T) {
 	}
 }
 
+// This function is named TestSetRand()
+// it with the Test type.
 func TestSetRand(t *testing.T) {
 	myString := "805-9dd6-1a877cb526c678e71d38-7122-44c0-9b7c-04e7001cc78783ac3e82-47a3-4cc3-9951-13f3339d88088f5d685a-11f7-4078-ada9-de44ad2daeb7"
 
@@ -520,6 +533,8 @@ func TestSetRand(t *testing.T) {
 	}
 }
 
+// This function is named TestRandomFromReader()
+// it with the Test type.
 func TestRandomFromReader(t *testing.T) {
 	myString := "8059ddhdle77cb52"
 	r := bytes.NewReader([]byte(myString))
@@ -541,6 +556,8 @@ func TestRandomFromReader(t *testing.T) {
 	}
 }
 
+// This function is named TestRandPool()
+// it with the Test type.
 func TestRandPool(t *testing.T) {
 	myString := "8059ddhdle77cb52"
 	EnableRandPool()
@@ -557,6 +574,8 @@ func TestRandPool(t *testing.T) {
 	}
 }
 
+// This function is named TestWrongLength()
+// it with the Test type.
 func TestWrongLength(t *testing.T) {
 	_, err := Parse("12345")
 	if err == nil {
@@ -566,6 +585,8 @@ func TestWrongLength(t *testing.T) {
 	}
 }
 
+// This function is named TestIsWrongLength()
+// it with the Test type.
 func TestIsWrongLength(t *testing.T) {
 	_, err := Parse("12345")
 	if !IsInvalidLengthError(err) {
@@ -573,6 +594,7 @@ func TestIsWrongLength(t *testing.T) {
 	}
 }
 
+// This function is named FuzzParse()
 func FuzzParse(f *testing.F) {
 	for _, tt := range tests {
 		f.Add(tt.in)
@@ -583,6 +605,7 @@ func FuzzParse(f *testing.F) {
 	})
 }
 
+// This function is named FuzzParseBytes()
 func FuzzParseBytes(f *testing.F) {
 	for _, tt := range tests {
 		f.Add([]byte(tt.in))
@@ -592,6 +615,7 @@ func FuzzParseBytes(f *testing.F) {
 	})
 }
 
+// This function is named FuzzFromBytes()
 func FuzzFromBytes(f *testing.F) {
 	// Copied from TestFromBytes.
 	f.Add([]byte{
@@ -637,6 +661,7 @@ func TestValidate(t *testing.T) {
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
 var asBytes = []byte(asString)
 
+// This function is named BenchmarkParse()
 func BenchmarkParse(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := Parse(asString)
@@ -646,6 +671,7 @@ func BenchmarkParse(b *testing.B) {
 	}
 }
 
+// This function is named BenchmarkParseBytes()
 func BenchmarkParseBytes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := ParseBytes(asBytes)
@@ -659,7 +685,7 @@ func BenchmarkParseBytes(b *testing.B) {
 func parseBytesUnsafe(b []byte) (UUID, error) {
 	return Parse(*(*string)(unsafe.Pointer(&b)))
 }
-
+// This function is named BenchmarkParseBytesUnsafe()
 func BenchmarkParseBytesUnsafe(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := parseBytesUnsafe(asBytes)
@@ -674,6 +700,7 @@ func parseBytesCopy(b []byte) (UUID, error) {
 	return Parse(string(b))
 }
 
+// This function is named BenchmarkParseBytesCopy()
 func BenchmarkParseBytesCopy(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := parseBytesCopy(asBytes)
@@ -683,6 +710,7 @@ func BenchmarkParseBytesCopy(b *testing.B) {
 	}
 }
 
+// This function is named BenchmarkNew()
 func BenchmarkNew(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		New()
@@ -701,6 +729,7 @@ func BenchmarkUUID_String(b *testing.B) {
 	}
 }
 
+// This function is named BenchmarkUUID_URN()
 func BenchmarkUUID_URN(b *testing.B) {
 	uuid, err := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
 	if err != nil {
@@ -713,6 +742,7 @@ func BenchmarkUUID_URN(b *testing.B) {
 	}
 }
 
+// This function is named BenchmarkParseBadLength()
 func BenchmarkParseBadLength(b *testing.B) {
 	short := asString[:10]
 	for i := 0; i < b.N; i++ {
@@ -723,6 +753,7 @@ func BenchmarkParseBadLength(b *testing.B) {
 	}
 }
 
+// This function is named BenchmarkParseLen32Truncated()
 func BenchmarkParseLen32Truncated(b *testing.B) {
 	partial := asString[:len(asString)-4]
 	for i := 0; i < b.N; i++ {
@@ -733,6 +764,7 @@ func BenchmarkParseLen32Truncated(b *testing.B) {
 	}
 }
 
+// This function is named BenchmarkParseLen36Corrupted()
 func BenchmarkParseLen36Corrupted(b *testing.B) {
 	wrong := asString[:len(asString)-1] + "x"
 	for i := 0; i < b.N; i++ {
@@ -743,6 +775,7 @@ func BenchmarkParseLen36Corrupted(b *testing.B) {
 	}
 }
 
+// This function is named BenchmarkUUID_New()
 func BenchmarkUUID_New(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -754,6 +787,7 @@ func BenchmarkUUID_New(b *testing.B) {
 	})
 }
 
+// This function is named BenchmarkUUID_NewPooled()
 func BenchmarkUUID_NewPooled(b *testing.B) {
 	EnableRandPool()
 	b.RunParallel(func(pb *testing.PB) {
@@ -766,6 +800,7 @@ func BenchmarkUUID_NewPooled(b *testing.B) {
 	})
 }
 
+// This function is named BenchmarkUUIDs_Strings()
 func BenchmarkUUIDs_Strings(b *testing.B) {
 	uuid1, err := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
 	if err != nil {
@@ -781,6 +816,8 @@ func BenchmarkUUIDs_Strings(b *testing.B) {
 	}
 }
 
+// This function is named TestVersion6()
+// it with the Test type.
 func TestVersion6(t *testing.T) {
 	uuid1, err := NewV6()
 	if err != nil {
@@ -870,7 +907,8 @@ func TestVersion7_pooled(t *testing.T) {
 		}
 	}
 }
-
+// This function is named TestVersion7FromReader()
+// it with the Test type.
 func TestVersion7FromReader(t *testing.T) {
 	myString := "8059ddhdle77cb52"
 	r := bytes.NewReader([]byte(myString))
@@ -884,6 +922,8 @@ func TestVersion7FromReader(t *testing.T) {
 	}
 }
 
+// This function is named TestVersion7Monotonicity()
+// it with the Test type.
 func TestVersion7Monotonicity(t *testing.T) {
 	length := 10000
 	u1 := Must(NewV7()).String()
