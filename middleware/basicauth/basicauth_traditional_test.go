@@ -11,7 +11,7 @@ import (
 	"github.com/jeffotoni/quick/internal/concat"
 )
 // TestBasicAuth_Success tests successful authentication with valid credentials.
-
+//
 // Test steps:
 // 1. Creates middleware with valid credentials ("admin", "1234")
 // 2. Sets up a test handler that returns 200 OK
@@ -19,7 +19,7 @@ import (
 // 4. Verifies:
 //    - Status code is 200 OK
 //    - Request proceeds to the handler
-
+//
 // Example:
 // TestBasicAuth_Success test with credentials success
 // TestBasicAuth_Success(t *testing.T)
@@ -61,7 +61,7 @@ func TestBasicAuth_Success(t *testing.T) {
 // 3. Verifies:
 //    - Status code is 401 Unauthorized
 //    - Request doesn't reach the handler
-
+//
 // TestBasicAuth_Failure test with invalid credentials
 // TestBasicAuth_Failure(t *testing.T)
 func TestBasicAuth_Failure(t *testing.T) {
