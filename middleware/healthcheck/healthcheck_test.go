@@ -7,6 +7,7 @@ import (
 )
 
 // TestHealthcheckWithCustomEndpoint verifies that the healthcheck middleware
+//
 // responds with status 200 and body "OK" when configured with a custom endpoint.
 //
 // To run:
@@ -38,6 +39,7 @@ func TestHealthcheckWithCustomEndpoint(t *testing.T) {
 }
 
 // TestHealthcheckEndpoint verifies that the default healthcheck endpoint ("/healthcheck")
+//
 // responds with status 200 and body "OK" when the application is healthy.
 //
 // To run:
@@ -69,7 +71,8 @@ func TestHealthcheckEndpoint(t *testing.T) {
 }
 
 // TestHealthcheckProbeFalse verifies that the healthcheck endpoint returns
-// HTTP 503 (Service Unavailable) when the Probe function returns false.
+//
+//  HTTP 503 (Service Unavailable) when the Probe function returns false.
 //
 // To run:
 //
@@ -96,6 +99,7 @@ func TestHealthcheckProbeFalse(t *testing.T) {
 }
 
 // TestHealthcheckMethodNotAllowed verifies that the healthcheck endpoint
+// 
 // returns HTTP 405 (Method Not Allowed) when using a non-GET method.
 //
 // To run:
@@ -120,6 +124,7 @@ func TestHealthcheckMethodNotAllowed(t *testing.T) {
 }
 
 // TestHealthcheckWithNextSkipping verifies that the healthcheck middleware
+// 
 // skips route logic when the Next function returns true, returning 404.
 //
 // To run:
