@@ -1,3 +1,0 @@
-POST http://localhost:8080/v1/user
-Content-Type: application/json
-@data_20k_list.json
