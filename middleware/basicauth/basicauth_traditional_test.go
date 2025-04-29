@@ -1,5 +1,5 @@
-// The BasicAuth middleware implements HTTP Basic Authentication
-// to secure specific routes on an HTTP server.
+// Package basicauth provides HTTP Basic Authentication middleware for Go web servers.
+// This file contains tests for the BasicAuth middleware implementation.
 package basicauth
 
 import (
@@ -10,9 +10,20 @@ import (
 
 	"github.com/jeffotoni/quick/internal/concat"
 )
-
+// TestBasicAuth_Success tests successful authentication with valid credentials.
+//
+// Test steps:
+// 1. Creates middleware with valid credentials ("admin", "1234")
+// 2. Sets up a test handler that returns 200 OK
+// 3. Sends request with correct Basic Auth header
+// 4. Verifies:
+//    - Status code is 200 OK
+//    - Request proceeds to the handler
+//
+// Example:
 // TestBasicAuth_Success test with credentials success
 // TestBasicAuth_Success(t *testing.T)
+
 func TestBasicAuth_Success(t *testing.T) {
 	// valid users
 	username := "admin"
@@ -42,6 +53,15 @@ func TestBasicAuth_Success(t *testing.T) {
 	}
 }
 
+// TestBasicAuth_Failure tests authentication failure with invalid credentials.
+
+// Test steps:
+// 1. Creates middleware with credentials ("admin", "1234")
+// 2. Sends request with invalid credentials ("wronguser:wrongpass")
+// 3. Verifies:
+//    - Status code is 401 Unauthorized
+//    - Request doesn't reach the handler
+//
 // TestBasicAuth_Failure test with invalid credentials
 // TestBasicAuth_Failure(t *testing.T)
 func TestBasicAuth_Failure(t *testing.T) {
