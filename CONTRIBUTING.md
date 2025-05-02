@@ -28,7 +28,7 @@ $ git clone ssh://git@github.com/YOUR_USER/quick.git
 $ cd quick
 ```
 
-Replace YOUR_USER with your GitHub username.
+**Replace YOUR_USER with your GitHub username.**
 
 ## 🌿 3. Create a branch with a clear name and in the recommended pattern
 
@@ -76,17 +76,31 @@ $ git remote add upstream https://github.com/jeffotoni/quick.git
 ```bash
 $ git fetch upstream
 ```
+**That's the way out, if it's not up to date**
+
+
+
+![GitFetch](/Fetch.png)
 
 ```bash
+
 $ git checkout main
 $ git merge upstream/main
 ```
+**If you are up to date that's will be the way out**
+
+![GitCheckout](/checkout-main.png)
+
 
 ### ⬆️ Update your fork on GitHub with the new content
 
 ```bash
 $ git push origin main
 ```
+
+**thats will be the way out**
+
+![GitPush](/GitPush.png)
 
 ## 🌱 Branch name pattern
 
