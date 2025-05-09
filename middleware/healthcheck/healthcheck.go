@@ -24,15 +24,19 @@ import (
 // It allows customization of the endpoint, health probe logic, and conditional skipping.
 type Options struct {
 	// Next is an optional function that, if returns true, skips the middleware.
+	// 
 	// Useful to conditionally bypass the healthcheck logic for certain requests.
 	Next func(c *quick.Ctx) bool
 
 	// Endpoint specifies the route path that will be registered for the healthcheck.
-	// Default: "/healthcheck"
+	//
+	//  Default: "/healthcheck"
 	Endpoint string
 
 	// Probe is a function executed during healthcheck requests.
+	// 
 	// It should return true if the application is healthy, false otherwise.
+	// 
 	// Default: always returns true.
 	Probe func(c *quick.Ctx) bool
 
@@ -86,8 +90,10 @@ func New(opt ...Options) func(next quick.Handler) quick.Handler {
 }
 
 // defaultOptions applies sane defaults for the healthcheck middleware.
+// 
 // If Endpoint or Probe are not provided, they are initialized to defaults.
-// If App is not provided, the function panics, as it is required.
+//
+//  If App is not provided, the function panics, as it is required.
 func defaultOptions(opt ...Options) Options {
 	// Initialize with default values
 	cfg := Options{

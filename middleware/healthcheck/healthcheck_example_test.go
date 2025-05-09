@@ -7,8 +7,11 @@ import (
 )
 
 // ExampleNew demonstrates how to use the healthcheck middleware
-// with default options, registering a /healthcheck endpoint.
+//
+//  with default options, registering a /healthcheck endpoint.
+// 
 // This function is named ExampleNew()
+// 
 // it with the Examples type.
 func ExampleNew() {
 	q := quick.New()
@@ -32,8 +35,11 @@ func ExampleNew() {
 }
 
 // ExampleNew_customEndpoint shows how to configure a custom healthcheck
-// endpoint and define a custom health Probe function.
-// This function is named ExampleNew_customEndpoint()
+//
+//  endpoint and define a custom health Probe function.
+//
+//  This function is named ExampleNew_customEndpoint()
+// 
 // it with the Examples type.
 func ExampleNew_customEndpoint() {
 	q := quick.New()
@@ -61,8 +67,11 @@ func ExampleNew_customEndpoint() {
 }
 
 // ExampleNew_unhealthyProbe simulates an unhealthy service
+// 
 // by returning false in the Probe function.
+// 
 // This function is named ExampleNew_unhealthyProbe()
+// 
 // it with the Examples type.
 func ExampleNew_unhealthyProbe() {
 	q := quick.New()
