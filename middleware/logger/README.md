@@ -15,6 +15,7 @@ package main
 import (
     "github.com/jeffotoni/quick"
     "github.com/jeffotoni/quick/middleware/logger"
+    
 )
 
 func main() {

@@ -14,7 +14,6 @@ package main
 
 import (
     "log"
-
     "github.com/jeffotoni/quick"
     "github.com/jeffotoni/quick/middleware/maxbody"
 )

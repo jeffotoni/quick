@@ -73,7 +73,6 @@ package cors
 
 import (
 	"fmt"
-
 	"github.com/jeffotoni/quick"
 )
 
