@@ -221,6 +221,6 @@ $ curl -H "Authorization: Basic YWRtaW46MTIzNA==" http://localhost:8080/protecte
 - ✅ Tests: examples of cURL for authentication and error handling.
 
 
-Now you can **complete with your specific examples** where I left the spaces ` ```go ... ``` `.
+Now you can **complete with your specific examples** where I left the spaces **` go ...`**.
 
 🚀 **If you need adjustments or improvements, just let me know!** 😃🔥

@@ -302,6 +302,7 @@ $ curl -i -XGET http://localhost:8080/v1/logger/json
 
 
 
-Now you can **complete with your specific examples** where I left the spaces ` ```go ... ``` `.
+Now you can **complete with your specific examples** where I left the spaces 
+.
 
 🚀 **If you need adjustments or improvements, just let me know!** 😃🔥
