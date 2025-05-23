@@ -20,84 +20,6 @@ import (
 	"github.com/jeffotoni/quick"
 )
 
-// Storage defines the interface for cache storage implementations.
-type Storage interface {
-	Set(key string, value interface{}, ttl time.Duration)
-	Get(key string) (interface{}, bool)
-	Delete(key string)
-}
-
-// Config defines the configuration options for the cache middleware.
-type Config struct {
-	// Expiration is the default duration after which cached items will expire.
-	// Default is 1 minute.
-	Expiration time.Duration
-
-	// ExpirationGenerator is a function that returns a custom TTL for each request.
-	// If provided, it takes precedence over the Expiration setting.
-	ExpirationGenerator func(c *quick.Ctx, cfg *Config) time.Duration
-
-	// KeyGenerator is a function that generates a unique cache key for each request.
-	// Default is to use the request path.
-	KeyGenerator func(c *quick.Ctx) string
-
-	// CacheHeader is the name of the header that indicates cache status.
-	// Default is "X-Cache-Status".
-	CacheHeader string
-
-	// CacheControl enables respecting Cache-Control headers from clients.
-	// Default is true.
-	CacheControl bool
-
-	// StoreResponseHeaders determines whether to cache and restore response headers.
-	// Default is true.
-	StoreResponseHeaders bool
-
-	// MaxBytes is the maximum size in bytes for a response to be cached.
-	// Default is 1MB.
-	MaxBytes int
-
-	// Methods is a list of HTTP methods to cache.
-	// Default is GET and HEAD.
-	Methods []string
-
-	// CacheInvalidator is a function that determines whether to skip the cache
-	// for a specific request, effectively invalidating it.
-	CacheInvalidator func(c *quick.Ctx) bool
-
-	// Next is a function that determines whether to skip the middleware.
-	Next func(c *quick.Ctx) bool
-
-	// Storage is the cache storage engine to use.
-	// Default is an in-memory cache.
-	Storage Storage
-}
-
-// cacheEntry represents a cached HTTP response.
-type cacheEntry struct {
-	Body         []byte
-	StatusCode   int
-	Headers      map[string][]string
-	ContentType  string
-	Expiration   time.Time
-	LastAccessed time.Time
-	CreatedAt    time.Time
-}
-
-// defaultConfig returns the default configuration for the cache middleware.
-var defaultConfig = Config{
-	Expiration:           1 * time.Minute,
-	ExpirationGenerator:  nil,
-	KeyGenerator:         nil,
-	CacheHeader:          "X-Cache-Status",
-	CacheControl:         true,
-	StoreResponseHeaders: true,
-	MaxBytes:             1024 * 1024, // 1MB
-	Methods:              []string{quick.MethodGet, quick.MethodHead},
-	CacheInvalidator:     nil,
-	Next:                 nil,
-}
-
 // New creates a new cache middleware with the provided configuration.
 //
 // Example usage:
@@ -159,16 +81,7 @@ func New(config ...Config) func(next quick.Handler) quick.Handler {
 	return func(next quick.Handler) quick.Handler {
 		return quick.HandlerFunc(func(c *quick.Ctx) error {
 			// Ensure query parameters are populated from URL
-			if c.Query == nil {
-				c.Query = make(map[string]string)
-			}
-			// Extract query parameters from URL
-			query := c.Request.URL.Query()
-			for k, v := range query {
-				if len(v) > 0 {
-					c.Query[k] = v[0]
-				}
-			}
+			populateQueryParams(c)
 
 			// Skip middleware if Next returns true
 			if cfg.Next != nil && cfg.Next(c) {
@@ -185,159 +98,221 @@ func New(config ...Config) func(next quick.Handler) quick.Handler {
 			key := cfg.KeyGenerator(c)
 
 			// Check if cache should be invalidated
-			if cfg.CacheInvalidator != nil && cfg.CacheInvalidator(c) {
-				// Delete the cache entry
-				cfg.Storage.Delete(key)
-				c.Set(cfg.CacheHeader, "INVALIDATED")
-				// Process the request and don't cache the response
+			if shouldInvalidateCache(c, &cfg, key) {
 				return next.ServeQuick(c)
 			}
 
 			// Check if client sent Cache-Control: no-cache
-			if cfg.CacheControl && c.Get("Cache-Control") == "no-cache" {
-				c.Set(cfg.CacheHeader, "BYPASS")
+			if shouldBypassCache(c, &cfg) {
 				return next.ServeQuick(c)
 			}
 
 			// Try to get from cache
 			if cached, found := cfg.Storage.Get(key); found {
-				entry := cached.(*cacheEntry)
-
-				// Check if the entry is expired
-				if time.Now().After(entry.Expiration) {
-					cfg.Storage.Delete(key)
-					c.Set(cfg.CacheHeader, "EXPIRED")
-					// Process the request and don't cache the response
-					return next.ServeQuick(c)
+				if cfg.OnHit != nil {
+					cfg.OnHit(key)
 				}
-
-				// Set the X-Cache header to indicate a cache hit
-				c.Set(cfg.CacheHeader, "HIT")
-				c.Set("X-Cache-Source", "memory")
-				c.Set("X-Cache-Expires-At", entry.Expiration.Format(time.RFC3339))
-
-				// Set headers directly on the response to avoid WriteHeader calls
-				// Set the content type and other headers if configured
-				if cfg.StoreResponseHeaders {
-					for key, values := range entry.Headers {
-						for _, value := range values {
-							c.Response.Header().Set(key, value)
-						}
-					}
-				} else if entry.ContentType != "" {
-					c.Response.Header().Set("Content-Type", entry.ContentType)
+				if cfg.OnCacheHit != nil {
+					cfg.OnCacheHit(c, key)
 				}
-
-				// Set the status code directly on the response writer
-				c.Response.WriteHeader(entry.StatusCode)
-
-				// Write the cached response body directly to avoid framework methods
-				_, err := c.Response.Write(entry.Body)
-				return err
+				return handleCacheHit(c, &cfg, cached)
+			}
+			if cfg.OnMiss != nil {
+				cfg.OnMiss(key)
 			}
 
-			// Set X-Cache header to indicate a cache miss
-			c.Set(cfg.CacheHeader, "MISS")
-
-			// Create a response capture to store the response
-			responseWriter := &responseCapture{
-				ResponseWriter: c.Response,
-				buffer:         bytes.NewBuffer(nil),
-				headers:        make(http.Header),
-			}
-
-			// Replace the original response writer with our capturing one
-			originalWriter := c.Response
-			c.Response = responseWriter
-
-			// Process the request with the next handler
-			err := next.ServeQuick(c)
-
-			// Restore the original response writer
-			c.Response = originalWriter
-
-			// If there was an error or the response is too large, don't cache
-			if err != nil || responseWriter.buffer.Len() > cfg.MaxBytes {
-				if err == nil {
-					_, err = c.Response.Write(responseWriter.buffer.Bytes())
-				}
-				// Write the captured response to the original writer without calling WriteHeader again
-				// Set headers directly on the response
-				for key, values := range responseWriter.headers {
-					for _, value := range values {
-						c.Response.Header().Set(key, value)
-					}
-				}
-
-				// Cache the response if it's not too large
-				if responseWriter.buffer.Len() <= cfg.MaxBytes {
-					// Determine expiration time
-					var expiration time.Time
-					if cfg.ExpirationGenerator != nil {
-						expiration = time.Now().Add(cfg.ExpirationGenerator(c, &cfg))
-					} else {
-						expiration = time.Now().Add(cfg.Expiration)
-					}
-
-					// Create cache entry
-					// entry := &cacheEntry{
-					// 	Body:        responseWriter.buffer.Bytes(),
-					// 	StatusCode:  responseWriter.statusCode,
-					// 	Expiration:  expiration,
-					// 	ContentType: responseWriter.Header().Get("Content-Type"),
-					// }
-
-					entry := buildCacheEntry(c, responseWriter, &cfg, expiration)
-
-					// Store response headers if configured
-					if cfg.StoreResponseHeaders {
-						entry.Headers = responseWriter.headers
-					}
-
-					// Store in cache
-					cfg.Storage.Set(key, entry, time.Until(expiration))
-				}
-
-				// Write the body directly
-				_, err = c.Response.Write(responseWriter.buffer.Bytes())
-				return err
-			}
-
-			// Determine expiration time
-			var expiration time.Time
-			if cfg.ExpirationGenerator != nil {
-				expiration = time.Now().Add(cfg.ExpirationGenerator(c, &cfg))
-			} else {
-				expiration = time.Now().Add(cfg.Expiration)
-			}
-
-			// Create a new cache entry
-			entry := buildCacheEntry(c, responseWriter, &cfg, expiration)
-
-			// Store response headers if configured
-			if cfg.StoreResponseHeaders {
-				entry.Headers = responseWriter.headers
-			}
-
-			// Store in cache
-			cfg.Storage.Set(key, entry, time.Until(expiration))
-
-			// Completely bypass the framework's status setting to avoid WriteHeader conflicts
-			// Just write the response body directly to the underlying http.ResponseWriter
-
-			// Copy any important headers
-			for key, values := range responseWriter.headers {
-				if key == "Content-Type" || key == "Content-Length" || strings.HasPrefix(key, "X-") {
-					for _, value := range values {
-						c.Response.Header().Set(key, value)
-					}
-				}
-			}
-
-			// Write the body directly and return
-			_, err = c.Response.Write(responseWriter.buffer.Bytes())
-			return err
+			// Handle cache miss
+			return handleCacheMiss(c, &cfg, next, key)
 		})
+	}
+}
+
+// populateQueryParams ensures query parameters are populated from the URL
+func populateQueryParams(c *quick.Ctx) {
+	if c.Query == nil {
+		c.Query = make(map[string]string)
+	}
+	// Extract query parameters from URL
+	query := c.Request.URL.Query()
+	for k, v := range query {
+		if len(v) > 0 {
+			c.Query[k] = v[0]
+		}
+	}
+}
+
+// shouldInvalidateCache checks if the cache should be invalidated
+func shouldInvalidateCache(c *quick.Ctx, cfg *Config, key string) bool {
+	if cfg.CacheInvalidator != nil && cfg.CacheInvalidator(c) {
+		// Delete the cache entry
+		cfg.Storage.Delete(key)
+		c.Set(cfg.CacheHeader, "INVALIDATED")
+		return true
+	}
+	return false
+}
+
+// shouldBypassCache checks if the cache should be bypassed
+func shouldBypassCache(c *quick.Ctx, cfg *Config) bool {
+	if cfg.CacheControl && c.Get("Cache-Control") == "no-cache" {
+		c.Set(cfg.CacheHeader, "BYPASS")
+		return true
+	}
+	return false
+}
+
+// handleCacheHit processes a cache hit
+func handleCacheHit(c *quick.Ctx, cfg *Config, cached interface{}) error {
+	entry := cached.(*cacheEntry)
+
+	// Check if the entry is expired
+	if time.Now().After(entry.Expiration) {
+		cfg.Storage.Delete(cfg.KeyGenerator(c))
+		c.Set(cfg.CacheHeader, "EXPIRED")
+		return nil
+	}
+
+	// Set the X-Cache header to indicate a cache hit
+	c.Set(cfg.CacheHeader, "HIT")
+	c.Set("X-Cache-Source", "memory")
+	c.Set("X-Cache-Expires-At", entry.Expiration.Format(time.RFC3339))
+
+	// Set headers directly on the response to avoid WriteHeader calls
+	// Set the content type and other headers if configured
+	if cfg.StoreResponseHeaders {
+		for key, values := range entry.Headers {
+			for _, value := range values {
+				c.Response.Header().Set(key, value)
+			}
+		}
+	} else if entry.ContentType != "" {
+		c.Response.Header().Set("Content-Type", entry.ContentType)
+	}
+
+	// Set the status code directly on the response writer
+	c.Response.WriteHeader(entry.StatusCode)
+
+	// Write the cached response body directly to avoid framework methods
+	_, err := c.Response.Write(entry.Body)
+	return err
+}
+
+// handleCacheMiss processes a cache miss
+func handleCacheMiss(c *quick.Ctx, cfg *Config, next quick.Handler, key string) error {
+	// Set X-Cache header to indicate a cache miss
+	c.Set(cfg.CacheHeader, "MISS")
+
+	// Create a response capture to store the response
+	responseWriter := &responseCapture{
+		ResponseWriter: c.Response,
+		buffer:         bytes.NewBuffer(nil),
+		headers:        make(http.Header),
+	}
+
+	// Replace the original response writer with our capturing one
+	originalWriter := c.Response
+	c.Response = responseWriter
+
+	// Process the request with the next handler
+	err := next.ServeQuick(c)
+
+	// Restore the original response writer
+	c.Response = originalWriter
+
+	// If there was an error or the response is too large, handle without caching
+	if err != nil || responseWriter.buffer.Len() > cfg.MaxBytes {
+		return handleResponseWithoutCaching(c, cfg, responseWriter, err)
+	}
+
+	// Process and cache the successful response
+	return processAndCacheResponse(c, cfg, responseWriter, key)
+}
+
+// handleResponseWithoutCaching handles responses that shouldn't be cached
+func handleResponseWithoutCaching(c *quick.Ctx, cfg *Config, responseWriter *responseCapture, err error) error {
+	// If there was no error, write the response
+	if err == nil {
+		// Copy headers to the original response
+		copyHeaders(c.Response, responseWriter.headers)
+
+		// Cache the response if it's not too large and there was no error
+		if responseWriter.buffer.Len() <= cfg.MaxBytes {
+			cacheResponse(c, cfg, responseWriter)
+		}
+
+		// Write the body directly
+		_, err = c.Response.Write(responseWriter.buffer.Bytes())
+	}
+	return err
+}
+
+// processAndCacheResponse processes and caches a successful response
+func processAndCacheResponse(c *quick.Ctx, cfg *Config, responseWriter *responseCapture, key string) error {
+	// Determine expiration time
+	expiration := calculateExpiration(c, cfg)
+
+	// Create a new cache entry
+	entry := buildCacheEntry(c, responseWriter, cfg, expiration)
+
+	// Store response headers if configured
+	if cfg.StoreResponseHeaders {
+		entry.Headers = responseWriter.headers
+	}
+
+	// Store in cache
+	cfg.Storage.Set(key, entry, time.Until(expiration))
+
+	if cfg.OnCacheSet != nil {
+		cfg.OnCacheSet(c, key)
+	}
+
+	// Copy important headers to avoid WriteHeader conflicts
+	copyImportantHeaders(c.Response, responseWriter.headers)
+
+	// Write the body directly and return
+	_, err := c.Response.Write(responseWriter.buffer.Bytes())
+	return err
+}
+
+// calculateExpiration determines the expiration time for a cache entry
+func calculateExpiration(c *quick.Ctx, cfg *Config) time.Time {
+	if cfg.ExpirationGenerator != nil {
+		return time.Now().Add(cfg.ExpirationGenerator(c, cfg))
+	}
+	return time.Now().Add(cfg.Expiration)
+}
+
+// cacheResponse caches a response
+func cacheResponse(c *quick.Ctx, cfg *Config, responseWriter *responseCapture) {
+	expiration := calculateExpiration(c, cfg)
+	entry := buildCacheEntry(c, responseWriter, cfg, expiration)
+
+	// Store response headers if configured
+	if cfg.StoreResponseHeaders {
+		entry.Headers = responseWriter.headers
+	}
+
+	// Store in cache
+	cfg.Storage.Set(cfg.KeyGenerator(c), entry, time.Until(expiration))
+}
+
+// copyHeaders copies all headers from src to dst
+func copyHeaders(dst http.ResponseWriter, src http.Header) {
+	for key, values := range src {
+		for _, value := range values {
+			dst.Header().Set(key, value)
+		}
+	}
+}
+
+// copyImportantHeaders copies only important headers (Content-Type, Content-Length, X-*)
+func copyImportantHeaders(dst http.ResponseWriter, src http.Header) {
+	for key, values := range src {
+		if key == "Content-Type" || key == "Content-Length" || strings.HasPrefix(key, "X-") {
+			for _, value := range values {
+				dst.Header().Set(key, value)
+			}
+		}
 	}
 }
 
@@ -348,7 +323,7 @@ func buildCacheEntry(c *quick.Ctx, w *responseCapture, cfg *Config, exp time.Tim
 	}
 
 	if contentType == "" {
-		// último fallback: detecta a partir do corpo ou usa text/plain
+		// last fallback: detect from body or use text/plain
 		if b := w.buffer.Bytes(); len(b) > 0 {
 			contentType = http.DetectContentType(b)
 		} else {
