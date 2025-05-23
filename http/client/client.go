@@ -898,7 +898,7 @@ func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 		return resp, err
 	}
-	return resp, fmt.Errorf("max retries exceeded: %w", err)
+	return resp, fmt.Errorf("max retries exceeded: %d", rt.MaxRetries)
 }
 
 // shouldRetry determines if a request should be retried.
