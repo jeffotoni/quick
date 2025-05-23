@@ -3985,7 +3985,7 @@ Cache is a quick middleware designed to responses and intercept cache. This midd
 
    - ⏱️ Automatic cache expiration (default: 1 minute)
 
-   - 🔍 Cache visibility through X-Cache-Status header (HIT/MISS)
+   - 📁 Cache visibility through X-Cache-Status header (HIT/MISS)
 
    - 📦 Supports multiple response types (string, JSON)
 ---
