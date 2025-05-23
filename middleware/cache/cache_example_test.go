@@ -206,3 +206,50 @@ func ExampleNew_customExpiration() {
 	// Short cache second request: HIT
 	// Default cache second request: HIT
 }
+
+// ExampleNew_hooks demonstrates how to use OnHit, OnMiss, OnCacheHit, and OnCacheSet hooks.
+func ExampleNew_hooks() {
+	q := quick.New()
+
+	q.Use(New(Config{
+		OnHit: func(key string) {
+			fmt.Println("[hook] OnHit:", key)
+		},
+		OnMiss: func(key string) {
+			fmt.Println("[hook] OnMiss:", key)
+		},
+		OnCacheHit: func(c *quick.Ctx, key string) {
+			fmt.Println("[hook] OnCacheHit:", key, "| Method:", c.Method())
+		},
+		OnCacheSet: func(c *quick.Ctx, key string) {
+			fmt.Println("[hook] OnCacheSet:", key, "| Path:", c.Path())
+		},
+	}))
+
+	// Define a simple route
+	q.Get("/hello", func(c *quick.Ctx) error {
+		return c.String(fmt.Sprintf("Hello at %s", time.Now().Format(time.RFC3339)))
+	})
+
+	// First request → MISS
+	resp, _ := q.Qtest(quick.QuickTestOptions{
+		Method: quick.MethodGet,
+		URI:    "/hello",
+	})
+	fmt.Println("1st:", resp.Response().Header.Get("X-Cache-Status"))
+
+	// Second request → HIT
+	resp, _ = q.Qtest(quick.QuickTestOptions{
+		Method: quick.MethodGet,
+		URI:    "/hello",
+	})
+	fmt.Println("2nd:", resp.Response().Header.Get("X-Cache-Status"))
+
+	// Output:
+	// [hook] OnMiss: /hello
+	// [hook] OnCacheSet: /hello | Path: /hello
+	// 1st: MISS
+	// [hook] OnHit: /hello
+	// [hook] OnCacheHit: /hello | Method: GET
+	// 2nd: HIT
+}

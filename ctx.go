@@ -178,6 +178,11 @@ func (c *Ctx) RemoteIP() string {
 	return ip
 }
 
+// IP is alias RemoteIP
+func (c *Ctx) IP() string {
+	return c.RemoteIP()
+}
+
 // Method retrieves the HTTP method of the current request.
 //
 // This method returns the HTTP method as a string, such as "GET", "POST", "PUT",
