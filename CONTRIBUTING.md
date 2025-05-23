@@ -12,7 +12,7 @@ Thank you for considering contributing to **Quick** – a Go framework designed 
 
 You can click the **"Fork"** button at the top of the repository page on GitHub.
 
-![ForkImage](./fork.png)
+![ForkImage](/fork.png)
 ---
 
 ### 🌱 2. Clone your fork locally
@@ -59,7 +59,7 @@ $ git push origin feat/your-feature-name
 • Click “Compare & Pull Request”
 • Submit the PR to the jeffotoni:main branch
 
-![PullRequest](./pullrequest.png)
+![PullRequest](/pullrequest.png)
 
 ## 🔄 6. (Optional) Keep your fork up to date
 
@@ -134,7 +134,7 @@ follow step by step on the  instructions to create a pull request
  - First you go to your forked repository on GitHub;
  - Click on the Compare & pull request button (it appears after the push);
   
-  ![Pullrequestarrow](./PullReuqestArrow.png)
+  ![Pullrequestarrow](/PullReuqestArrow.png)
  
  - Check that the base is correct:
  ```bash
@@ -148,7 +148,7 @@ follow step by step on the  instructions to create a pull request
  - compare: my-feature
  - Add a title and description explaining the change.
 
- ![pullrequesttext](./pullrequesttext.png)
+ ![pullrequesttext](/pullrequesttext.png)
 
 **- Click on Create pull request**
 
