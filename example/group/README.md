@@ -99,7 +99,7 @@ $ curl --location --request GET 'http://localhost:8080/v2/user' \
 
 - ✅ What is **Group** in Quick  
 - ✅ How to group routes and apply **middlewares**  
-- ✅ **Implementation example** with `/v1', and `/v2'  
+- ✅ **Implementation example** with `/v1`, and `/v2`
 - ✅ **Testing with cURL** to check requests  
 
 
