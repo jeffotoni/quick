@@ -108,12 +108,13 @@ Always use the same pattern as the commit, adapted as a branch prefix:
 
 | Prefix | Description | Example |
 |---------------|----------------------------------------|------------------------------------|
-| `feat/` | New feature | `feat/timeout-middleware` |
-| `fix/` | Bug fix | `fix/logger-null-error` |
-| `docs/` | Documentation | `docs/update-readme-links` |
+| `feat/`  | New feature | `feat/timeout-middleware` |
+| `fix/`   | Bug fix | `fix/logger-null-error` |
+| `docs/`  | Documentation | `docs/update-readme-links` |
+| `ex/`    | Example | `example/static-example-embed` |
 | `style/` | Formatting adjustments | `style/format-comments` |
 | `refactor/` | Refactoring without changing behavior | `refactor/logger-structure` |
-| `test/` | Unit tests | `test/add-msguuid-test` |
+| `test/`  | Unit tests | `test/add-msguuid-test` |
 | `chore/` | Internal tasks | `chore/update-dependencies` |
 
 **📌 Example commits:**

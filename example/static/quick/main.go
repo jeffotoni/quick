@@ -2,7 +2,11 @@
 
 package main
 
-import "github.com/jeffotoni/quick"
+import (
+	"strings"
+
+	"github.com/jeffotoni/quick"
+)
 
 func main() {
 
@@ -13,8 +17,9 @@ func main() {
 	q.Static("/static", "./static")
 
 	// server files
-	q.Get("/", func(c *quick.Ctx) error {
-		c.File("./static/index.html")
+	q.Get("/*", func(c *quick.Ctx) error {
+		path := strings.TrimPrefix(c.Path(), "/static/")
+		c.File("./static/" + path)
 		return nil
 	})
 
