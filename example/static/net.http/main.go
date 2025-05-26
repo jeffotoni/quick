@@ -20,3 +20,5 @@ func main() {
 	fmt.Printf("Server Run http://localhost:%d\n", port)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
+
+// $ curl --location 'http://localhost:8080/'
