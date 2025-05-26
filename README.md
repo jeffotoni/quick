@@ -3992,36 +3992,135 @@ Cache is a quick middleware designed to responses and intercept cache. This midd
 ### 🧩 Example Usage
 
 ```go
+// Example of basic cache middleware usage in Quick
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/middleware/pprof"
+	"github.com/jeffotoni/quick/middleware/cache"
 )
 
 func main() {
+	// Create a new Quick app
 	q := quick.New()
 
-	q.Use(pprof.New())
+	// Use the cache middleware with default settings
+	q.Use(cache.New())
 
-	q.Get("/busy", func(c *quick.Ctx) error {
-		// Simulates a load
-		sum := 0
-		for i := 0; i < 1e7; i++ {
-			sum += i
-		}
-		return c.String("done")
+	// Route 1: Returns the current time
+	q.Get("/time", func(c *quick.Ctx) error {
+		return c.String("Current time: " + time.Now().Format(time.RFC1123))
 	})
 
-	// Mandatory route for pprof to work correctly
-	q.Get("/debug/pprof*", func(c *quick.Ctx) error {
-		return c.Next()
+	// Route 2: Returns a random number
+	q.Get("/random", func(c *quick.Ctx) error {
+		return c.String("Random value: " + time.Now().Format("15:04:05.000"))
 	})
 
-	q.Listen("0.0.0.0:8080")
+	// Route 3: Returns JSON data
+	q.Get("/profile", func(c *quick.Ctx) error {
+		return c.JSON(quick.M{
+			"user":  "jeffotoni",
+			"since": time.Now().Format("2006-01-02 15:04:05"),
+		})
+	})
+
+	// Start the server
+	fmt.Println("Server running on http://localhost:3000")
+	fmt.Println("Try these endpoints:")
+	fmt.Println("  - GET /time (cached for 1 minute)")
+	fmt.Println("  - GET /random (cached for 1 minute)")
+	fmt.Println("  - GET /profile (cached for 1 minute)")
+	fmt.Println("Check the X-Cache-Status header in the response to see if it's a HIT or MISS")
+	q.Listen(":3000")
 }
+
+```
+### Let's test our cache
+
+```bash
+$ go run main.go
 ```
 
+### 🧩| Custom example
+
+```go
+// Example of cache middleware with custom key generation in Quick
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/cache"
+)
+
+func main() {
+	// Create a new Quick q
+	q := quick.New()
+
+	// Use the cache middleware with custom key generation
+	q.Use(cache.New(cache.Config{
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *quick.Ctx) string {
+			return c.Path() + "?lang=" + c.Query["lang"] + "&user=" + c.Query["user"]
+		},
+		CacheHeader:          "X-Cache-Status",
+		StoreResponseHeaders: true,
+		Methods:              []string{quick.MethodGet},
+		CacheInvalidator: func(c *quick.Ctx) bool {
+			return c.Query["clear"] == "1"
+		},
+	}))
+
+	// Route that returns a greeting in the requested language
+	q.Get("/greeting", func(c *quick.Ctx) error {
+		lang := c.Query["lang"]
+		user := c.Query["user"]
+		if user == "" {
+			user = "Guest"
+		}
+
+		greeting := "Hello"
+		switch lang {
+		case "pt":
+			greeting = "Olá"
+		case "es":
+			greeting = "Hola"
+		case "fr":
+			greeting = "Bonjour"
+		case "it":
+			greeting = "Ciao"
+		case "de":
+			greeting = "Hallo"
+		}
+
+		return c.String(fmt.Sprintf("%s, %s! (Generated at %s)",
+			greeting, user, time.Now().Format(time.RFC3339)))
+	})
+
+	// Start the server
+	fmt.Println("Server running on http://localhost:3000")
+	fmt.Println("Try these examples:")
+	fmt.Println("  - GET /greeting?lang=en&user=John")
+	fmt.Println("  - GET /greeting?lang=pt&user=Maria")
+	fmt.Println("  - GET /greeting?lang=es&user=Carlos")
+	fmt.Println("  - GET /greeting?lang=en&user=John (should be cached)")
+	fmt.Println("  - GET /greeting?lang=en&user=John&clear=1 (invalidates cache)")
+	fmt.Println("Check the X-Cache-Status header in the response to see if it's a HIT or MISS")
+	q.Listen(":3000")
+}
+
+```
+### Let's test our custom cors
+
+```bash
+$ go run main.go
+```
 ## 📚| More Examples
 
 This directory contains **practical examples** of the **Quick Framework**, a **fast and lightweight web framework** developed in Go. 
