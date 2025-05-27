@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeffotoni/quick/pkg/glog"
+	"github.com/jeffotoni/quick/glog"
 )
 
 // TestNew_DefaultConfig verifies that calling glog.New() with no config

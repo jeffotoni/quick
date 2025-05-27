@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/pkg/glog"
-	"github.com/jeffotoni/quick/pkg/rand"
+	"github.com/jeffotoni/quick/glog"
+	"github.com/jeffotoni/quick/rand"
 )
 
 const KeyName string = "X-Trace-ID"

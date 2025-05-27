@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/jeffotoni/quick/pkg/rand"
+	"github.com/jeffotoni/quick/rand"
 )
 
 func main() {

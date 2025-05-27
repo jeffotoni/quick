@@ -19,7 +19,7 @@
 ## 📦 Installation
 
 ```bash
-$ go get github.com/jeffotoni/quick/pkg/gcolor
+$ go get github.com/jeffotoni/quick/gcolor
 ```
 
 ---
@@ -32,7 +32,7 @@ import (
     "log"
     "time"
 
-    "github.com/jeffotoni/quick/pkg/gcolor"
+    "github.com/jeffotoni/quick/gcolor"
 )
 
 func main() {
@@ -112,10 +112,10 @@ In addition to tests, we included rich `ExampleStyle_*()` functions following Go
 Explore them with:
 
 ```bash
-$ go doc github.com/jeffotoni/quick/pkg/gcolor
+$ go doc github.com/jeffotoni/quick/gcolor
 ```
 
-In pkg.go.dev [quick pkg/gcolor](https://pkg.go.dev/github.com/jeffotoni/quick/pkg/gcolor)
+In pkg.go.dev [quick gcolor](https://pkg.go.dev/github.com/jeffotoni/quick/gcolor)
 
 ---
 
