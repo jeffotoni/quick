@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeffotoni/quick/pkg/glog"
+	"github.com/jeffotoni/quick/glog"
 )
 
 // TestNewCtx_DefaultKey verifies that a context built with a "TraceID" key

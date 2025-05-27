@@ -10,7 +10,7 @@
 //
 //	package main
 //	import (
-//		"github.com/jeffotoni/quick/pkg/glog"
+//		"github.com/jeffotoni/quick/glog"
 //	)
 //	func main() {
 //		logger := glog.Set(glog.Config{

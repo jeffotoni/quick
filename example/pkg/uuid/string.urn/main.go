@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/jeffotoni/quick/pkg/uuid"
+	"github.com/jeffotoni/quick/uuid"
 )
 
 func main() {

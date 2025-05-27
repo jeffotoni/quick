@@ -47,7 +47,7 @@ Command: go test -bench=. -benchtime=7s -benchmem
 ## 📦 Installation
 
 ```bash
-$ go get github.com/jeffotoni/quick/pkg/glog
+$ go get github.com/jeffotoni/quick/glog
 ```
 ---
 
@@ -62,7 +62,7 @@ Use `glog`'s fluent context builder to create and retrieve values safely and eff
 package main 
 import (
 	"context"
-	"github.com/jeffotoni/quick/pkg/glog"
+	"github.com/jeffotoni/quick/glog"
 	)
 ctx, cancel := glog.CreateCtx().
 	Set("X-Trace-ID", "abc-123").
@@ -92,7 +92,7 @@ import (
 	"fmt"
 	"log"
 	"time"
-	"github.com/jeffotoni/quick/pkg/glog"
+	"github.com/jeffotoni/quick/glog"
 	)
 
 
@@ -226,7 +226,7 @@ time=time=03-31T22:49:25-03:00 level=DEBUG X-Trace-ID=21OGKpAUzL4yQnPk func=Save
 package main
 
 import (
-	"github.com/jeffotoni/quick/pkg/glog"
+	"github.com/jeffotoni/quick/glog"
 )
 
 func main() {
@@ -315,10 +315,10 @@ In addition to tests, we included rich `Example_*()` functions following Go’s 
 Explore them with:
 
 ```bash
-$ go doc github.com/jeffotoni/quick/pkg/glog
+$ go doc github.com/jeffotoni/quick/glog
 ```
 
-In pkg.go.dev [quick pkg/glog](https://pkg.go.dev/github.com/jeffotoni/quick/pkg/glog)
+In pkg.go.dev [quick glog](https://pkg.go.dev/github.com/jeffotoni/quick/glog)
 
 
 ---

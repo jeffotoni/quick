@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/jeffotoni/quick/pkg/gcolor"
+	"github.com/jeffotoni/quick/gcolor"
 )
 
 func main() {

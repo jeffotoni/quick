@@ -12,7 +12,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jeffotoni/quick/pkg/uuid"
+	"github.com/jeffotoni/quick/uuid"
 )
 
 const (

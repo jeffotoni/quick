@@ -23,7 +23,7 @@
 //	import (
 //		"fmt"
 //		"time"
-//		"github.com/jeffotoni/quick/pkg/glog"
+//		"github.com/jeffotoni/quick/glog"
 //	)
 //
 //	func main() {
