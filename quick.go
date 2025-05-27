@@ -588,6 +588,23 @@ func (q *Quick) Get(pattern string, handlerFunc HandleFunc) {
 	q.registerRoute(MethodGet, pattern, handlerFunc)
 }
 
+// Head registers an HTTP route with the HEAD method on the Quick server.
+//
+// This function associates a HEAD request with a specific route pattern and handler function.
+// It ensures that the request is properly processed according to the HTTP HEAD specification,
+// meaning that only headers and the status code are sent in the response, with no response body.
+//
+// Parameters:
+//   - pattern string: The route pattern (e.g., "/users/:id").
+//   - handlerFunc HandleFunc: The function that will handle the HEAD request.
+//
+// Example Usage:
+//
+//	// This function is automatically triggered when defining a HEAD route in Quick.
+func (q *Quick) Head(pattern string, handlerFunc HandleFunc) {
+	q.registerRoute(MethodHead, pattern, handlerFunc)
+}
+
 // Post registers an HTTP route with the POST method on the Quick server.
 //
 // This function associates a POST request with a specific route pattern and handler function.
@@ -700,6 +717,8 @@ func extractHandler(q *Quick, method, path, params string, handlerFunc HandleFun
 		return extractParamsPatch(q, handlerFunc) // same as PUT
 	case MethodOptions:
 		return extractParamsOptions(q, method, path, handlerFunc)
+	case MethodHead:
+		return extractParamsHead(q, method, path, handlerFunc)
 	}
 	return nil
 }
@@ -947,6 +966,80 @@ func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFu
 		// Execute the handler function using the pooled context
 		execHandleFunc(ctx, handlerFunc)
 	}
+}
+
+// extractParamsHead processes an HTTP HEAD request for a dynamic route,
+// extracting query parameters, headers, and handling the request using
+// the provided handler function.
+//
+// This function ensures efficient processing by leveraging a pooled
+// Ctx instance, which minimizes memory allocations and reduces garbage
+// collection overhead.
+//
+// The request context (`myContextKey`) is retrieved to extract dynamic
+// parameters mapped to the route.
+//
+// Unlike GET, this function guarantees that no response body is sent,
+// complying with the semantics of the HTTP HEAD method. Only headers
+// and status code are written to the response.
+//
+// Parameters:
+//   - q: The Quick instance that provides configurations and routing context.
+//   - pathTmp: The template path used for dynamic route matching.
+//   - paramsPath: The actual path used to extract route parameters.
+//   - handlerFunc: The function that processes the HTTP request.
+//
+// Returns:
+//   - http.HandlerFunc: A function that processes the request efficiently,
+//     ensuring the correct HEAD semantics.
+func extractParamsHead(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		// Acquire a context from the pool
+		ctx := acquireCtx()
+		defer releaseCtx(ctx)
+
+		// Retrieve the custom context from the request (myContextKey)
+		v := req.Context().Value(myContextKey)
+		if v == nil {
+			NotFound(w, req)
+			return
+		}
+
+		cval := v.(ctxServeHttp)
+
+		// Fill the pooled context with request-specific data
+		ctx.Response = w
+		ctx.Request = req
+		ctx.Params = cval.ParamsMap
+		ctx.App = q
+
+		// Initialize Query and Headers maps properly
+		ctx.Query = make(map[string]string)
+		for key, val := range req.URL.Query() {
+			ctx.Query[key] = val[0]
+		}
+
+		ctx.Headers = extractHeaders(*req)
+		ctx.MoreRequests = q.config.MoreRequests
+
+		// ----- Main difference for HEAD -----
+		// Replace ResponseWriter to prevent body writes
+		nw := &noBodyWriter{ResponseWriter: w}
+		ctx.Response = nw
+
+		// Execute the handler as usual (like GET)
+		execHandleFunc(ctx, handlerFunc)
+	}
+}
+
+// noBodyWriter is a ResponseWriter that ignores any body writes.
+// It only allows headers and status to be sent.
+type noBodyWriter struct {
+	http.ResponseWriter
+}
+
+func (w *noBodyWriter) Write(b []byte) (int, error) {
+	return 0, nil // do not write to the body
 }
 
 // extractParamsPost processes an HTTP POST request, extracting the request body
