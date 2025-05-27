@@ -136,6 +136,20 @@ func (h HandlerFunc) ServeQuick(c *Ctx) error {
 	return h(c)
 }
 
+// Serve allows a HandlerFunc to satisfy the Handler interface.
+//
+// This method enables `HandlerFunc` to be used wherever a `Handler`
+// is required by implementing the `Serve` method.
+//
+// Example Usage:
+//
+//	q.Use(quick.HandlerFunc(func(c *quick.Ctx) error {
+//	    return c.Status(quick.StatusOK).SendString("Hello from HandlerFunc!")
+//	}))
+func (h HandlerFunc) Server(c *Ctx) error {
+	return h.ServeQuick(c)
+}
+
 // allMethods lists all supported HTTP methods used by the Any method.
 var allMethods = []string{
 	MethodGet,
@@ -1632,6 +1646,25 @@ func NewError(code int, message ...string) *Error {
 //   - []*Route: A slice of pointers to the registered Route instances.
 func (q *Quick) GetRoute() []*Route {
 	return q.routes
+}
+
+// GetRoute retrieves all registered routes in the Quick framework.
+//
+// This function returns a slice containing all the routes that have been
+// registered in the Quick instance. It is useful for debugging, logging,
+// or dynamically inspecting available routes.
+//
+// Example Usage:
+//
+//	routes := q.GetRoute()
+//	for _, route := range routes {
+//	    fmt.Println("Method:", route.Method, "Path:", route.Path)
+//	}
+//
+// Returns:
+//   - []*Route: A slice of pointers to the registered Route instances.
+func (q *Quick) HandlersCount() uint32 {
+	return uint32(len(q.routes))
 }
 
 // Static serves static files (HTML, CSS, JS, images, etc.) from a directory or embedded filesystem.

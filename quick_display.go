@@ -52,7 +52,7 @@ func (q *Quick) Display(scheme, addr string) {
 
 		// Display the styled banner
 		fmt.Println()
-		fmt.Printf("%s%s   ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗%s\n", Bold, Blue, Reset)
+		fmt.Printf("%s%s   ██████╗ ██╗   ██╗██╗ ██████╗ ██╗ ██╗%s\n", Bold, Blue, Reset)
 		fmt.Printf("%s  ██╔═══██╗██║   ██║██║██╔═══   ██║ ██╔╝%s\n", Blue, Reset)
 		fmt.Printf("%s  ██║   ██║██║   ██║██║██║      █████╔╝ %s\n", Blue, Reset)
 		fmt.Printf("%s  ██║▄▄ ██║██║   ██║██║██║      ██╔═██╗ %s\n", Blue, Reset)
