@@ -13,6 +13,7 @@ import (
 	"embed"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -42,6 +43,18 @@ const (
 	ContentTypeAppXML  = `application/xml`
 	ContentTypeTextXML = `text/xml`
 )
+
+// Error represents a custom HTTP error that can be returned from a handler.
+// It implements the error interface and is designed to work seamlessly
+// with Quick's global error handler.
+//
+// Example usage:
+//
+//	return quick.NewError(404, "Resource not found")
+type Error struct {
+	Message string `json:"message"` // Error message to be returned to the client.
+	Code    int    `json:"code"`    // HTTP status code associated with the error.
+}
 
 // contextKey is a custom type used for storing values in context
 type contextKey int
@@ -1089,10 +1102,11 @@ func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 	}
 }
 
-// execHandleFunc executes the provided handler function and handles errors if they occur.
+// execHandleFunc executes the provided handler function and handles any errors that occur.
 //
-// This function ensures that the HTTP response is properly handled, including setting the
-// appropriate content type and returning an error message if the handler function fails.
+// If the handler returns a custom *Error (created with quick.NewError), this function
+// responds with the appropriate status code and a JSON body containing the error details.
+// For any other errors, it defaults to HTTP 500 with a plain text error message.
 //
 // Parameters:
 //   - c *Ctx: The Quick context instance containing request and response data.
@@ -1100,13 +1114,33 @@ func extractParamsDelete(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 //
 // Example Usage:
 //
-//	// This function is automatically executed internally after processing a request.
+//	// This function is called internally by the Quick framework after matching a request
+//	// to a handler. Typically, you don't call it directly.
+//
+//	// Custom error example in a handler:
+//	q.Get("/", func(c *quick.Ctx) error {
+//	    return quick.NewError(782, "Custom error message")
+//	})
+//
+//	// The response will be:
+//	// HTTP/1.1 782 Custom error
+//	// Content-Type: application/json
+//	// {"message":"Custom error message","code":782}
 func execHandleFunc(c *Ctx, handleFunc HandleFunc) {
 	err := handleFunc(c)
 	if err != nil {
+		var qerr *Error
+		if errors.As(err, &qerr) {
+			// Responds with status code and custom JSON
+			c.Set("Content-Type", "application/json")
+			c.Status(qerr.Code).JSON(qerr)
+			return
+		}
+		// Fallback: plain text, status 500
 		c.Set("Content-Type", "text/plain; charset=utf-8")
+
 		// #nosec G104
-		c.Status(500).SendString(err.Error())
+		c.Status(http.StatusInternalServerError).SendString(err.Error())
 	}
 }
 
@@ -1461,6 +1495,31 @@ func createParamsAndValid(reqURI, patternURI string) (map[string]string, bool) {
 		}
 	}
 	return params, true
+}
+
+// Error implements the error interface for the Error type.
+// It returns the error message.
+func (e *Error) Error() string {
+	return e.Message
+}
+
+// NewError creates a new instance of Error with the specified HTTP status code.
+// An optional custom message can be provided. If no message is provided,
+// the default HTTP status text for the given code will be used.
+//
+// Example usage:
+//
+//	err := quick.NewError(400, "Invalid input")
+//	err := quick.NewError(500) // Uses "Internal Server Error" as message
+func NewError(code int, message ...string) *Error {
+	err := &Error{
+		Code:    code,
+		Message: http.StatusText(code), // Uses standard HTTP status text by default
+	}
+	if len(message) > 0 {
+		err.Message = message[0]
+	}
+	return err
 }
 
 // GetRoute retrieves all registered routes in the Quick framework.
