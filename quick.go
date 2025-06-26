@@ -1088,6 +1088,8 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 			return
 		}
 
+		cval := v.(ctxServeHttp)
+
 		// Extract headers into the pooled Ctx
 		ctx.Headers = extractHeaders(*req)
 
@@ -1098,6 +1100,7 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		ctx.Response = w
 		ctx.Request = req
 		ctx.bodyByte = bodyBytes
+		ctx.Params = cval.ParamsMap
 		ctx.MoreRequests = q.config.MoreRequests
 
 		// Reset `Request.Body` with the new bodyReader to allow re-reading
