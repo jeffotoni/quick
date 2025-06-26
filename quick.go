@@ -1106,6 +1106,12 @@ func extractParamsPost(q *Quick, handlerFunc HandleFunc) http.HandlerFunc {
 		// Reset `Request.Body` with the new bodyReader to allow re-reading
 		ctx.Request.Body = bodyReader
 
+		// Initialize Query and Headers maps properly
+		ctx.Query = make(map[string]string)
+		for key, val := range req.URL.Query() {
+			ctx.Query[key] = val[0]
+		}
+
 		ctx.App = q
 
 		// Execute the handler function using the pooled context
