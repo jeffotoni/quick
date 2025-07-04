@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		  <meta charset="UTF-8" />
+		    <title>GET Request with Headers</title>
+	</head>
+	<body>
+		  <h1>GET Request CORS</h1>
+		    <button onclick="makeRequestQuick()">Make Request - Quick 200</button>
+		      <button onclick="makeRequestQuickFake()">Make Request - Quick 404</button>
+		        <pre id="response"></pre>
+
+			  <script>
+				      function makeRequestQuickFake() {
+					            fetch('http://localhost:8080/v1/pingx', {
+							            method: 'GET',
+							            headers: {
+									              'Content-Type':  'application/json',
+									              'accept': 'application/json',
+									            }
+							          })
+					            .then(async response => {
+							            console.log('[QUICK] response:', response);
+							            const text = await response.text();
+							            document.getElementById('response').textContent =
+								              `Status: ${response.status}\n\nHeaders:\n${[...response.headers.entries()].map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nBody:\n${text}`;
+							          })
+					            .catch(error => {
+							            console.log('[QUICK] error:', error);
+							            document.getElementById('response').textContent = `Error: ${error}`;
+							          });
+					          }
+
+				          function makeRequestQuick() {
+						        fetch('http://localhost:8080/v1/ping', {
+								        method: 'GET',
+								        headers: {
+										          'Content-Type':  'application/json',
+										          'accept': 'application/json',
+										        }
+								      })
+						        .then(async response => {
+								        console.log('[QUICK] response:', response);
+								        const text = await response.text();
+								        document.getElementById('response').textContent =
+									          `Status: ${response.status}\n\nHeaders:\n${[...response.headers.entries()].map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nBody:\n${text}`;
+								      })
+						        .catch(error => {
+								        console.log('[QUICK] error:', error);
+								        document.getElementById('response').textContent = `Error: ${error}`;
+								      });
+						      }
+				        </script>
+	</body>
+</html>

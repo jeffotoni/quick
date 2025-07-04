@@ -956,7 +956,7 @@ func extractParamsGet(q *Quick, pathTmp, paramsPath string, handlerFunc HandleFu
 		// Retrieve the custom context from the request (myContextKey)
 		v := req.Context().Value(myContextKey)
 		if v == nil {
-			NotFound(w, req)
+			NotFound(w, req) // Return 404 if no context value is found
 			return
 		}
 
@@ -2138,5 +2138,18 @@ func (q *Quick) startServerWithGracefulShutdown(listener net.Listener, certFile,
 // NotFound sends a 404 Not Found response with optional custom body.
 // It wraps http.NotFound and provides a Quick-style naming.
 func NotFound(w http.ResponseWriter, r *http.Request) {
+	// Add CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*") // ou coloque um domínio específico
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Max-Age", "86400") // cache pré-flight por 24h
+
+	// (Optional) For OPTIONS, respond directly
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	// 404 default
 	http.NotFound(w, r)
 }
