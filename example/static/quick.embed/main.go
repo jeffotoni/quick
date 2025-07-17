@@ -10,7 +10,7 @@ package main
 import (
 	"embed"
 	"strings"
-
+	"fmt"
 	"github.com/jeffotoni/quick"
 )
 
@@ -24,6 +24,7 @@ func main() {
 
 	q.Get("/*", func(c *quick.Ctx) error {
 		path := strings.TrimPrefix(c.Path(), "/static/")
+		fmt.Println(path)
 		c.File("./static/" + path)
 		return nil
 	})

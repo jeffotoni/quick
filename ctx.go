@@ -284,12 +284,31 @@ func (c *Ctx) GetHeadersAll() map[string][]string {
 //   - error: Always returns nil, as `http.ServeFile` handles errors internally.
 func (c *Ctx) File(filePath string) error {
 	filePath = strings.TrimSuffix(filePath, "/*")
+	if c.App.hasEmbed {
+		filePath = strings.TrimPrefix(filePath, "./")
 
+		if strings.HasSuffix(filePath, "/") || filePath == "" {
+			filePath = filepath.Join(filePath, "index.html")
+		}
+
+		data, err := c.App.embedFS.ReadFile(filePath)
+		if err != nil {
+			return c.Status(StatusNotFound).SendString("File not found")
+		}
+
+		contentType := http.DetectContentType(data)
+		c.Response.Header().Set("Content-Type", contentType)
+		c.Response.Write(data)
+		return nil
+	}
+
+	// Caso contrário, usa o disco como antes
 	if stat, err := os.Stat(filePath); err == nil && stat.IsDir() {
 		filePath = filepath.Join(filePath, "index.html")
 	}
 	http.ServeFile(c.Response, c.Request, filePath)
 	return nil
+
 }
 
 // Bind parses and binds the request body to a Go struct.
