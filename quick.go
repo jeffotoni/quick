@@ -285,6 +285,7 @@ type Quick struct {
 	CorsOptions   map[string]string               // CORS options map
 	// corsConfig    *CorsConfig // Specific type for CORS // Removed unused field
 	embedFS    embed.FS     // File system for embedded static files.
+	hasEmbed   bool         // File system for embedded static files.
 	server     *http.Server // Http server
 	bufferPool *sync.Pool   // Reusable buffer pool to reduce allocations and improve performance
 }
@@ -1710,6 +1711,7 @@ func (q *Quick) Static(route string, dirOrFS any) {
 		fileServer = http.FileServer(http.Dir(v))
 	case embed.FS:
 		q.embedFS = v
+		q.hasEmbed = true
 		fileServer = http.FileServer(http.FS(v))
 	default:
 		panic("Static: invalid parameter, must be string or embed.FS")
