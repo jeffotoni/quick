@@ -137,36 +137,29 @@ func TestQuickStaticDriven(t *testing.T) {
 	}
 }
 
-// ExampleServeStaticIndex demonstrates how to use the Quick framework to serve static files.
-//
-// This example shows how to configure static file handling using either the local file system or embed.FS.
-// It also demonstrates how to serve a specific file like "index.html" when hitting the root route.
-//
-// Example usage:
-//
-//	q := quick.New()
-//	q.Static("/static", "./static")
-//	q.Get("/", func(c *quick.Ctx) error {
-//		c.File("./static/index.html")
-//		return nil
-//	})
-// func ExampleQuick_Static() {
-// 	//Quick Start
-// 	q := New()
+func TestFileWithEmbedFS(t *testing.T) {
+	q := New()
+	q.Static("/static", staticFiles)
 
-// 	/**
-// 	//go:embed static/*
-// 	var staticFiles embed.FS
-// 	*/
+	q.Get("/", func(c *Ctx) error {
+		return c.File("./static/index.html")
+	})
 
-// 	// start FileServer
-// 	// or
-// 	// q.Static("/static", staticFiles)
-// 	q.Static("/static", "./static")
+	resp, err := q.Qtest(QuickTestOptions{
+		Method: MethodGet,
+		URI:    "/",
+	})
+	if err != nil {
+		t.Fatalf("Qtest failed: %v", err)
+	}
 
-// 	// send ServeFile
-// 	q.Get("/", func(c *Ctx) error {
-// 		c.File("./static/index.html")
-// 		return nil
-// 	})
-// }
+	if err := resp.AssertStatus(200); err != nil {
+		t.Error(err)
+	}
+	if err := resp.AssertBodyContains("File Server Go example html"); err != nil {
+		t.Error(err)
+	}
+	if err := resp.AssertHeaderContains("Content-Type", "text/html"); err != nil {
+		t.Error(err)
+	}
+}
