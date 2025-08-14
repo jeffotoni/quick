@@ -967,3 +967,35 @@ func TestCtxMethods(t *testing.T) {
 		t.Errorf("Query(\"search\") = %v, want %v", q, "golang")
 	}
 }
+
+// TestCtxOriginalURI validates the behavior of Ctx.OriginalURI().
+//
+// It ensures that the original request URI is correctly retrieved from the HTTP request,
+// including the path and query string as sent by the client.
+//
+// Check:
+//   - Ctx.OriginalURI()
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtxOriginalURI$
+func TestCtxOriginalURI(t *testing.T) {
+	// Prepare the test request
+	req := httptest.NewRequest(http.MethodGet, "/v1/api/testpath?search=golang", nil)
+	req.RemoteAddr = "192.168.1.10:12345"
+	req.Header.Set("User-Agent", "Go-Test-Agent")
+
+	// Create the fake ResponseWriter
+	rec := httptest.NewRecorder()
+
+	// Create the Quick context
+	c := &Ctx{
+		Response: rec,
+		Request:  req,
+	}
+
+	// Test OriginalURI
+	if original := c.OriginalURI(); original != "/v1/api/testpath?search=golang" {
+		t.Errorf("originalURI() = %v, want %v", original, "/v1/api/testpath?search=golang")
+	}
+}

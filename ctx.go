@@ -204,6 +204,28 @@ func (c *Ctx) Method() string {
 	return c.Request.Method
 }
 
+// OriginalURI retrieves the original request URI sent by the client.
+//
+// This method returns the full unprocessed request URI, including the path and
+// optional query string, exactly as it was sent by the client. It can be useful
+// for logging, debugging, or routing decisions that depend on the raw URI.
+//
+// Example Usage:
+//
+//	q.Use(func(c *quick.Ctx) error {
+//	    uri := c.OriginalURI()
+//	    if strings.HasPrefix(uri, "/admin") {
+//	        return c.Status(401).SendString("Unauthorized access to admin area")
+//	    }
+//	    return c.Next()
+//	})
+//
+// Returns:
+//   - string: The raw request URI (e.g., "/api/v1/resource?id=123").
+func (c *Ctx) OriginalURI() string {
+	return c.Request.RequestURI
+}
+
 // Path retrieves the URL path of the incoming HTTP request.
 //
 // This method extracts the path component from the request URL, which
