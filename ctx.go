@@ -35,6 +35,9 @@ import (
 	"github.com/jeffotoni/quick/rand"
 )
 
+// ContextDataCallback is called when SetContext is invoked
+var ContextDataCallback func(*http.Request, map[string]string)
+
 // Ctx represents the context of an HTTP request and response.
 type Ctx struct {
 	Response       http.ResponseWriter // HTTP response writer to send responses
@@ -935,43 +938,54 @@ func (c *Ctx) Next() error {
 	return nil
 }
 
-// SetTraceContext sets a trace ID header and adds service and function information to the request context.
+// SetContext sets HTTP headers and adds key-value pairs to the request context.
 //
-// This method is commonly used for distributed tracing and logging purposes, allowing you to track
-// requests across different services and functions in your application.
+// This method processes a map of context data, adding non-empty key-value pairs to the
+// request context and setting string values as HTTP headers when both key and value
+// are non-empty.
 //
 // Parameters:
-//   - nameTraceID: The header name for the trace ID (e.g., "X-Trace-ID", "Trace-ID")
-//   - traceID: The unique trace identifier value
-//   - service: The service name for context logging
-//   - function: The function name for context logging
-//
-// The trace ID is set as a request header and can be forwarded to downstream services.
-// The service and function values are stored in the request context and can be retrieved
-// later for logging or monitoring purposes.
+//   - contextData: A map containing headers and context values
+//   - Only non-empty keys with non-nil values will be processed
+//   - String values will also be set as HTTP headers (if not empty)
 //
 // Usage:
 //
 //	func myHandler(c *quick.Ctx) error {
-//	    traceID := rand.TraceID() // your trace ID generation logic
-//	    c.SetTraceContext("X-Trace-ID", traceID, "user-service", "func-createUser")
+//	    traceID := c.GetTraceID("X-Trace-ID")
 //
-//	    // Continue with your handler logic
+//	    contextData := map[string]any{
+//	        "X-Trace-ID":  traceID,
+//	        "User-Agent":  "MyService/1.0",
+//	        "service":     "user-service",
+//	        "function":    "createUser",
+//	        "requestID":   "req-123",
+//	        "userID":      12345,
+//	    }
+//
+//	    c.SetContext(contextData)
 //	    return c.Status(200).String(traceID)
 //	}
-//
-// To retrieve the context values later:
-//
-//	service := c.Request.Context().Value("service").(string)
-//	function := c.Request.Context().Value("function").(string)
-func (c *Ctx) SetTraceContext(nameTraceID, traceID, service, function string) {
-	// Set trace ID header
-	c.Request.Header.Set(nameTraceID, traceID)
-
-	// Set context values
+func (c *Ctx) SetContext(contextData map[string]string) {
 	ctx := c.Request.Context()
-	ctx = context.WithValue(ctx, "service", service)
-	ctx = context.WithValue(ctx, "function", function)
+
+	// Store all context data in a special key for logger access
+	ctx = context.WithValue(ctx, "__quick_context_data__", contextData)
+
+	// Set individual context values as before
+	for key, value := range contextData {
+		if key == "" || value == "" {
+			continue
+		}
+		ctx = context.WithValue(ctx, key, value)
+	}
+	
+	// Also notify logger middleware about the context data
+	if c.Request != nil && ContextDataCallback != nil {
+		// Call callback if it exists (will be set by logger middleware)
+		ContextDataCallback(c.Request, contextData)
+	}
+	
 	c.Request = c.Request.WithContext(ctx)
 }
 

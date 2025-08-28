@@ -13,9 +13,8 @@ func main() {
 
 	// Apply logger with JSON format
 	q.Use(logger.New(logger.Config{
-		Format:  "json",
-		Level:   "INFO",
-		TraceID: NAME_TRACE_ID,
+		Format: "json",
+		Level:  "INFO",
 	}))
 
 	q.Use(logger.New(logger.Config{
