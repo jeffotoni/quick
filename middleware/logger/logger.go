@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/rand"
 )
 
 // ANSI color codes used for log output styling
@@ -52,6 +53,7 @@ type Config struct {
 	Pattern      string            // Logging pattern
 	Level        string            // Log level threshold
 	CustomFields map[string]string // Additional custom fields for logging
+	TraceID      string            //traceID
 }
 
 // ConfigDefault provides the default logging configuration.
@@ -62,6 +64,7 @@ type Config struct {
 var ConfigDefault = Config{
 	Format:  "text",
 	Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency}\n",
+	TraceID: "X-TRACE-ID",
 }
 
 // ColorHandler is a slog.Handler that adds ANSI color to log output.
@@ -100,25 +103,38 @@ func (h *ColorHandler) Handle(ctx context.Context, r slog.Record) error {
 // Fields:
 //   - status: HTTP response status code
 //   - size: Total bytes written to response
+//   - body: Captured response body
+//   - headers: Captured response headers
 type loggerRespWriter struct {
 	http.ResponseWriter
-	status int
-	size   int
+	status  int
+	size    int
+	body    []byte
+	headers http.Header
 }
 
-// Write captures the response size while writing to the underlying ResponseWriter.
+// Write captures the response size and body while writing to the underlying ResponseWriter.
 func (w *loggerRespWriter) Write(b []byte) (int, error) {
 	if w.status == 0 {
 		w.status = http.StatusOK
 	}
+	// Capture response body
+	w.body = append(w.body, b...)
 	size, err := w.ResponseWriter.Write(b)
 	w.size += size
 	return size, err
 }
 
-// WriteHeader captures the HTTP response status.
+// WriteHeader captures the HTTP response status and headers.
 func (w *loggerRespWriter) WriteHeader(status int) {
 	w.status = status
+	// Capture response headers before they are written
+	if w.headers == nil {
+		w.headers = make(http.Header)
+	}
+	for k, v := range w.ResponseWriter.Header() {
+		w.headers[k] = v
+	}
 	w.ResponseWriter.WriteHeader(status)
 }
 
@@ -192,6 +208,7 @@ func New(config ...Config) func(http.Handler) http.Handler {
 
 			// Capture request body size
 			var bodySize int64
+			var bodyVal string
 			if req.Body != nil {
 				body, err := io.ReadAll(req.Body)
 				if err == nil {
@@ -200,27 +217,80 @@ func New(config ...Config) func(http.Handler) http.Handler {
 				}
 			}
 
-			// Wrap the response writer to capture status and size
-			lrw := &loggerRespWriter{ResponseWriter: w}
+			// Wrap the response writer to capture status, size, body, and headers
+			lrw := &loggerRespWriter{
+				ResponseWriter: w,
+				headers:        make(http.Header),
+			}
 			next.ServeHTTP(lrw, req)
 
 			elapsed := time.Since(start)
 
+			// Get TraceID from request header (set by handler)
+			traceID := req.Header.Get(cfg.TraceID)
+			if traceID == "" {
+				traceID = rand.TraceID()
+			}
+			if traceID == "" {
+				// Try to get from context if set by handler
+				if ctxTraceID := req.Context().Value(cfg.TraceID); ctxTraceID != nil {
+					if traceIDStr, ok := ctxTraceID.(string); ok {
+						traceID = traceIDStr
+					}
+				}
+			}
+			if traceID == "" {
+				traceID = "unknown"
+			}
+
+			// Get service and function from context if set by handler
+			service := ""
+			if ctxService := req.Context().Value("service"); ctxService != nil {
+				if serviceStr, ok := ctxService.(string); ok {
+					service = serviceStr
+				}
+			}
+
+			function := ""
+			if ctxFunction := req.Context().Value("function"); ctxFunction != nil {
+				if functionStr, ok := ctxFunction.(string); ok {
+					function = functionStr
+				}
+			}
+
+			// Prepare response body (limit size for logging)
+			responseBody := string(lrw.body)
+			if len(responseBody) > 1000 {
+				responseBody = responseBody[:1000] + "..."
+			}
+
 			// Log data structure
 			logData := map[string]interface{}{
-				"level":         strings.ToUpper(cfg.Level),
-				"time":          time.Now().Format(time.RFC3339),
-				"ip":            ip,
-				"port":          port,
-				"method":        req.Method,
-				"path":          req.URL.Path,
-				"status":        lrw.status,
-				"latency":       elapsed.String(),
-				"body_size":     bodySize,
-				"response_size": lrw.size,
-				"user_agent":    req.UserAgent(),
-				"referer":       req.Referer(),
-				"query":         req.URL.RawQuery,
+				cfg.TraceID: traceID,
+				"service":   service,
+				"function":  function,
+				"level":     strings.ToUpper(cfg.Level),
+				"time":      time.Now().Format(time.RFC3339),
+				"ip":        ip,
+				"port":      port,
+				"method":    req.Method,
+				"path":      req.URL.Path,
+				"status":    lrw.status,
+				"latency":   elapsed.String(),
+				"host":      req.Host,
+
+				// request
+				"headers":    sanitizeHeaders(req.Header),
+				"body":       bodyVal,
+				"size":       bodySize,
+				"user_agent": req.UserAgent(),
+				"referer":    req.Referer(),
+				"query":      req.URL.RawQuery,
+
+				// response
+				"response_size":    lrw.size,
+				"response_headers": sanitizeHeaders(lrw.headers),
+				"response_body":    responseBody,
 			}
 
 			// Apply ANSI colors to log output in text mode
@@ -279,4 +349,26 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			}
 		})
 	}
+}
+
+func sanitizeHeaders(headers http.Header) map[string][]string {
+	sanitized := make(map[string][]string)
+	sensitiveHeaders := map[string]bool{
+		"authorization": true,
+		"cookie":        true,
+		"set-cookie":    true,
+		"x-api-key":     true,
+		"x-auth-token":  true,
+	}
+
+	for key, values := range headers {
+		lowerKey := strings.ToLower(key)
+		if sensitiveHeaders[lowerKey] {
+			sanitized[key] = []string{"[********]"}
+		} else {
+			sanitized[key] = values
+		}
+	}
+
+	return sanitized
 }

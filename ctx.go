@@ -31,6 +31,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/jeffotoni/quick/rand"
 )
 
 // Ctx represents the context of an HTTP request and response.
@@ -931,4 +933,79 @@ func (c *Ctx) Next() error {
 	}
 
 	return nil
+}
+
+// SetTraceContext sets a trace ID header and adds service and function information to the request context.
+//
+// This method is commonly used for distributed tracing and logging purposes, allowing you to track
+// requests across different services and functions in your application.
+//
+// Parameters:
+//   - nameTraceID: The header name for the trace ID (e.g., "X-Trace-ID", "Trace-ID")
+//   - traceID: The unique trace identifier value
+//   - service: The service name for context logging
+//   - function: The function name for context logging
+//
+// The trace ID is set as a request header and can be forwarded to downstream services.
+// The service and function values are stored in the request context and can be retrieved
+// later for logging or monitoring purposes.
+//
+// Usage:
+//
+//	func myHandler(c *quick.Ctx) error {
+//	    traceID := rand.TraceID() // your trace ID generation logic
+//	    c.SetTraceContext("X-Trace-ID", traceID, "user-service", "func-createUser")
+//
+//	    // Continue with your handler logic
+//	    return c.Status(200).String(traceID)
+//	}
+//
+// To retrieve the context values later:
+//
+//	service := c.Request.Context().Value("service").(string)
+//	function := c.Request.Context().Value("function").(string)
+func (c *Ctx) SetTraceContext(nameTraceID, traceID, service, function string) {
+	// Set trace ID header
+	c.Request.Header.Set(nameTraceID, traceID)
+
+	// Set context values
+	ctx := c.Request.Context()
+	ctx = context.WithValue(ctx, "service", service)
+	ctx = context.WithValue(ctx, "function", function)
+	c.Request = c.Request.WithContext(ctx)
+}
+
+// GetTraceID retrieves or generates a trace ID for the current request.
+//
+// This method first attempts to get an existing trace ID from the request headers.
+// If no trace ID is found, it automatically generates a new one using a random
+// trace ID generator. This ensures that every request has a unique trace ID for
+// distributed tracing purposes.
+//
+// Parameters:
+//   - nameTraceID: The header name to look for the trace ID (e.g., "X-Trace-ID", "Trace-ID")
+//
+// Returns:
+//   - traceID: The existing trace ID from headers, or a newly generated one if none exists
+//
+// This method is typically used at the beginning of request processing to ensure
+// traceability across your application stack. The generated trace ID can then be
+// used with SetTraceContext or forwarded to downstream services.
+//
+// Usage:
+//
+//	func myHandler(c *quick.Ctx) error {
+//	    traceID := c.GetTraceID("X-Trace-ID")
+//	    c.SetTraceContext("X-Trace-ID", traceID, "user-service", "createUser")
+//
+//	    // Continue with your handler logic
+//	   return c.Status(200).String(traceID)
+//	}
+func (c *Ctx) GetTraceID(nameTraceID string) (traceID string) {
+	// Generate TraceID for this request
+	traceID = c.Get(nameTraceID)
+	if traceID == "" {
+		traceID = rand.TraceID()
+	}
+	return
 }
