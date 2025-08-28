@@ -35,8 +35,56 @@ var (
 	requestContextData sync.Map // map[*http.Request]map[string]string
 )
 
+// var defaulJSON string = `{
+// 				"level":  "",
+// 				"time":    "",
+// 				"ip":      "",
+// 				"port":    "",
+// 				"path":    "",
+// 				"status":  "",
+// 				"latency": "",
+// 				"host":    "",
+// 				"method": "",
+// 				"headers": "",
+// 				"body": "",
+// 				"size": "",
+// 				"user_agent": "",
+// 				"referer": "",
+// 				"query": "",
+
+// 				"request_method":    "",
+// 				"request_headers":    "",
+// 				"request_body":     "",
+// 				"request_size":       "",
+// 				"request_user_agent": "",
+// 				"request_referer":   "",
+// 				"request_query":      "",
+// 				"request_path":       "",
+
+// 				"response_status": "",
+// 				"response_size":    "",
+// 				"response_headers": "",
+// 				"response_body":    ""
+// 			}` // json format`
+
 // setRequestContextData stores context data for a specific request (called by SetContext)
 func setRequestContextData(req *http.Request, data map[string]string) {
+	// Instead of replacing, accumulate the data
+	if existing, ok := requestContextData.Load(req); ok {
+		if existingMap, ok := existing.(map[string]string); ok {
+			// Merge with existing data
+			merged := make(map[string]string)
+			for k, v := range existingMap {
+				merged[k] = v
+			}
+			for k, v := range data {
+				merged[k] = v // New values override existing ones
+			}
+			requestContextData.Store(req, merged)
+			return
+		}
+	}
+	// No existing data, store as-is
 	requestContextData.Store(req, data)
 }
 
@@ -83,7 +131,7 @@ type Config struct {
 //   - Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency}\n"
 var ConfigDefault = Config{
 	Format:  "text",
-	Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency}\n",
+	Pattern: "[[${time}] ${level} ${method} ${path} ${status} - ${latency}\n",
 }
 
 // ColorHandler is a slog.Handler that adds ANSI color to log output.
@@ -130,6 +178,7 @@ type loggerRespWriter struct {
 	size    int
 	body    []byte
 	headers http.Header
+	request *http.Request // Store request reference to access updated context
 }
 
 // Write captures the response size and body while writing to the underlying ResponseWriter.
@@ -155,6 +204,11 @@ func (w *loggerRespWriter) WriteHeader(status int) {
 		w.headers[k] = v
 	}
 	w.ResponseWriter.WriteHeader(status)
+}
+
+// SetRequest updates the stored request (used by context updates)
+func (w *loggerRespWriter) SetRequest(req *http.Request) {
+	w.request = req
 }
 
 // New initializes the Logger middleware for request logging.
@@ -242,28 +296,40 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			lrw := &loggerRespWriter{
 				ResponseWriter: w,
 				headers:        make(http.Header),
+				request:        req, // Store request to access updated context later
 			}
 			next.ServeHTTP(lrw, req)
 
 			elapsed := time.Since(start)
 
-			// Get all dynamic context data from global storage
-			// This captures any key-value pairs set via SetContext method during handler execution
-			dynamicContextData := make(map[string]interface{})
+			dynamicContextData := make(map[string]any)
 
-			// Get context data from global map
-			if data, ok := requestContextData.Load(req); ok {
-				if contextMap, ok := data.(map[string]string); ok {
+			ctx := req.Context()
+			if lrw.request != nil {
+				ctx = lrw.request.Context() // Use updated context if available
+			}
+
+			if ctxData := ctx.Value("__quick_context_data__"); ctxData != nil {
+				if contextMap, ok := ctxData.(map[string]string); ok {
 					for key, value := range contextMap {
 						if value != "" {
 							dynamicContextData[key] = value
 						}
 					}
 				}
+			} else {
+				if data, ok := requestContextData.Load(req); ok {
+					if contextMap, ok := data.(map[string]string); ok {
+						for key, value := range contextMap {
+							if value != "" {
+								dynamicContextData[key] = value
+							}
+						}
+					}
+					// Clean up the global map to prevent memory leaks
+					requestContextData.Delete(req)
+				}
 			}
-
-			// Clean up the global map to prevent memory leaks
-			requestContextData.Delete(req)
 
 			// Prepare response body (limit size for logging)
 			responseBody := string(lrw.body)
@@ -272,26 +338,29 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			}
 
 			// Log data structure
-			logData := map[string]interface{}{
+			var logData = map[string]any{
 				"level":   strings.ToUpper(cfg.Level),
 				"time":    time.Now().Format(time.RFC3339),
 				"ip":      ip,
 				"port":    port,
-				"method":  req.Method,
 				"path":    req.URL.Path,
 				"status":  lrw.status,
 				"latency": elapsed.String(),
 				"host":    req.Host,
+				"method":  req.Method,
 
 				// request
-				"headers":    sanitizeHeaders(req.Header),
-				"body":       bodyVal,
-				"size":       bodySize,
-				"user_agent": req.UserAgent(),
-				"referer":    req.Referer(),
-				"query":      req.URL.RawQuery,
+				"request_method":     req.Method,
+				"request_headers":    sanitizeHeaders(req.Header),
+				"request_body":       bodyVal,
+				"request_size":       bodySize,
+				"request_user_agent": req.UserAgent(),
+				"request_referer":    req.Referer(),
+				"request_query":      req.URL.RawQuery,
+				"request_path":       req.URL.Path,
 
 				// response
+				"response_status":  lrw.status,
 				"response_size":    lrw.size,
 				"response_headers": sanitizeHeaders(lrw.headers),
 				"response_body":    responseBody,
@@ -302,28 +371,32 @@ func New(config ...Config) func(http.Handler) http.Handler {
 				logData[key] = value
 			}
 
-			// Apply ANSI colors to log output in text mode
-			colorLogData := map[string]string{
-				"time":    ColorTime + logData["time"].(string) + ColorReset,
-				"level":   ColorLevel + logData["level"].(string) + ColorReset,
-				"method":  ColorMethod + logData["method"].(string) + ColorReset,
-				"path":    ColorPath + logData["path"].(string) + ColorReset,
-				"status":  ColorStatus + fmt.Sprintf("%v", logData["status"]) + ColorReset,
-				"latency": ColorLatency + logData["latency"].(string) + ColorReset,
-			}
+			// Create complete colorLogData based on logData (same fields for all formats)
+			colorLogData := make(map[string]string)
 
-			// Preserve uncolored fields
-			colorLogData["ip"] = fmt.Sprintf("%v", logData["ip"])
-			colorLogData["port"] = fmt.Sprintf("%v", logData["port"])
-			colorLogData["body_size"] = fmt.Sprintf("%v", logData["body_size"])
-			colorLogData["response_size"] = fmt.Sprintf("%v", logData["response_size"])
-			colorLogData["user_agent"] = fmt.Sprintf("%v", logData["user_agent"])
-			colorLogData["referer"] = fmt.Sprintf("%v", logData["referer"])
-			colorLogData["query"] = fmt.Sprintf("%v", logData["query"])
+			// Convert all logData fields to colorLogData with appropriate colors/formatting
+			for key, value := range logData {
+				valueStr := fmt.Sprintf("%v", value)
 
-			// Include dynamic context data in colorLogData for text/slog formats
-			for key, value := range dynamicContextData {
-				colorLogData[key] = fmt.Sprintf("%v", value)
+				// Apply colors to specific fields for better visualization
+				switch key {
+				case "time":
+					colorLogData[key] = ColorTime + valueStr + ColorReset
+				case "level":
+					colorLogData[key] = ColorLevel + valueStr + ColorReset
+				case "method":
+					colorLogData[key] = ColorMethod + valueStr + ColorReset
+				case "path":
+					colorLogData[key] = ColorPath + valueStr + ColorReset
+				case "status":
+					colorLogData[key] = ColorStatus + valueStr + ColorReset
+				case "latency":
+					colorLogData[key] = ColorLatency + valueStr + ColorReset
+				default:
+					//fmt.Println("key:", key, "val:", valueStr)
+					// All other fields (including dynamic context data) without colors
+					colorLogData[key] = valueStr
+				}
 			}
 
 			// Include custom fields
@@ -356,10 +429,44 @@ func New(config ...Config) func(http.Handler) http.Handler {
 
 			default:
 				pattern := cfg.Pattern
-				for k, v := range colorLogData {
-					pattern = strings.ReplaceAll(pattern, fmt.Sprintf("${%s}", k), fmt.Sprintf("%v", v))
+
+				// If no pattern is defined, create a comprehensive default pattern
+				if pattern == "" {
+					// Create a pattern that includes all available fields
+					var fields []string
+					for k, v := range colorLogData {
+						fields = append(fields, fmt.Sprintf("%s=%v", k, v))
+					}
+					fmt.Printf("%s\n", strings.Join(fields, " "))
+				} else {
+					// Use custom pattern and replace placeholders
+					replacedFields := make(map[string]bool)
+
+					for k, v := range colorLogData {
+						placeholder := fmt.Sprintf("${%s}", k)
+						if strings.Contains(pattern, placeholder) {
+							pattern = strings.ReplaceAll(pattern, placeholder, fmt.Sprintf("%v", v))
+							replacedFields[k] = true
+						}
+					}
+
+					// Add dynamic fields that weren't in the original pattern
+					var extraFields []string
+					for k, v := range colorLogData {
+						if !replacedFields[k] && !isStandardField(k) {
+							extraFields = append(extraFields, fmt.Sprintf("%s=%v", k, v))
+						}
+					}
+
+					// Print pattern + extra dynamic fields
+					output := pattern
+					if len(extraFields) > 0 {
+						// Remove trailing newline if exists to add extra fields on same line
+						output = strings.TrimSuffix(output, "\n")
+						output += " | " + strings.Join(extraFields, " ") + "\n"
+					}
+					fmt.Printf("%s", output)
 				}
-				fmt.Printf("%s", pattern) // Log text format
 			}
 		})
 	}
@@ -399,4 +506,24 @@ func getPort(req *http.Request) string {
 		return "443"
 	}
 	return "80"
+}
+
+// isStandardField checks if a field is part of the standard log fields
+func isStandardField(fieldName string) bool {
+	standardFields := map[string]bool{
+		"time": true, "level": true, "method": true, "path": true,
+		"status": true, "latency": true, "ip": true, "port": true,
+		"host": true, "headers": true, "body": true, "size": true,
+		"user_agent": true, "referer": true, "query": true,
+
+		// Request fields
+		"request_method": true, "request_headers": true, "request_body": true,
+		"request_size": true, "request_user_agent": true, "request_referer": true,
+		"request_query": true, "request_path": true,
+
+		// Response fields
+		"response_status": true, "response_size": true, "response_headers": true,
+		"response_body": true,
+	}
+	return standardFields[fieldName]
 }

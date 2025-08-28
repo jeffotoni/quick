@@ -35,6 +35,12 @@ import (
 	"github.com/jeffotoni/quick/rand"
 )
 
+const ACCUMULATED_CONTEXT_KEY = "__quick_context_data__"
+
+type ContextBuilder struct {
+	ctx *Ctx
+}
+
 // ContextDataCallback is called when SetContext is invoked
 var ContextDataCallback func(*http.Request, map[string]string)
 
@@ -938,55 +944,146 @@ func (c *Ctx) Next() error {
 	return nil
 }
 
-// SetContext sets HTTP headers and adds key-value pairs to the request context.
-//
-// This method processes a map of context data, adding non-empty key-value pairs to the
-// request context and setting string values as HTTP headers when both key and value
-// are non-empty.
-//
-// Parameters:
-//   - contextData: A map containing headers and context values
-//   - Only non-empty keys with non-nil values will be processed
-//   - String values will also be set as HTTP headers (if not empty)
+// SetContext creates a new context builder for adding key-value pairs.
 //
 // Usage:
 //
-//	func myHandler(c *quick.Ctx) error {
-//	    traceID := c.GetTraceID("X-Trace-ID")
+//	c.SetContext().Str("service", "user-service").Int("userID", 123)
+func (c *Ctx) SetContext() *ContextBuilder {
+	return &ContextBuilder{ctx: c}
+}
+
+// Str adds a string value to the context and returns the builder for chaining.
 //
-//	    contextData := map[string]any{
-//	        "X-Trace-ID":  traceID,
-//	        "User-Agent":  "MyService/1.0",
-//	        "service":     "user-service",
-//	        "function":    "createUser",
-//	        "requestID":   "req-123",
-//	        "userID":      12345,
-//	    }
+// Parameters:
+//   - key: Context key name
+//   - value: String value to store
 //
-//	    c.SetContext(contextData)
-//	    return c.Status(200).String(traceID)
-//	}
-func (c *Ctx) SetContext(contextData map[string]string) {
+// Usage:
+//
+//	c.SetContext().Str("service", "user-service").Str("function", "createUser")
+func (cb *ContextBuilder) Str(key, value string) *ContextBuilder {
+	if key != "" && value != "" {
+		existingData := cb.ctx.getAccumulatedData()
+		existingData[key] = value
+		cb.ctx.applyAccumulatedContext(existingData)
+	}
+	return cb
+}
+
+// Int adds an integer value to the context as a string and returns the builder for chaining.
+//
+// Parameters:
+//   - key: Context key name
+//   - value: Integer value to store (converted to string)
+//
+// Usage:
+//
+//	c.SetContext().Int("userID", 12345).Int("attempts", 3)
+func (cb *ContextBuilder) Int(key string, value int) *ContextBuilder {
+	if key != "" {
+		existingData := cb.ctx.getAccumulatedData()
+		existingData[key] = fmt.Sprintf("%d", value)
+		cb.ctx.applyAccumulatedContext(existingData)
+	}
+	return cb
+}
+
+// Bool adds a boolean value to the context as a string and returns the builder for chaining.
+//
+// Parameters:
+//   - key: Context key name
+//   - value: Boolean value to store (converted to "true" or "false")
+//
+// Usage:
+//
+//	c.SetContext().Bool("authenticated", true).Bool("admin", false)
+func (cb *ContextBuilder) Bool(key string, value bool) *ContextBuilder {
+	if key != "" {
+		existingData := cb.ctx.getAccumulatedData()
+		existingData[key] = fmt.Sprintf("%t", value)
+		cb.ctx.applyAccumulatedContext(existingData)
+	}
+	return cb
+}
+
+// SetTraceID sets a trace ID header and adds it to the context.
+//
+// Parameters:
+//   - key: Header name (e.g., "X-Trace-ID")
+//   - val: Trace ID value
+//
+// Returns a ContextBuilder for chaining additional context data.
+//
+// Usage:
+//
+//	c.SetTraceID("X-Trace-ID", traceID).Str("service", "user-service")
+func (c *Ctx) SetTraceID(key, val string) *ContextBuilder {
+	// Set trace ID header
+	c.Set(key, val)
+	existingData := c.getAccumulatedData()
+	existingData[key] = val
+	c.applyAccumulatedContext(existingData)
+	return &ContextBuilder{ctx: c}
+}
+
+// getAccumulatedData retrieves all accumulated context data or creates a new map.
+func (c *Ctx) getAccumulatedData() map[string]string {
+	if existing := c.Request.Context().Value(ACCUMULATED_CONTEXT_KEY); existing != nil {
+		if data, ok := existing.(map[string]string); ok {
+			copy := make(map[string]string)
+			for k, v := range data {
+				copy[k] = v
+			}
+			return copy
+		}
+	}
+	return make(map[string]string)
+}
+
+// applyAccumulatedContext applies all accumulated data to the request context.
+func (c *Ctx) applyAccumulatedContext(allData map[string]string) {
 	ctx := c.Request.Context()
 
-	// Store all context data in a special key for logger access
-	ctx = context.WithValue(ctx, "__quick_context_data__", contextData)
+	// Store all accumulated data in special key
+	ctx = context.WithValue(ctx, ACCUMULATED_CONTEXT_KEY, allData)
 
-	// Set individual context values as before
-	for key, value := range contextData {
-		if key == "" || value == "" {
-			continue
+	for key, value := range allData {
+		if key != "" && value != "" {
+			ctx = context.WithValue(ctx, key, value)
 		}
-		ctx = context.WithValue(ctx, key, value)
 	}
-	
-	// Also notify logger middleware about the context data
-	if c.Request != nil && ContextDataCallback != nil {
-		// Call callback if it exists (will be set by logger middleware)
-		ContextDataCallback(c.Request, contextData)
-	}
-	
 	c.Request = c.Request.WithContext(ctx)
+
+	// Also update the request in logger middleware if it exists
+	if rw, ok := c.Response.(interface{ SetRequest(*http.Request) }); ok {
+		rw.SetRequest(c.Request)
+	}
+}
+
+// SaveContext saves all accumulated context data and notifies logger.
+// This should be called with defer to ensure it runs after all context operations.
+//
+// Usage:
+//
+//	defer c.SaveContext()
+func (c *Ctx) SaveContext() {
+	if c.Request != nil && ContextDataCallback != nil {
+		allData := c.getAccumulatedData()
+		if len(allData) > 0 {
+			ContextDataCallback(c.Request, allData)
+		}
+	}
+}
+
+// GetAllContextData returns all accumulated context data.
+//
+// Usage:
+//
+//	allData := c.GetAllContextData()
+//	fmt.Printf("Context: %+v", allData)
+func (c *Ctx) GetAllContextData() map[string]string {
+	return c.getAccumulatedData()
 }
 
 // GetTraceID retrieves or generates a trace ID for the current request.
