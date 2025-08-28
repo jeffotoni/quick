@@ -21,8 +21,6 @@ func main() {
 	}))
 
 	q.Post("/v1/logger/json", func(c *quick.Ctx) error {
-		defer c.SaveContext()
-
 		c.Set("Content-Type", "application/json")
 
 		traceID := c.GetTraceID(NAME_TRACE_ID)
