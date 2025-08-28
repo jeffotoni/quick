@@ -68,12 +68,12 @@ var (
 // 			}` // json format`
 
 // setRequestContextData stores context data for a specific request (called by SetContext)
-func setRequestContextData(req *http.Request, data map[string]string) {
+func setRequestContextData(req *http.Request, data map[string]any) {
 	// Instead of replacing, accumulate the data
 	if existing, ok := requestContextData.Load(req); ok {
-		if existingMap, ok := existing.(map[string]string); ok {
+		if existingMap, ok := existing.(map[string]any); ok {
 			// Merge with existing data
-			merged := make(map[string]string)
+			merged := make(map[string]any)
 			for k, v := range existingMap {
 				merged[k] = v
 			}
@@ -89,7 +89,7 @@ func setRequestContextData(req *http.Request, data map[string]string) {
 }
 
 // SetRequestContextData - exported function for quick package to call
-func SetRequestContextData(req *http.Request, data map[string]string) {
+func SetRequestContextData(req *http.Request, data map[string]any) {
 	setRequestContextData(req, data)
 }
 
@@ -310,18 +310,18 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			}
 
 			if ctxData := ctx.Value("__quick_context_data__"); ctxData != nil {
-				if contextMap, ok := ctxData.(map[string]string); ok {
+				if contextMap, ok := ctxData.(map[string]any); ok {
 					for key, value := range contextMap {
-						if value != "" {
+						if value != nil {
 							dynamicContextData[key] = value
 						}
 					}
 				}
 			} else {
 				if data, ok := requestContextData.Load(req); ok {
-					if contextMap, ok := data.(map[string]string); ok {
+					if contextMap, ok := data.(map[string]any); ok {
 						for key, value := range contextMap {
-							if value != "" {
+							if value != nil {
 								dynamicContextData[key] = value
 							}
 						}
