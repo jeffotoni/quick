@@ -37,7 +37,9 @@ func main() {
 
 		c.SetContext().
 			Str("service-2", "user-service-2").
-			Str("func-error-2", "error func2")
+			Str("func-error-2", "error func2").
+			Int("service-int", 3939).
+			Bool("service-bool", true)
 
 		return c.Status(200).JSON(quick.M{
 			"msg":     "JSON logging example",

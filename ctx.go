@@ -42,7 +42,7 @@ type ContextBuilder struct {
 }
 
 // ContextDataCallback is called when SetContext is invoked
-var ContextDataCallback func(*http.Request, map[string]string)
+var ContextDataCallback func(*http.Request, map[string]any)
 
 // Ctx represents the context of an HTTP request and response.
 type Ctx struct {
@@ -983,7 +983,7 @@ func (cb *ContextBuilder) Str(key, value string) *ContextBuilder {
 func (cb *ContextBuilder) Int(key string, value int) *ContextBuilder {
 	if key != "" {
 		existingData := cb.ctx.getAccumulatedData()
-		existingData[key] = fmt.Sprintf("%d", value)
+		existingData[key] = value
 		cb.ctx.applyAccumulatedContext(existingData)
 	}
 	return cb
@@ -1001,7 +1001,7 @@ func (cb *ContextBuilder) Int(key string, value int) *ContextBuilder {
 func (cb *ContextBuilder) Bool(key string, value bool) *ContextBuilder {
 	if key != "" {
 		existingData := cb.ctx.getAccumulatedData()
-		existingData[key] = fmt.Sprintf("%t", value)
+		existingData[key] = value
 		cb.ctx.applyAccumulatedContext(existingData)
 	}
 	return cb
@@ -1028,21 +1028,21 @@ func (c *Ctx) SetTraceID(key, val string) *ContextBuilder {
 }
 
 // getAccumulatedData retrieves all accumulated context data or creates a new map.
-func (c *Ctx) getAccumulatedData() map[string]string {
+func (c *Ctx) getAccumulatedData() map[string]any {
 	if existing := c.Request.Context().Value(ACCUMULATED_CONTEXT_KEY); existing != nil {
-		if data, ok := existing.(map[string]string); ok {
-			copy := make(map[string]string)
+		if data, ok := existing.(map[string]any); ok {
+			copy := make(map[string]any)
 			for k, v := range data {
 				copy[k] = v
 			}
 			return copy
 		}
 	}
-	return make(map[string]string)
+	return make(map[string]any)
 }
 
 // applyAccumulatedContext applies all accumulated data to the request context.
-func (c *Ctx) applyAccumulatedContext(allData map[string]string) {
+func (c *Ctx) applyAccumulatedContext(allData map[string]any) {
 	ctx := c.Request.Context()
 
 	// Store all accumulated data in special key
@@ -1082,7 +1082,7 @@ func (c *Ctx) SaveContext() {
 //
 //	allData := c.GetAllContextData()
 //	fmt.Printf("Context: %+v", allData)
-func (c *Ctx) GetAllContextData() map[string]string {
+func (c *Ctx) GetAllContextData() map[string]any {
 	return c.getAccumulatedData()
 }
 
