@@ -13,19 +13,26 @@ func main() {
 
 	// Apply logger with JSON format
 	q.Use(logger.New(logger.Config{
-		Format:  "json",
-		Level:   "INFO",
-		TraceID: NAME_TRACE_ID,
+		Format: "json",
+		Level:  "INFO",
 	}))
 
 	// Define an endpoint that triggers logging
 	q.Post("/v1/logger/json", func(c *quick.Ctx) error {
+
 		c.Set("Content-Type", "application/json")
 
 		traceID := c.GetTraceID(NAME_TRACE_ID)
 
 		// request
-		c.SetTraceContext(NAME_TRACE_ID, traceID, "user-service", "func-create-user")
+		contextData := map[string]string{
+			NAME_TRACE_ID: traceID,
+			"service":     "user-service",
+			"function":    "createUser",
+		}
+
+		// set request
+		c.SetContext(contextData)
 
 		// response
 		c.Set(NAME_TRACE_ID, traceID)

@@ -24,11 +24,32 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jeffotoni/quick"
-	"github.com/jeffotoni/quick/rand"
 )
+
+// Global storage for context data per request
+var (
+	requestContextData sync.Map // map[*http.Request]map[string]string
+)
+
+// setRequestContextData stores context data for a specific request (called by SetContext)
+func setRequestContextData(req *http.Request, data map[string]string) {
+	requestContextData.Store(req, data)
+}
+
+// SetRequestContextData - exported function for quick package to call
+func SetRequestContextData(req *http.Request, data map[string]string) {
+	setRequestContextData(req, data)
+}
+
+// init registers the callback with the quick package
+func init() {
+	// Set the callback in the quick package to capture context data
+	quick.ContextDataCallback = setRequestContextData
+}
 
 // ANSI color codes used for log output styling
 const (
@@ -53,7 +74,6 @@ type Config struct {
 	Pattern      string            // Logging pattern
 	Level        string            // Log level threshold
 	CustomFields map[string]string // Additional custom fields for logging
-	TraceID      string            //traceID
 }
 
 // ConfigDefault provides the default logging configuration.
@@ -64,7 +84,6 @@ type Config struct {
 var ConfigDefault = Config{
 	Format:  "text",
 	Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency}\n",
-	TraceID: "X-TRACE-ID",
 }
 
 // ColorHandler is a slog.Handler that adds ANSI color to log output.
@@ -200,11 +219,12 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			start := time.Now()
 
 			// Extract client IP and port from RemoteAddr
-			ip, port, err := net.SplitHostPort(req.RemoteAddr)
+			ip, _, err := net.SplitHostPort(req.RemoteAddr)
 			if err != nil {
 				ip = req.RemoteAddr
-				port = "?"
 			}
+
+			port := getPort(req)
 
 			// Capture request body size
 			var bodySize int64
@@ -212,6 +232,7 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			if req.Body != nil {
 				body, err := io.ReadAll(req.Body)
 				if err == nil {
+					bodyVal = string(body)
 					bodySize = int64(len(body))
 					req.Body = io.NopCloser(bytes.NewBuffer(body))
 				}
@@ -226,37 +247,23 @@ func New(config ...Config) func(http.Handler) http.Handler {
 
 			elapsed := time.Since(start)
 
-			// Get TraceID from request header (set by handler)
-			traceID := req.Header.Get(cfg.TraceID)
-			if traceID == "" {
-				traceID = rand.TraceID()
-			}
-			if traceID == "" {
-				// Try to get from context if set by handler
-				if ctxTraceID := req.Context().Value(cfg.TraceID); ctxTraceID != nil {
-					if traceIDStr, ok := ctxTraceID.(string); ok {
-						traceID = traceIDStr
+			// Get all dynamic context data from global storage
+			// This captures any key-value pairs set via SetContext method during handler execution
+			dynamicContextData := make(map[string]interface{})
+
+			// Get context data from global map
+			if data, ok := requestContextData.Load(req); ok {
+				if contextMap, ok := data.(map[string]string); ok {
+					for key, value := range contextMap {
+						if value != "" {
+							dynamicContextData[key] = value
+						}
 					}
 				}
 			}
-			if traceID == "" {
-				traceID = "unknown"
-			}
 
-			// Get service and function from context if set by handler
-			service := ""
-			if ctxService := req.Context().Value("service"); ctxService != nil {
-				if serviceStr, ok := ctxService.(string); ok {
-					service = serviceStr
-				}
-			}
-
-			function := ""
-			if ctxFunction := req.Context().Value("function"); ctxFunction != nil {
-				if functionStr, ok := ctxFunction.(string); ok {
-					function = functionStr
-				}
-			}
+			// Clean up the global map to prevent memory leaks
+			requestContextData.Delete(req)
 
 			// Prepare response body (limit size for logging)
 			responseBody := string(lrw.body)
@@ -266,18 +273,15 @@ func New(config ...Config) func(http.Handler) http.Handler {
 
 			// Log data structure
 			logData := map[string]interface{}{
-				cfg.TraceID: traceID,
-				"service":   service,
-				"function":  function,
-				"level":     strings.ToUpper(cfg.Level),
-				"time":      time.Now().Format(time.RFC3339),
-				"ip":        ip,
-				"port":      port,
-				"method":    req.Method,
-				"path":      req.URL.Path,
-				"status":    lrw.status,
-				"latency":   elapsed.String(),
-				"host":      req.Host,
+				"level":   strings.ToUpper(cfg.Level),
+				"time":    time.Now().Format(time.RFC3339),
+				"ip":      ip,
+				"port":    port,
+				"method":  req.Method,
+				"path":    req.URL.Path,
+				"status":  lrw.status,
+				"latency": elapsed.String(),
+				"host":    req.Host,
 
 				// request
 				"headers":    sanitizeHeaders(req.Header),
@@ -291,6 +295,11 @@ func New(config ...Config) func(http.Handler) http.Handler {
 				"response_size":    lrw.size,
 				"response_headers": sanitizeHeaders(lrw.headers),
 				"response_body":    responseBody,
+			}
+
+			// Add dynamic context data to logData
+			for key, value := range dynamicContextData {
+				logData[key] = value
 			}
 
 			// Apply ANSI colors to log output in text mode
@@ -311,6 +320,11 @@ func New(config ...Config) func(http.Handler) http.Handler {
 			colorLogData["user_agent"] = fmt.Sprintf("%v", logData["user_agent"])
 			colorLogData["referer"] = fmt.Sprintf("%v", logData["referer"])
 			colorLogData["query"] = fmt.Sprintf("%v", logData["query"])
+
+			// Include dynamic context data in colorLogData for text/slog formats
+			for key, value := range dynamicContextData {
+				colorLogData[key] = fmt.Sprintf("%v", value)
+			}
 
 			// Include custom fields
 			for k, v := range cfg.CustomFields {
@@ -371,4 +385,18 @@ func sanitizeHeaders(headers http.Header) map[string][]string {
 	}
 
 	return sanitized
+}
+
+func getPort(req *http.Request) string {
+	if host := req.Host; host != "" {
+		_, port, err := net.SplitHostPort(host)
+		if err == nil && port != "" {
+			return port
+		}
+	}
+
+	if req.TLS != nil {
+		return "443"
+	}
+	return "80"
 }
