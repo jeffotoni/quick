@@ -21,7 +21,7 @@ func main() {
 	}))
 
 	q.Post("/v1/logger/json", func(c *quick.Ctx) error {
-		defer c.SaveContext() // ← MÁGICA! Salva todos os dados no final
+		defer c.SaveContext()
 
 		c.Set("Content-Type", "application/json")
 
