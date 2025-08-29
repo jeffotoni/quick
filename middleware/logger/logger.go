@@ -588,8 +588,24 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 			break
 		}
 
-		if part.FileName() != "" {
-			fileNames = append(fileNames, part.FileName())
+		filename := part.FileName()
+		if filename != "" {
+			// Remove path and get just the filename
+			if idx := strings.LastIndex(filename, "/"); idx != -1 {
+				filename = filename[idx+1:]
+			}
+			if idx := strings.LastIndex(filename, "\\"); idx != -1 {
+				filename = filename[idx+1:]
+			}
+			
+			// Handle "blob" case - use the form field name instead
+			if filename == "blob" || filename == "" {
+				if formName := part.FormName(); formName != "" {
+					filename = formName
+				}
+			}
+			
+			fileNames = append(fileNames, filename)
 
 			content, err := io.ReadAll(part)
 			if err == nil {
