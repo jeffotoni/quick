@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"mime"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"os"
@@ -280,14 +282,29 @@ func New(config ...Config) func(http.Handler) http.Handler {
 
 			port := getPort(req)
 
-			// Capture request body size
+			// Capture request body size and detect multipart uploads
 			var bodySize int64
 			var bodyVal string
+			var isMultipartForm bool
+			var multipartInfo map[string]any
+
+			contentType := strings.ToLower(req.Header.Get("Content-Type"))
+			isMultipartForm = strings.HasPrefix(contentType, "multipart/form-data")
+
 			if req.Body != nil {
 				body, err := io.ReadAll(req.Body)
 				if err == nil {
-					bodyVal = string(body)
 					bodySize = int64(len(body))
+
+					if isMultipartForm {
+						// For multipart uploads, don't store the actual body content
+						bodyVal = "--multipart/form-data--"
+						// Extract multipart file information
+						multipartInfo = extractMultipartInfo(req, body)
+					} else {
+						bodyVal = string(body)
+					}
+
 					req.Body = io.NopCloser(bytes.NewBuffer(body))
 				}
 			}
@@ -364,6 +381,13 @@ func New(config ...Config) func(http.Handler) http.Handler {
 				"response_size":    lrw.size,
 				"response_headers": sanitizeHeaders(lrw.headers),
 				"response_body":    responseBody,
+			}
+
+			// Add multipart file information for JSON format only
+			if cfg.Format == "json" && isMultipartForm && multipartInfo != nil {
+				for key, value := range multipartInfo {
+					logData[key] = value
+				}
 			}
 
 			// Add dynamic context data to logData
@@ -524,6 +548,81 @@ func isStandardField(fieldName string) bool {
 		// Response fields
 		"response_status": true, "response_size": true, "response_headers": true,
 		"response_body": true,
+
+		// Multipart fields
+		"file_name": true, "file_size": true, "file_type": true,
 	}
 	return standardFields[fieldName]
+}
+
+// extractMultipartInfo extracts file information from multipart form data
+func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
+	info := make(map[string]any)
+
+	// Parse Content-Type to get boundary
+	contentType := req.Header.Get("Content-Type")
+	_, params, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return info
+	}
+
+	boundary, ok := params["boundary"]
+	if !ok {
+		return info
+	}
+
+	// Create multipart reader
+	reader := multipart.NewReader(bytes.NewReader(bodyBytes), boundary)
+
+	var fileNames []string
+	var totalFileSize int64
+	var fileTypes []string
+
+	// Parse multipart form
+	for {
+		part, err := reader.NextPart()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			break
+		}
+
+		if part.FileName() != "" {
+			fileNames = append(fileNames, part.FileName())
+
+			content, err := io.ReadAll(part)
+			if err == nil {
+				partSize := int64(len(content))
+				totalFileSize += partSize
+
+				// Detect content type
+				contentType := http.DetectContentType(content)
+				if contentType != "" {
+					fileTypes = append(fileTypes, contentType)
+				}
+			}
+		}
+		part.Close()
+	}
+
+	if len(fileNames) > 0 {
+		if len(fileNames) == 1 {
+			info["file_name"] = fileNames[0]
+		} else {
+			info["file_name"] = strings.Join(fileNames, ", ")
+		}
+
+		info["file_size"] = totalFileSize
+
+		if len(fileTypes) == 1 {
+			info["file_type"] = fileTypes[0]
+		} else if len(fileTypes) > 1 {
+			info["file_type"] = strings.Join(fileTypes, ", ")
+		} else {
+			info["file_type"] = "unknown"
+		}
+	}
+
+	return info
 }
