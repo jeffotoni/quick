@@ -944,6 +944,15 @@ func (c *Ctx) Next() error {
 	return nil
 }
 
+// Logger creates a new context builder for adding key-value pairs.
+//
+// Usage:
+//
+//	c.Logger().Str("service", "user-service").Int("userID", 123)
+func (c *Ctx) Logger() *ContextBuilder {
+	return &ContextBuilder{ctx: c}
+}
+
 // SetContext creates a new context builder for adding key-value pairs.
 //
 // Usage:
@@ -1058,21 +1067,6 @@ func (c *Ctx) applyAccumulatedContext(allData map[string]any) {
 	// Also update the request in logger middleware if it exists
 	if rw, ok := c.Response.(interface{ SetRequest(*http.Request) }); ok {
 		rw.SetRequest(c.Request)
-	}
-}
-
-// SaveContext saves all accumulated context data and notifies logger.
-// This should be called with defer to ensure it runs after all context operations.
-//
-// Usage:
-//
-//	defer c.SaveContext()
-func (c *Ctx) SaveContext() {
-	if c.Request != nil && ContextDataCallback != nil {
-		allData := c.getAccumulatedData()
-		if len(allData) > 0 {
-			ContextDataCallback(c.Request, allData)
-		}
 	}
 }
 

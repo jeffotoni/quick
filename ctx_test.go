@@ -999,3 +999,385 @@ func TestCtxOriginalURI(t *testing.T) {
 		t.Errorf("originalURI() = %v, want %v", original, "/v1/api/testpath?search=golang")
 	}
 }
+
+// TestContextBuilder_Str validates the Str method of ContextBuilder.
+//
+// It ensures that string values are properly added to the context data.
+//
+// Check:
+//   - ContextBuilder.Str()
+//   - Context data accumulation
+//
+// To run:
+//
+//	$ go test -v -run ^TestContextBuilder_Str$
+func TestContextBuilder_Str(t *testing.T) {
+	// Create test request
+	req := httptest.NewRequest(http.MethodPost, "/test", nil)
+	rec := httptest.NewRecorder()
+
+	// Create context
+	c := &Ctx{
+		Response: rec,
+		Request:  req,
+	}
+
+	// Test Str method
+	c.SetContext().
+		Str("service", "user-service").
+		Str("function", "createUser").
+		Str("status", "active")
+
+	// Verify accumulated data
+	data := c.GetAllContextData()
+
+	// Check if values were stored correctly
+	if data["service"] != "user-service" {
+		t.Errorf("Expected service = 'user-service', got %v", data["service"])
+	}
+	if data["function"] != "createUser" {
+		t.Errorf("Expected function = 'createUser', got %v", data["function"])
+	}
+	if data["status"] != "active" {
+		t.Errorf("Expected status = 'active', got %v", data["status"])
+	}
+
+	// Test empty values are ignored
+	c.SetContext().Str("empty", "")
+	data = c.GetAllContextData()
+	if _, exists := data["empty"]; exists {
+		t.Errorf("Empty value should not be stored in context")
+	}
+}
+
+// TestContextBuilder_Int validates the Int method of ContextBuilder.
+//
+// It ensures that integer values are properly stored as native integers.
+//
+// Check:
+//   - ContextBuilder.Int()
+//   - Type preservation for integers
+//
+// To run:
+//
+//	$ go test -v -run ^TestContextBuilder_Int$
+func TestContextBuilder_Int(t *testing.T) {
+	// Create test request
+	req := httptest.NewRequest(http.MethodPost, "/test", nil)
+	rec := httptest.NewRecorder()
+
+	// Create context
+	c := &Ctx{
+		Response: rec,
+		Request:  req,
+	}
+
+	// Test Int method
+	c.SetContext().
+		Int("userID", 12345).
+		Int("attempts", 3).
+		Int("zero", 0)
+
+	// Verify accumulated data
+	data := c.GetAllContextData()
+
+	// Check if values were stored correctly as integers
+	if userID, ok := data["userID"].(int); !ok || userID != 12345 {
+		t.Errorf("Expected userID = 12345 (int), got %v (%T)", data["userID"], data["userID"])
+	}
+	if attempts, ok := data["attempts"].(int); !ok || attempts != 3 {
+		t.Errorf("Expected attempts = 3 (int), got %v (%T)", data["attempts"], data["attempts"])
+	}
+	if zero, ok := data["zero"].(int); !ok || zero != 0 {
+		t.Errorf("Expected zero = 0 (int), got %v (%T)", data["zero"], data["zero"])
+	}
+}
+
+// TestContextBuilder_Bool validates the Bool method of ContextBuilder.
+//
+// It ensures that boolean values are properly stored as native booleans.
+//
+// Check:
+//   - ContextBuilder.Bool()
+//   - Type preservation for booleans
+//
+// To run:
+//
+//	$ go test -v -run ^TestContextBuilder_Bool$
+func TestContextBuilder_Bool(t *testing.T) {
+	// Create test request
+	req := httptest.NewRequest(http.MethodPost, "/test", nil)
+	rec := httptest.NewRecorder()
+
+	// Create context
+	c := &Ctx{
+		Response: rec,
+		Request:  req,
+	}
+
+	// Test Bool method
+	c.SetContext().
+		Bool("authenticated", true).
+		Bool("admin", false).
+		Bool("active", true)
+
+	// Verify accumulated data
+	data := c.GetAllContextData()
+
+	// Check if values were stored correctly as booleans
+	if authenticated, ok := data["authenticated"].(bool); !ok || !authenticated {
+		t.Errorf("Expected authenticated = true (bool), got %v (%T)", data["authenticated"], data["authenticated"])
+	}
+	if admin, ok := data["admin"].(bool); !ok || admin {
+		t.Errorf("Expected admin = false (bool), got %v (%T)", data["admin"], data["admin"])
+	}
+	if active, ok := data["active"].(bool); !ok || !active {
+		t.Errorf("Expected active = true (bool), got %v (%T)", data["active"], data["active"])
+	}
+}
+
+// TestContextBuilder_ChainMethods validates method chaining functionality.
+//
+// It ensures that all ContextBuilder methods can be chained together
+// and that mixed types are preserved correctly.
+//
+// Check:
+//   - Method chaining
+//   - Mixed type preservation
+//
+// To run:
+//
+//	$ go test -v -run ^TestContextBuilder_ChainMethods$
+func TestContextBuilder_ChainMethods(t *testing.T) {
+	// Create test request
+	req := httptest.NewRequest(http.MethodPost, "/test", nil)
+	rec := httptest.NewRecorder()
+
+	// Create context
+	c := &Ctx{
+		Response: rec,
+		Request:  req,
+	}
+
+	// Test chaining all methods together
+	c.SetContext().
+		Str("service", "payment-service").
+		Int("amount", 1000).
+		Bool("processed", true).
+		Str("currency", "USD").
+		Int("timeout", 30).
+		Bool("retry", false)
+
+	// Verify accumulated data
+	data := c.GetAllContextData()
+
+	// Verify all values with correct types
+	tests := []struct {
+		key      string
+		expected interface{}
+	}{
+		{"service", "payment-service"},
+		{"amount", 1000},
+		{"processed", true},
+		{"currency", "USD"},
+		{"timeout", 30},
+		{"retry", false},
+	}
+
+	for _, test := range tests {
+		actual := data[test.key]
+		if actual != test.expected {
+			t.Errorf("Expected %s = %v (%T), got %v (%T)", 
+				test.key, test.expected, test.expected, actual, actual)
+		}
+	}
+}
+
+// TestSetTraceID validates SetTraceID functionality.
+//
+// It ensures that trace IDs are properly set in both headers and context.
+//
+// Check:
+//   - SetTraceID sets header correctly
+//   - SetTraceID adds to context data
+//   - Returns ContextBuilder for chaining
+//
+// To run:
+//
+//	$ go test -v -run ^TestSetTraceID$
+func TestSetTraceID(t *testing.T) {
+	// Create test request
+	req := httptest.NewRequest(http.MethodPost, "/test", nil)
+	rec := httptest.NewRecorder()
+
+	// Create context
+	c := &Ctx{
+		Response: rec,
+		Request:  req,
+	}
+
+	// Test SetTraceID
+	traceID := "test-trace-id-12345"
+	builder := c.SetTraceID("X-Trace-ID", traceID)
+
+	// Verify header was set
+	if header := rec.Header().Get("X-Trace-ID"); header != traceID {
+		t.Errorf("Expected X-Trace-ID header = %s, got %s", traceID, header)
+	}
+
+	// Verify context data
+	data := c.GetAllContextData()
+	if data["X-Trace-ID"] != traceID {
+		t.Errorf("Expected X-Trace-ID in context = %s, got %v", traceID, data["X-Trace-ID"])
+	}
+
+	// Verify it returns ContextBuilder for chaining
+	if builder == nil {
+		t.Error("SetTraceID should return ContextBuilder")
+	}
+
+	// Test chaining after SetTraceID
+	builder.Str("service", "test-service").Int("version", 2)
+
+	// Verify chained data
+	data = c.GetAllContextData()
+	if data["service"] != "test-service" {
+		t.Errorf("Expected service = 'test-service', got %v", data["service"])
+	}
+	if data["version"] != 2 {
+		t.Errorf("Expected version = 2, got %v", data["version"])
+	}
+}
+
+// TestGetTraceID validates GetTraceID functionality.
+//
+// It ensures that trace IDs are properly retrieved from headers or generated.
+//
+// Check:
+//   - GetTraceID retrieves existing header
+//   - GetTraceID generates new ID when none exists
+//   - Generated IDs are not empty
+//
+// To run:
+//
+//	$ go test -v -run ^TestGetTraceID$
+func TestGetTraceID(t *testing.T) {
+	t.Run("GetExistingTraceID", func(t *testing.T) {
+		// Create test request with existing trace ID
+		req := httptest.NewRequest(http.MethodPost, "/test", nil)
+		req.Header.Set("X-Trace-ID", "existing-trace-123")
+		rec := httptest.NewRecorder()
+
+		// Create context
+		c := &Ctx{
+			Response: rec,
+			Request:  req,
+		}
+
+		// Test GetTraceID
+		traceID := c.GetTraceID("X-Trace-ID")
+		if traceID != "existing-trace-123" {
+			t.Errorf("Expected existing trace ID 'existing-trace-123', got %s", traceID)
+		}
+	})
+
+	t.Run("GenerateNewTraceID", func(t *testing.T) {
+		// Create test request without trace ID
+		req := httptest.NewRequest(http.MethodPost, "/test", nil)
+		rec := httptest.NewRecorder()
+
+		// Create context
+		c := &Ctx{
+			Response: rec,
+			Request:  req,
+		}
+
+		// Test GetTraceID generates new ID
+		traceID := c.GetTraceID("X-Trace-ID")
+		if traceID == "" {
+			t.Error("GetTraceID should generate non-empty trace ID when none exists")
+		}
+
+		// Verify it's a valid format (should be 16 characters)
+		if len(traceID) != 16 {
+			t.Errorf("Expected generated trace ID to be 16 characters, got %d: %s", len(traceID), traceID)
+		}
+	})
+}
+
+// TestGetAllContextData validates GetAllContextData functionality.
+//
+// It ensures that all accumulated context data is properly retrieved.
+//
+// Check:
+//   - GetAllContextData returns all accumulated data
+//   - Returns empty map when no data exists
+//   - Data types are preserved
+//
+// To run:
+//
+//	$ go test -v -run ^TestGetAllContextData$
+func TestGetAllContextData(t *testing.T) {
+	t.Run("EmptyContextData", func(t *testing.T) {
+		// Create test request
+		req := httptest.NewRequest(http.MethodPost, "/test", nil)
+		rec := httptest.NewRecorder()
+
+		// Create context
+		c := &Ctx{
+			Response: rec,
+			Request:  req,
+		}
+
+		// Test GetAllContextData with no data
+		data := c.GetAllContextData()
+		if data == nil {
+			t.Error("GetAllContextData should return empty map, not nil")
+		}
+		if len(data) != 0 {
+			t.Errorf("Expected empty context data, got %v", data)
+		}
+	})
+
+	t.Run("PopulatedContextData", func(t *testing.T) {
+		// Create test request
+		req := httptest.NewRequest(http.MethodPost, "/test", nil)
+		rec := httptest.NewRecorder()
+
+		// Create context
+		c := &Ctx{
+			Response: rec,
+			Request:  req,
+		}
+
+		// Add various types of data
+		c.SetContext().
+			Str("service", "test-service").
+			Int("port", 8080).
+			Bool("secure", true)
+
+		c.SetTraceID("X-Trace-ID", "test-123")
+
+		// Test GetAllContextData
+		data := c.GetAllContextData()
+		
+		expectedKeys := []string{"service", "port", "secure", "X-Trace-ID"}
+		if len(data) != len(expectedKeys) {
+			t.Errorf("Expected %d keys in context data, got %d", len(expectedKeys), len(data))
+		}
+
+		// Verify all expected keys exist with correct values and types
+		if data["service"] != "test-service" {
+			t.Errorf("Expected service = 'test-service', got %v", data["service"])
+		}
+		if port, ok := data["port"].(int); !ok || port != 8080 {
+			t.Errorf("Expected port = 8080 (int), got %v (%T)", data["port"], data["port"])
+		}
+		if secure, ok := data["secure"].(bool); !ok || !secure {
+			t.Errorf("Expected secure = true (bool), got %v (%T)", data["secure"], data["secure"])
+		}
+		if data["X-Trace-ID"] != "test-123" {
+			t.Errorf("Expected X-Trace-ID = 'test-123', got %v", data["X-Trace-ID"])
+		}
+	})
+}
