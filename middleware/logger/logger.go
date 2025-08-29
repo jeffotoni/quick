@@ -550,7 +550,7 @@ func isStandardField(fieldName string) bool {
 		"response_body": true,
 
 		// Multipart fields
-		"file_name": true, "file_size": true, "file_type": true,
+		"upload": true, "total_files": true, "total_size": true,
 	}
 	return standardFields[fieldName]
 }
@@ -574,9 +574,8 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 	// Create multipart reader
 	reader := multipart.NewReader(bytes.NewReader(bodyBytes), boundary)
 
-	var fileNames []string
+	var uploads []map[string]any
 	var totalFileSize int64
-	var fileTypes []string
 
 	// Parse multipart form
 	for {
@@ -604,8 +603,6 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 					filename = formName
 				}
 			}
-			
-			fileNames = append(fileNames, filename)
 
 			content, err := io.ReadAll(part)
 			if err == nil {
@@ -614,30 +611,28 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 
 				// Detect content type
 				contentType := http.DetectContentType(content)
-				if contentType != "" {
-					fileTypes = append(fileTypes, contentType)
+				if contentType == "" {
+					contentType = "unknown"
 				}
+				
+				// Create individual file info object
+				fileInfo := map[string]any{
+					"file_name": filename,
+					"file_type": contentType,
+					"file_size": partSize,
+				}
+				
+				uploads = append(uploads, fileInfo)
 			}
 		}
 		part.Close()
 	}
 
-	if len(fileNames) > 0 {
-		if len(fileNames) == 1 {
-			info["file_name"] = fileNames[0]
-		} else {
-			info["file_name"] = strings.Join(fileNames, ", ")
-		}
-
-		info["file_size"] = totalFileSize
-
-		if len(fileTypes) == 1 {
-			info["file_type"] = fileTypes[0]
-		} else if len(fileTypes) > 1 {
-			info["file_type"] = strings.Join(fileTypes, ", ")
-		} else {
-			info["file_type"] = "unknown"
-		}
+	// Build response info with upload array
+	if len(uploads) > 0 {
+		info["upload"] = uploads
+		info["total_files"] = len(uploads)
+		info["total_size"] = totalFileSize
 	}
 
 	return info
