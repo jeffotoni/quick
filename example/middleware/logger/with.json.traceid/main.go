@@ -28,12 +28,12 @@ func main() {
 		// set header and context in request
 		c.SetTraceID(NAME_TRACE_ID, traceID)
 
-		// request - agora acumula localmente sem notificar logger ainda
-		c.SetContext().
+		// logger
+		c.Logger().
 			Str("service-1", "user-service-1").
 			Str("func-error-1", "error func2")
 
-		c.SetContext().
+		c.Logger().
 			Str("service-2", "user-service-2").
 			Str("func-error-2", "error func2").
 			Int("service-int", 3939).
@@ -50,4 +50,55 @@ func main() {
 	q.Listen("0.0.0.0:8080")
 }
 
-// $ curl -i -XPOST localhost:8080/v1/logger/json id '{"name": "@jeffotoni"}'
+// $ curl -i -XPOST localhost:8080/v1/logger/json -d '{"name": "@jeffotoni"}'
+// output
+// {
+//     "X-TRACE-ID": "BfWcvpWQgJxSoFPU",
+//     "func-error-1": "error func2",
+//     "func-error-2": "error func2",
+//     "host": "localhost:8080",
+//     "ip": "::1",
+//     "latency": "93.584µs",
+//     "level": "DEBUG",
+//     "method": "POST",
+//     "path": "/v1/logger/json",
+//     "port": "8080",
+//     "request_body": "{\"name\":\"jefferson\"}",
+//     "request_headers": {
+//         "Accept": [
+//             "*/*"
+//         ],
+//         "Content-Length": [
+//             "20"
+//         ],
+//         "Content-Type": [
+//             "application/json"
+//         ],
+//         "User-Agent": [
+//             "curl/8.7.1"
+//         ]
+//     },
+//     "request_method": "POST",
+//     "request_path": "/v1/logger/json",
+//     "request_query": "",
+//     "request_referer": "",
+//     "request_size": 20,
+//     "request_user_agent": "curl/8.7.1",
+//     "response_body": "{\"context\":\"map[X-TRACE-ID:BfWcvpWQgJxSoFPU func-error-1:error func2 func-error-2:error func2 service-1:user-service-1 service-2:user-service-2 service-bool:true service-int:3939]\",\"msg\":\"JSON logging example\",\"traceID\":\"BfWcvpWQgJxSoFPU\"}",
+//     "response_headers": {
+//         "Content-Type": [
+//             "application/json"
+//         ],
+//         "X-Trace-Id": [
+//             "BfWcvpWQgJxSoFPU"
+//         ]
+//     },
+//     "response_size": 239,
+//     "response_status": 200,
+//     "service-1": "user-service-1",
+//     "service-2": "user-service-2",
+//     "service-bool": true,
+//     "service-int": 3939,
+//     "status": 200,
+//     "time": "2025-08-29T10:56:36-03:00"
+// }
