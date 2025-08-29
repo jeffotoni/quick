@@ -550,7 +550,7 @@ func isStandardField(fieldName string) bool {
 		"response_body": true,
 
 		// Multipart fields
-		"upload": true, "total_files": true, "total_size": true,
+		"upload": true, "total_files": true, "total_size": true, "form": true,
 	}
 	return standardFields[fieldName]
 }
@@ -576,6 +576,7 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 
 	var uploads []map[string]any
 	var totalFileSize int64
+	formFields := make(map[string][]string)
 
 	// Parse multipart form
 	for {
@@ -587,8 +588,11 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 			break
 		}
 
+		formName := part.FormName()
 		filename := part.FileName()
+		
 		if filename != "" {
+			// This is a file upload
 			// Remove path and get just the filename
 			if idx := strings.LastIndex(filename, "/"); idx != -1 {
 				filename = filename[idx+1:]
@@ -599,7 +603,7 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 			
 			// Handle "blob" case - use the form field name instead
 			if filename == "blob" || filename == "" {
-				if formName := part.FormName(); formName != "" {
+				if formName != "" {
 					filename = formName
 				}
 			}
@@ -624,6 +628,14 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 				
 				uploads = append(uploads, fileInfo)
 			}
+		} else if formName != "" {
+			// This is a regular form field
+			content, err := io.ReadAll(part)
+			if err == nil {
+				value := string(content)
+				// Append value to the field (supporting multiple values)
+				formFields[formName] = append(formFields[formName], value)
+			}
 		}
 		part.Close()
 	}
@@ -633,6 +645,11 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 		info["upload"] = uploads
 		info["total_files"] = len(uploads)
 		info["total_size"] = totalFileSize
+	}
+	
+	// Add form fields info
+	if len(formFields) > 0 {
+		info["form"] = formFields
 	}
 
 	return info
