@@ -12,11 +12,11 @@ func main() {
 	q := quick.New()
 
 	q.Use(cors.New(cors.Config{
-		AllowedOrigins:   []string{"https://httpbin.org"},           // Allow requests only from this domain
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},        // Allowed HTTP methods
-		AllowedHeaders:   []string{"Content-Type", "Authorization"}, // Allowed headers
-		AllowCredentials: true,                                      // Allow credentials (cookies, auth headers)
-		MaxAge:           600,                                       // Cache CORS preflight request for 10 minutes
+		AllowedOrigins:   []string{"*"}, // Allow requests only from this domain
+		AllowedMethods:   []string{"*"}, // Allowed HTTP methods
+		AllowedHeaders:   []string{"*"}, // Allowed headers
+		AllowCredentials: true,          // Allow credentials (cookies, auth headers)
+		MaxAge:           600,           // Cache CORS preflight request for 10 minutes
 	}))
 
 	// OPTIONS route to handle preflight CORS requests
@@ -28,6 +28,11 @@ func main() {
 	q.Get("/api/data", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		return c.SendString(`{"message": "Hello, CORS!"}`)
+	})
+
+	q.Post("/v1/user", func(c *quick.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.Status(200).JSON(string(c.Body()))
 	})
 
 	log.Println("Server running at http://localhost:8080")

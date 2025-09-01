@@ -470,6 +470,8 @@ func (q *Quick) Use(mw any) {
 func isCorsMiddleware(mw func(http.Handler) http.Handler) bool {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	testRequest := httptest.NewRequest("OPTIONS", "/", nil)
+	testRequest.Header.Set("Origin", "http://localhost:3000") // Add Origin header for CORS detection
+	testRequest.Header.Set("Access-Control-Request-Headers", "Content-Type, X-App-Marca") // Add requested headers
 	testResponse := httptest.NewRecorder()
 
 	mw(testHandler).ServeHTTP(testResponse, testRequest)
@@ -576,13 +578,13 @@ func (q *Quick) handleOptions(w http.ResponseWriter, r *http.Request) {
 	// Apply CORS middleware before setting headers
 	if q.Cors && q.CorsSet != nil {
 		q.CorsSet(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).ServeHTTP(w, r)
+	} else {
+		// Only set default CORS headers if no CORS middleware is configured
+		w.Header().Set("Allow", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	}
-
-	// Set default CORS headers
-	w.Header().Set("Allow", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Origin", "*") // Ajustável pelo middleware
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 	w.WriteHeader(http.StatusNoContent) // Returns 204 No Content
 }
