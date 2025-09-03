@@ -590,7 +590,7 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 
 		formName := part.FormName()
 		filename := part.FileName()
-		
+
 		if filename != "" {
 			// This is a file upload
 			// Remove path and get just the filename
@@ -600,7 +600,7 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 			if idx := strings.LastIndex(filename, "\\"); idx != -1 {
 				filename = filename[idx+1:]
 			}
-			
+
 			// Handle "blob" case - use the form field name instead
 			if filename == "blob" || filename == "" {
 				if formName != "" {
@@ -618,14 +618,14 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 				if contentType == "" {
 					contentType = "unknown"
 				}
-				
+
 				// Create individual file info object
 				fileInfo := map[string]any{
 					"file_name": filename,
 					"file_type": contentType,
 					"file_size": partSize,
 				}
-				
+
 				uploads = append(uploads, fileInfo)
 			}
 		} else if formName != "" {
@@ -646,7 +646,7 @@ func extractMultipartInfo(req *http.Request, bodyBytes []byte) map[string]any {
 		info["total_files"] = len(uploads)
 		info["total_size"] = totalFileSize
 	}
-	
+
 	// Add form fields info
 	if len(formFields) > 0 {
 		info["form"] = formFields
