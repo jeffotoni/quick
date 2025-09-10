@@ -28,6 +28,8 @@ func setupApp() *quick.Quick {
 
 	q.Get("/v1/userx/:p1/:p2/cust/:p3/:p4", func(c *quick.Ctx) error {
 		c.Set("Content-Type", "application/json")
+		c.Set("X-Custom-Header", "quick-value")
+		c.Set("Server", "QuickServer/1.0")
 		return c.Status(200).SendString("Quick in action!")
 	})
 
@@ -143,5 +145,57 @@ func TestV1UserxComplex(t *testing.T) {
 	// Testar response
 	if err := resp.AssertString("Quick in action!"); err != nil {
 		t.Error(err)
+	}
+
+	
+	// Body() e BodyStr()
+	bodyBytes := resp.Body()
+	t.Logf("Body()  %d bytes", len(bodyBytes))
+	
+	bodyStr := resp.BodyStr()
+	t.Logf("BodyStr(): %s", bodyStr)
+	
+	// StatusCode()
+	status := resp.StatusCode()
+	t.Logf("StatusCode(): %d", status)
+	
+	// Response()
+	httpResp := resp.Response()
+	t.Logf("Response().Status: %s", httpResp.Status)
+	
+	// AssertNoHeader()
+	if err := resp.AssertNoHeader("No Header"); err != nil {
+		t.Logf("AssertNoHeader funcionou: %v", err)
+	} else {
+		t.Log("AssertNoHeader: header não existe")
+	}
+	
+	// AssertBodyContains()
+	if err := resp.AssertBodyContains("Quick"); err != nil {
+		t.Error(err)
+	} else {
+		t.Log("AssertBodyContains: 'Quick'")
+	}
+	
+	// AssertHeaderContains()
+	if err := resp.AssertHeaderContains("Server", "Quick"); err != nil {
+		t.Error(err)
+	} else {
+		t.Log("AssertHeaderContains: 'Quick'")
+	}
+	
+	// AssertHeaderHasPrefix()
+	if err := resp.AssertHeaderHasPrefix("X-Custom-Header", "quick"); err != nil {
+		t.Error(err)
+	} else {
+		t.Log("AssertHeaderHasPrefix: 'quick'")
+	}
+	
+	// AssertHeaderHasValueInSet()
+	allowedValues := []string{"quick-value", "other-value", "test-value"}
+	if err := resp.AssertHeaderHasValueInSet("X-Custom-Header", allowedValues); err != nil {
+		t.Error(err)
+	} else {
+		t.Log("AssertHeaderHasValueInSet: header  está no conjunto permitido")
 	}
 }
