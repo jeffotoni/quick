@@ -1115,6 +1115,22 @@ func (c *Ctx) GetTraceID(nameTraceID string) (traceID string) {
 	return
 }
 
+// Flusher is an alias for http.Flusher, used to abstract the standard net/http flush interface
+// within the Quick framework. This definition allows you to hide
+// the direct dependency on the http package at points of use, keeping the code cleaner,
+// semantic, and consistent with the framework's architecture.
+//
+// Flusher is primarily used in connections that support real-time writing,
+// such as Server-Sent Events (SSE), where it is necessary to send parts of the response
+// immediately to the client.
+//
+// Usage example:
+// flusher, ok := c.Flusher()
+// if ok {
+// flusher.Flush()
+// }
+type Flusher = http.Flusher
+
 // Flusher returns the underlying http.Flusher if available.
 // This is useful for Server-Sent Events (SSE) and streaming responses.
 //
