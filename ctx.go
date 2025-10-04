@@ -18,6 +18,7 @@
 package quick
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -1251,4 +1252,54 @@ func (c *Ctx) Flush() error {
 		return nil
 	}
 	return errors.New("flushing not supported")
+}
+
+// Hijack implements http.Hijacker interface for WebSocket support.
+//
+// This method allows the responseWriter to support connection hijacking,
+// which is essential for protocols like WebSockets that need direct access
+// to the underlying TCP connection.
+//
+// Returns:
+//   - net.Conn: The underlying network connection
+//   - *bufio.ReadWriter: Buffered reader/writer for the connection
+//   - error: An error if hijacking is not supported by the underlying ResponseWriter
+//
+// Example:
+//
+//	conn, bufrw, err := w.Hijack()
+//	if err != nil {
+//	    log.Fatal("WebSocket upgrade failed")
+//	}
+func (w *responseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacker, ok := w.ResponseWriter.(http.Hijacker); ok {
+		return hijacker.Hijack()
+	}
+	return nil, nil, errors.New("hijacking not supported")
+}
+
+// Push implements http.Pusher interface for HTTP/2 Server Push support.
+//
+// This method enables HTTP/2 server push, allowing the server to proactively
+// send resources to the client before they are requested. This can improve
+// page load performance by reducing round trips.
+//
+// Parameters:
+//   - target: The path of the resource to push (e.g., "/style.css")
+//   - opts: Push options, can be nil for defaults
+//
+// Returns:
+//   - error: An error if push is not supported or if the push fails
+//
+// Example:
+//
+//	err := w.Push("/static/app.js", nil)
+//	if err != nil {
+//	    log.Println("HTTP/2 push not available")
+//	}
+func (w *responseWriter) Push(target string, opts *http.PushOptions) error {
+	if pusher, ok := w.ResponseWriter.(http.Pusher); ok {
+		return pusher.Push(target, opts)
+	}
+	return errors.New("push not supported")
 }
