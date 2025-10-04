@@ -58,10 +58,10 @@ type Ctx struct {
 	uploadFileSize int64               // Maximum allowed file upload size (bytes)
 	App            *Quick              // Reference to the Quick application instance
 
-	handlers     []HandlerFunc // list of handlers for this route
-	handlerIndex int           // current position in handlers stack
-
-	Context context.Context // custom context
+	handlers     []HandlerFunc   // list of handlers for this route
+	handlerIndex int             // current position in handlers stack
+	wroteHeader  bool            // valid writeResponse
+	Context      context.Context // custom context
 }
 
 // SetCtx allows you to override the default context used in c.Ctx()
@@ -76,6 +76,67 @@ func (c *Ctx) Ctx() context.Context {
 		return c.Context
 	}
 	return c.Request.Context()
+}
+
+// responseWriter is a custom wrapper around http.ResponseWriter that prevents
+// duplicate WriteHeader calls, which would otherwise cause "superfluous
+// response.WriteHeader" warnings or errors.
+//
+// The wrapper tracks whether WriteHeader has already been called and silently
+// ignores subsequent attempts. This is particularly useful in complex middleware
+// chains or when handlers accidentally attempt multiple response writes.
+//
+// Fields:
+//   - ResponseWriter: The underlying http.ResponseWriter being wrapped
+//   - statusCode: The HTTP status code that was written
+//   - wroteHeader: Flag indicating whether WriteHeader has been called
+//
+// Example Usage:
+//
+//	rw := &responseWriter{ResponseWriter: w}
+//	rw.WriteHeader(200) // First call - executes normally
+//	rw.WriteHeader(500) // Second call - silently ignored
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode  int
+	wroteHeader bool
+}
+
+// WriteHeader writes the HTTP status code to the response.
+//
+// This method ensures that WriteHeader is only called once on the underlying
+// http.ResponseWriter. If WriteHeader has already been called, subsequent calls
+// are silently ignored to prevent "superfluous response.WriteHeader" errors.
+//
+// Example:
+//
+//	w.WriteHeader(200)  // Writes status 200
+//	w.WriteHeader(500)  // Ignored - header already written
+func (w *responseWriter) WriteHeader(code int) {
+	if w.wroteHeader {
+		return // Silently ignore duplicate calls
+	}
+	w.statusCode = code
+	w.wroteHeader = true
+	w.ResponseWriter.WriteHeader(code)
+}
+
+// Write writes the response body data to the client.
+//
+// This method ensures that if WriteHeader hasn't been explicitly called before
+// writing the body, it automatically calls WriteHeader with http.StatusOK (200).
+// This matches the standard http.ResponseWriter behavior where the first Write
+// call implicitly sends a 200 status if no status was set.
+//
+// Example:
+//
+//	n, err := w.Write([]byte("Hello, World!"))
+//	// If WriteHeader wasn't called, automatically sends 200 status first
+func (w *responseWriter) Write(b []byte) (int, error) {
+	if !w.wroteHeader {
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(b)
 }
 
 func (c *Ctx) HTML(name string, data interface{}, layouts ...string) error {

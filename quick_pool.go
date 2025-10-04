@@ -160,7 +160,8 @@ func newCtx(w http.ResponseWriter, r *http.Request, q *Quick) *Ctx {
 
 // Reset clears Ctx data for safe reuse
 func (c *Ctx) Reset(w http.ResponseWriter, r *http.Request) {
-	c.Response = w
+	// c.Response = w
+	c.Response = &responseWriter{ResponseWriter: w}
 	c.Request = r
 	c.resStatus = 0
 
