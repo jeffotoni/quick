@@ -59,9 +59,18 @@ func releaseCtx(ctx *Ctx) {
 }
 
 // pooledResponseWriter wraps http.ResponseWriter and provides a buffer for potential response optimizations.
+// It also implements http.Flusher to support SSE (Server-Sent Events) and streaming responses.
 type pooledResponseWriter struct {
 	http.ResponseWriter
 	buf *bytes.Buffer
+}
+
+// Flush implements http.Flusher by delegating to the underlying ResponseWriter's Flush method if available.
+// This enables SSE (Server-Sent Events) and streaming responses to work correctly through the pooled wrapper.
+func (rw *pooledResponseWriter) Flush() {
+	if flusher, ok := rw.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
 }
 
 // responseWriterPool is a sync.Pool for pooledResponseWriter instances to reduce allocations.
