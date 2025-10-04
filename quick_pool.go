@@ -54,6 +54,8 @@ func releaseCtx(ctx *Ctx) {
 	ctx.resStatus = 0
 	ctx.MoreRequests = 0
 	ctx.App = nil
+	ctx.Context = nil
+	ctx.wroteHeader = false
 
 	ctxPool.Put(ctx)
 }
@@ -161,7 +163,17 @@ func newCtx(w http.ResponseWriter, r *http.Request, q *Quick) *Ctx {
 // Reset clears Ctx data for safe reuse
 func (c *Ctx) Reset(w http.ResponseWriter, r *http.Request) {
 	// c.Response = w
-	c.Response = &responseWriter{ResponseWriter: w}
+	// c.Response = &responseWriter{ResponseWriter: w}
+	if rw, ok := c.Response.(*responseWriter); ok {
+		// Just update the underlying ResponseWriter and reset flags
+		rw.ResponseWriter = w
+		rw.statusCode = 0
+		rw.wroteHeader = false
+	} else {
+		// First time or different type: create new wrapper
+		c.Response = &responseWriter{ResponseWriter: w}
+	}
+
 	c.Request = r
 	c.resStatus = 0
 
