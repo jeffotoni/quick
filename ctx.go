@@ -1114,3 +1114,64 @@ func (c *Ctx) GetTraceID(nameTraceID string) (traceID string) {
 	}
 	return
 }
+
+// Flusher returns the underlying http.Flusher if available.
+// This is useful for Server-Sent Events (SSE) and streaming responses.
+//
+// Returns:
+//   - http.Flusher: The flusher instance, or nil if not supported.
+//   - bool: true if flusher is available, false otherwise.
+//
+// Example Usage:
+//
+//	q.Get("/events", func(c *quick.Ctx) error {
+//	    // Set SSE headers manually
+//	    c.Set("Content-Type", "text/event-stream")
+//	    c.Set("Cache-Control", "no-cache")
+//	    c.Set("Connection", "keep-alive")
+//
+//	    flusher, ok := c.Flusher()
+//	    if !ok {
+//	        return c.Status(500).SendString("Streaming not supported")
+//	    }
+//
+//	    for i := 0; i < 10; i++ {
+//	        fmt.Fprintf(c.Response, "data: Message %d\n\n", i)
+//	        flusher.Flush()
+//	        time.Sleep(time.Second)
+//	    }
+//	    return nil
+//	})
+func (c *Ctx) Flusher() (http.Flusher, bool) {
+	flusher, ok := c.Response.(http.Flusher)
+	return flusher, ok
+}
+
+// Flush flushes any buffered data to the client.
+// Returns an error if flushing is not supported by the ResponseWriter.
+//
+// This is particularly useful for Server-Sent Events (SSE) and streaming responses.
+//
+// Example Usage:
+//
+//	q.Get("/stream", func(c *quick.Ctx) error {
+//	    c.Set("Content-Type", "text/event-stream")
+//	    c.Set("Cache-Control", "no-cache")
+//	    c.Set("Connection", "keep-alive")
+//
+//	    for i := 0; i < 5; i++ {
+//	        fmt.Fprintf(c.Response, "data: %d\n\n", i)
+//	        if err := c.Flush(); err != nil {
+//	            return err
+//	        }
+//	        time.Sleep(time.Second)
+//	    }
+//	    return nil
+//	})
+func (c *Ctx) Flush() error {
+	if flusher, ok := c.Response.(http.Flusher); ok {
+		flusher.Flush()
+		return nil
+	}
+	return errors.New("flushing not supported")
+}

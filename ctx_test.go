@@ -1381,3 +1381,211 @@ func TestGetAllContextData(t *testing.T) {
 		}
 	})
 }
+
+// TestCtx_Flusher validates that Flusher() returns the underlying http.Flusher.
+//
+// It ensures that:
+//   - Flusher() correctly identifies when http.Flusher is available
+//   - Returns (nil, false) when flushing is not supported
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Flusher$
+func TestCtx_Flusher(t *testing.T) {
+	t.Run("FlusherAvailable", func(t *testing.T) {
+		// httptest.ResponseRecorder implements http.Flusher
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/stream", nil)
+
+		c := &Ctx{
+			Response: rec,
+			Request:  req,
+		}
+
+		flusher, ok := c.Flusher()
+		if !ok {
+			t.Error("Expected Flusher to be available with httptest.ResponseRecorder")
+		}
+		if flusher == nil {
+			t.Error("Expected non-nil flusher")
+		}
+	})
+
+	t.Run("FlusherNotAvailable", func(t *testing.T) {
+		// Create a custom ResponseWriter that doesn't implement http.Flusher
+		type nonFlusherWriter struct {
+			http.ResponseWriter
+		}
+
+		customWriter := &nonFlusherWriter{
+			ResponseWriter: httptest.NewRecorder(),
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/stream", nil)
+
+		c := &Ctx{
+			Response: customWriter,
+			Request:  req,
+		}
+
+		flusher, ok := c.Flusher()
+		if ok {
+			t.Error("Expected Flusher to not be available with custom non-flusher writer")
+		}
+		if flusher != nil {
+			t.Error("Expected nil flusher when not available")
+		}
+	})
+}
+
+// TestCtx_Flush validates that Flush() properly flushes buffered data.
+//
+// It ensures that:
+//   - Flush() works correctly when http.Flusher is available
+//   - Flush() returns an error when flushing is not supported
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_Flush$
+func TestCtx_Flush(t *testing.T) {
+	t.Run("FlushSuccess", func(t *testing.T) {
+		// httptest.ResponseRecorder implements http.Flusher
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/stream", nil)
+
+		c := &Ctx{
+			Response: rec,
+			Request:  req,
+		}
+
+		// Test Flush
+		err := c.Flush()
+		if err != nil {
+			t.Errorf("Expected no error when flushing, got: %v", err)
+		}
+	})
+
+	t.Run("FlushNotSupported", func(t *testing.T) {
+		// Create a custom ResponseWriter that doesn't implement http.Flusher
+		type nonFlusherWriter struct {
+			http.ResponseWriter
+		}
+
+		customWriter := &nonFlusherWriter{
+			ResponseWriter: httptest.NewRecorder(),
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/stream", nil)
+
+		c := &Ctx{
+			Response: customWriter,
+			Request:  req,
+		}
+
+		// Test Flush returns error
+		err := c.Flush()
+		if err == nil {
+			t.Error("Expected error when flushing is not supported")
+		}
+		expectedError := "flushing not supported"
+		if err.Error() != expectedError {
+			t.Errorf("Expected error message '%s', got '%s'", expectedError, err.Error())
+		}
+	})
+}
+
+// TestCtx_SSE_Integration is an integration test for Server-Sent Events (SSE).
+//
+// It validates a complete SSE streaming scenario using both Flusher() and Flush() methods.
+//
+// To run:
+//
+//	$ go test -v -run ^TestCtx_SSE_Integration$
+func TestCtx_SSE_Integration(t *testing.T) {
+	t.Run("SSE_WithFlusher", func(t *testing.T) {
+		q := New()
+
+		// Register SSE endpoint using Flusher()
+		q.Get("/events", func(c *Ctx) error {
+			// Set SSE headers
+			c.Set("Content-Type", "text/event-stream")
+			c.Set("Cache-Control", "no-cache")
+			c.Set("Connection", "keep-alive")
+
+			// Get flusher - in testing with httptest.ResponseRecorder, this should always work
+			flusher, ok := c.Flusher()
+			if !ok {
+				// This should not happen with httptest.ResponseRecorder
+				t.Error("Flusher not available - this is unexpected in testing")
+				return nil
+			}
+
+			// Send 3 messages
+			for i := 0; i < 3; i++ {
+				_, _ = c.Response.Write([]byte("data: Message " + string(rune(i+'0')) + "\n\n"))
+				flusher.Flush()
+			}
+			return nil
+		})
+
+		// Test the endpoint
+		data, err := q.Qtest(QuickTestOptions{
+			Method: MethodGet,
+			URI:    "/events",
+		})
+		if err != nil {
+			t.Fatalf("Error during Qtest: %v", err)
+		}
+
+		// Verify headers
+		if contentType := data.Response().Header.Get("Content-Type"); contentType != "text/event-stream" {
+			t.Errorf("Expected Content-Type: text/event-stream, got: %s", contentType)
+		}
+
+		// Verify body contains messages
+		body := data.BodyStr()
+		if !bytes.Contains([]byte(body), []byte("data: Message")) {
+			t.Errorf("Expected SSE messages in body, got: %s", body)
+		}
+	})
+
+	t.Run("SSE_WithFlush", func(t *testing.T) {
+		q := New()
+
+		// Register SSE endpoint using Flush()
+		q.Get("/stream", func(c *Ctx) error {
+			// Set SSE headers
+			c.Set("Content-Type", "text/event-stream")
+			c.Set("Cache-Control", "no-cache")
+
+			// Send 3 messages
+			for i := 0; i < 3; i++ {
+				_, _ = c.Response.Write([]byte("data: Event " + string(rune(i+'0')) + "\n\n"))
+				if err := c.Flush(); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+
+		// Test the endpoint
+		data, err := q.Qtest(QuickTestOptions{
+			Method: MethodGet,
+			URI:    "/stream",
+		})
+		if err != nil {
+			t.Fatalf("Error during Qtest: %v", err)
+		}
+
+		// Verify headers
+		if cacheControl := data.Response().Header.Get("Cache-Control"); cacheControl != "no-cache" {
+			t.Errorf("Expected Cache-Control: no-cache, got: %s", cacheControl)
+		}
+
+		// Verify body contains events
+		body := data.BodyStr()
+		if !bytes.Contains([]byte(body), []byte("data: Event")) {
+			t.Errorf("Expected SSE events in body, got: %s", body)
+		}
+	})
+}
