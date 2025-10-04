@@ -20,6 +20,25 @@ import (
 func main() {
 	q := quick.New()
 
+	q.Get("/events/no", func(c *quick.Ctx) error {
+		// Set SSE headers manually
+		// c.Set("Content-Type", "text/event-stream")
+		c.Set("Cache-Control", "no-cache")
+		c.Set("Connection", "keep-alive")
+		c.Set("Access-Control-Allow-Origin", "*")
+
+		// Send a welcome message
+		fmt.Fprintf(c.Response, "event: welcome\n")
+		fmt.Fprintf(c.Response, "data: Connected to Quick SSE server\n\n")
+
+		c.Status(400)
+		c.Status(200)
+
+		// return nil
+		// c.Status(400).SendString("Streaming not supported")
+		return c.Status(200).SendString("Streaming not supported")
+	})
+
 	// Simple SSE endpoint - sends a single event
 	q.Get("/events/simple", func(c *quick.Ctx) error {
 		// Set SSE headers manually
@@ -98,3 +117,15 @@ func main() {
 // eventSource.addEventListener('welcome', (e) => console.log('Welcome:', e.data));
 // eventSource.addEventListener('status', (e) => console.log('Status:', e.data));
 // eventSource.addEventListener('info', (e) => console.log('Info:', e.data));
+
+// test with curl, with multiple calls
+// for i in {1..10}; do
+//   curl -i -N http://localhost:3000/events/no
+//   sleep 1
+// done
+
+// test with curl, with multiple calls
+// for i in {1..10}; do
+//   curl -i -N http://localhost:3000/events/simple
+//   sleep 1
+// done

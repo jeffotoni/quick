@@ -311,11 +311,12 @@ func (q *Quick) GetConfig() Config {
 //	}))
 func (q *Quick) HandlerFunc(h HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		c := &Ctx{
-			Response: w,
-			Request:  req,
-			App:      q,
-		}
+		// c := &Ctx{
+		// 	Response: w,
+		// 	Request:  req,
+		// 	App:      q,
+		// }
+		c := newCtx(w, req, q) // replace the Response at the time of creating the Ctx
 
 		if err := h(c); err != nil {
 			http.Error(w, err.Error(), StatusInternalServerError)
@@ -470,7 +471,7 @@ func (q *Quick) Use(mw any) {
 func isCorsMiddleware(mw func(http.Handler) http.Handler) bool {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	testRequest := httptest.NewRequest("OPTIONS", "/", nil)
-	testRequest.Header.Set("Origin", "http://localhost:3000") // Add Origin header for CORS detection
+	testRequest.Header.Set("Origin", "http://localhost:3000")                             // Add Origin header for CORS detection
 	testRequest.Header.Set("Access-Control-Request-Headers", "Content-Type, X-App-Marca") // Add requested headers
 	testResponse := httptest.NewRecorder()
 
@@ -1361,11 +1362,12 @@ func (q *Quick) mwWrapper(handler http.Handler) http.Handler {
 
 			// Convert back to http.Handler
 			handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				c := &Ctx{
-					Response: w,
-					Request:  r,
-					App:      q,
-				}
+				// c := &Ctx{
+				// 	Response: w,
+				// 	Request:  r,
+				// 	App:      q,
+				// }
+				c := newCtx(w, r, q)
 				quickHandler(c)
 			})
 
@@ -1410,7 +1412,8 @@ func convertHttpToQuickHandler(h http.Handler) Handler {
 //   - http.Handler: The net/http-compatible handler.
 func convertQuickToHttpHandler(q *Quick, h Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := &Ctx{Response: w, Request: r, App: q}
+		//c := &Ctx{Response: w, Request: r, App: q}
+		c := newCtx(w, r, q)
 		if err := h.ServeQuick(c); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
