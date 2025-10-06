@@ -213,6 +213,13 @@ func (w *loggerRespWriter) SetRequest(req *http.Request) {
 	w.request = req
 }
 
+// Flush implements http.Flusher interface for SSE support
+func (w *loggerRespWriter) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 // New initializes the Logger middleware for request logging.
 //
 // It supports different log formats including text, JSON, and slog.
