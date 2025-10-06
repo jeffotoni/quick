@@ -40,8 +40,8 @@ func New(maxBytes ...int64) func(next quick.Handler) quick.Handler {
 			}
 
 			// Restrict the body reader to maxSize bytes
-			c.Request.Body = quick.MaxBytesReader(c.Response, c.Request.Body, maxSize+1)
-
+			// c.Request.Body = quick.MaxBytesReader(c.Response, c.Request.Body, maxSize+1)
+			c.Request.Body = quick.MaxBytesReader(c.Response, c.Request.Body, maxSize)
 			return next.ServeQuick(c)
 		})
 	}

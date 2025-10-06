@@ -405,3 +405,10 @@ func (r *responseCapture) Del(key string) {
 	delete(r.headers, key)
 	r.ResponseWriter.Header().Del(key)
 }
+
+// Flush implements http.Flusher interface for SSE support
+func (r *responseCapture) Flush() {
+	if flusher, ok := r.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
