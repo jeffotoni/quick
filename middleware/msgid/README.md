@@ -37,7 +37,7 @@ import (
     "fmt"
     "log"
     "github.com/jeffotoni/quick"
-    "github.com/jeffotoni/quick/middleware/msguuid"
+    "github.com/jeffotoni/quick/middleware/msgid"
 )
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
     q.Use(msguuid.New())
 
     // Define an endpoint that responds with a UUID
-    q.Get("/v1/msguuid/default", func(c *quick.Ctx) error {
+    q.Get("/v1/msgid/default", func(c *quick.Ctx) error {
         c.Set("Content-Type", "application/json")
 
         // Log headers to validate UUID presence
@@ -62,7 +62,7 @@ func main() {
 ```
 ### 📌 cURL
 ```bash
-$ curl -i -X GET http://localhost:8080/v1/msguuid/default
+$ curl -i -X GET http://localhost:8080/v1/msgid/default
 ```
 
 ### 📌 Response

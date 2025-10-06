@@ -18,9 +18,7 @@ func main() {
     q := quick.New()
 
     // Apply the Recover middleware
-    q.Use(recover.New(recover.Config{
-        App: q,
-    }))
+    q.Use(recover.New())
 
     // Define a test route
     q.Get("/v1/recover", func(c *quick.Ctx) error {

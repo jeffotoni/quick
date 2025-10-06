@@ -3,11 +3,22 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/jeffotoni/quick"
+	"github.com/jeffotoni/quick/middleware/basicauth"
+	"github.com/jeffotoni/quick/middleware/cache"
 	"github.com/jeffotoni/quick/middleware/compress"
 	"github.com/jeffotoni/quick/middleware/cors"
+	"github.com/jeffotoni/quick/middleware/healthcheck"
+	"github.com/jeffotoni/quick/middleware/helmet"
+	"github.com/jeffotoni/quick/middleware/limiter"
 	"github.com/jeffotoni/quick/middleware/logger"
+	"github.com/jeffotoni/quick/middleware/maxbody"
+	"github.com/jeffotoni/quick/middleware/msgid"
+	"github.com/jeffotoni/quick/middleware/msguuid"
+	"github.com/jeffotoni/quick/middleware/pprof"
+	"github.com/jeffotoni/quick/middleware/recover"
 )
 
 // Example of Server-Sent Events (SSE) with Quick - Simple approach without loop
@@ -22,6 +33,24 @@ import (
 
 func main() {
 	q := quick.New()
+
+	// must use at the beginning, if the path is all
+	q.Use(healthcheck.New(
+		healthcheck.Options{
+			App: q,
+		},
+	))
+
+	q.Use(recover.New())
+
+	q.Use(pprof.New())
+
+	q.Use(maxbody.New(50000)) // 50KB
+
+	q.Use(helmet.Helmet())
+
+	q.Use(msguuid.New())
+	q.Use(msgid.New())
 
 	q.Use(cors.New(cors.Config{
 		AllowedOrigins:   []string{"*"},
@@ -38,6 +67,22 @@ func main() {
 	q.Use(logger.New(logger.Config{
 		Format: "json",
 		Level:  "DEBUG",
+	}))
+
+	q.Use(basicauth.BasicAuth("user", "adm"))
+
+	q.Use(cache.New())
+
+	q.Use(limiter.New(limiter.Config{
+		Max:        100,
+		Expiration: 1 * time.Second,
+		KeyGenerator: func(c *quick.Ctx) string {
+			return c.RemoteIP()
+		},
+		LimitReached: func(c *quick.Ctx) error {
+			c.Set("Content-Type", "application/json")
+			return c.Status(quick.StatusTooManyRequests).SendString(`{"msg":"Much Request #bloqued"}`)
+		},
 	}))
 
 	// Simple SSE endpoint - sends a single event
