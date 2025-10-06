@@ -171,22 +171,30 @@ func TestLoggerMiddleware500(t *testing.T) {
 //	})
 //	fmt.Println("Captured output:", output)
 func captureOutput(f func()) string {
-	r, w, _ := os.Pipe()
-	old := os.Stdout
-	os.Stdout = w
+	oldStdout := os.Stdout
+	oldStderr := os.Stderr
 
-	out := make(chan string)
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	os.Stderr = w
+
+	done := make(chan struct{})
+	var buf bytes.Buffer
+
 	go func() {
-		var buf bytes.Buffer
 		io.Copy(&buf, r)
-		out <- buf.String()
+		close(done)
 	}()
 
 	f()
 
 	w.Close()
-	os.Stdout = old
-	return <-out
+	<-done
+
+	os.Stdout = oldStdout
+	os.Stderr = oldStderr
+
+	return buf.String()
 }
 
 // TestLoggerMiddleware validates the Logger middleware with a text-based format.
@@ -197,7 +205,7 @@ func TestLoggerMiddleware(t *testing.T) {
 
 	q.Use(New(Config{
 		Format:  "text",
-		Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency} | user_id=${user_id}\n",
+		Pattern: "[${time}] ${level} ${method} ${path} ${status} - ${latency} | user_id=${user_id} | trace=${trace}\n",
 		Level:   "INFO",
 		CustomFields: map[string]string{
 			"user_id": "12345",
@@ -221,10 +229,15 @@ func TestLoggerMiddleware(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer resp.Body.Close()
+		io.ReadAll(resp.Body)
 	})
 
 	if !strings.Contains(output, "INFO") {
 		t.Errorf("Expected 'INFO' log message, but got: %s", output)
+	}
+
+	if !strings.Contains(output, "user_id=12345") {
+		t.Errorf("Expected 'user_id=12345' in log, but got: %s", output)
 	}
 }
 
@@ -252,15 +265,24 @@ func TestLoggerMiddlewareJSON(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer resp.Body.Close()
+
+		// Força flush dos buffers antes de fechar o pipe
+		io.ReadAll(resp.Body)
 	})
+
+	output = strings.TrimSpace(output)
+
+	if output == "" {
+		t.Fatal("No output captured")
+	}
 
 	var jsonOutput map[string]interface{}
 	err := json.Unmarshal([]byte(output), &jsonOutput)
 	if err != nil {
-		t.Errorf("JSON output is not valid: %s", err)
+		t.Fatalf("JSON output is not valid: %s\nOutput: %s", err, output)
 	}
 
-	if jsonOutput["status"] != float64(http.StatusOK) {
+	if status, ok := jsonOutput["status"].(float64); !ok || status != float64(http.StatusOK) {
 		t.Errorf("Expected status %d, got %v", http.StatusOK, jsonOutput["status"])
 	}
 }
