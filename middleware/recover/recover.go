@@ -109,6 +109,14 @@ func handlePanic(r interface{}, cfg Config, c *quick.Ctx) {
 		fmt.Fprintln(os.Stderr, "Recovered panic: stacktrace disabled.")
 	}
 
+	if c != nil && c.Response != nil {
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to send error response: %v\n", err)
+			}
+		}()
+	}
+
 	// Respond with HTTP 500 Internal Server Error
 	c.Status(quick.StatusInternalServerError).SendString("Internal Server Error")
 }

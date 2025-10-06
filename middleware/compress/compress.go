@@ -47,6 +47,17 @@ func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	return w.writer.Write(b)
 }
 
+// Flush implements http.Flusher interface for SSE support
+func (w gzipResponseWriter) Flush() {
+	// Flush gzip writer first
+	if err := w.writer.Flush(); err == nil {
+		// Then flush underlying ResponseWriter if it supports Flusher
+		if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+			flusher.Flush()
+		}
+	}
+}
+
 // clientSupportsGzip checks if the client accepts gzip encoding.
 //
 // Parameters:
