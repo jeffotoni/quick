@@ -1303,3 +1303,26 @@ func (w *responseWriter) Push(target string, opts *http.PushOptions) error {
 	}
 	return errors.New("push not supported")
 }
+
+// Pusher returns the underlying http.Pusher if available for HTTP/2 server push.
+// This is useful for proactively sending resources to the client before they are requested,
+// reducing latency and improving page load performance.
+//
+// Returns:
+//   - http.Pusher: The pusher instance, or nil if not supported.
+//   - bool: true if pusher is available, false otherwise.
+//
+// Example Usage:
+//
+//	q.Get("/", func(c *quick.Ctx) error {
+//	    pusher, ok := c.Pusher()
+//	    if ok {
+//	        pusher.Push("/static/style.css", nil)
+//	        pusher.Push("/static/app.js", nil)
+//	    }
+//	    return c.Status(200).SendString("<html>...</html>")
+//	})
+func (c *Ctx) Pusher() (http.Pusher, bool) {
+	pusher, ok := c.Response.(http.Pusher)
+	return pusher, ok
+}
