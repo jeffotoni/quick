@@ -4121,6 +4121,285 @@ func main() {
 ```bash
 $ go run main.go
 ```
+----
+
+# Quick SSE (Server-Sent Events) Examples
+
+Server-Sent Events (SSE) is a standard for pushing real-time updates from server to client over HTTP. SSE is ideal for one-way communication where the server sends updates to the client.
+
+## 📁 Examples
+
+### 1. Simple SSE (`simple/`)
+Basic SSE implementation **without loops** - sends a few events and closes the connection.
+
+**Use cases:**
+- Initial data push
+- Welcome messages
+- Configuration updates
+- Single notifications
+
+**Run:**
+```bash
+cd simple
+go run main.go
+```
+
+**Test:**
+```bash
+# Using curl
+curl -N http://localhost:3000/events/simple
+
+# Alternative endpoint
+curl -N http://localhost:3000/events/simple-alt
+```
+
+**Features:**
+- Shows both `Flusher()` and `Flush()` approaches
+- Demonstrates custom event names
+- Simple, easy to understand
+
+---
+### 2. Stream SSE (`stream/`)
+Advanced SSE implementation **with loops** - continuous streaming of events.
+
+**Use cases:**
+- Real-time dashboards
+- Live counters
+- Progress bars
+- Continuous monitoring
+- Notification feeds
+
+**Run:**
+```bash
+cd stream
+go run main.go
+```
+
+**Test endpoints:**
+```bash
+# Real-time clock (updates every second for 30 seconds)
+curl -N http://localhost:3000/events/clock
+
+# Counter from 1 to 10
+curl -N http://localhost:3000/events/counter
+
+# Progress bar simulation
+curl -N http://localhost:3000/events/progress
+
+# Notification stream
+curl -N http://localhost:3000/events/notifications
+```
+
+**Features:**
+- Real-time clock updates
+- Counter with delays
+- Progress bar simulation with JSON data
+- Notification stream
+
+---
+
+## 🌐 Browser Testing
+
+### Simple Example
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick SSE - Simple</title>
+</head>
+<body>
+    <h1>Quick SSE Simple Example</h1>
+    <div id="events"></div>
+
+    <script>
+        const eventSource = new EventSource('http://localhost:3000/events/simple');
+        const eventsDiv = document.getElementById('events');
+
+        eventSource.addEventListener('welcome', (e) => {
+            eventsDiv.innerHTML += `<p><strong>Welcome:</strong> ${e.data}</p>`;
+        });
+
+        eventSource.addEventListener('status', (e) => {
+            eventsDiv.innerHTML += `<p><strong>Status:</strong> ${e.data}</p>`;
+        });
+
+        eventSource.addEventListener('info', (e) => {
+            eventsDiv.innerHTML += `<p><strong>Info:</strong> ${e.data}</p>`;
+        });
+
+        eventSource.onerror = () => {
+            console.log('Connection closed');
+            eventSource.close();
+        };
+    </script>
+</body>
+</html>
+```
+
+### Stream Example - Real-time Clock
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick SSE - Clock</title>
+    <style>
+        #clock {
+            font-size: 48px;
+            font-family: monospace;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quick SSE Real-time Clock</h1>
+    <div id="clock">--:--:--</div>
+
+    <script>
+        const clock = new EventSource('http://localhost:3000/events/clock');
+        const clockDiv = document.getElementById('clock');
+
+        clock.addEventListener('time', (e) => {
+            clockDiv.textContent = e.data;
+        });
+
+        clock.addEventListener('done', (e) => {
+            console.log('Stream completed');
+            clock.close();
+        });
+
+        clock.onerror = (error) => {
+            console.error('SSE Error:', error);
+        };
+    </script>
+</body>
+</html>
+```
+
+### Stream Example - Progress Bar
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick SSE - Progress</title>
+    <style>
+        #progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quick SSE Progress Bar</h1>
+    <div id="progress-bar">
+        <div id="progress-fill">0%</div>
+    </div>
+    <p id="status">Ready</p>
+
+    <script>
+        const progress = new EventSource('http://localhost:3000/events/progress');
+        const fill = document.getElementById('progress-fill');
+        const status = document.getElementById('status');
+
+        progress.addEventListener('progress', (e) => {
+            const data = JSON.parse(e.data);
+            fill.style.width = data.percent + '%';
+            fill.textContent = data.percent + '%';
+            status.textContent = `Status: ${data.status}`;
+        });
+
+        progress.addEventListener('complete', (e) => {
+            const data = JSON.parse(e.data);
+            status.textContent = 'Completed!';
+            progress.close();
+        });
+
+        progress.onerror = () => {
+            console.log('Connection closed');
+        };
+    </script>
+</body>
+</html>
+```
+
+---
+
+## 📊 SSE Message Format
+
+### Basic format:
+```
+data: This is a message\n\n
+```
+
+### With event name:
+```
+event: notification\n
+data: New message received\n\n
+```
+
+### With ID and retry:
+```
+event: update\n
+id: 123\n
+retry: 10000\n
+data: Status update\n\n
+```
+
+### Multi-line data:
+```
+data: First line\n
+data: Second line\n
+data: Third line\n\n
+```
+
+### JSON data:
+```
+event: user\n
+data: {"id": 1, "name": "John"}\n\n
+```
+
+---
+
+
+## 🆚 SSE vs WebSocket
+
+| Appearance | SSE | WebSocket |
+|---------|-----|-----------|
+| **Server CPU** | 🟢 Baixo | 🟡 Medium |
+| **Server Memory** | 🟢 2-4KB/conn | 🟡 8-16KB/conn |
+| **Band Length** | 🟢 Lower overhead | 🟡Major overhead |
+| **Latency** | 🟡 ~50ms | 🟢 ~5-10ms |
+| **Implementation** | 🟢 Simple | 🟡 Complexa |
+| **Debugging** | 🟢 HTTP tools | 🔴 Specific tools |
+| **Firewall/Proxy** | 🟢 HTTP padrão | 🟡 Power problems |
+| **Bidirectional** | 🔴 No (only server→client) | 🟢 Sim |
+| **Protocol** | HTTP/1.1 or HTTP/2 | WebSocket (RFC 6455) |
+| **Parser** | Simple text | Binary frames |
+| **Handshake** | Normal HTTP Request | HTTP Upgrade |
+| **Automatic Reconnection** | 🟢 Sim (native) | 🔴 Manual |
+| **Browser Support** | 🟢 All modern | 🟢 All modern |
+| **Overhead by Mensagem** | ~45 bytes | ~50+ bytes |
+| **Ideal for** | Notifications, feeds, logs | Chat, games, collaboration |
+| **Scalability** | 🟢 I have ~10k connections | 🟢 Thousands of connections |
+| **CDN Friendly** | 🟢 Sim | 🟡 Limited |
+| **Backend Complexity** | 🟢 Baixa | 🟡 High |
+
+
+---
+
+
 ## 📚| More Examples
 
 This directory contains **practical examples** of the **Quick Framework**, a **fast and lightweight web framework** developed in Go. 
