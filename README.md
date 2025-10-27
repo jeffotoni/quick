@@ -5,6 +5,21 @@
 
 <!-- [![Github Release](https://img.shields.io/github/v/release/jeffotoni/quick?include_prereleases)](https://img.shields.io/github/v/release/jeffotoni/quick) -->
 
+---
+
+### 📌 Important Notice: Git History Rewritten
+
+On October 27, 2025, the Git history of this repository was rewritten to clean up author metadata in some past commits.
+
+If you have a **local clone** or **fork** created before this date, we strongly recommend the following:
+
+- Delete your old local repository or outdated fork
+- Create a fresh clone or fork directly from the official repository:
+
+```bash
+git clone https://github.com/jeffotoni/quick.git
+```
+----
 
 ```bash
    ██████╗ ██╗   ██╗██╗ ██████╗██╗  ██╗
