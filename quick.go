@@ -2147,7 +2147,7 @@ func (q *Quick) startServerWithGracefulShutdown(listener net.Listener, certFile,
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	// Add CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", "*") // ou coloque um domínio específico
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, HEAD, PATCH, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Max-Age", "86400") // cache pré-flight por 24h
