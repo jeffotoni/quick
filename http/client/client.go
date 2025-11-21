@@ -19,7 +19,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"sync"
 	"time"
 )
@@ -457,37 +456,42 @@ func (c *Client) doRequest(url, method string, body any) (*ClientResponse, error
 //	headers := map[string]string{"Authorization": "Bearer token"}
 //	resp, err := client.Get("https://reqres.in/api/users")
 func (c *Client) doRequestWithHeaders(endpoint, method string, body any, headers map[string]string) (*ClientResponse, error) {
-	// Convert the body to an io.Reader format (JSON, string, etc.)
+	if headers == nil {
+		headers = make(map[string]string)
+	}
+
 	reader, err := parseBody(body)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create a new HTTP request with the given context, method, and body
+	if _, ok := headers["Content-Type"]; !ok {
+		headers["Content-Type"] = "application/json"
+	}
+	if _, ok := headers["Accept"]; !ok {
+		headers["Accept"] = "*/*"
+	}
+
 	req, err := http.NewRequestWithContext(c.Ctx, method, endpoint, reader)
 	if err != nil {
 		return nil, err
 	}
 
-	// Set custom headers for the request
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
 
-	// Send the HTTP request using the client
 	resp, err := c.ClientHTTP.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close() // Ensure the response body is closed to prevent memory leaks
+	defer func() { _ = resp.Body.Close() }()
 
-	// Read the response body
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	// Return the response body and status code
 	return &ClientResponse{
 		Body:       responseBody,
 		StatusCode: resp.StatusCode,
@@ -514,7 +518,9 @@ func parseBody(body any) (io.Reader, error) {
 	case io.Reader:
 		return v, nil
 	case string:
-		return strings.NewReader(v), nil
+		return bytes.NewReader([]byte(v)), nil
+	case []byte:
+		return bytes.NewReader(v), nil
 	default:
 		data, err := json.Marshal(v)
 		if err != nil {
@@ -744,6 +750,30 @@ func WithTransport(transport http.RoundTripper) Option {
 	}
 }
 
+// WithIdleConnTimeout sets the maximum amount of time an idle connection will remain idle before closing.
+//
+// This function configures how long an idle (keep-alive) connection remains open
+// before being closed. Setting this helps manage connection lifecycle and resource usage.
+//
+// /Parameters:
+//   - timeout (time.Duration): The maximum idle time for connections.
+//
+// /Return:
+//   - Option: A functional option that configures the client's transport.
+//
+// Example Usage:
+//
+//	client := New(WithIdleConnTimeout(90 * time.Second))
+func WithIdleConnTimeout(timeout time.Duration) Option {
+	return func(c *Client) {
+		if httpClient, ok := c.ClientHTTP.(*http.Client); ok {
+			if transport, ok := httpClient.Transport.(*http.Transport); ok {
+				transport.IdleConnTimeout = timeout
+			}
+		}
+	}
+}
+
 // WithCustomHTTPClient replaces the default HTTP client with a fully custom one.
 //
 // This function allows users to replace the internal HTTP client with a custom
@@ -856,42 +886,57 @@ func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var err error
 	var body []byte
 
-	urls := append([]string{req.URL.String()}, rt.FailoverURLs...) // Include original URL
+	urls := append([]string{req.URL.String()}, rt.FailoverURLs...)
 
-	if req.Body != nil {
+	if req.Body != nil && req.GetBody == nil {
 		body, err = io.ReadAll(req.Body)
 		if err != nil {
 			return nil, fmt.Errorf("error reading request body: %w", err)
 		}
-		req.Body.Close()
+		_ = req.Body.Close()
+		req.GetBody = func() (io.ReadCloser, error) {
+			return io.NopCloser(bytes.NewReader(body)), nil
+		}
+		req.ContentLength = int64(len(body))
 	}
 
 	for attempt := 0; attempt <= rt.MaxRetries; attempt++ {
-		index := attempt % len(urls) // Alterna entre URLs conforme o número da tentativa
+		req2 := req.Clone(req.Context())
+		index := attempt % len(urls)
 		u := urls[index]
 
 		parsedURL, err := url.Parse(u)
 		if err != nil {
 			continue
 		}
+		req2.URL = parsedURL
 
-		req.URL = parsedURL
-		if body != nil {
-			req.Body = io.NopCloser(bytes.NewReader(body))
+		if req2.GetBody != nil {
+			rc, _ := req2.GetBody()
+			req2.Body = rc
+		} else {
+			req2.Body = http.NoBody
 		}
 
-		resp, err = rt.Base.RoundTrip(req)
+		if req2.Header.Get("Accept") == "" {
+			req2.Header.Set("Accept", "*/*")
+		}
+		if req2.Header.Get("Content-Type") == "" {
+			req2.Header.Set("Content-Type", "application/json")
+		}
+
+		resp, err = rt.Base.RoundTrip(req2)
 		if rt.shouldRetry(resp, err) {
 			if rt.EnableLogger && rt.Logger != nil {
 				rt.Logger.Warn("Retrying request",
 					slog.String("url", u),
-					slog.String("method", req.Method),
+					slog.String("method", req2.Method),
 					slog.Int("attempt", attempt+1),
 					slog.Int("failover", index+1),
 				)
 			}
 			if resp != nil {
-				resp.Body.Close()
+				_ = resp.Body.Close()
 			}
 			rt.sleep(attempt)
 			continue

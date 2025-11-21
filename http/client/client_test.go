@@ -19,7 +19,7 @@ import (
 func TestClient_Get(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"message":"success"}`))
+		_, _ = w.Write([]byte(`{"message":"success"}`))
 	}))
 	defer ts.Close()
 
@@ -251,7 +251,7 @@ func TestLogging(t *testing.T) {
 		}
 	}
 
-	client.Get(ts.URL)
+	_, _ = client.Get(ts.URL)
 
 	time.Sleep(50 * time.Millisecond)
 
@@ -360,7 +360,7 @@ func TestClientLog(t *testing.T) {
 func TestClientMethods(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"message":"success"}`))
+		_, _ = w.Write([]byte(`{"message":"success"}`))
 	}))
 	defer ts.Close()
 
@@ -417,16 +417,19 @@ func TestClientMethods(t *testing.T) {
 // go test -v -run ^TestClientPutAndDelete
 func TestClientPutAndDelete(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Validate method
-		if r.Method == http.MethodPut {
+		switch r.Method {
+		case http.MethodPut:
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"message":"updated"}`))
-		} else if r.Method == http.MethodDelete {
+			_, _ = w.Write([]byte(`{"message":"updated"}`))
+
+		case http.MethodDelete:
 			w.WriteHeader(http.StatusNoContent)
-		} else {
+
+		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
 	}))
+
 	defer ts.Close()
 
 	client := New()
@@ -571,14 +574,14 @@ func FuzzClientRetry(f *testing.F) {
 		primary := httptest.NewServer(http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(status)
-				w.Write([]byte("primary response"))
+				_, _ = w.Write([]byte("primary response"))
 			}))
 		defer primary.Close()
 
 		// Create the failover server that always returns 200 OK.
 		failover := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("failover success"))
+			_, _ = w.Write([]byte("failover success"))
 		}))
 		defer failover.Close()
 
@@ -627,7 +630,7 @@ func TestCustomHTTPClientWithRetry(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	// Creating a custom HTTP client with short timeout for quick testing
+	// Creating a custom HTTP client with short timeout for testing
 	customClient := &http.Client{
 		Timeout: 1 * time.Second,
 	}
@@ -693,5 +696,91 @@ func TestFailoverURLs(t *testing.T) {
 	// status code 200
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", resp.StatusCode)
+	}
+}
+
+func TestShouldRetryBranches(t *testing.T) {
+	rt := &RetryTransport{
+		RetryStatuses: []int{500}, // <-- nome correto
+	}
+
+	// 1. Response nil, error not nil
+	if !rt.shouldRetry(nil, fmt.Errorf("network error")) {
+		t.Error("Expected retry on network error")
+	}
+
+	// 2. Response status not listed
+	resp := &http.Response{StatusCode: 404}
+	if rt.shouldRetry(resp, nil) {
+		t.Error("Expected no retry for 404")
+	}
+
+	// 3. Response listed (500)
+	resp.StatusCode = 500
+	if !rt.shouldRetry(resp, nil) {
+		t.Error("Expected retry for 500")
+	}
+}
+
+func TestParseBodyVariants(t *testing.T) {
+	tests := []struct {
+		name string
+		in   any
+	}{
+		{"nil", nil},
+		{"string", "data"},
+		{"bytes", []byte("data")},
+		{"reader", bytes.NewReader([]byte("data"))},
+		{"struct", struct{ A string }{"x"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := parseBody(tt.in)
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+			if tt.in != nil && r == nil {
+				t.Error("Expected non-nil reader")
+			}
+		})
+	}
+}
+
+func TestDoRequestWithHeaders_Error(t *testing.T) {
+	client := New()
+	_, err := client.doRequestWithHeaders("::://badurl", "POST", map[string]string{"a": "b"}, nil)
+	if err == nil {
+		t.Error("Expected URL parse error")
+	}
+}
+
+func TestShouldRetry_NonRetriable(t *testing.T) {
+	rt := &RetryTransport{RetryStatuses: []int{502, 503}}
+	resp := &http.Response{StatusCode: 200}
+	if rt.shouldRetry(resp, nil) {
+		t.Error("Expected no retry for 200 OK")
+	}
+}
+
+func TestRetryWithoutLogger(t *testing.T) {
+	attempts := 0
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		w.WriteHeader(http.StatusBadGateway) // 502
+	}))
+	defer ts.Close()
+
+	client := New(
+		WithRetry(RetryConfig{
+			MaxRetries: 2,
+			Delay:      10 * time.Millisecond,
+			Statuses:   []int{502},
+			EnableLog:  false,
+		}),
+	)
+
+	_, _ = client.Get(ts.URL)
+	if attempts != 3 { // 1 + 2 retries
+		t.Errorf("Expected 3 attempts, got %d", attempts)
 	}
 }
