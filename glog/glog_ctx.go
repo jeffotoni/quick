@@ -23,7 +23,6 @@
 //	import (
 //		"fmt"
 //		"time"
-//		"github.com/jeffotoni/quick/glog"
 //	)
 //
 //	func main() {
@@ -48,14 +47,11 @@ import (
 	"time"
 )
 
+type ctxKey string
+
 // internalKeysKey is the reserved context key used to track which custom keys
 // were injected by the context builder, enabling retrieval via GetCtxAll.
-const internalKeysKey = "__glog_ctx_keys__"
-
-// Predefined constants to reduce allocations and provide sane defaults.
-const (
-	defaultCtxTimeout = 30 * time.Second // Default timeout for built contexts
-)
+const internalKeysKey ctxKey = "internalKeys"
 
 // contextKey is a private type to avoid key collisions in context.Context.
 // A string-based key is used instead of a struct to reduce allocations.
@@ -86,8 +82,9 @@ func getCtxKey(name string) contextKey {
 // CtxBuilder provides a fluent API for constructing a context.Context
 // with multiple key-value fields and an optional timeout.
 type CtxBuilder struct {
-	fields  map[string]string
-	timeout time.Duration
+	fields     map[string]string
+	timeout    time.Duration
+	useTimeout bool
 }
 
 // CreateCtx initializes and returns a new context builder (CtxBuilder)
@@ -98,8 +95,9 @@ type CtxBuilder struct {
 //	ctx, cancel := glog.CreateCtx().Set("TraceID", "abc").Build()
 func CreateCtx() *CtxBuilder {
 	return &CtxBuilder{
-		fields:  make(map[string]string),
-		timeout: defaultCtxTimeout,
+		fields:     make(map[string]string),
+		timeout:    0,
+		useTimeout: false,
 	}
 }
 
@@ -116,6 +114,7 @@ func (b *CtxBuilder) Set(key, value string) *CtxBuilder {
 func (b *CtxBuilder) Timeout(d time.Duration) *CtxBuilder {
 	if d > 0 {
 		b.timeout = d
+		b.useTimeout = true
 	}
 	return b
 }
@@ -136,7 +135,22 @@ func (b CtxBuilder) Build() (context.Context, context.CancelFunc) {
 	}
 
 	base = context.WithValue(base, internalKeysKey, keys)
-	return context.WithTimeout(base, b.timeout)
+	if b.useTimeout {
+		return context.WithTimeout(base, b.timeout)
+	}
+
+	return context.WithCancel(base)
+}
+
+// Background creates a long-lived context without timeout
+func (b *CtxBuilder) Background() *CtxBuilder {
+	b.useTimeout = false
+	return b
+}
+
+// Todo creates a long-lived context (alias for Background)
+func (b *CtxBuilder) Todo() *CtxBuilder {
+	return b.Background()
 }
 
 // GetCtx retrieves the string value for the given key from the context.

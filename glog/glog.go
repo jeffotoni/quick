@@ -9,9 +9,6 @@
 // Basic usage:
 //
 //	package main
-//	import (
-//		"github.com/jeffotoni/quick/glog"
-//	)
 //	func main() {
 //		logger := glog.Set(glog.Config{
 //			Format:    "text", // or "json", "slog"
@@ -35,6 +32,7 @@ package glog
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"os"
 	"runtime"
@@ -258,8 +256,23 @@ func (e *Entry) Str(k, v string) *Entry {
 	return e
 }
 
+func (e *Entry) RawJSON(k string, data []byte) *Entry {
+	if len(data) == 0 || len(bytes.TrimSpace(data)) == 0 {
+		e.fields = append(e.fields, Field{key: k, val: ""})
+	} else {
+		e.fields = append(e.fields, Field{key: k, val: json.RawMessage(data)})
+	}
+	return e
+}
+
 // Int adds an integer field to the log entry.
 func (e *Entry) Int(k string, v int) *Entry {
+	e.fields = append(e.fields, Field{key: k, val: v})
+	return e
+}
+
+// Int64 adds an integer field to the log entry.
+func (e *Entry) Int64(k string, v int64) *Entry {
 	e.fields = append(e.fields, Field{key: k, val: v})
 	return e
 }
@@ -366,7 +379,7 @@ func (e *Entry) Send() {
 	}
 
 	// Write directly to the output writer.
-	cfg.Writer.Write(buf.Bytes())
+	_, _ = cfg.Writer.Write(buf.Bytes())
 	putBuffer(buf)
 	putEntry(e)
 }
@@ -454,6 +467,8 @@ func (e *Entry) jsonFormat(buf *bytes.Buffer, cfg Config) {
 		writeKey(f.key)
 
 		switch v := f.val.(type) {
+		case json.RawMessage:
+			buf.Write(v)
 		case string:
 			writeJSONString(buf, v)
 		case int:
@@ -544,6 +559,8 @@ func (e *Entry) textFormat(buf *bytes.Buffer, cfg Config) {
 			buf.WriteByte('=')
 		}
 		switch v := f.val.(type) {
+		case json.RawMessage:
+			buf.Write(v)
 		case string:
 			buf.WriteString(v)
 		case int:
