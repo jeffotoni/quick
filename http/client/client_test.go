@@ -701,7 +701,7 @@ func TestFailoverURLs(t *testing.T) {
 
 func TestShouldRetryBranches(t *testing.T) {
 	rt := &RetryTransport{
-		RetryStatuses: []int{500}, // <-- nome correto
+		RetryStatuses: []int{500},
 	}
 
 	// 1. Response nil, error not nil
