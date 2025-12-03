@@ -77,7 +77,7 @@ import (
 
 func main() {
 	// Use the default client
-	resp, err := client.Get("http://localhost:3000/v1/user/1234")
+	resp, err := client.Get("https://reqres.in/api/users/2")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func main() {
 		Message: "Hello, POST!",
 	}
 
-	resp, err := client.Post("http://localhost:3000/v1/user", data)
+	resp, err := client.Post("https://reqres.in/api/users/2", data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func main() {
 		Message: "Hello, PUT Quick!",
 	}
 
-	resp, err := client.Put("http://localhost:3000/v1/user/1234", data)
+	resp, err := client.Put("https://reqres.in/api/users/2", data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -158,7 +158,7 @@ import (
 )
 
 func main() {
-	resp, err := client.Delete("http://localhost:3000/v1/user/1234")
+	resp, err := client.Delete("https://reqres.in/api/users/2")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -210,7 +210,7 @@ func main() {
 		Message: "Hello, POST!",
 	}
 
-	resp, err := cClient.Post("http://localhost:3000/v1/user", data)
+	resp, err := cClient.Post("https://reqres.in/api/users/2", data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -245,7 +245,7 @@ cClient := client.New(
     ),
 )
 
-resp, err := cClient.Get("http://localhost:3000/v1/user/1234")
+resp, err := cClient.Get("https://reqres.in/api/users/2")
 if err != nil {
     log.Fatal(err)
 }
