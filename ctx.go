@@ -905,16 +905,21 @@ func detectUploadedFileContentType(handler *multipart.FileHeader, fileBytes []by
 
 	ext := strings.ToLower(filepath.Ext(filename))
 	extContentType := contentTypeByExtension(filename)
+	extBase := baseMediaType(extContentType)
 
 	sniffed := http.DetectContentType(fileBytes)
 	sniffBase := baseMediaType(sniffed)
 	partBase := baseMediaType(partContentType)
 
 	if sniffBase != "" && sniffBase != "application/zip" && !isGenericMediaType(sniffBase) {
-		return sniffed
+		if sniffBase != "text/plain" || extBase == "" || extBase == "text/plain" {
+			return sniffed
+		}
 	}
 	if partContentType != "" && partBase != "" && partBase != "application/zip" && !isGenericMediaType(partBase) {
-		return partContentType
+		if partBase != "text/plain" || extBase == "" || extBase == "text/plain" {
+			return partContentType
+		}
 	}
 
 	if sniffBase == "application/zip" || partBase == "application/zip" {
@@ -926,10 +931,19 @@ func detectUploadedFileContentType(handler *multipart.FileHeader, fileBytes []by
 				return fallback
 			}
 		}
+		if _, ok := officeExtTypes[ext]; ok {
+			return sniffed
+		}
+		if extContentType != "" && extBase != "" && extBase != "application/zip" {
+			return extContentType
+		}
 		return sniffed
 	}
 
-	if extContentType != "" && (isGenericMediaType(sniffBase) || isGenericMediaType(partBase)) {
+	if extContentType != "" &&
+		(isGenericMediaType(sniffBase) || isGenericMediaType(partBase) ||
+			(sniffBase == "text/plain" && extBase != "" && extBase != "text/plain") ||
+			(partBase == "text/plain" && extBase != "" && extBase != "text/plain")) {
 		return extContentType
 	}
 
@@ -987,6 +1001,72 @@ var officeExtTypes = map[string]officeExtInfo{
 	".sldx": {mime: "application/vnd.openxmlformats-officedocument.presentationml.slide", kind: officePowerPoint},
 	".sldm": {mime: "application/vnd.ms-powerpoint.slide.macroEnabled.12", kind: officePowerPoint},
 	".ppam": {mime: "application/vnd.ms-powerpoint.addin.macroEnabled.12", kind: officePowerPoint},
+}
+
+var commonExtTypes = map[string]string{
+	// Documents / structured text
+	".json":     "application/json",
+	".csv":      "text/csv; charset=utf-8",
+	".tsv":      "text/tab-separated-values; charset=utf-8",
+	".yaml":     "application/x-yaml",
+	".yml":      "application/x-yaml",
+	".toml":     "application/toml",
+	".md":       "text/markdown; charset=utf-8",
+	".markdown": "text/markdown; charset=utf-8",
+	".rtf":      "application/rtf",
+
+	// Images
+	".svg":  "image/svg+xml",
+	".avif": "image/avif",
+	".heic": "image/heic",
+	".heif": "image/heif",
+	".tif":  "image/tiff",
+	".tiff": "image/tiff",
+	".ico":  "image/vnd.microsoft.icon",
+
+	// Archives / packages
+	".7z":   "application/x-7z-compressed",
+	".rar":  "application/vnd.rar",
+	".tar":  "application/x-tar",
+	".gz":   "application/gzip",
+	".tgz":  "application/gzip",
+	".bz2":  "application/x-bzip2",
+	".xz":   "application/x-xz",
+	".zst":  "application/zstd",
+	".jar":  "application/java-archive",
+	".epub": "application/epub+zip",
+	".apk":  "application/vnd.android.package-archive",
+
+	// OpenDocument (ODF)
+	".odt": "application/vnd.oasis.opendocument.text",
+	".ods": "application/vnd.oasis.opendocument.spreadsheet",
+	".odp": "application/vnd.oasis.opendocument.presentation",
+	".odg": "application/vnd.oasis.opendocument.graphics",
+	".odc": "application/vnd.oasis.opendocument.chart",
+	".odi": "application/vnd.oasis.opendocument.image",
+	".odf": "application/vnd.oasis.opendocument.formula",
+	".odb": "application/vnd.oasis.opendocument.database",
+	".ott": "application/vnd.oasis.opendocument.text-template",
+	".ots": "application/vnd.oasis.opendocument.spreadsheet-template",
+	".otp": "application/vnd.oasis.opendocument.presentation-template",
+	".otg": "application/vnd.oasis.opendocument.graphics-template",
+
+	// Audio
+	".mp3":  "audio/mpeg",
+	".wav":  "audio/wav",
+	".flac": "audio/flac",
+	".ogg":  "audio/ogg",
+	".opus": "audio/opus",
+	".aac":  "audio/aac",
+	".m4a":  "audio/mp4",
+
+	// Video
+	".mp4":  "video/mp4",
+	".mov":  "video/quicktime",
+	".mkv":  "video/x-matroska",
+	".webm": "video/webm",
+	".avi":  "video/x-msvideo",
+	".m4v":  "video/x-m4v",
 }
 
 func officeKindFromZip(fileBytes []byte) officeKind {
@@ -1051,6 +1131,10 @@ func contentTypeByExtension(filename string) string {
 
 	if info, ok := officeExtTypes[ext]; ok {
 		return info.mime
+	}
+
+	if mimeType, ok := commonExtTypes[ext]; ok {
+		return mimeType
 	}
 
 	if mimeType := mime.TypeByExtension(ext); mimeType != "" {
