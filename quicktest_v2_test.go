@@ -209,7 +209,8 @@ func TestQTest_Options_OPTIONS(t *testing.T) {
 	q := New()
 
 	q.Options("/v1/user/options", func(c *Ctx) error {
-		return c.Status(StatusNoContent).String("")
+		c.Response.WriteHeader(StatusNoContent)
+		return nil
 	})
 
 	opts := QuickTestOptions{

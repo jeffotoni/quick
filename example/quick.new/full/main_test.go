@@ -39,7 +39,8 @@ func setupApp() *quick.Quick {
 	})
 
 	q.Delete("/delete", func(c *quick.Ctx) error {
-		return c.Status(204).String("") // No content response
+		c.Response.WriteHeader(quick.StatusNoContent) // No content response
+		return nil
 	})
 
 	return q
