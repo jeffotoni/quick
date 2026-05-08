@@ -23,6 +23,8 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/jeffotoni/quick/middleware/cors"
 )
 
 // TestNew verifies the behavior of creating a new Quick instance using default and custom configuration.
@@ -356,6 +358,56 @@ func TestCorsHandler(t *testing.T) {
 
 		if w.Header().Get("Access-Control-Allow-Origin") != "*" {
 			t.Errorf("Expected CORS header to be '*', got '%s'", w.Header().Get("Access-Control-Allow-Origin"))
+		}
+	})
+}
+
+func TestUseDetectsCorsMiddlewareWithRestrictedOrigins(t *testing.T) {
+	t.Run("Detects cors middleware when probe origin is not explicitly allowed", func(t *testing.T) {
+		q := New()
+		q.Use(cors.New(cors.Config{
+			AllowedOrigins:   []string{"http://localhost:4200", "http://127.0.0.1:4200"},
+			AllowedMethods:   []string{"POST", "OPTIONS"},
+			AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Client-Timezone", "Accept"},
+			ExposedHeaders:   []string{"Content-Length"},
+			AllowCredentials: true,
+			MaxAge:           600,
+		}))
+
+		if !q.Cors {
+			t.Fatal("Expected Quick to detect CORS middleware")
+		}
+
+		if q.CorsSet == nil {
+			t.Fatal("Expected Quick to store the CORS middleware handler")
+		}
+
+		req := httptest.NewRequest(http.MethodOptions, "/v1/chatai/auth/session/init", nil)
+		req.Header.Set("Origin", "http://localhost:4200")
+		req.Header.Set("Access-Control-Request-Method", http.MethodPost)
+		req.Header.Set("Access-Control-Request-Headers", "content-type,x-client-timezone,accept")
+
+		rec := httptest.NewRecorder()
+		q.handleOptions(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("Expected status 204 No Content, got %d", rec.Code)
+		}
+
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:4200" {
+			t.Fatalf("Expected Access-Control-Allow-Origin to be %q, got %q", "http://localhost:4200", got)
+		}
+
+		if got := rec.Header().Get("Access-Control-Allow-Credentials"); got != "true" {
+			t.Fatalf("Expected Access-Control-Allow-Credentials to be %q, got %q", "true", got)
+		}
+
+		if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "POST, OPTIONS" {
+			t.Fatalf("Expected Access-Control-Allow-Methods to be %q, got %q", "POST, OPTIONS", got)
+		}
+
+		if got := rec.Header().Get("Access-Control-Allow-Headers"); got != "Content-Type, Authorization, X-Client-Timezone, Accept" {
+			t.Fatalf("Expected Access-Control-Allow-Headers to be %q, got %q", "Content-Type, Authorization, X-Client-Timezone, Accept", got)
 		}
 	})
 }

@@ -472,13 +472,25 @@ func isCorsMiddleware(mw func(http.Handler) http.Handler) bool {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	testRequest := httptest.NewRequest("OPTIONS", "/", nil)
 	testRequest.Header.Set("Origin", "http://localhost:3000")                             // Add Origin header for CORS detection
+	testRequest.Header.Set("Access-Control-Request-Method", MethodPost)                   // Add requested method for preflight detection
 	testRequest.Header.Set("Access-Control-Request-Headers", "Content-Type, X-App-Marca") // Add requested headers
 	testResponse := httptest.NewRecorder()
 
 	mw(testHandler).ServeHTTP(testResponse, testRequest)
 
-	// If the middleware sets Access-Control-Allow-Origin, it's CORS
-	return testResponse.Header().Get("Access-Control-Allow-Origin") != ""
+	for header := range testResponse.Header() {
+		switch header {
+		case "Access-Control-Allow-Origin",
+			"Access-Control-Allow-Methods",
+			"Access-Control-Allow-Headers",
+			"Access-Control-Allow-Credentials",
+			"Access-Control-Expose-Headers",
+			"Access-Control-Max-Age":
+			return true
+		}
+	}
+
+	return false
 }
 
 // clearRegex processes a route pattern, removing dynamic path parameters
