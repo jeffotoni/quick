@@ -864,16 +864,14 @@ func TestQuick_ListenTLS_GCPercent(t *testing.T) {
 	q := New()
 	q.config.GCPercent = 100
 
-	go func() {
-		err := q.ListenTLS(":8081", "cert.pem", "key.pem", false)
-		if err != nil && !strings.Contains(err.Error(), "no such file or directory") {
-			t.Errorf("Expected file error, got: %v", err)
-		}
-	}()
+	err := q.ListenTLS("127.0.0.1:-1", "cert.pem", "key.pem", false)
+	if err == nil {
+		t.Fatal("expected listener creation to fail")
+	}
 
-	time.Sleep(100 * time.Millisecond)
-	// Check GC percentage
-	if gc := debug.SetGCPercent(-1); gc != q.config.GCPercent {
+	gc := debug.SetGCPercent(-1)
+	debug.SetGCPercent(gc)
+	if gc != q.config.GCPercent {
 		t.Errorf("Expected GCPercent %d, got %d", q.config.GCPercent, gc)
 	}
 }
