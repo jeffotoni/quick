@@ -538,9 +538,17 @@ func clearRegex(route string) string {
 func (q *Quick) registerRoute(method, pattern string, handlerFunc HandleFunc) {
 	path, params, patternExist := extractParamsPattern(pattern)
 	formattedPath := concat.String(strings.ToLower(method), "#", clearRegex(pattern))
+	routePattern := patternExist
+	if routePattern == "" {
+		routePattern = path
+	}
 
 	for _, route := range q.routes {
-		if route.Method == method && route.Path == path {
+		existingPattern := route.Pattern
+		if existingPattern == "" {
+			existingPattern = route.Path
+		}
+		if route.Method == method && existingPattern == routePattern {
 			fmt.Printf("Warning: Route '%s %s' is already registered, ignoring duplicate registration.\n", method, path)
 			return // Ignore duplication instead of generating panic
 		}
